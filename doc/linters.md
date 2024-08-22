@@ -1409,6 +1409,18 @@ Example warning: `require with :refer`.
 {:linters {:refer-all {:exclude [clojure.set]}}}
 ```
 
+### Schema misplaced return
+
+*Keyword:* `:schema-misplaced-return`
+
+*Description:* warn on a misplaced return Schema
+
+*Default level:* `:warning`
+
+*Example trigger:* `(require '[schema.core :as s]) (s/defn foo [] :- s/Str)`
+
+*Example message:* `Return schema should go before vector.`
+
 ### Self-requiring namespace
 
 *Keyword:* `:self-requiring-namespace`

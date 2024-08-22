@@ -59,3 +59,5 @@
 
 (s/defn good-return1 [] :-)
 (s/defn good-return2 ([] :-))
+
+#_:clj-kondo/ignore (s/defn foo [] :- s/Str) ;; schema-misplaced-return can be ignored

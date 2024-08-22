@@ -37,20 +37,18 @@
 (defn- defmethod-dispatch-val? [fn-sym index]
   (and (= 'defmethod fn-sym) (= 2 index)))
 
-(defn- reg-misplaced-return-schema!
+(defn reg-misplaced-return-schema!
   [ctx expr msg]
   (findings/reg-finding!
     ctx
-    (-> (utils/node->line (:filename ctx)
-                          expr
-                          :misplaced-schema-return
-                          msg)
-        (assoc :level :warning))))
+    (utils/node->line (:filename ctx)
+                      expr
+                      :schema-misplaced-return
+                      msg)))
 
 (defn expand-schema
   [ctx fn-sym expr]
   (let [children (:children expr)
-        nchildren (count children)
         {:keys [new-children
                 schemas]}
         (loop [[fst-child & rest-children] children
@@ -77,44 +75,45 @@
                      (update res :schemas conj (first rest-children))
                      past-arg-schemas)
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
-              (let [;; detect misplaced return like (s/defn f [] :- Return body)
-                    _ (when (and (next rest-children) ;; `(s/defn f [] :-)` is fine
-                                 (has-schema-node? (first rest-children)))
-                        (reg-misplaced-return-schema!
-                          ctx (nth children (inc index))
-                          "Return schema should go before vector."))
-                    {:keys [expr schemas]} (remove-schemas-from-children fst-child)]
-                (recur rest-children
-                       (inc index)
-                       (-> res
-                           (update :schemas into schemas)
-                           (update :new-children conj expr))
-                       true))
+              (do ;; detect misplaced return like (s/defn f [] :- Return body)
+                (when (and (next rest-children) ;; `(s/defn f [] :-)` is fine
+                           (has-schema-node? (first rest-children)))
+                  (reg-misplaced-return-schema!
+                   ctx (nth children (inc index))
+                   "Return schema should go before vector."))
+                (let [{:keys [expr schemas]} (remove-schemas-from-children fst-child)]
+                  (recur rest-children
+                         (inc index)
+                         (-> res
+                             (update :schemas into schemas)
+                             (update :new-children conj expr))
+                         true)))
               (and (hooks/list-node? expr)
                    ;; (s/defn foo ()) will fail when expanded form is checked
                    (seq (:children fst-child)))
-              (recur rest-children
-                     (inc index)
-                     (let [[params & after-params] (:children fst-child)
-                           valid-params-position? (= :vector (utils/tag params))
-                           ;; detect misplaced return like (s/defn f ([] :- Return body))
-                           _ (when (and valid-params-position? ;; (:- Foo []) will be treated as missing params
-                                        (next after-params) ;; (s/defn f ([] :-)) is fine
-                                        (has-schema-node? (first after-params)))
-                               (reg-misplaced-return-schema!
-                                 ctx (first after-params)
-                                 "Return schema should go before arities."))
-                           {:keys [:expr :schemas]} (if valid-params-position?
-                                                      (remove-schemas-from-children params)
-                                                      ;; (s/defn foo (:- Foo [])) expanded forms will warn missing params
-                                                      {:expr params
-                                                       :schemas []})
-                           new-cchildren (cons expr after-params)
-                           new-fst-child (assoc fst-child :children new-cchildren)]
-                       (-> res
-                           (update :schemas into schemas)
-                           (update :new-children conj new-fst-child)))
-                     past-arg-schemas)
+              (let [res (let [[params & after-params] (:children fst-child)
+                              valid-params-position? (= :vector (utils/tag params))
+                              ;; detect misplaced return like (s/defn f ([] :- Return body))
+                              _ (when (and valid-params-position? ;; (:- Foo []) will be treated as missing params
+                                           (next after-params) ;; (s/defn f ([] :-)) is fine
+                                           (has-schema-node? (first after-params)))
+                                  (reg-misplaced-return-schema!
+                                   ctx (first after-params)
+                                   "Return schema should go before arities."))
+                              {:keys [:expr :schemas]} (if valid-params-position?
+                                                         (remove-schemas-from-children params)
+                                                         ;; (s/defn foo (:- Foo [])) expanded forms will warn missing params
+                                                         {:expr params
+                                                          :schemas []})
+                              new-cchildren (cons expr after-params)
+                              new-fst-child (assoc fst-child :children new-cchildren)]
+                          (-> res
+                              (update :schemas into schemas)
+                              (update :new-children conj new-fst-child)))]
+                (recur rest-children
+                       (inc index)
+                       res
+                       past-arg-schemas))
               :else (recur rest-children
                            (inc index)
                            (update res :new-children conj fst-child)
