@@ -38,13 +38,18 @@
   (and (= 'defmethod fn-sym) (= 2 index)))
 
 (defn reg-misplaced-return-schema!
-  [ctx expr msg]
-  (findings/reg-finding!
-    ctx
-    (utils/node->line (:filename ctx)
-                      expr
-                      :schema-misplaced-return
-                      msg)))
+  [ctx has-schema-expr schema-expr msg]
+  (let [left-meta (meta has-schema-expr)
+        right-meta (meta schema-expr)]
+    (findings/reg-finding!
+      ctx
+      {:type :schema-misplaced-return
+       :message msg
+       :row (:row left-meta)
+       :col (:col left-meta)
+       :end-row (:end-row right-meta)
+       :end-col (:end-col right-meta)
+       :filename (:filename ctx)})))
 
 (defn expand-schema
   [ctx fn-sym expr]
@@ -79,7 +84,7 @@
                 (when (and (next rest-children) ;; `(s/defn f [] :-)` is fine
                            (has-schema-node? (first rest-children)))
                   (reg-misplaced-return-schema!
-                   ctx (nth children (+ index 2))
+                   ctx (first rest-children) (second rest-children)
                    "Return schema should go before vector."))
                 (let [{:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                   (recur rest-children
@@ -98,7 +103,7 @@
                                            (next after-params) ;; (s/defn f ([] :-)) is fine
                                            (has-schema-node? (first after-params)))
                                   (reg-misplaced-return-schema!
-                                   ctx (second after-params)
+                                   ctx (second after-params) (nth after-params 2)
                                    "Return schema should go before arities."))
                               {:keys [:expr :schemas]} (if valid-params-position?
                                                          (remove-schemas-from-children params)
