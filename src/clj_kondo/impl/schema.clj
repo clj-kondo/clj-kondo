@@ -31,8 +31,8 @@
 (defn- has-schema-node? [n]
   (and (some? n)
        ;; perf: don't call sexpr if we don't need to
-       (= :token (utils/tag n))
-       (= :- (utils/sexpr n))))
+       (identical? :token (utils/tag n))
+       (identical? :- (:k n))))
 
 (defn- defmethod-dispatch-val? [fn-sym index]
   (and (= 'defmethod fn-sym) (= 2 index)))
