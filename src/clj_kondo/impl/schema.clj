@@ -79,7 +79,7 @@
                 (when (and (next rest-children) ;; `(s/defn f [] :-)` is fine
                            (has-schema-node? (first rest-children)))
                   (reg-misplaced-return-schema!
-                   ctx (nth children (inc index))
+                   ctx (nth children (+ index 2))
                    "Return schema should go before vector."))
                 (let [{:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                   (recur rest-children
@@ -98,7 +98,7 @@
                                            (next after-params) ;; (s/defn f ([] :-)) is fine
                                            (has-schema-node? (first after-params)))
                                   (reg-misplaced-return-schema!
-                                   ctx (first after-params)
+                                   ctx (second after-params)
                                    "Return schema should go before arities."))
                               {:keys [:expr :schemas]} (if valid-params-position?
                                                          (remove-schemas-from-children params)
