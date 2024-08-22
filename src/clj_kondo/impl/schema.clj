@@ -37,13 +37,13 @@
 (defn- defmethod-dispatch-val? [fn-sym index]
   (and (= 'defmethod fn-sym) (= 2 index)))
 
-(defn- reg-suspicious-return-schema!
+(defn- reg-misplaced-return-schema!
   [ctx expr msg]
   (findings/reg-finding!
     ctx
     (-> (utils/node->line (:filename ctx)
                           expr
-                          :suspicious-schema-return
+                          :misplaced-schema-return
                           msg)
         (assoc :level :warning))))
 
@@ -79,7 +79,7 @@
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
               (let [_ (when (and (< (+ 2 index) nchildren) ;; `(s/defn f [] :-)` is fine
                                  (has-schema-node? (nth children (inc index))))
-                        (reg-suspicious-return-schema!
+                        (reg-misplaced-return-schema!
                           ctx (nth children (inc index))
                           "Return schema should go before vector."))
                     {:keys [expr schemas]} (remove-schemas-from-children fst-child)]
@@ -99,7 +99,7 @@
                            _ (when (and valid-params-position? ;; (:- Foo []) will be treated as missing params
                                         (next after-params) ;; ([] :-) is fine
                                         (has-schema-node? (first after-params)))
-                               (reg-suspicious-return-schema!
+                               (reg-misplaced-return-schema!
                                  ctx (first after-params)
                                  "Return schema should go before arities."))
                            {:keys [:expr :schemas]} (if valid-params-position?
