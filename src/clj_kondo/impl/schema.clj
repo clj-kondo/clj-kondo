@@ -122,6 +122,7 @@
 
 ;;;; Scratch
 
+#_
 (comment
   (require '[schema.core :as s])
   (s/defn foo [])
