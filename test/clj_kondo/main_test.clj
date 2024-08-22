@@ -14,9 +14,11 @@
 
 (deftest self-lint-test
   (is (empty? (lint! (io/file "src")
-                     {:linters {:unresolved-symbol {:level :error}}})))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unused-binding {:level :warning}}})))
   (is (empty? (lint! (io/file "test")
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unused-binding {:level :warning}}}))))
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
@@ -1197,7 +1199,29 @@ foo/foo ;; this does use the private var
       :row 31,
       :col 14,
       :level :error,
-      :message "missing value for key :b"})
+      :message "missing value for key :b"}
+     {:file "corpus/schema/defs.clj",
+      :row 34
+      :col 6
+      :level
+      :warning
+      :message "Return schema should go before vector."}
+     {:file "corpus/schema/defs.clj",
+      :row 39,
+      :col 7,
+      :level :warning,
+      :message "Return schema should go before arities."}
+     {:file "corpus/schema/defs.clj",
+      :row 43,
+      :col 3,
+      :level :error,
+      :message
+      "Function arguments should be wrapped in vector."}
+     {:file "corpus/schema/defs.clj",
+      :row 58,
+      :col 3,
+      :level :error,
+      :message "Invalid function body."})
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"

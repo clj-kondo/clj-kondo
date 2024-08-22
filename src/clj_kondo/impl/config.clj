@@ -168,7 +168,8 @@
               :destructured-or-binding-of-same-map {:level :warning}
               :min-clj-kondo-version {:level :warning
                                       ;; the version itself is configured at the top level
-                                      }}
+                                      }
+              :schema-misplaced-return {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
