@@ -77,8 +77,9 @@
                      (update res :schemas conj (first rest-children))
                      past-arg-schemas)
               (and (hooks/vector-node? expr) (not (defmethod-dispatch-val? fn-sym index)))
-              (let [_ (when (and (< (+ 2 index) nchildren) ;; `(s/defn f [] :-)` is fine
-                                 (has-schema-node? (nth children (inc index))))
+              (let [;; detect misplaced return like (s/defn f [] :- Return body)
+                    _ (when (and (next rest-children) ;; `(s/defn f [] :-)` is fine
+                                 (has-schema-node? (first rest-children)))
                         (reg-misplaced-return-schema!
                           ctx (nth children (inc index))
                           "Return schema should go before vector."))
@@ -96,8 +97,9 @@
                      (inc index)
                      (let [[params & after-params] (:children fst-child)
                            valid-params-position? (= :vector (utils/tag params))
+                           ;; detect misplaced return like (s/defn f ([] :- Return body))
                            _ (when (and valid-params-position? ;; (:- Foo []) will be treated as missing params
-                                        (next after-params) ;; ([] :-) is fine
+                                        (next after-params) ;; (s/defn f ([] :-)) is fine
                                         (has-schema-node? (first after-params)))
                                (reg-misplaced-return-schema!
                                  ctx (first after-params)
