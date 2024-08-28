@@ -400,7 +400,7 @@
       {:fixed-arity arity})))
 
 (defn analyze-fn-arity [ctx body]
-  (prn :ana-fn-arity)
+  #_(prn :ana-fn-arity)
   (utils/handle-ignore ctx body)
   (if-let [children (seq (:children body))]
     (let [arg-vec (first children)
@@ -466,13 +466,15 @@
             (partition 2 children))))
 
 (defn analyze-fn-body [ctx body]
-  (prn :ana-fn-body)
+  #_(prn :ana-fn-body)
+  #_(prn (:analyzed-arity body))
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
                 :arity :analyzed-arg-vec :arglist-str :arg-vec]
          return-tag :ret
-         arg-tags :args} (:analyzed-arity body) #_(analyze-fn-arity ctx body)
+         arg-tags :args} (or (:analyzed-arity body)
+                             (analyze-fn-arity ctx body))
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
@@ -1008,7 +1010,7 @@
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
-        arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
+        arity (fn-arity (assoc ctx :skip-reg-binding? false #_true) bodies)
         analyzed-arities (:analyzed-arities arity)
         bodies (map (fn [body arity]
                       (assoc body :analyzed-arity arity))
