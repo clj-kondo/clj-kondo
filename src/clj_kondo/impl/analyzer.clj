@@ -82,6 +82,7 @@
                children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
+  #_(prn :anathefuck)
   (let [mark-used? (or (:skip-reg-binding? ctx)
                        (:mark-bindings-used? ctx)
                        (when (:fn-args? opts)
@@ -399,6 +400,7 @@
       {:fixed-arity arity})))
 
 (defn analyze-fn-arity [ctx body]
+  (prn :ana-fn-arity)
   (utils/handle-ignore ctx body)
   (if-let [children (seq (:children body))]
     (let [arg-vec (first children)
@@ -464,12 +466,13 @@
             (partition 2 children))))
 
 (defn analyze-fn-body [ctx body]
+  (prn :ana-fn-body)
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
                 :arity :analyzed-arg-vec :arglist-str :arg-vec]
          return-tag :ret
-         arg-tags :args} (analyze-fn-arity ctx body)
+         arg-tags :args} (:analyzed-arity body) #_(analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
         ctx (assoc ctx
                    :recur-arity arity
@@ -967,7 +970,7 @@
         varargs-min-arity (some #(when (:varargs? (:arity %))
                                    (:min-arity (:arity %))) arities)
         arglist-strs (vec (keep :arglist-str arities))]
-    (cond-> {}
+    (cond-> {:analyzed-arities arities}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1006,6 +1009,11 @@
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
+        analyzed-arities (:analyzed-arities arity)
+        bodies (map (fn [body arity]
+                      (assoc body :analyzed-arity arity))
+                    bodies
+                    analyzed-arities)
         filename (:filename ctx)
         parsed-bodies
         (let [ctx (-> ctx
