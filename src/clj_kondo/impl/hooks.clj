@@ -27,7 +27,7 @@
           (some (fn [ext]
                   (let [f (io/file cp-entry (str base-path "." ext))]
                     (when (.exists f) f)))
-                ["clj_kondo" "clj"]))
+                ["clj_kondo" "clj" "cljc"]))
         (:classpath *ctx*)))
 
 #_(defmacro macroexpand [macro node]
