@@ -12,10 +12,6 @@ size) with a logo and hiring link (if applicable)!
 
 ## Sponsoring companies
 
-### [Adgoji](https://www.adgoji.com/)
-
-![adgoji](https://images.squarespace-cdn.com/content/v1/5e5f79dcaeba9e2b64132975/1585646545419-5DOZS4SVO5AU0MFA3ZB3/adgoji_logofull.png?format=300w)
-
 ### [Nubank](https://nubank.com.br/)
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/f/f7/Nubank_logo_2021.svg" width="200">
@@ -29,6 +25,14 @@ Sponsoring via [Cognitect](https://www.cognitect.com/).
 ### [Cognician](https://www.cognician.com)
 
 <img src="https://avatars.githubusercontent.com/u/1450774?s=150&v=4">
+
+### [Metabase](https://metabase.com)
+
+<img src="https://www.metabase.com/images/logo.svg">
+
+### [Adgoji](https://www.adgoji.com/)
+
+![adgoji](https://images.squarespace-cdn.com/content/v1/5e5f79dcaeba9e2b64132975/1585646545419-5DOZS4SVO5AU0MFA3ZB3/adgoji_logofull.png?format=300w)
 
 ### [CircleCI](https://circleci.com/)
 
