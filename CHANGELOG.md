@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2024.08.29
 
+- [#2303](https://github.com/clj-kondo/clj-kondo/issues/2303): Support array class notation of Clojure 1.12 (`byte/1`)
 - [#916](https://github.com/clj-kondo/clj-kondo/issues/916): New linter: `:destructured-or-binding-of-same-map` which warns about
   `:or` defaults referring to bindings of same map, which is undefined and may result in broken
   behavior
@@ -28,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2374](https://github.com/clj-kondo/clj-kondo/issues/2374): Detect misplaced return Schemas ([@frenchy64](https://github.com/frenchy64))
 - [#2364](https://github.com/clj-kondo/clj-kondo/issues/2364): performance: code that analyzed fn arity is ran twice
 - [#2355](https://github.com/clj-kondo/clj-kondo/issues/2355): support `:as-alias` with current namespace without warning about self-requiring namespace
+- [#2369](https://github.com/clj-kondo/clj-kondo/issues/2369): false positive unused value in quoted list
 
 ## 2024.08.01
 
