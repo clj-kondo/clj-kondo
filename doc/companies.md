@@ -28,7 +28,7 @@ Sponsoring via [Cognitect](https://www.cognitect.com/).
 
 ### [Metabase](https://metabase.com)
 
-<img src="https://www.metabase.com/images/logo.svg">
+<img src="https://www.metabase.com/images/logo.svg" width="200">
 
 ### [Adgoji](https://www.adgoji.com/)
 
