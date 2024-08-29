@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2024.08.29
 
 - [#916](https://github.com/clj-kondo/clj-kondo/issues/916): New linter: `:destructured-or-binding-of-same-map` which warns about
   `:or` defaults referring to bindings of same map, which is undefined and may result in broken
