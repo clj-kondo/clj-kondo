@@ -971,8 +971,13 @@
         fixed-arities (set (keep (comp :fixed-arity :arity) arities))
         varargs-min-arity (some #(when (:varargs? (:arity %))
                                    (:min-arity (:arity %))) arities)
-        arglist-strs (vec (keep :arglist-str arities))]
-    (cond-> {:analyzed-arities arities}
+        arglist-strs (vec (keep :arglist-str arities))
+        bodies (map (fn [body arity]
+                      (assoc body :analyzed-arity arity))
+                    bodies arities)]
+    (cond->
+        ;; we return bodies so we don't have to run fn-arity twice over the bodies
+        {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1010,12 +1015,8 @@
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
-        arity (fn-arity ctx #_(assoc ctx :skip-reg-binding? false #_true) bodies)
-        analyzed-arities (:analyzed-arities arity)
-        bodies (map (fn [body arity]
-                      (assoc body :analyzed-arity arity))
-                    bodies
-                    analyzed-arities)
+        arity (fn-arity ctx bodies)
+        bodies (:bodies arity)
         filename (:filename ctx)
         parsed-bodies
         (let [ctx (-> ctx
@@ -1174,7 +1175,8 @@
                             :let [children (:children f)
                                   fn-name (:value (first children))
                                   bodies (fn-bodies ctx* (next children) f)
-                                  arity (fn-arity (assoc ctx* :skip-reg-binding? true) bodies)]]
+                                  arity (fn-arity ctx bodies)
+                                  bodies (:bodies arity)]]
                         {:name fn-name
                          :arity arity
                          :bodies bodies})
