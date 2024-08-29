@@ -3221,7 +3221,9 @@ foo/")))
    '(#_{:file "<stdin>", :row 1, :col 20, :level :warning, :message "namespace foo.bar is required but never used"}
      {:file "<stdin>", :row 1, :col 44, :level :warning, :message "Unresolved namespace fx. Are you missing a require?"})
    (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fx/bar"))
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar"))))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar")))
+  (is (empty? (lint! "(ns foo (:require [foo :as-alias fb])) `fb/bar"
+                     {:linters {:self-requiring-namespace {:level :warning}}}))))
 
 (deftest as-aliased-var-usage-test
   (assert-submaps2

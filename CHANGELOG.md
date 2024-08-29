@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2369](https://github.com/clj-kondo/clj-kondo/issues/2369): false positive unused value in quoted list
 - [#2374](https://github.com/clj-kondo/clj-kondo/issues/2374): Detect misplaced return Schemas ([@frenchy64](https://github.com/frenchy64))
 - [#2364](https://github.com/clj-kondo/clj-kondo/issues/2364): performance: code that analyzed fn arity is ran twice
+- [#2355](https://github.com/clj-kondo/clj-kondo/issues/2355): support `:as-alias` with current namespace without warning about self-requiring namespace
 
 ## 2024.08.01
 

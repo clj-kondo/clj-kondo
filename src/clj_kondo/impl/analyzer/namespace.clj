@@ -150,7 +150,8 @@
                                        req-macros?)]
         (when (and (= ns-name current-ns-name)
                    (not req-macros?)
-                   (not (:in-comment ctx)))
+                   (not (:in-comment ctx))
+                   (not (= :as-alias (:k (first option-exprs)))))
           (findings/reg-finding!
            ctx
            (node->line
