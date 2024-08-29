@@ -82,6 +82,7 @@
                children))))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
+  #_(prn :anathefuck)
   (let [mark-used? (or (:skip-reg-binding? ctx)
                        (:mark-bindings-used? ctx)
                        (when (:fn-args? opts)
@@ -399,34 +400,36 @@
       {:fixed-arity arity})))
 
 (defn analyze-fn-arity [ctx body]
-  (utils/handle-ignore ctx body)
-  (if-let [children (seq (:children body))]
-    (let [arg-vec (first children)
-          arg-vec-t (tag arg-vec)]
-      (if (not= :vector arg-vec-t)
-        (findings/reg-finding! ctx
-                               (node->line (:filename ctx)
-                                           body
-                                           :syntax
-                                           "Function arguments should be wrapped in vector."))
-        (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
-              arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
-              {return-tag :tag
-               arg-tags :tags} (meta arg-bindings)
-              arity (analyze-arity ctx arg-vec)
-              ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
-                           :arity arity
-                           :analyzed-arg-vec (:analyzed arg-bindings)
-                           :arg-vec arg-vec
-                           :args arg-tags
-                           :ret return-tag}
-                    (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
-          ret)))
-    (findings/reg-finding! ctx
-                           (node->line (:filename ctx)
-                                       body
-                                       :syntax
-                                       "Invalid function body."))))
+  (if-let [a (:analyzed-arity body)]
+    a
+    (do (utils/handle-ignore ctx body)
+        (if-let [children (seq (:children body))]
+          (let [arg-vec (first children)
+                arg-vec-t (tag arg-vec)]
+            (if (not= :vector arg-vec-t)
+              (findings/reg-finding! ctx
+                                     (node->line (:filename ctx)
+                                                 body
+                                                 :syntax
+                                                 "Function arguments should be wrapped in vector."))
+              (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
+                    arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
+                    {return-tag :tag
+                     arg-tags :tags} (meta arg-bindings)
+                    arity (analyze-arity ctx arg-vec)
+                    ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
+                                 :arity arity
+                                 :analyzed-arg-vec (:analyzed arg-bindings)
+                                 :arg-vec arg-vec
+                                 :args arg-tags
+                                 :ret return-tag}
+                          (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
+                ret)))
+          (findings/reg-finding! ctx
+                                 (node->line (:filename ctx)
+                                             body
+                                             :syntax
+                                             "Invalid function body."))))))
 
 (defn- meta-arglists-node->strs
   "Return arglist-strs for `node` representing arglists metadata value.
@@ -464,6 +467,8 @@
             (partition 2 children))))
 
 (defn analyze-fn-body [ctx body]
+  #_(prn :ana-fn-body)
+  #_(prn (:analyzed-arity body))
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
@@ -966,8 +971,13 @@
         fixed-arities (set (keep (comp :fixed-arity :arity) arities))
         varargs-min-arity (some #(when (:varargs? (:arity %))
                                    (:min-arity (:arity %))) arities)
-        arglist-strs (vec (keep :arglist-str arities))]
-    (cond-> {}
+        arglist-strs (vec (keep :arglist-str arities))
+        bodies (map (fn [body arity]
+                      (assoc body :analyzed-arity arity))
+                    bodies arities)]
+    (cond->
+        ;; we return bodies so we don't have to run fn-arity twice over the bodies
+        {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1005,7 +1015,8 @@
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
-        arity (fn-arity (assoc ctx :skip-reg-binding? true) bodies)
+        arity (fn-arity ctx bodies)
+        bodies (:bodies arity)
         filename (:filename ctx)
         parsed-bodies
         (let [ctx (-> ctx
@@ -1164,7 +1175,8 @@
                             :let [children (:children f)
                                   fn-name (:value (first children))
                                   bodies (fn-bodies ctx* (next children) f)
-                                  arity (fn-arity (assoc ctx* :skip-reg-binding? true) bodies)]]
+                                  arity (fn-arity ctx bodies)
+                                  bodies (:bodies arity)]]
                         {:name fn-name
                          :arity arity
                          :bodies bodies})
