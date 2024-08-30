@@ -1,1 +1,1 @@
-["^ ","~$open-url-in-swing",["^ ","~:row",15,"~:col",1,"~:private",true,"~:fixed-arities",["~#set",[1]],"~:name","^0","~:ns","~$clojure.java.browse-ui","~:top-ns","^8","~:type","~:fn"],"~:filename","clojure/java/browse_ui.clj"]
+["^ ","~$open-url-in-swing",["^ ","~:fixed-arities",["~#set",[1]],"~:private",true,"~:ns","~$clojure.java.browse-ui","~:name","^0","~:type","~:fn","~:col",1,"~:top-ns","^5","~:row",15],"~:filename","clojure/java/browse_ui.clj"]
