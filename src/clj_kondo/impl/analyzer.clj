@@ -1187,7 +1187,7 @@
         parsed-fns (map #(analyze-fn-body ctx* %) (mapcat :bodies processed-fns))
         ctx (assoc ctx* :protocol-fn protocol-fn)
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
-    (concat (mapcat :parsed parsed-fns) analyzed-children)))
+    (concat (mapcat :parsed (doall parsed-fns)) analyzed-children)))
 
 (declare analyze-defmethod)
 
