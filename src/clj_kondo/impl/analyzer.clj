@@ -1187,7 +1187,7 @@
         parsed-fns (map #(analyze-fn-body ctx* %) (mapcat :bodies processed-fns))
         ctx (assoc ctx* :protocol-fn protocol-fn)
         analyzed-children (analyze-children ctx (->> expr :children (drop 2)))]
-    (concat (mapcat :parsed (doall parsed-fns)) analyzed-children)))
+    (concat (mapcat :parsed parsed-fns) analyzed-children)))
 
 (declare analyze-defmethod)
 
@@ -3064,6 +3064,8 @@
                                                      :row row
                                                      :col col
                                                      :expr expr})
+                              _ (dorun ret) ;; realize all returned expressions
+                                            ;; to not be bitten by laziness
                               maybe-call (some #(when (= id (:id %)) %) ret)]
                           (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)
