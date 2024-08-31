@@ -3064,6 +3064,8 @@
                                                      :row row
                                                      :col col
                                                      :expr expr})
+                              _ (dorun ret) ;; realize all returned expressions
+                                            ;; to not be bitten by laziness
                               maybe-call (some #(when (= id (:id %)) %) ret)]
                           (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)

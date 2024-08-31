@@ -1430,7 +1430,31 @@ foo/foo ;; this does use the private var
       :col 17,
       :level :error,
       :message "f2 is called with 0 args but expects 1"})
-   (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])")))
+   (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])"))
+  (testing "#2386"
+    (assert-submaps2
+     '({:file "<stdin>", :row 13, :col 26, :level :warning, :message "Expected: number, received: keyword."})
+     (lint! "(def xxx
+  (letfn [(abc [a b]
+            (+ a b))
+          (abc2 [a b]
+            (+ a b))
+          (abc3 [a b]
+            (+ a b))
+          (abc4 [a b]
+            (+ a b))
+          (abc5 [a b]
+            (+ a b))
+          (abc6 [a b]
+            (+ a b) (inc :foo)
+            )]
+    (abc 1 2)
+    (abc2 1 2)
+    (abc3 1 2)
+    (abc4 1 2)
+    (abc5 1 2)
+    (abc6 1 2)))"
+            {:linters {:type-mismatch {:level :warning}}}))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
