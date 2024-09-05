@@ -144,4 +144,7 @@
         ret (namespace/resolve-name ctx call (-> ctx :ns :name) name nil)]
     (select-keys ret [:ns :name])))
 
+(defn callstack []
+  (utils/format-callstack utils/*ctx*))
+
 ;; ctx call? ns-name name-sym expr

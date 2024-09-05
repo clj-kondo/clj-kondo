@@ -58,7 +58,8 @@
    'resolve api/resolve
    'set-node api/set-node
    'set-node? api/set-node?
-   'node? api/node?})
+   'node? api/node?
+   'callstack api/callstack})
 
 (defn pprint [& args]
   (binding [*out* @sci/out]
