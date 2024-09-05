@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2386](https://github.com/clj-kondo/clj-kondo/issues/2386): fix regression introduced in [#2364](https://github.com/clj-kondo/clj-kondo/issues/2364) in `letfn`
+- [#2389](https://github.com/clj-kondo/clj-kondo/issues/2389): add new `hooks-api/callstack` function
 
 ## 2024.08.29
 

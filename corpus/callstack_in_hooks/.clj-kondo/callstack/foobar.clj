@@ -3,7 +3,6 @@
 
 (defn foobar [_]
   (let [cs (h/callstack)]
-    (prn :cs cs)
     (when (some #(and (= 'inc (:name %))
                       (= 'clojure.core (:ns %)))
                 cs)

@@ -54,6 +54,7 @@ Other API functions:
   indicating if the symbol was used in a function call. Returns a map with
   `:ns`, the resolved namespace of the symbol, if it referred to a var, and
   `:name`, the name of the var without the namespace. See `corpus/issue-1996` for a test case that demonstrates the usage of `api/resolve`
+- `callstack`: a list of functions/macros parent calls
 
 The namespaces `clojure.core`, `clojure.set` and `clojure.string` are also available.
 Use `println` or `prn` for debugging and `time` to measure performance.
