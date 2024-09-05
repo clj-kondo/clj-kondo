@@ -110,10 +110,7 @@
                                          (cond-> (apply merge (:user-meta raw-attrs))
                                            (not (true? analysis-var-meta)) (select-keys analysis-var-meta)))
                 analyze-callstack-in-defs? (assoc :callstack
-                                                  (mapv (fn [[ns var]]
-                                                          {:ns ns
-                                                           :name var})
-                                                        (:callstack ctx))))
+                                                  (utils/format-callstack ctx)))
               :lang (when (= :cljc base-lang) lang))))))
 
 (defn reg-namespace! [{:keys [:analysis-ns-meta :analysis :base-lang :lang] :as _ctx}
