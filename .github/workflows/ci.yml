@@ -101,14 +101,14 @@ jobs:
           echo "##[set-output name=version;]${CLJ_KONDO_VERSION}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: clj-kondo
           name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-amd64
 
       - name: Upload static artifact
         if: "matrix.static == true"
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: clj-kondo
           name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-static-amd64
