@@ -223,8 +223,6 @@
   (let [modifier-keyword->flag (modifier-keyword->flag)]
     (try
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
-        (def c compilation)
-        (def f filename)
         (reduce
          (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
            (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
@@ -245,14 +243,6 @@
         (binding [*out* *err*]
           (println "Error parsing java file" filename "with error" e))))))
 
-(comment
-  (.findAll c ClassOrInterfaceDeclaration)
-  (def t (first (.findAll c com.github.javaparser.ast.body.TypeDeclaration)))
-  (node->member (first (.findAll t com.github.javaparser.ast.body.EnumConstantDeclaration)) (modifier-keyword->flag))
-  f"/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/time/temporal/ChronoField.java"
-  (supers EnumDeclaration)
-  )
-
 (defn analyze-class-defs? [ctx]
   (:analyze-java-class-defs? ctx))
 
@@ -268,7 +258,6 @@
                             (class-is->class-info is)
                             (source-is->java-member-definitions is filename)))]
       (doseq [[class-name class-info] class-by-info]
-        (def ci class-info)
         (swap! (:analysis ctx)
                update :java-class-definitions conj
                {:class class-name
