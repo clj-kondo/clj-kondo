@@ -314,7 +314,8 @@
                                    (-> dudes first
                                        (select-keys [:flags]))))))
   (ana->cached "java.lang.System" sys)
-
+  (def clazz (io/resource "java/time/temporal/ChronoField.class"))
+  (class-is->class-info (io/input-stream clazz))
 
 
   )
