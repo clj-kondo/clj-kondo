@@ -13,8 +13,6 @@
     Modifier$Keyword
     Node]
    [com.github.javaparser.ast.body
-    ClassOrInterfaceDeclaration
-    EnumDeclaration
     EnumConstantDeclaration
     ConstructorDeclaration
     FieldDeclaration
