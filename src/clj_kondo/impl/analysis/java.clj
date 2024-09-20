@@ -131,7 +131,7 @@
      (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
      Opcodes/ACC_ANNOTATION)
     (clojure.core/conj :annotation)
-    #_#_(clojure.core/=
+    (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_ENUM)
      Opcodes/ACC_ENUM)
     (clojure.core/conj :enum)
@@ -156,6 +156,7 @@
 (defn ^:private class-is->class-info
   "Parse class-bytes using ASM."
   [^InputStream class-is]
+  (prn :clazz)
   (let [class-reader (ClassReader. (input-stream->bytes class-is))
         class-name (str/replace (.getClassName class-reader) "/" ".")
         result* (atom {class-name {:members []}})]
@@ -163,6 +164,7 @@
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
        (visitField [access ^String name ^String desc signature value]
+         (prn :name name)
          (let [flags (opcode->flags access)]
            (when (:public flags)
              (swap! result* update-in [class-name :members] conj
@@ -238,6 +240,7 @@
           (println "Error parsing java file" filename "with error" e))))))
 
 (defn analyze-class-defs? [ctx]
+  (prn :clazz? (:analyze-java-class-defs? ctx))
   (:analyze-java-class-defs? ctx))
 
 (defn reg-class-def! [ctx {:keys [^JarFile jar ^JarFile$JarFileEntry entry filename ^File file]}]
