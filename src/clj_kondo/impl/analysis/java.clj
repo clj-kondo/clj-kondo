@@ -14,6 +14,8 @@
     Node]
    [com.github.javaparser.ast.body
     ClassOrInterfaceDeclaration
+    EnumDeclaration
+    EnumConstantDeclaration
     ConstructorDeclaration
     FieldDeclaration
     MethodDeclaration
@@ -131,7 +133,7 @@
      (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
      Opcodes/ACC_ANNOTATION)
     (clojure.core/conj :annotation)
-    (clojure.core/=
+    #_#_(clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_ENUM)
      Opcodes/ACC_ENUM)
     (clojure.core/conj :enum)
@@ -188,7 +190,8 @@
   (condp = (type node)
     FieldDeclaration :field
     MethodDeclaration :method
-    ConstructorDeclaration :method))
+    ConstructorDeclaration :method
+    EnumConstantDeclaration :field))
 
 (defn ^:private node->location [^Node node]
   (when-let [^Range range (.orElse (.getRange node) nil)]
@@ -220,13 +223,16 @@
   (let [modifier-keyword->flag (modifier-keyword->flag)]
     (try
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
+        (def c compilation)
+        (def f filename)
         (reduce
-         (fn [classes ^ClassOrInterfaceDeclaration class-or-interface]
+         (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
            (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
              (let [members (->> (concat
                                  (.findAll class-or-interface FieldDeclaration)
                                  (.findAll class-or-interface ConstructorDeclaration)
-                                 (.findAll class-or-interface MethodDeclaration))
+                                 (.findAll class-or-interface MethodDeclaration)
+                                 (.findAll class-or-interface EnumConstantDeclaration))
                                 (keep #(node->member % modifier-keyword->flag)))]
                (assoc classes class-name {:members (vec members)
                                           :flags (set (map #(modifier-keyword->flag
@@ -234,13 +240,20 @@
                                                            (.getModifiers class-or-interface))) }))
              classes))
          {}
-         (.findAll compilation ClassOrInterfaceDeclaration)))
+         (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
       (catch Throwable e
         (binding [*out* *err*]
           (println "Error parsing java file" filename "with error" e))))))
 
+(comment
+  (.findAll c ClassOrInterfaceDeclaration)
+  (def t (first (.findAll c com.github.javaparser.ast.body.TypeDeclaration)))
+  (node->member (first (.findAll t com.github.javaparser.ast.body.EnumConstantDeclaration)) (modifier-keyword->flag))
+  f"/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/time/temporal/ChronoField.java"
+  (supers EnumDeclaration)
+  )
+
 (defn analyze-class-defs? [ctx]
-  (prn :clazz? (:analyze-java-class-defs? ctx))
   (:analyze-java-class-defs? ctx))
 
 (defn reg-class-def! [ctx {:keys [^JarFile jar ^JarFile$JarFileEntry entry filename ^File file]}]
@@ -255,6 +268,7 @@
                             (class-is->class-info is)
                             (source-is->java-member-definitions is filename)))]
       (doseq [[class-name class-info] class-by-info]
+        (def ci class-info)
         (swap! (:analysis ctx)
                update :java-class-definitions conj
                {:class class-name
