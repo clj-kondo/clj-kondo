@@ -1,0 +1,1 @@
+["^ ","~:members",["^ ","NonfairSync",["~#set",[["^ ","~:flags",["^2",["~:method"]]]]],"tryAcquireShared",["^2",[["^ ","^3",["^2",["^4","~:protected"]]]]]]]

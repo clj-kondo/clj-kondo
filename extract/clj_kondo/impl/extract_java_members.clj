@@ -402,12 +402,13 @@
     (fs/delete-tree "resources/clj_kondo/impl/cache/built_in/java")
     (fs/create-dirs "resources/clj_kondo/impl/cache/built_in/java")
     (doseq [f (fs/list-dir (fs/file tmp-dir "v1" "java"))]
-      (fs/copy f "resources/clj_kondo/impl/cache/built_in/java"))))
+      (fs/copy f "resources/clj_kondo/impl/cache/built_in/java"))
+    tmp-dir))
 
 (defn exec [_]
   (classes->files))
 
 (comment
-  (classes->files)
+  (def tmp-dir (classes->files))
   (fs/file (fs/temp-dir) "java-cache")
   )

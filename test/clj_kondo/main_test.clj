@@ -3453,9 +3453,36 @@ foo/")))
 
 (deftest lint-java-static-field-call-test
   (is (assert-submaps2
-       '({:file "corpus/static_field_call.clj", :row 4, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
-         {:file "corpus/static_field_call.clj", :row 7, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
-         {:file "corpus/static_field_call.clj", :row 8, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"})
+       '({:file "corpus/static_field_call.clj",
+          :row 5,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 8,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 9,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 11,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 12,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"})
        (lint! (io/file "corpus" "static_field_call.clj"))))
   (is (empty? (lint! "#_:clj-kondo/ignore (System/err)")))
   (is (empty? (lint! "(ns foo) (System/err)"
