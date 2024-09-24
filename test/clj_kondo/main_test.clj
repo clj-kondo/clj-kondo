@@ -2932,7 +2932,28 @@ foo/baz
                        "--lang" "cljc"))))
   (testing "case insensitivity"
     (is (empty? (lint! "(ns foo (:require bar Bar))"
-                       {:linters {:unsorted-required-namespaces {:level :warning}}})))))
+                       {:linters {:unsorted-required-namespaces {:level :warning}}}))))
+
+  (testing "case insensitivity"
+    (is (empty? (lint! "(ns foo
+  (:require
+   [\"@mui/material/Menu$default\"]
+   [\"@mui/material/Stack$default\"]
+   [\"@mui/material/styles\"]
+   [\"@mui/material/Typography$default\"]))"
+                       {:linters {:unsorted-required-namespaces {:level :warning
+                                                                 :sort :lower-cased}}}
+                       "--lang" "cljs"))))
+  (testing ":lexicographically"
+    (is (empty? (lint! "(ns foo
+  (:require
+   [\"@mui/material/Menu$default\"]
+   [\"@mui/material/Stack$default\"]
+   [\"@mui/material/Typography$default\"]
+   [\"@mui/material/styles\"]))"
+                       {:linters {:unsorted-required-namespaces {:level :warning
+                                                                 :sort :lexicographically}}}
+                       "--lang" "cljs")))))
 
 (deftest unsorted-imports-test
   (assert-submaps2

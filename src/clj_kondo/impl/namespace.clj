@@ -57,7 +57,8 @@
    (lint-unsorted-required-namespaces! ctx namespaces :unsorted-required-namespaces))
   ([ctx namespaces linter]
    (let [config (:config ctx)
-         level (-> config :linters linter :level)]
+         level (-> config :linters linter :level)
+         sort-option (-> config :linters linter :sort)]
      (when-not (identical? :off level)
        (loop [last-processed-ns nil
               ns-list namespaces]
@@ -73,7 +74,9 @@
                                        (str raw-ns))
                               :else (str ns))
                  branch (:branch m)
-                 raw-ns (str/lower-case raw-ns)]
+                 raw-ns (case sort-option
+                          :lexicographically raw-ns
+                          (str/lower-case raw-ns))]
              (cond branch
                    (recur last-processed-ns (next ns-list))
                    (pos? (compare last-processed-ns raw-ns))

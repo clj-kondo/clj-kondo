@@ -48,7 +48,8 @@
                                :exclude-destructured-as false
                                :exclude-defmulti-args false}
               :shadowed-fn-param {:level :warning}
-              :unsorted-required-namespaces {:level :off}
+              :unsorted-required-namespaces {:level :off
+                                             :sort :lower-cased}
               :unsorted-imports {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
