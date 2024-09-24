@@ -1936,13 +1936,13 @@ You can report duplicate warnings using:
 *Config*:
 
 The default sort will consider lower-cased namespace name. To enable
-keeping the letter-case as is:
+keeping the namespace name as is:
 
 ```clojure
-{:linters {:unsorted-required-namespaces {:sort :lexicographically}}}
+{:linters {:unsorted-required-namespaces {:sort :case-sensitive}}}
 ```
 
-Possible values for `:sort` are `:lower-cased` (default) and `:lexicographically`.
+Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensitive`.
 
 ### Unused namespace
 

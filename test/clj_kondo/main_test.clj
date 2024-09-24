@@ -2934,7 +2934,7 @@ foo/baz
     (is (empty? (lint! "(ns foo (:require bar Bar))"
                        {:linters {:unsorted-required-namespaces {:level :warning}}}))))
 
-  (testing "case insensitivity"
+  (testing ":case-insensitive"
     (is (empty? (lint! "(ns foo
   (:require
    [\"@mui/material/Menu$default\"]
@@ -2942,9 +2942,9 @@ foo/baz
    [\"@mui/material/styles\"]
    [\"@mui/material/Typography$default\"]))"
                        {:linters {:unsorted-required-namespaces {:level :warning
-                                                                 :sort :lower-cased}}}
+                                                                 :sort :case-insensitive}}}
                        "--lang" "cljs"))))
-  (testing ":lexicographically"
+  (testing ":case-sensitive"
     (is (empty? (lint! "(ns foo
   (:require
    [\"@mui/material/Menu$default\"]
@@ -2952,7 +2952,7 @@ foo/baz
    [\"@mui/material/Typography$default\"]
    [\"@mui/material/styles\"]))"
                        {:linters {:unsorted-required-namespaces {:level :warning
-                                                                 :sort :lexicographically}}}
+                                                                 :sort :case-sensitive}}}
                        "--lang" "cljs")))))
 
 (deftest unsorted-imports-test

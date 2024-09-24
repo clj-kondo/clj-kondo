@@ -49,7 +49,7 @@
                                :exclude-defmulti-args false}
               :shadowed-fn-param {:level :warning}
               :unsorted-required-namespaces {:level :off
-                                             :sort :lower-cased}
+                                             :sort :case-insensitive}
               :unsorted-imports {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:

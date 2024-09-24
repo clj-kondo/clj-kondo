@@ -75,7 +75,7 @@
                               :else (str ns))
                  branch (:branch m)
                  raw-ns (case sort-option
-                          :lexicographically raw-ns
+                          :case-sensitive raw-ns
                           (str/lower-case raw-ns))]
              (cond branch
                    (recur last-processed-ns (next ns-list))
