@@ -3573,6 +3573,16 @@ foo/")))
      {:row 10, :col 1, :level :error, :message "Invalid token: ##NAN"})
    (lint! (io/file "corpus/invalid_literals.clj"))))
 
+(deftest issue-2400-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 25, :level :warning, :message "Unused import TheClazz"}
+     {:file "<stdin>", :row 2, :col 36, :level :warning, :message "Unresolved namespace NoClazz. Are you missing a require?"})
+   (lint! "(deftype Dude []) Dude/new (defrecord Foo []) Foo/new
+          (import [dude TheClazz]) NoClazz/new"
+             {:linters {:unresolved-symbol {:level :warning}
+                        :unresolved-namespace {:level :warning}
+                        :unused-import {:level :warning}}})))
+
 ;;;; Scratch
 
 (comment

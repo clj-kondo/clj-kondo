@@ -803,8 +803,9 @@
                 imports (:imports ns)
                 used-imports (:used-imports ns)]
           [import package] imports
-          :when (not (contains? used-imports import))]
-    #_(prn :imports used-imports (map meta used-imports))
+          :when (and
+                 (not (:clj-kondo/mark-used (meta import)))
+                 (not (contains? used-imports import)))]
     (findings/reg-finding!
      ctx
      (-> (node->line filename import :unused-import (str "Unused import " import))
