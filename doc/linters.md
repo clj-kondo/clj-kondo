@@ -1933,6 +1933,17 @@ You can report duplicate warnings using:
 
 *Example message:* `Unsorted namespace: a`.
 
+*Config*:
+
+The default sort will consider lower-cased namespace name. To enable
+keeping the namespace name as is:
+
+```clojure
+{:linters {:unsorted-required-namespaces {:sort :case-sensitive}}}
+```
+
+Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensitive`.
+
 ### Unused namespace
 
 *Keyword:* `:unused-namespace`.

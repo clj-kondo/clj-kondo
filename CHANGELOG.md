@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2392](https://github.com/clj-kondo/clj-kondo/issues/2392): don't skip jars that were analyzed with `--skip-lint`
 - [#2395](https://github.com/clj-kondo/clj-kondo/issues/2395): enum constant call warnings
 - [#2400](https://github.com/clj-kondo/clj-kondo/issues/2400): `deftype` and `defrecord` constructors can be used with `Type/new`
+- [#2394](https://github.com/clj-kondo/clj-kondo/issues/2394): add `:sort` option to `:unsorted-required-namespaces` linter to enable case-sensitive sort to match other tools
 
 ## 2024.08.29
 
