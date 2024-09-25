@@ -1633,6 +1633,8 @@
         ctx (ctx-with-bindings ctx bindings)]
     (namespace/reg-var! ctx ns-name record-name expr (cond-> metadata
                                                        (identical? :clj lang) (assoc :class true)))
+    (namespace/reg-imports! ctx ns-name {(with-meta record-name
+                                           {:clj-kondo/mark-used true}) ns-name})
     (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
       (doseq [[_ fields] (group-by identity (:children binding-vector))]
         (when (> (count fields) 1)
