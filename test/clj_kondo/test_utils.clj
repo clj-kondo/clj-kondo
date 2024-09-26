@@ -119,7 +119,8 @@
     (str/split-lines msg))))
 
 (def base-config
-  {:linters {:unused-binding {:level :off}
+  {:output {:langs false}
+   :linters {:unused-binding {:level :off}
              :unresolved-symbol {:level :off}
              :refer-all {:level :off}
              :type-mismatch {:level :off}
