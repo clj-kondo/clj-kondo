@@ -2,7 +2,7 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.core :as core]
-   [clj-kondo.test-utils :refer [lint! assert-submaps]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps2] :rename {assert-submaps2 assert-submaps}]
    [clojure.test :refer [deftest is testing]]
    [clojure.tools.deps.alpha :as deps]))
 
@@ -83,10 +83,13 @@ bar/x (bar/y)
 
 (deftest built-in-namespaces-test
   (testing "fmap is not reported but xfmap is"
-    (assert-submaps '({:file "<stdin>", :row 1, :col 54, :level :error, :message "Unresolved var: gen/xfmap"})
-                    (lint! "(require '[clojure.spec.gen.alpha :as gen]) gen/fmap gen/xfmap gen/string-ascii"
-                           '{:linters {:unresolved-symbol {:level :error}
-                                       :unresolved-var {:level :error}}})))
+    (assert-submaps
+     '({:file "<stdin>", :row 2, :col 22, :level :error, :message "Unresolved var: gen/xfmap"})
+     (lint! "(require #?(:clj '[clojure.spec.gen.alpha :as gen] :cljs '[clojure.spec.gen.alpha :as gen]))
+            gen/fmap gen/xfmap gen/string-ascii"
+            '{:linters {:unresolved-symbol {:level :error}
+                        :unresolved-var {:level :error}}}
+                           "--lang" "cljc")))
   (testing "clojure.core.reducers"
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 66, :level :error, :message "Unresolved var: r/mapcatz"})

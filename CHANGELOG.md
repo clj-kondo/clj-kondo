@@ -26,6 +26,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2395](https://github.com/clj-kondo/clj-kondo/issues/2395): enum constant call warnings
 - [#2400](https://github.com/clj-kondo/clj-kondo/issues/2400): `deftype` and `defrecord` constructors can be used with `Type/new`
 - [#2394](https://github.com/clj-kondo/clj-kondo/issues/2394): add `:sort` option to `:unsorted-required-namespaces` linter to enable case-sensitive sort to match other tools
+- [#2384](https://github.com/clj-kondo/clj-kondo/issues/2384): recognize `gen/fmap` var in `cljs.spec.gen.alpha`
 
 ## 2024.08.29
 

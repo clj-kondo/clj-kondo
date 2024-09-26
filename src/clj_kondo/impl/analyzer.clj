@@ -2525,7 +2525,9 @@
                             ([clojure.spec.alpha keys] [cljs.spec.alpha keys])
                             (spec/analyze-keys ctx expr)
                             ([clojure.spec.gen.alpha lazy-combinators]
-                             [clojure.spec.gen.alpha lazy-prims])
+                             [clojure.spec.gen.alpha lazy-prims]
+                             [cljs.spec.gen.alpha lazy-combinators]
+                             [cljs.spec.gen.alpha lazy-prims])
                             (analyze-declare ctx expr defined-by defined-by->lint-as)
                             [potemkin import-vars]
                             (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
