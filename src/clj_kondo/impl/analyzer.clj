@@ -540,13 +540,13 @@
            :arg-vec arg-vec
            :args arg-tags)))
 
-(defn fn-bodies [ctx children body]
+(defn fn-bodies [ctx children]
   (loop [[expr & rest-exprs :as exprs] children]
     (when expr
       (let [expr (meta/lift-meta-content2 ctx expr)
             t (tag expr)]
         (case t
-          :vector [(assoc body :children exprs)]
+          :vector [{:children exprs}]
           :list exprs
           (recur rest-exprs))))))
 
@@ -657,7 +657,7 @@
                                [doc-node docstring]
                                (when (some-> var-leading-meta :doc str)
                                  (some docstring/docs-from-meta name-node-meta-nodes)))
-        bodies (fn-bodies ctx children expr)
+        bodies (fn-bodies ctx children)
         _ (when (empty? bodies)
             (findings/reg-finding! ctx
                                    (node->line (:filename ctx)
@@ -1013,7 +1013,7 @@
                      n))
         _ (when (and ?name-expr (identical? :token (utils/tag ?name-expr)))
             (lint-fn-name! ctx ?name-expr))
-        bodies (fn-bodies ctx (next children) expr)
+        bodies (fn-bodies ctx (next children))
         ;; we need the arity beforehand because this is valid in each body
         arity (fn-arity ctx bodies)
         bodies (:bodies arity)
@@ -1174,7 +1174,7 @@
         processed-fns (for [f fns
                             :let [children (:children f)
                                   fn-name (:value (first children))
-                                  bodies (fn-bodies ctx* (next children) f)
+                                  bodies (fn-bodies ctx* (next children))
                                   arity (fn-arity ctx bodies)
                                   bodies (:bodies arity)]]
                         {:name fn-name
