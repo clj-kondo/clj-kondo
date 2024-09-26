@@ -857,16 +857,19 @@
 
 (defn lint-redundant-ignores
   [ctx]
-  (let [ignores @(:ignores ctx)]
-    (doseq [[filename m] ignores
-            [lang ignores] m
-            ignore ignores]
-      (when-not (:used ignore)
-        (findings/reg-finding! ctx (assoc (:clj-kondo/ignore ignore)
-                                          :type :redundant-ignore
-                                          :message "Redundant ignore"
-                                          :lang lang
-                                          :filename filename))))))
+  (when-not (identical? :off (-> ctx :config :linters :redundant-ignore :level))
+    (let [ignores @(:ignores ctx)]
+      (doseq [[filename m] ignores
+              [lang ignores] m
+              ignore ignores]
+        (let [m (:clj-kondo/ignore ignore)]
+          (when (map? m)
+            (when-not (:used ignore)
+              (findings/reg-finding! ctx (assoc m
+                                                :type :redundant-ignore
+                                                :message "Redundant ignore"
+                                                :lang lang
+                                                :filename filename)))))))))
 
 ;;;; scratch
 

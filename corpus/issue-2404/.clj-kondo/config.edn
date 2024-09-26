@@ -1,0 +1,2 @@
+{:hooks {:analyze-call {foobar/foo hooks/foo}}
+ :linters {:redundant-ignore {:level :warning}}}

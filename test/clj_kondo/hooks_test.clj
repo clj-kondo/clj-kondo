@@ -445,3 +445,10 @@ my-ns/special-map \"
    [{:file "corpus/callstack_in_hooks/src/callstack/foobar.clj", :row 6, :col 8, :level :error, :message "You shouldn't call foobar as an argument to inc!"}]
    (lint! (fs/file "corpus" "callstack_in_hooks" "src")
           "--config-dir" (fs/file "corpus" "callstack_in_hooks" ".clj-kondo"))))
+
+(deftest issue-2404-clj-kondo-ignore-meta-test
+  (assert-submaps2
+   [{:file "corpus/issue-2404/src/foobar.clj", :row 7, :col 8, :level :warning, :message "Redundant ignore"}]
+   (lint! (fs/file "corpus" "issue-2404" "src" "foobar.clj")
+          "--config" (slurp (fs/file "corpus" "issue-2404" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2404" ".clj-kondo"))))
