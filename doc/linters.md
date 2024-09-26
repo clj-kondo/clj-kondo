@@ -47,6 +47,7 @@ configuration. For general configurations options, go [here](config.md).
     - [File](#file)
     - [Format](#format)
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
+    - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
@@ -72,12 +73,14 @@ configuration. For general configurations options, go [here](config.md).
     - [Redefined var](#redefined-var)
     - [Var same name except case](#var-same-name-except-case)
     - [Redundant do](#redundant-do)
-    - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant call](#redundant-call)
+    - [Redundant fn wrapper](#redundant-fn-wrapper)
+    - [Redundant ignore](#redundant-ignore)
     - [Redundant str call](#redundant-str-call)
     - [Redundant let](#redundant-let)
     - [Refer](#refer)
     - [Refer all](#refer-all)
+    - [Schema misplaced return](#schema-misplaced-return)
     - [Self-requiring namespace](#self-requiring-namespace)
     - [Single key in](#single-key-in)
     - [Single logical operand](#single-logical-operand)
@@ -1304,18 +1307,6 @@ because of an explicit or implicit do as the direct parent s-expression.
 
 *Example message:* `redundant do`.
 
-### Redundant fn wrapper
-
-*Keyword*: `:redundant-fn-wrapper`
-
-*Description:* warn on redundant function wrapper.
-
-*Default level:* `:off`.
-
-*Example trigger:* `#(inc %)`.
-
-*Example message:* `Redundant fn wrapper`.
-
 ### Redundant call
 
 *Keyword*: `:redundant-call`
@@ -1345,6 +1336,30 @@ warn on additional vars.
 *Example trigger:* `(-> 1)`.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
+
+### Redundant fn wrapper
+
+*Keyword*: `:redundant-fn-wrapper`
+
+*Description:* warn on redundant function wrapper.
+
+*Default level:* `:off`.
+
+*Example trigger:* `#(inc %)`.
+
+*Example message:* `Redundant fn wrapper`.
+
+### Redundant ignore
+
+*Keyword*: `:redundant-ignore`
+
+*Description:* warn on redundant ignore, i.e. when an ignored expression doesn't trigger any lint warning
+
+*Default level:* `:off`.
+
+*Example trigger:* `#_:clj-kondo/ignore (+ 1 2 3)`.
+
+*Example message:* `Redundant ignore`.
 
 ### Redundant str call
 
