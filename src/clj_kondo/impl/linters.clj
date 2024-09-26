@@ -855,6 +855,19 @@
                       :type :java-static-field-call
                       :message "Static fields should be referenced without parens unless they are intended as function calls")))))))))
 
+(defn lint-redundant-ignores
+  [ctx]
+  (let [ignores @(:ignores ctx)]
+    (doseq [[filename m] ignores
+            [lang ignores] m
+            ignore ignores]
+      (when-not (:used ignore)
+        (findings/reg-finding! ctx (assoc (:clj-kondo/ignore ignore)
+                                          :type :redundant-ignore
+                                          :message "Redundant ignore"
+                                          :lang lang
+                                          :filename filename))))))
+
 ;;;; scratch
 
 (comment

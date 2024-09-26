@@ -170,6 +170,7 @@
               :min-clj-kondo-version {:level :warning
                                       ;; the version itself is configured at the top level
                                       }
+              :redundant-ignore {:level :off}
               :schema-misplaced-return {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->

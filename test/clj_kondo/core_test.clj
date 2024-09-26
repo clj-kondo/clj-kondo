@@ -144,7 +144,8 @@
        {:lint   [(if file? (str code) "-")]
         :lang lang
         :config {:linters {:org.acme/forbidden-var {:level :error}
-                           :org.acme/no-define-var {:level :error}}
+                           :org.acme/no-define-var {:level :error}
+                           :redundant-ignore {:level :off}}
                  :analysis true}
         :custom-lint-fn (fn [{:keys [analysis reg-finding!]}]
                           (let [evals (filter #(and (= 'clojure.core (:to %))

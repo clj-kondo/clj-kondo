@@ -546,7 +546,9 @@
       (let [expr (meta/lift-meta-content2 ctx expr)
             t (tag expr)]
         (case t
-          :vector [(assoc body :children exprs)]
+          :vector [(with-meta (utils/list-node exprs)
+                     (dissoc (meta body)
+                             :clj-kondo/ignore))]
           :list exprs
           (recur rest-exprs))))))
 

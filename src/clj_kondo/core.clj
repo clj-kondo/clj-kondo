@@ -241,7 +241,8 @@
                     (l/lint-unused-imports! ctx)
                     (l/lint-unresolved-namespaces! ctx)
                     (l/lint-discouraged-namespaces! ctx)
-                    (l/lint-class-usage ctx idacs))))
+                    (l/lint-class-usage ctx idacs)
+                    (l/lint-redundant-ignores ctx))))
             _ (when custom-lint-fn
                 (binding [utils/*ctx* ctx]
                   (custom-lint-fn (cond->

@@ -130,7 +130,8 @@
              :namespace-name-mismatch {:level :off}
              :line-length {:level :off}
              :unused-value {:level :off}
-             :uninitialized-var {:level :off}}})
+             :uninitialized-var {:level :off}
+             :redundant-ignore {:level :off}}})
 
 (defn lint-jvm!
   ([input]

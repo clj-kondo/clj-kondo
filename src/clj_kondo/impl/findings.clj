@@ -7,13 +7,14 @@
 ;; finding row 1, col 26, end-row 1, end-col 30
 
 (defn ignore-match? [ignore tp]
-  (or (true? ignore)
+  (or (identical? :all ignore)
       (contains? ignore tp)))
 
 (defn ignored?
   "Ignores are sorted in order of rows and cols. So if we are handling a node with a row before the "
   [ctx m tp]
-  (let [ignores @(:ignores ctx)
+  (let [!ignores (:ignores ctx)
+        ignores @!ignores
         filename (:filename m)
         lang (:lang ctx)
         row (:row m)]
@@ -22,7 +23,8 @@
                              (when (identical? :cljc lang)
                                (or (get-in ignores [filename :clj])
                                    (get-in ignores [filename :cljs]))))]
-        (loop [ignores ignores]
+        (loop [ignores ignores
+               idx 0]
           (when ignores
             (let [ignore (first ignores)
                   ignore-row (:row ignore)]
@@ -42,10 +44,11 @@
                                  (and (= row ignore-end-row)
                                       (<= (:end-col m) (:end-col ignore)))))
                       (if (ignore-match? (:ignore ignore) tp)
-                        true
-                        (recur (next ignores)))
-                      (recur (next ignores))))
-                  (recur (next ignores)))))))))))
+                        (do (swap! !ignores assoc-in [filename lang idx :used] true)
+                            true)
+                        (recur (next ignores) (inc idx)))
+                      (recur (next ignores) (inc idx))))
+                  (recur (next ignores) (inc idx)))))))))))
 
 (defn reg-finding!
   "Register a new finding.
@@ -64,7 +67,8 @@
             (identical? :cljc base-lang)
             (assoc :cljc true :lang lang))]
     (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
-      (when-not (ignored? ctx m tp)
+      (when (or (identical? :redundant-ignore (:type m))
+                (not (ignored? ctx m tp)))
         (let [m (assoc m :level level)]
           (swap! findings conj m)
           m)))))
