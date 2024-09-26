@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2024.09.27
 
 - [#2404](https://github.com/clj-kondo/clj-kondo/issues/2404): fix regression with metadata on node in hook caused by `:redundant-ignore` linter
 
