@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2366](https://github.com/clj-kondo/clj-kondo/issues/2366): new linter: `:redundant-ignore`. See [docs](doc/linters.md)
 - [#2386](https://github.com/clj-kondo/clj-kondo/issues/2386): fix regression introduced in [#2364](https://github.com/clj-kondo/clj-kondo/issues/2364) in `letfn`
 - [#2389](https://github.com/clj-kondo/clj-kondo/issues/2389): add new `hooks-api/callstack` function
 - [#2392](https://github.com/clj-kondo/clj-kondo/issues/2392): don't skip jars that were analyzed with `--skip-lint`
