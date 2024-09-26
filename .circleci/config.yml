@@ -208,7 +208,7 @@ jobs:
           destination: release
   linux-static:
     docker:
-      - image: circleci/clojure:openjdk-11-lein-2.9.8-bullseye
+      - image: "circleci/clojure:openjdk-11-lein-2.9.8-bullseye" # fix for #1909
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"

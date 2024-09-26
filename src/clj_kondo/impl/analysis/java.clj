@@ -13,7 +13,7 @@
     Modifier$Keyword
     Node]
    [com.github.javaparser.ast.body
-    ClassOrInterfaceDeclaration
+    EnumConstantDeclaration
     ConstructorDeclaration
     FieldDeclaration
     MethodDeclaration
@@ -186,7 +186,8 @@
   (condp = (type node)
     FieldDeclaration :field
     MethodDeclaration :method
-    ConstructorDeclaration :method))
+    ConstructorDeclaration :method
+    EnumConstantDeclaration :field))
 
 (defn ^:private node->location [^Node node]
   (when-let [^Range range (.orElse (.getRange node) nil)]
@@ -219,12 +220,13 @@
     (try
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
         (reduce
-         (fn [classes ^ClassOrInterfaceDeclaration class-or-interface]
+         (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
            (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
              (let [members (->> (concat
                                  (.findAll class-or-interface FieldDeclaration)
                                  (.findAll class-or-interface ConstructorDeclaration)
-                                 (.findAll class-or-interface MethodDeclaration))
+                                 (.findAll class-or-interface MethodDeclaration)
+                                 (.findAll class-or-interface EnumConstantDeclaration))
                                 (keep #(node->member % modifier-keyword->flag)))]
                (assoc classes class-name {:members (vec members)
                                           :flags (set (map #(modifier-keyword->flag
@@ -232,7 +234,7 @@
                                                            (.getModifiers class-or-interface))) }))
              classes))
          {}
-         (.findAll compilation ClassOrInterfaceDeclaration)))
+         (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
       (catch Throwable e
         (binding [*out* *err*]
           (println "Error parsing java file" filename "with error" e))))))
@@ -311,7 +313,8 @@
                                    (-> dudes first
                                        (select-keys [:flags]))))))
   (ana->cached "java.lang.System" sys)
-
+  (def clazz (io/resource "java/time/temporal/ChronoField.class"))
+  (class-is->class-info (io/input-stream clazz))
 
 
   )

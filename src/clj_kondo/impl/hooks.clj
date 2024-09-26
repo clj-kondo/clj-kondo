@@ -27,7 +27,7 @@
           (some (fn [ext]
                   (let [f (io/file cp-entry (str base-path "." ext))]
                     (when (.exists f) f)))
-                ["clj_kondo" "clj"]))
+                ["clj_kondo" "clj" "cljc"]))
         (:classpath *ctx*)))
 
 #_(defmacro macroexpand [macro node]
@@ -58,7 +58,8 @@
    'resolve api/resolve
    'set-node api/set-node
    'set-node? api/set-node?
-   'node? api/node?})
+   'node? api/node?
+   'callstack api/callstack})
 
 (defn pprint [& args]
   (binding [*out* @sci/out]

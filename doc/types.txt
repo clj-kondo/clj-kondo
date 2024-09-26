@@ -258,6 +258,7 @@ stack-element-str {1 {:ret :string}}
 core-class? {1 {:args (:nilable/string)}}
 java-loc->source {2 {:ret #{:symbol}}}
 load-script {1 {:args (:nilable/string)}}
+skip-if-eol {1 {:ret #{:keyword}}}
 file-name {1 {:args (:nilable/string)}}
 file-path {1 {:args (:nilable/string)}}
 ex-triage {1 {:ret :associative}}
@@ -272,6 +273,8 @@ slow-read-string {2 {:args (nil :nilable/string)}}
 write-double {3 {:args (#{:double :int :float :nil} nil nil)}}
 write-str {:varargs {:ret :nilable/string, :min-arity 1}}
 read-integer {1 {:args (:nilable/string)}}
+slow-write-string {3 {:args (:nilable/char-sequence nil nil)}}
+string-pbr {1 {:args (:nilable/string)}}
 write-string {3 {:args (:nilable/char-sequence nil nil)}}
 write-float {3 {:args (#{:double :int :float :nil} nil nil)}}
 read-decimal {2 {:args (:nilable/string nil)}}
@@ -326,6 +329,7 @@ rand-int {1 {:ret :int}}
 map {1 {:ret :fn}, 2 {:ret :seq}, 3 {:ret :seq}, 4 {:ret :seq}, :varargs {:ret :seq, :min-arity 4}}
 juxt {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 < {1 {:ret :boolean}}
+test {1 {:ret #{:keyword}}}
 NaN? {1 {:args (#{:double :int :float})}}
 make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5571, :end-row 5571, :col 16, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5571, :end-row 5571, :col 32, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5571, :end-row 5571, :col 46, :end-col 48, :tag {:type :map, :val {}}}}}}}
 keep {1 {:ret :fn}, 2 {:ret :seq}}

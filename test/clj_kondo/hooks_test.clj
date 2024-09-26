@@ -439,3 +439,9 @@ my-ns/special-map \"
      {:file "corpus/analyze-method-call/src/test.clj", :row 4, :col 1, :level :error, :message "Use deterministic version"})
    (lint! (fs/file "corpus" "analyze-method-call" "src" "test.clj")
           "--config-dir" (fs/file "corpus" "analyze-method-call" ".clj-kondo"))))
+
+(deftest callstack-test
+  (assert-submaps2
+   [{:file "corpus/callstack_in_hooks/src/callstack/foobar.clj", :row 6, :col 8, :level :error, :message "You shouldn't call foobar as an argument to inc!"}]
+   (lint! (fs/file "corpus" "callstack_in_hooks" "src")
+          "--config-dir" (fs/file "corpus" "callstack_in_hooks" ".clj-kondo"))))

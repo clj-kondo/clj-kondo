@@ -48,7 +48,8 @@
                                :exclude-destructured-as false
                                :exclude-defmulti-args false}
               :shadowed-fn-param {:level :warning}
-              :unsorted-required-namespaces {:level :off}
+              :unsorted-required-namespaces {:level :off
+                                             :sort :case-insensitive}
               :unsorted-imports {:level :off}
               :unused-namespace {:level :warning
                                  ;; don't warn about these namespaces:
@@ -169,7 +170,8 @@
               :min-clj-kondo-version {:level :warning
                                       ;; the version itself is configured at the top level
                                       }
-              :redundant-ignore {:level :info}}
+              :redundant-ignore {:level :off}
+              :schema-misplaced-return {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

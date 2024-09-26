@@ -584,6 +584,10 @@ split-at
 split-with
 splitv-at
 str
+stream-into!
+stream-reduce!
+stream-seq!
+stream-transduce!
 string?
 struct
 struct-map
@@ -827,6 +831,7 @@ zipmap})
 -dispatch-fn
 -dissoc
 -dissoc!
+-drop
 -drop-first
 -empty
 -entry-key
@@ -925,6 +930,7 @@ IComparable
 ICounted
 IDeref
 IDerefWithTimeout
+IDrop
 IEditableCollection
 IEmptyableCollection
 IEncodeClojure
@@ -1024,6 +1030,7 @@ StringIter
 Subvec
 Symbol
 TaggedLiteral
+Throwable->map
 TransformerIterator
 TransientArrayMap
 TransientHashMap
@@ -1232,7 +1239,9 @@ group-by
 halt-when
 hash
 hash-combine
+hash-double
 hash-keyword
+hash-long
 hash-map
 hash-ordered-coll
 hash-set
@@ -1393,6 +1402,8 @@ partial
 partition
 partition-all
 partition-by
+partitionv
+partitionv-all
 peek
 persistent!
 persistent-array-map-seq
@@ -1507,6 +1518,7 @@ specify
 specify!
 split-at
 split-with
+splitv-at
 spread
 str
 string-hash-cache

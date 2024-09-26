@@ -478,6 +478,12 @@
 (defn mark-generate [node]
   (assoc node :clj-kondo.impl/generated true))
 
+(defn format-callstack [ctx]
+  (mapv (fn [[ns var]]
+          {:ns ns
+           :name var})
+        (:callstack ctx)))
+
 ;;;; Scratch
 
 (comment

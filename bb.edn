@@ -14,4 +14,6 @@
                    :task (exec 'quickdoc.api/quickdoc)
                    :exec-args {:git/branch "master"
                                :github/repo "https://github.com/clj-kondo/clj-kondo"
-                               :source-paths ["src/clj_kondo/core.clj"]}}}}
+                               :source-paths ["src/clj_kondo/core.clj"]}}
+         extract:java-members {:doc "Extract information about Java members"
+                               :task (clojure "-X:extract" "clj-kondo.impl.extract-java-members/exec")}}}

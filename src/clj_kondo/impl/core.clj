@@ -478,7 +478,8 @@
                       cache-dir (:cache-dir ctx)
                       skip-mark (str jar-name "." config-hash)
                       skip-entry (when cache-dir (io/file cache-dir "skip" skip-mark))]
-                  (if (and cache-dir (:dependencies ctx)
+                  (if (and cache-dir
+                           (:dependencies ctx)
                            (not (str/includes? jar-name "SNAPSHOT"))
                            (.exists skip-entry)
                            (= path (slurp skip-entry)))
@@ -487,7 +488,8 @@
                     (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                          dev?)
                               (sources-from-jar ctx file canonical? use-import-dir))
-                        (swap! (:mark-linted ctx) conj [skip-mark path]))))
+                        (when-not (:skip-lint ctx)
+                          (swap! (:mark-linted ctx) conj [skip-mark path])))))
                 ;; assume normal source file
                 (let [fn (if canonical?
                            canonical

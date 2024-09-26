@@ -14,9 +14,11 @@
 
 (deftest self-lint-test
   (is (empty? (lint! (io/file "src")
-                     {:linters {:unresolved-symbol {:level :error}}})))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unused-binding {:level :warning}}})))
   (is (empty? (lint! (io/file "test")
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unused-binding {:level :warning}}}))))
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
@@ -1197,7 +1199,29 @@ foo/foo ;; this does use the private var
       :row 31,
       :col 14,
       :level :error,
-      :message "missing value for key :b"})
+      :message "missing value for key :b"}
+     {:file "corpus/schema/defs.clj",
+      :row 34
+      :col 6
+      :level
+      :warning
+      :message "Return schema should go before vector."}
+     {:file "corpus/schema/defs.clj",
+      :row 39,
+      :col 7,
+      :level :warning,
+      :message "Return schema should go before arities."}
+     {:file "corpus/schema/defs.clj",
+      :row 43,
+      :col 3,
+      :level :error,
+      :message
+      "Function arguments should be wrapped in vector."}
+     {:file "corpus/schema/defs.clj",
+      :row 58,
+      :col 3,
+      :level :error,
+      :message "Invalid function body."})
    (lint! (io/file "corpus" "schema")
           '{:linters {:unresolved-symbol {:level :error}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
@@ -1406,7 +1430,31 @@ foo/foo ;; this does use the private var
       :col 17,
       :level :error,
       :message "f2 is called with 0 args but expects 1"})
-   (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])")))
+   (lint! "(letfn [(f1 [_] (f2)) (f2 [_])])"))
+  (testing "#2386"
+    (assert-submaps2
+     '({:file "<stdin>", :row 13, :col 26, :level :warning, :message "Expected: number, received: keyword."})
+     (lint! "(def xxx
+  (letfn [(abc [a b]
+            (+ a b))
+          (abc2 [a b]
+            (+ a b))
+          (abc3 [a b]
+            (+ a b))
+          (abc4 [a b]
+            (+ a b))
+          (abc5 [a b]
+            (+ a b))
+          (abc6 [a b]
+            (+ a b) (inc :foo)
+            )]
+    (abc 1 2)
+    (abc2 1 2)
+    (abc3 1 2)
+    (abc4 1 2)
+    (abc5 1 2)
+    (abc6 1 2)))"
+            {:linters {:type-mismatch {:level :warning}}}))))
 
 (deftest namespace-syntax-test
   (assert-submaps '({:file "<stdin>",
@@ -2884,7 +2932,28 @@ foo/baz
                        "--lang" "cljc"))))
   (testing "case insensitivity"
     (is (empty? (lint! "(ns foo (:require bar Bar))"
-                       {:linters {:unsorted-required-namespaces {:level :warning}}})))))
+                       {:linters {:unsorted-required-namespaces {:level :warning}}}))))
+
+  (testing ":case-insensitive"
+    (is (empty? (lint! "(ns foo
+  (:require
+   [\"@mui/material/Menu$default\"]
+   [\"@mui/material/Stack$default\"]
+   [\"@mui/material/styles\"]
+   [\"@mui/material/Typography$default\"]))"
+                       {:linters {:unsorted-required-namespaces {:level :warning
+                                                                 :sort :case-insensitive}}}
+                       "--lang" "cljs"))))
+  (testing ":case-sensitive"
+    (is (empty? (lint! "(ns foo
+  (:require
+   [\"@mui/material/Menu$default\"]
+   [\"@mui/material/Stack$default\"]
+   [\"@mui/material/Typography$default\"]
+   [\"@mui/material/styles\"]))"
+                       {:linters {:unsorted-required-namespaces {:level :warning
+                                                                 :sort :case-sensitive}}}
+                       "--lang" "cljs")))))
 
 (deftest unsorted-imports-test
   (assert-submaps2
@@ -3197,7 +3266,9 @@ foo/")))
    '(#_{:file "<stdin>", :row 1, :col 20, :level :warning, :message "namespace foo.bar is required but never used"}
      {:file "<stdin>", :row 1, :col 44, :level :warning, :message "Unresolved namespace fx. Are you missing a require?"})
    (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fx/bar"))
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar"))))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) ::fb/bar")))
+  (is (empty? (lint! "(ns foo (:require [foo :as-alias fb])) `fb/bar"
+                     {:linters {:self-requiring-namespace {:level :warning}}}))))
 
 (deftest as-aliased-var-usage-test
   (assert-submaps2
@@ -3403,9 +3474,36 @@ foo/")))
 
 (deftest lint-java-static-field-call-test
   (is (assert-submaps2
-       '({:file "corpus/static_field_call.clj", :row 4, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
-         {:file "corpus/static_field_call.clj", :row 7, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"}
-         {:file "corpus/static_field_call.clj", :row 8, :col 1, :level :error, :message "Static fields should be referenced without parens unless they are intended as function calls"})
+       '({:file "corpus/static_field_call.clj",
+          :row 5,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 8,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 9,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 11,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"}
+         {:file "corpus/static_field_call.clj",
+          :row 12,
+          :col 1,
+          :level :error,
+          :message
+          "Static fields should be referenced without parens unless they are intended as function calls"})
        (lint! (io/file "corpus" "static_field_call.clj"))))
   (is (empty? (lint! "#_:clj-kondo/ignore (System/err)")))
   (is (empty? (lint! "(ns foo) (System/err)"
@@ -3474,6 +3572,16 @@ foo/")))
      {:row 9, :col 1, :level :error, :message "EOF while reading."}
      {:row 10, :col 1, :level :error, :message "Invalid token: ##NAN"})
    (lint! (io/file "corpus/invalid_literals.clj"))))
+
+(deftest issue-2400-test
+  (assert-submaps
+   '({:file "<stdin>", :row 2, :col 25, :level :warning, :message "Unused import TheClazz"}
+     {:file "<stdin>", :row 2, :col 36, :level :warning, :message "Unresolved namespace NoClazz. Are you missing a require?"})
+   (lint! "(deftype Dude []) Dude/new (defrecord Foo []) Foo/new
+          (import [dude TheClazz]) NoClazz/new"
+             {:linters {:unresolved-symbol {:level :warning}
+                        :unresolved-namespace {:level :warning}
+                        :unused-import {:level :warning}}})))
 
 ;;;; Scratch
 

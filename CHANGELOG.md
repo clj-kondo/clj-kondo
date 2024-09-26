@@ -19,12 +19,25 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2386](https://github.com/clj-kondo/clj-kondo/issues/2386): fix regression introduced in [#2364](https://github.com/clj-kondo/clj-kondo/issues/2364) in `letfn`
+- [#2389](https://github.com/clj-kondo/clj-kondo/issues/2389): add new `hooks-api/callstack` function
+- [#2392](https://github.com/clj-kondo/clj-kondo/issues/2392): don't skip jars that were analyzed with `--skip-lint`
+- [#2395](https://github.com/clj-kondo/clj-kondo/issues/2395): enum constant call warnings
+- [#2400](https://github.com/clj-kondo/clj-kondo/issues/2400): `deftype` and `defrecord` constructors can be used with `Type/new`
+- [#2394](https://github.com/clj-kondo/clj-kondo/issues/2394): add `:sort` option to `:unsorted-required-namespaces` linter to enable case-sensitive sort to match other tools
+
+## 2024.08.29
+
+- [#2303](https://github.com/clj-kondo/clj-kondo/issues/2303): Support array class notation of Clojure 1.12 (`byte/1`)
 - [#916](https://github.com/clj-kondo/clj-kondo/issues/916): New linter: `:destructured-or-binding-of-same-map` which warns about
   `:or` defaults referring to bindings of same map, which is undefined and may result in broken
   behavior
 - [#2362](https://github.com/clj-kondo/clj-kondo/issues/2362): turn min-version warning into lint warning
 - [#1603](https://github.com/clj-kondo/clj-kondo/issues/1603): Support Java classes in `:analyze-call` hook
 - [#2369](https://github.com/clj-kondo/clj-kondo/issues/2369): false positive unused value in quoted list
+- [#2374](https://github.com/clj-kondo/clj-kondo/issues/2374): Detect misplaced return Schemas ([@frenchy64](https://github.com/frenchy64))
+- [#2364](https://github.com/clj-kondo/clj-kondo/issues/2364): performance: code that analyzed fn arity is ran twice
+- [#2355](https://github.com/clj-kondo/clj-kondo/issues/2355): support `:as-alias` with current namespace without warning about self-requiring namespace
 
 ## 2024.08.01
 

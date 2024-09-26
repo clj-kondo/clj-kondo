@@ -1409,6 +1409,18 @@ Example warning: `require with :refer`.
 {:linters {:refer-all {:exclude [clojure.set]}}}
 ```
 
+### Schema misplaced return
+
+*Keyword:* `:schema-misplaced-return`
+
+*Description:* warn on a misplaced return Schema
+
+*Default level:* `:warning`
+
+*Example trigger:* `(require '[schema.core :as s]) (s/defn foo [] :- s/Str)`
+
+*Example message:* `Return schema should go before vector.`
+
 ### Self-requiring namespace
 
 *Keyword:* `:self-requiring-namespace`
@@ -1920,6 +1932,17 @@ You can report duplicate warnings using:
 *Example trigger:* `(ns foo (:require b a))`.
 
 *Example message:* `Unsorted namespace: a`.
+
+*Config*:
+
+The default sort will consider lower-cased namespace name. To enable
+keeping the namespace name as is:
+
+```clojure
+{:linters {:unsorted-required-namespaces {:sort :case-sensitive}}}
+```
+
+Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensitive`.
 
 ### Unused namespace
 
