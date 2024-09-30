@@ -115,6 +115,13 @@
      {:row 14, :col 18, :file "corpus/redundant_do.clj" :message "redundant do"})
    (lint! (io/file "corpus" "redundant_do.clj")
           {:linters {:redundant-expression {:level :off}}}))
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 27,
+     :level :warning,
+     :message "redundant do"}]
+   (lint! "(try 1 (catch Exception _ (do 1)))"))
   (is (empty? (lint! "(do 1 `(do 1 2 3))"
                      {:linters {:redundant-expression {:level :off}}})))
   (is (empty? (lint! "(do 1 '(do 1 2 3))"
