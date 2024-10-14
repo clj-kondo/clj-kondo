@@ -37,7 +37,7 @@
     (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))))
 
 (deftest def-fn-test
-  (let [config {:linters {:def-fn {:level :warn}}
+  (let [config {:linters {:def-fn {:level :warning}}
                 :lint-as '{some.ns/my-fn clojure.core/fn
                            some.ns/my-reify clojure.core/reify}}
         row-col (fn [results] (map #(select-keys % [:row :col]) results))]
