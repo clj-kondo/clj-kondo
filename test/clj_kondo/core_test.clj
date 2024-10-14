@@ -86,14 +86,21 @@
         (is (= 2 (count lines)))
         (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
         (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines)))))
-    (testing "it reports findings when log-level is unrecognised"
+    (testing "it reports findings above specified log level"
       (let [lines (str/split-lines
                    (with-out-str
-                     (clj-kondo/print! (assoc findings :report-level "orrery"))))]
+                     (clj-kondo/print! (assoc findings :report-level "info"))))]
         (is (= 2 (count lines)))
         (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
         (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines)))))
-    (testing "it does not report findings below its level"
+    (testing "it reports findings at specified log level"
+      (let [lines (str/split-lines
+                   (with-out-str
+                     (clj-kondo/print! (assoc findings :report-level "warning"))))]
+        (is (= 2 (count lines)))
+        (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
+        (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines)))))
+    (testing "it does not report findings below specified level"
       (let [lines (str/split-lines
                    (with-out-str
                      (clj-kondo/print! (assoc findings :report-level "error"))))]

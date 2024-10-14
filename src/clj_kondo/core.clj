@@ -24,12 +24,8 @@
   [{:keys [:config :findings :summary :analysis :report-level]}]
   (let [output-cfg (:output config)
         report-level? (if report-level
-                        (let [report-level (some-> report-level keyword)]
-                          (if-let [levels (->> [:info :warning :error]
-                                               (drop-while #(not= report-level %))
-                                               seq)]
-                            (set levels)
-                            (constantly true)))
+                        (let [report-level (keyword report-level)]
+                          (set (drop-while #(not= report-level %) [:info :warning :error])))
                         (constantly true))
         fmt (or (:format output-cfg) :text)]
     (case fmt
