@@ -286,7 +286,13 @@ foo/foo ;; this does use the private var
                      (main "--lint" "-" "--report-level" "error"))))]
       (is (= 1 (count lines)))
       (testing "and summary is omitted"
-        (is (re-matches #"linting took \d+ms, errors: 0" (last lines)))))))
+        (is (re-matches #"linting took \d+ms, errors: 0" (last lines))))))
+  (with-out-str
+    (testing "shows help when report-level is not recognised"
+      (let [output (with-out-str
+                     (with-in-str "(defn foo [x] :foo)"
+                       (main "--lint" "-" "--report-level" "not-a-level")))]
+        (is (re-find #"--report-level <level>: minimum severity for which to report." output))))))
 
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
