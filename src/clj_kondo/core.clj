@@ -23,7 +23,8 @@
   subject to change."
   [{:keys [:config :findings :summary :analysis]} report-level]
   (let [output-cfg (:output config)
-        report-level? (set (drop-while #(not= (keyword report-level) %)
+        report-level (keyword report-level)
+        report-level? (set (drop-while #(not= report-level %)
                                        [:info :warning :error]))
         fmt (or (:format output-cfg) :text)]
     (case fmt
@@ -39,7 +40,7 @@
             (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)
               (printf "errors: %s" error)
-              (when (report-level? "warning")
+              (when (report-level? :warning)
                 (printf ", warnings: %s" warning))
               (println "")))))
       ;; avoid loading clojure.pprint or bringing in additional libs for printing to EDN for now
