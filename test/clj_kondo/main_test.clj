@@ -260,6 +260,25 @@ foo/foo ;; this does use the private var
     (testing "the exit code is 3 when fail-level is error and errors are detected"
       (is (= 3 (with-in-str "(defn foo []) (foo 1)" (main "--fail-level" "error" "--lint" "-")))))))
 
+(deftest report-level-test
+  (testing "findings are reported when they match report-level"
+    (let [lines (str/split-lines
+                 (with-out-str
+                   (with-in-str "(defn foo [x] :foo)"
+                     (main "--lint" "-" "--report-level" "warning"))))]
+      (is (= 2 (count lines)))
+      (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
+      (testing "and summary is included"
+        (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines))))))
+  (testing "findings are omitted if they are below report-level"
+    (let [lines (str/split-lines
+                 (with-out-str
+                   (with-in-str "(defn foo [x] :foo)"
+                     (main "--lint" "-" "--report-level" "error"))))]
+      (is (= 1 (count lines)))
+      (testing "and summary is omitted"
+        (is (re-matches #"linting took \d+ms, errors: 0" (last lines)))))))
+
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
     (testing (str "lang: " lang)
