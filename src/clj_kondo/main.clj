@@ -158,7 +158,7 @@ Options:
                            :as results} (clj-kondo/run! parsed)
                           {:keys [:error :warning]} summary]
                       (when-not dependencies
-                        (clj-kondo/print! results report-level))
+                        (clj-kondo/print! (assoc results :report-level report-level)))
                       (cond
                         (= "warning" fail-level)
                         (cond (pos? error) 3

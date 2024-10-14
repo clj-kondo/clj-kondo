@@ -21,7 +21,7 @@
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
-  [{:keys [:config :findings :summary :analysis]} report-level]
+  [{:keys [:config :findings :summary :analysis :report-level]}]
   (let [output-cfg (:output config)
         report-level (keyword report-level)
         report-level? (set (drop-while #(not= report-level %)
