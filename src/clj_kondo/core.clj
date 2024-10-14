@@ -23,12 +23,14 @@
   subject to change."
   [{:keys [:config :findings :summary :analysis :report-level]}]
   (let [output-cfg (:output config)
-        report-level? (let [report-level (some-> report-level keyword)]
-                        (if-some [levels (->> [:info :warning :error]
-                                              (drop-while #(not= report-level %))
-                                              seq)]
-                          (set levels)
-                          (constantly true)))
+        report-level? (if report-level
+                        (let [report-level (some-> report-level keyword)]
+                          (if-let [levels (->> [:info :warning :error]
+                                               (drop-while #(not= report-level %))
+                                               seq)]
+                            (set levels)
+                            (constantly true)))
+                        (constantly true))
         fmt (or (:format output-cfg) :text)]
     (case fmt
       :text
