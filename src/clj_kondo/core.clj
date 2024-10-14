@@ -21,8 +21,12 @@
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
-  [{:keys [:config :findings :summary :analysis]}]
+  [{:keys [:config :findings :summary :analysis :report-level]}]
   (let [output-cfg (:output config)
+        report-level? (if report-level
+                        (let [report-level (keyword report-level)]
+                          (set (drop-while #(not= report-level %) [:info :warning :error])))
+                        (constantly true))
         fmt (or (:format output-cfg) :text)]
     (case fmt
       :text
@@ -31,11 +35,15 @@
                                        (println)))
         (let [format-fn (core-impl/format-output config)]
           (doseq [finding findings]
-            (println (format-fn finding)))
+            (when (report-level? (:level finding))
+              (println (format-fn finding))))
           (when (:summary output-cfg)
             (let [{:keys [:error :warning :duration]} summary]
               (printf "linting took %sms, " duration)
-              (println (format "errors: %s, warnings: %s" error warning))))))
+              (printf "errors: %s" error)
+              (when (report-level? :warning)
+                (printf ", warnings: %s" warning))
+              (println "")))))
       ;; avoid loading clojure.pprint or bringing in additional libs for printing to EDN for now
       :edn
       (let [output (cond-> {:findings findings}

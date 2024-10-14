@@ -55,6 +55,9 @@ Options:
   --fail-level <level>: minimum severity for exit with error code.  Supported values:
     warning, error.  The default level if unspecified is warning.
 
+  --report-level <level>: minimum severity for which to report.  Supported values:
+    info, warning, error.  The default level if unspecified is info.
+
   --debug: print debug information.
 "))
 
@@ -77,6 +80,7 @@ Options:
     "--copy-configs" :scalar
     "--skip-lint"    :scalar
     "--fail-level"   :scalar
+    "--report-level" :scalar
     "--debug"        :scalar
     :scalar))
 
@@ -128,13 +132,16 @@ Options:
      :skip-lint (contains? opts "--skip-lint")
      :fail-level (or (last (get opts "--fail-level"))
                      "warning")
+     :report-level (or (last (get opts "--report-level"))
+                       "info")
      :debug (contains? opts "--debug")}))
 
 (def fail-level? #{"warning" "error"})
+(def report-level? (conj fail-level? "info"))
 
 (defn main
   [& options]
-  (let [{:keys [:help :lint :version :pod :dependencies :fail-level] :as parsed}
+  (let [{:keys [:help :lint :version :pod :dependencies :fail-level :report-level] :as parsed}
         (parse-opts options)]
     (or (cond version
               (print-version)
@@ -145,11 +152,13 @@ Options:
               (print-help)
               (not (fail-level? fail-level))
               (print-help)
+              (not (report-level? report-level))
+              (print-help)
               :else (let [{:keys [:summary]
                            :as results} (clj-kondo/run! parsed)
                           {:keys [:error :warning]} summary]
                       (when-not dependencies
-                        (clj-kondo/print! results))
+                        (clj-kondo/print! (assoc results :report-level report-level)))
                       (cond
                         (= "warning" fail-level)
                         (cond (pos? error) 3

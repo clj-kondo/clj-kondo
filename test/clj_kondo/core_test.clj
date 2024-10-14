@@ -76,6 +76,37 @@
       (is (zero? warning))
       (is (zero? info)))))
 
+(deftest report!-test
+  (let [findings (with-in-str
+                   "(defn foo [x] :foo)" (clj-kondo/run! {:lint ["-"]}))]
+    (testing "it reports findings when report level is nil"
+      (let [lines (str/split-lines
+                   (with-out-str
+                     (clj-kondo/print! findings)))]
+        (is (= 2 (count lines)))
+        (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
+        (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines)))))
+    (testing "it reports findings above specified log level"
+      (let [lines (str/split-lines
+                   (with-out-str
+                     (clj-kondo/print! (assoc findings :report-level "info"))))]
+        (is (= 2 (count lines)))
+        (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
+        (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines)))))
+    (testing "it reports findings at specified log level"
+      (let [lines (str/split-lines
+                   (with-out-str
+                     (clj-kondo/print! (assoc findings :report-level "warning"))))]
+        (is (= 2 (count lines)))
+        (is (= "<stdin>:1:12: warning: unused binding x" (first lines)))
+        (is (re-matches #"linting took \d+ms, errors: 0, warnings: 1" (last lines)))))
+    (testing "it does not report findings below specified level"
+      (let [lines (str/split-lines
+                   (with-out-str
+                     (clj-kondo/print! (assoc findings :report-level "error"))))]
+        (is (= 1 (count lines)))
+        (is (re-matches #"linting took \d+ms, errors: 0" (last lines)))))))
+
 (deftest backwards-compatibility-with-analysis-in-output-config-test
   (let [res (fn [config]
               (with-in-str "(fn [a] a)"
