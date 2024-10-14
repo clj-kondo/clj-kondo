@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#1784](https://github.com/clj-kondo/clj-kondo/issues/1784): detect `:redundant-do` in `catch`
+- [#2410](https://github.com/clj-kondo/clj-kondo/issues/2410): add `--report-level` flag
 
 ## 2024.09.27
 

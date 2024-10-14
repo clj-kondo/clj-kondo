@@ -14,6 +14,10 @@ clj-kondo --lint src --config .clj-kondo/ci-config.edn
 
 In this way, you can keep your configuration in the standard `config.edn` file and that will continue to work during development, with the overrides only be used during CI.
 
+## Ignoring output below `--fail-level`
+
+If you use the `--fail-level error` flag it might be useful to only see errors in CI, to make the output a bit easier to read for the poor humans that need to address the errors. In that case you can use `--report-level error` to hide any notices below that level.
+
 ## Pre-commit hook
 
 You can use this pre-commit hook to run `clj-kondo` over files you changed before
