@@ -80,7 +80,7 @@
   (let [findings (with-in-str
                    "(defn foo [x] :foo)" (clj-kondo/run! {:lint ["-"]}))]
     (testing "it reports findings at its level"
-      (let [lines (string/split-lines
+      (let [lines (str/split-lines
                    (with-out-str
                      (clj-kondo/print! (assoc findings :report-level "warning"))))]
         (is (= 2 (count lines)))
