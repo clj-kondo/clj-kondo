@@ -20,7 +20,9 @@ A static analyzer and linter for Clojure code that sparks joy.
 
 ## Rationale
 
-Clj-kondo performs static analysis on Clojure, ClojureScript and EDN, without the need of a running REPL. It informs you about potential errors while you are typing.
+Clj-kondo performs [static analysis]() on Clojure, ClojureScript and EDN. It
+informs you about potential errors while you are typing (without executing your
+program).
 
 ## Features
 
