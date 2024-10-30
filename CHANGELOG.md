@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#1784](https://github.com/clj-kondo/clj-kondo/issues/1784): detect `:redundant-do` in `catch`
 - [#2410](https://github.com/clj-kondo/clj-kondo/issues/2410): add `--report-level` flag
+- [#2416](https://github.com/clj-kondo/clj-kondo/issues/2416): detect empty `require` and `:require` forms ([@NoahTheDuke](https://github.com/NoahTheDuke))
 
 ## 2024.09.27
 

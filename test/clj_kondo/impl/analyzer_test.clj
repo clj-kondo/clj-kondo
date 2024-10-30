@@ -160,6 +160,26 @@
                :col 1
                :message "Invalid number: 1..1."}]
              @(:findings (analyze "1..1")))))
+    (testing "empty (require)"
+      (is (= [{:type :syntax
+               :level :error
+               :filename "test.clj"
+               :row 1
+               :end-row 1
+               :col 2
+               :end-col 9
+               :message "Invalid require: no libs specified to load"}]
+             @(:findings (analyze "(require)")))))
+    (testing "empty (:require)"
+      (is (= [{:type :syntax
+               :level :error
+               :filename "test.clj"
+               :row 1
+               :end-row 1
+               :col 10
+               :end-col 18
+               :message "Invalid require: no libs specified to load"}]
+             @(:findings (analyze "(ns foo (:require))")))))
     (testing "multiple :as aliases and alias fn"
       (assert-submap
         '{:type :ns
