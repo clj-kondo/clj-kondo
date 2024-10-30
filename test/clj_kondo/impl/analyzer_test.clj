@@ -168,7 +168,7 @@
                :end-row 1
                :col 2
                :end-col 9
-               :message "require form is invalid: form must not be empty"}]
+               :message "Invalid require: no libs specified to load"}]
              @(:findings (analyze "(require)")))))
     (testing "empty (:require)"
       (is (= [{:type :syntax
@@ -178,7 +178,7 @@
                :end-row 1
                :col 10
                :end-col 18
-               :message "require form is invalid: form must not be empty"}]
+               :message "Invalid require: no libs specified to load"}]
              @(:findings (analyze "(ns foo (:require))")))))
     (testing "multiple :as aliases and alias fn"
       (assert-submap

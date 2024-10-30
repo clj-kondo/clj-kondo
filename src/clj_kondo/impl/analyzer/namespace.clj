@@ -372,7 +372,7 @@
                (when-not libspecs
                  (findings/reg-finding!
                   ctx (node->line (:filename ctx) require-kw :syntax
-                                  "require form is invalid: form must not be empty")))
+                                  "Invalid require: no libs specified to load")))
                (for [libspec-expr libspecs
                      normalized-libspec-expr (normalize-libspec ctx nil libspec-expr unused-namespace-disabled?)
                      analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
@@ -675,7 +675,7 @@
     (when-not (seq children)
       (findings/reg-finding!
        ctx (node->line (:filename ctx) require-node :syntax
-                       "require form is invalid: form must not be empty")))
+                       "Invalid require: no libs specified to load")))
     (when (some-> children first sexpr empty-spec?)
       (findings/reg-finding!
        ctx
