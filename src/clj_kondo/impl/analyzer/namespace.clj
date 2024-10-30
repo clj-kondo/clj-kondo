@@ -369,11 +369,10 @@
         unused-namespace-disabled? (identical? :off (-> ctx :config :linters :unused-namespace :level))
         analyzed
         (map (fn [[require-kw libspecs]]
-               (when (identical? :clj lang)
-                 (when-not libspecs
-                   (findings/reg-finding!
-                    ctx (node->line (:filename ctx) require-kw :syntax
-                                    "require form is invalid: form must not be empty"))))
+               (when-not libspecs
+                 (findings/reg-finding!
+                  ctx (node->line (:filename ctx) require-kw :syntax
+                                  "require form is invalid: form must not be empty")))
                (for [libspec-expr libspecs
                      normalized-libspec-expr (normalize-libspec ctx nil libspec-expr unused-namespace-disabled?)
                      analyzed (analyze-libspec ctx ns-name require-kw normalized-libspec-expr)]
@@ -673,11 +672,10 @@
                                                                  utils/symbol-from-token)))
                                       (second children)))))
                            children)]
-    (when (identical? :clj (:base-lang ctx))
-      (when-not (seq children)
-        (findings/reg-finding!
-         ctx (node->line (:filename ctx) require-node :syntax
-                         "require form is invalid: form must not be empty"))))
+    (when-not (seq children)
+      (findings/reg-finding!
+       ctx (node->line (:filename ctx) require-node :syntax
+                       "require form is invalid: form must not be empty")))
     (when (some-> children first sexpr empty-spec?)
       (findings/reg-finding!
        ctx
