@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2410](https://github.com/clj-kondo/clj-kondo/issues/2410): add `--report-level` flag
 - [#2416](https://github.com/clj-kondo/clj-kondo/issues/2416): detect empty `require` and `:require` forms ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#1786](https://github.com/clj-kondo/clj-kondo/issues/1786): Support `gen-interface` (by suppressing unresolved symbols)
+- [#2407](https://github.com/clj-kondo/clj-kondo/issues/2407): support ignore hint on called symbol
 
 ## 2024.09.27
 

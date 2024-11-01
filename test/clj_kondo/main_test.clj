@@ -1974,7 +1974,10 @@ foo/foo ;; this does use the private var
 (gen-interface
  :name a.b.c.Foo
  :methods [[bar [String] Object]])"
-                     {:linters {:unresolved-symbol {:level :error}}}))))
+                     {:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(#_:clj-kondo/ignore load-string 1)"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
 
 (deftest tagged-literal-test
   (is (empty?
