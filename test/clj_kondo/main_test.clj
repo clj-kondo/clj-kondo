@@ -1969,7 +1969,12 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}}
                      "--lang" "cljs")))
   (is (empty? (lint! "(def Vec 1)"
-                     {:linters {:redefined-var {:level :error}}}))))
+                     {:linters {:redefined-var {:level :error}}})))
+  (is (empty? (lint! "(ns a.b.c)
+(gen-interface
+ :name a.b.c.Foo
+ :methods [[bar [String] Object]])"
+                     {:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest tagged-literal-test
   (is (empty?

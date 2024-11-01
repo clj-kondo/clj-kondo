@@ -2062,6 +2062,12 @@
   (swap! (:namespaces ctx) assoc-in [base-lang lang current-ns :gen-class] true)
   nil)
 
+(defn analyze-gen-interface [ctx expr]
+  ;; for now we just ignore the form to not cause false positives
+  ;; we can add more sophisticated linting, e.g. causing -init to be used
+  (let [ctx (utils/ctx-with-linter-disabled ctx :unresolved-symbol)]
+    (analyze-children ctx expr)))
+
 (defn analyze-extend-type-children
   "Used for analyzing children of extend-protocol, extend-type, reify and specify! "
   [ctx children defined-by defined-by->lint-as]
@@ -2484,6 +2490,7 @@
                           (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
+                          (gen-interface) (analyze-gen-interface ctx expr)
                           (exists?) (analyze-cljs-exists? ctx expr)
                           (with-precision) (analyze-with-precision ctx expr children)
                           (var) (analyze-var ctx expr children)
