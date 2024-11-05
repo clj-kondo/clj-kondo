@@ -1,7 +1,9 @@
 (ns clj-kondo.impl.macroexpand
   {:no-doc true}
   (:require
-   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node token-node]]
+   [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.utils :refer [parse-string tag vector-node list-node
+                                 token-node node->line]]
    [clojure.walk :as walk]))
 
 (set! *warn-on-reflection* true)
@@ -54,7 +56,7 @@
 
 (defn expand-cond->
   "Expands cond-> and cond->>"
-  [_ctx expr resolved-as-name]
+  [ctx expr resolved-as-name]
   (let [[_ start-expr & clauses] (:children expr)
         thread-sym (case resolved-as-name
                      cond-> 'clojure.core/->
@@ -74,7 +76,15 @@
                         (vector-node
                          (list* g start-expr
                                 (interleave (repeat g) (butlast steps))))
-                        (if (empty? steps) g (last steps))])]
+                        (if (empty? steps) g (last steps))])
+        clauses-count (count clauses)]
+    (when (odd? clauses-count)
+      (findings/reg-finding! ctx
+                             (node->line
+                              (:filename ctx)
+                              expr
+                              :invalid-arity
+                              (str resolved-as-name " requires even number of clauses"))))
     ret))
 
 (defn expand-doto [_ctx expr]

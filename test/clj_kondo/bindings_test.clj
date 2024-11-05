@@ -221,7 +221,7 @@
                         (doseq [test (map :test ts)] test)
                         then)"
                      '{:linters {:unused-binding {:level :warning}}})))
-  (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) x))"
+  (is (empty? (lint! "(let [a 1] (cond-> (.getFoo a) (some? y) x))"
                      '{:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(defmacro foo [] (let [sym 'my-symbol] `(do '~sym)))"
                      '{:linters {:unused-binding {:level :warning}}})))
