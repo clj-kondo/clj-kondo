@@ -7,8 +7,9 @@
   ^:replace {:linters {:redundant-call {:level :warning}}})
 
 (deftest redundant-call-test
+  (doseq [sym `[-> ->> some-> some->> partial comp merge]]
+    (is (empty? (lint! (format "(%s 1 identity)" sym) config))))
   (doseq [sym `[-> ->> cond-> cond->> some-> some->> partial comp merge]]
-    (is (empty? (lint! (format "(%s 1 identity)" sym) config)))
     (assert-submaps
      [{:level :warning :message (format "Single arg use of %s always returns the arg itself" sym)}]
      (lint! (format "(%s 1)" sym) config))

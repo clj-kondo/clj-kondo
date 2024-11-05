@@ -241,3 +241,17 @@
      :level :error,
      :message "clojure.core/throw is called with 2 args but expects 1"}]
    (lint! "(throw 1 2)")))
+
+(deftest cond-thread-test
+  (assert-submaps2
+   [{:row 1,
+     :col 1,
+     :level :error,
+     :message "cond-> requires even number of clauses"}]
+   (lint! "(cond-> 42 inc)"))
+  (assert-submaps2
+   [{:row 1,
+     :col 1,
+     :level :error,
+     :message "cond->> requires even number of clauses"}]
+   (lint! "(cond->> 42 (even? 7) inc (odd? 8))")))
