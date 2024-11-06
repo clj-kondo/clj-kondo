@@ -3022,7 +3022,8 @@
           (if (or (:quoted ctx) (= :edn lang))
             (analyze-children (update ctx :callstack (fn [cs]
                                                        (cons [:list nil] cs))) children)
-            (let [t (tag function)]
+            (let [_ (utils/handle-ignore ctx function)
+                  t (tag function)]
               (case t
                 :map
                 (do (lint-map-call! ctx function arg-count expr)
