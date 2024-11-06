@@ -1827,7 +1827,8 @@
                    matcher-type
                    (not (identical? matcher-type :any)))
           (case match-type
-            :string (when (not (identical? matcher-type :string))
+            :string (when (not (or (identical? matcher-type :string)
+                                   (identical? matcher-type :nilable/string)))
                       (findings/reg-finding!
                        ctx
                        (node->line (:filename ctx) (last children)

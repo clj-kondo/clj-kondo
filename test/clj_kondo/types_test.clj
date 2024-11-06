@@ -738,6 +738,12 @@
 (defn fun2 [^String replacement]
   (str/replace \"foo\" #\"foo\" replacement))
 "
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(require '[clojure.string :as str])
+(let [^String z \"z\"]
+  (clojure.string/replace \"x\" \"y\" z))
+"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
