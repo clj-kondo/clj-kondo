@@ -55,7 +55,7 @@
   (when *debug*
     (when-let [node (some #(when-not (node? %)
                              %) children)]
-      (throw (new IllegalArgumentException (str "Not a node: " (str node)))))))
+      (throw (new IllegalArgumentException (str "Not a node: " node))))))
 
 (defn vector-node [children]
   (assert-children-nodes children)

@@ -155,8 +155,8 @@
      (when (and var-sym
                 (or (str/starts-with? var-sym ".")
                     (str/ends-with? var-sym "."))
-                (and (not= '.. var-sym)
-                     (not (one-of ns-sym [cljs.core clojure.core]))))
+                (not= '.. var-sym)
+                (not (one-of ns-sym [cljs.core clojure.core])))
        (findings/reg-finding! ctx (node->line
                                    filename (let [thing (if (meta var-sym) var-sym expr)]
                                               thing)

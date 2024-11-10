@@ -311,9 +311,9 @@
                                   (when called-fn
                                     (or different-file?
                                         (not row-called-fn)
-                                        (or (> row-call row-called-fn)
-                                            (and (= row-call row-called-fn)
-                                                 (> (:col call) (:col called-fn)))))))
+                                        (> row-call row-called-fn)
+                                        (and (= row-call row-called-fn)
+                                             (> (:col call) (:col called-fn))))))
                   _ (when-let [t (:type called-fn)]
                       (when (and call? (utils/one-of t [:string]))
                         (findings/reg-finding!
