@@ -284,8 +284,7 @@
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :unused-value
-                                                             :message (str "Unused value: "
-                                                                           (str expr))
+                                                             :message (str "Unused value: " expr)
                                                              :filename (:filename ctx)))))))))
                (do
                  ;; this everything but a symbol token, including keywords
@@ -313,8 +312,7 @@
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :unused-value
-                                                             :message (str "Unused value: "
-                                                                           (str expr))
+                                                             :message (str "Unused value: " expr)
                                                              :filename (:filename ctx))))))))
                  (when (:k expr)
                    (analyze-keyword ctx expr opts))))

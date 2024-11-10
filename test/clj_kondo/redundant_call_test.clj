@@ -12,7 +12,8 @@
   (doseq [sym `[-> ->> cond-> cond->> some-> some->> partial comp merge]]
     (assert-submaps
      [{:level :warning :message (format "Single arg use of %s always returns the arg itself" sym)}]
-     (lint! (format "(%s 1)" sym) config))
+     (lint! (format "(%s 1)" sym) config)))
+  (doseq [sym `[-> ->> cond-> cond->> some-> some->> partial]]
     (assert-submaps
      [{:level :warning :message (format "Single arg use of %s always returns the arg itself" sym)}
       {:level :warning :message (format "Single arg use of %s always returns the arg itself" sym)}]

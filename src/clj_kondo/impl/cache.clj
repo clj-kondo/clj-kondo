@@ -12,7 +12,7 @@
 
 (defn built-in-cache-resource [lang ns-sym]
   (io/resource (str "clj_kondo/impl/cache/built_in/"
-                    (name lang) "/" (str ns-sym ".transit.json"))))
+                    (name lang) "/" ns-sym ".transit.json")))
 
 (defn cache-file ^java.io.File [cache-dir lang ns-sym]
   (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
