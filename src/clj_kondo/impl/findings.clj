@@ -16,13 +16,16 @@
   (let [!ignores (:ignores ctx)
         ignores @!ignores
         filename (:filename m)
-        lang (:lang ctx)
+        base-lang (:lang ctx)
         row (:row m)]
     (when row
-      (when-let [ignores (or (get-in ignores [filename lang])
-                             (when (identical? :cljc lang)
-                               (or (get-in ignores [filename :clj])
-                                   (get-in ignores [filename :cljs]))))]
+      (when-let [[ignores lang] (or (some-> (get-in ignores [filename base-lang])
+                                            (vector base-lang))
+                                    (when (identical? :cljc base-lang)
+                                      (or (some-> (get-in ignores [filename :clj])
+                                                  (vector :clj))
+                                          (some-> (get-in ignores [filename :cljs])
+                                                  (vector :cljs)))))]
         (loop [ignores ignores
                idx 0]
           (when ignores
