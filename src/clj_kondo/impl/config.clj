@@ -110,7 +110,7 @@
               :unused-import {:level :warning}
               :single-operand-comparison {:level :warning}
               :single-logical-operand {:level :warning}
-              :redundant-nested-call {:level :warning}
+              :redundant-nested-call {:level :info}
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
               :missing-body-in-when {:level :warning}
@@ -141,7 +141,7 @@
               :redundant-call {:level :off
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
-              :redundant-str-call {:level :off}
+              :redundant-str-call {:level :info}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :aliased-namespace-symbol {:level :off
@@ -171,7 +171,7 @@
               :min-clj-kondo-version {:level :warning
                                       ;; the version itself is configured at the top level
                                       }
-              :redundant-ignore {:level :off}
+              :redundant-ignore {:level :info}
               :schema-misplaced-return {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->

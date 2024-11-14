@@ -132,6 +132,7 @@
              :line-length {:level :off}
              :unused-value {:level :off}
              :uninitialized-var {:level :off}
+             :redundant-str-call {:level :off}
              :redundant-ignore {:level :off}}})
 
 (defn lint-jvm!
@@ -151,8 +152,6 @@
                    (instance? java.io.File input)
                    (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
                    (vector? input)
-                   ;; TODO
-                   #_:clj-kondo/ignore
                    (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
                                                                   ["--config" config] args))
                    :else (with-in-str input

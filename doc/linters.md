@@ -76,8 +76,9 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant call](#redundant-call)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant ignore](#redundant-ignore)
-    - [Redundant str call](#redundant-str-call)
+    - [Redundant nested call](#redundant-nested-call)
     - [Redundant let](#redundant-let)
+    - [Redundant str call](#redundant-str-call)
     - [Refer](#refer)
     - [Refer all](#refer-all)
     - [Schema misplaced return](#schema-misplaced-return)
@@ -1361,18 +1362,17 @@ warn on additional vars.
 
 *Example message:* `Redundant ignore`.
 
-### Redundant str call
+### Redundant nested call
 
-*Keyword*: `:redundant-str-call`
+*Keyword*: `:redundant-nested-call`
 
-*Description:* warn on redundant `str` calls. The warning arises when a single argument
-is passed to a `str` that is already a string, which makes the `str` unnecessary.
+*Description:* warn on redundant nested call of functions and macros
 
 *Default level:* `:off`.
 
-*Example triggers:* `(str "foo")`, `(str (str 1))`.
+*Example trigger:* `(+ 1 2 (+ 1 2 3))`.
 
-*Example message:* `Single argument to str already is a string`.
+*Example message:* `Redundant nested call: +`.
 
 ### Redundant let
 
@@ -1386,6 +1386,19 @@ because directly nested lets.
 *Example trigger:* `(let [x 1] (let [y 2] (+ x y)))`.
 
 *Example message:* `Redundant let expression.`
+
+### Redundant str call
+
+*Keyword*: `:redundant-str-call`
+
+*Description:* warn on redundant `str` calls. The warning arises when a single argument
+is passed to a `str` that is already a string, which makes the `str` unnecessary.
+
+*Default level:* `:off`.
+
+*Example triggers:* `(str "foo")`, `(str (str 1))`.
+
+*Example message:* `Single argument to str already is a string`.
 
 ### Refer
 
