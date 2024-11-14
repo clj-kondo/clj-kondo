@@ -703,7 +703,7 @@
                       (not= :redundant-call type)
                       (not= :redundant-let type)
                       (not= :single-logical-operand type)
-                      (not= :redundant-nesting type))
+                      (not= :redundant-nested-call type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
           f (collapse-cljc-findings findings)

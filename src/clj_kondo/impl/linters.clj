@@ -230,7 +230,7 @@
       (node->line
        (:filename call)
        (:expr call)
-       :redundant-nesting
+       :redundant-nested-call
        (format "Nested use of %s is redunant" call-name) ))))
 
 #_(require 'clojure.pprint)
@@ -418,7 +418,7 @@
                        (lint-single-logical-operand call))
                   redundant-nesting-error
                   (and call?
-                       (not (utils/linter-disabled? call :redundant-nesting))
+                       (not (utils/linter-disabled? call :redundant-nested-call))
                        (lint-redundant-nesting call))]]
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
