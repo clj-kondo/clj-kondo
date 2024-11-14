@@ -657,7 +657,6 @@
                                                   (set (map #(select-keys % [:flags]) v)))))}))]
         by-class))))
 
-#_:clj-kondo/ignore
 (comment
   (require '[clj-kondo.core] :reload-all)
   (clj-kondo.core/run! {:lint ["/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"]
