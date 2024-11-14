@@ -26,6 +26,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2407](https://github.com/clj-kondo/clj-kondo/issues/2407): support ignore hint on called symbol
 - [#2420](https://github.com/clj-kondo/clj-kondo/issues/2420): Detect uneven number of clauses in `cond->` and `cond->>`
 - [#2415](https://github.com/clj-kondo/clj-kondo/issues/2415): false positive type checking issue with `str/replace` and `^String` annotation
+- [#2212](https://github.com/clj-kondo/clj-kondo/issues/2212): new linter: `:redundant-nested-call` ([@tomdl89](https://github.com/tomdl89))
 
 ## 2024.09.27
 

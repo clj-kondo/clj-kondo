@@ -180,7 +180,7 @@
                        (node->line (:filename ctx)
                                    child-expr
                                    :refer
-                                   (str "require with " (str child-k))))))
+                                   (str "require with " child-k)))))
                   (recur
                    (nnext children)
                    (cond (and (not cljs-macros-self-require?) (sequential? opt))

@@ -657,7 +657,6 @@
                                                   (set (map #(select-keys % [:flags]) v)))))}))]
         by-class))))
 
-#_:clj-kondo/ignore
 (comment
   (require '[clj-kondo.core] :reload-all)
   (clj-kondo.core/run! {:lint ["/Users/borkdude/.cache/clojure-lsp/jdk/java.base/java/lang/System.java"]
@@ -702,7 +701,8 @@
                  (and (not= :redundant-do type)
                       (not= :redundant-call type)
                       (not= :redundant-let type)
-                      (not= :single-logical-operand type))
+                      (not= :single-logical-operand type)
+                      (not= :redundant-nested-call type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
           f (collapse-cljc-findings findings)

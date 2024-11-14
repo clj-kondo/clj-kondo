@@ -375,7 +375,7 @@
 (defn lint-fn-name! [ctx name-node]
   (when-not (simple-symbol? (:value name-node))
     (findings/reg-finding! ctx (assoc (meta name-node)
-                                      :message (str "Function name must be simple symbol but got: " (str name-node))
+                                      :message (str "Function name must be simple symbol but got: " name-node)
                                       :type :syntax
                                       :filename (:filename ctx)))))
 
