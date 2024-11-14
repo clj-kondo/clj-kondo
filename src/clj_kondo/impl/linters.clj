@@ -219,7 +219,7 @@
          :single-logical-operand
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
-(defn lint-redundant-nesting
+(defn lint-redundant-nested-call
   "Lints calls of variadic functions/macros when nested."
   [call]
   (let [[[call-ns call-name] parent] (:callstack call)]
@@ -231,7 +231,7 @@
        (:filename call)
        (:expr call)
        :redundant-nested-call
-       (format "Nested use of %s is redunant" call-name) ))))
+       (format "Redundant nested call: %s" call-name)))))
 
 #_(require 'clojure.pprint)
 
@@ -419,7 +419,7 @@
                   redundant-nesting-error
                   (and call?
                        (not (utils/linter-disabled? call :redundant-nested-call))
-                       (lint-redundant-nesting call))]]
+                       (lint-redundant-nested-call call))]]
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)
