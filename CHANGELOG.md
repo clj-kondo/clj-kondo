@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2024.11.14
 
 - [#2212](https://github.com/clj-kondo/clj-kondo/issues/2212): NEW linter: `:redundant-nested-call` ([@tomdl89](https://github.com/tomdl89)), set to level `:info` by default
 - Bump `:redundant-ignore`, `:redundant-str-call` linters to level `:info`
