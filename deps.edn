@@ -3,7 +3,7 @@
         io.replikativ/datalog-parser {:mvn/version "0.2.29"}
         cheshire/cheshire {:mvn/version "5.13.0"}
         nrepl/bencode {:mvn/version "1.2.0"}
-        org.babashka/sci {:mvn/version "0.8.42"}
+        org.babashka/sci {:mvn/version "0.9.44"}
         babashka/fs {:mvn/version "0.5.21"}
         org.ow2.asm/asm {:mvn/version "9.7"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
