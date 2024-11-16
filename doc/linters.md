@@ -1356,7 +1356,7 @@ warn on additional vars.
 
 *Description:* warn on redundant ignore, i.e. when an ignored expression doesn't trigger any lint warning
 
-*Default level:* `:off`.
+*Default level:* `:info`.
 
 *Example trigger:* `#_:clj-kondo/ignore (+ 1 2 3)`.
 
@@ -1368,7 +1368,7 @@ warn on additional vars.
 
 *Description:* warn on redundant nested call of functions and macros
 
-*Default level:* `:off`.
+*Default level:* `:info`.
 
 *Example trigger:* `(+ 1 2 (+ 1 2 3))`.
 
@@ -1394,7 +1394,7 @@ because directly nested lets.
 *Description:* warn on redundant `str` calls. The warning arises when a single argument
 is passed to a `str` that is already a string, which makes the `str` unnecessary.
 
-*Default level:* `:off`.
+*Default level:* `:info`.
 
 *Example triggers:* `(str "foo")`, `(str (str 1))`.
 
