@@ -885,7 +885,9 @@
               ignore ignores]
         (let [m (:clj-kondo/ignore ignore)]
           (when (map? m)
-            (when-not (:used ignore)
+            (when-not (or (:used ignore)
+                          ;; #2433
+                          (:derived-location ignore))
               (findings/reg-finding! ctx (assoc m
                                                 :type :redundant-ignore
                                                 :message "Redundant ignore"
