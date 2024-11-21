@@ -12,7 +12,9 @@ Table of contents:
     - [Namespace local configuration](#namespace-local-configuration)
         - [:config-in-ns](#config-in-ns)
         - [Metadata config](#metadata-config)
+    - [Exclude files from being linted](#exclude-files-from-being-linted)
     - [Unrecognized macros](#unrecognized-macros)
+        - [Inline macro configuration](#inline-macro-configuration)
     - [Options](#options)
         - [Disable a linter](#disable-a-linter)
         - [Enable optional linters](#enable-optional-linters)
@@ -24,15 +26,18 @@ Table of contents:
         - [:config-in-tag](#config-in-tag)
         - [Ignore the contents of comment forms](#ignore-the-contents-of-comment-forms)
         - [Disable auto-load-configs](#disable-auto-load-configs)
+        - [Only lint specific dialects in .cljc files](#only-lint-specific-dialects-in-cljc-files)
     - [Available linters](#available-linters)
     - [Hooks](#hooks)
     - [Output](#output)
         - [Print results in JSON format](#print-results-in-json-format)
+        - [Print results in SARIF format](#print-results-in-sarif-format)
         - [Print results with a custom format](#print-results-with-a-custom-format)
         - [Include and exclude files from the output](#include-and-exclude-files-from-the-output)
         - [Show progress bar while linting](#show-progress-bar-while-linting)
         - [Output canonical file paths](#output-canonical-file-paths)
         - [Show linter name in message](#show-linter-name-in-message)
+        - [Show language context in .cljc files](#show-language-context-in-cljc-files)
     - [Namespace groups](#namespace-groups)
     - [Example configurations](#example-configurations)
     - [Exporting and importing configuration](#exporting-and-importing-configuration)
@@ -391,6 +396,30 @@ By default configurations in `.clj-kondo/*/*/config.edn` are used. You can disab
 
 ``` shellsession
 :auto-load-configs false
+```
+
+### Only lint specific dialects in .cljc files
+
+By default, clj-kondo will lint all dialects it understands in .cljc files. To focus on
+a specific dialect or subset of dialects, use `{:cljc {:features [LANG*]}}`, where LANG
+is a given dialect keyword.
+
+Given this example `example.cljc` file:
+```clojure
+(+ 5 #?(:clj "foo" :cljs "bar"))
+```
+
+With `{:cljc {:features [:cljs]}}`, only the issues in the `clojurescript` branch will be linted:
+
+```clojure
+$ clj-kondo --lint /tmp/example.cljc
+/tmp/example.cljc:1:14: warning: Expected: number, received: string.
+/tmp/example.cljc:1:26: warning: Expected: number, received: keyword.
+linting took 16ms, errors: 0, warnings: 2
+
+$ clj-kondo --lint /tmp/example.cljc --config '{:cljc {:features [:cljs]}}'
+/tmp/example.cljc:1:26: warning: Expected: number, received: keyword.
+linting took 11ms, errors: 0, warnings: 1
 ```
 
 ## Available linters
