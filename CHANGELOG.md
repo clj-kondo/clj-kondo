@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2433](https://github.com/clj-kondo/clj-kondo/issues/2433): false positive redundant ignore with hook
 - Document `:cljc` config option. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 
 ## 2024.11.14
