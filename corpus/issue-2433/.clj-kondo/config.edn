@@ -1,0 +1,3 @@
+{:hooks {:analyze-call {foobar/dingo hooks/dingo}}
+ :linters {:unused-binding {:level :warning}
+           :redundant-ignore {:level :warning}}}
