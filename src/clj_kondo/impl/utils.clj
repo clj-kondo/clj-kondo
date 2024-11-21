@@ -384,7 +384,7 @@
                       :all (set linters))
             ignore (cond-> (assoc m :ignore linters)
                      node (assoc-in [:clj-kondo/ignore :linters] nil))
-            ignore ignore #_(if (:clj-kondo.impl/generated expr)
+            ignore (if (:clj-kondo.impl/generated expr)
                      (assoc ignore :used true)
                      ignore)]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
