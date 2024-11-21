@@ -222,11 +222,14 @@
 (defn lint-redundant-nested-call
   "Lints calls of variadic functions/macros when nested."
   [call]
-  (let [[[call-ns call-name] parent] (:callstack call)]
+  (let [[[call-ns call-name] parent [grandparent-ns grandparent-name]] (:callstack call)]
     (when (and (utils/one-of call-ns [clojure.core cljs.core])
                (utils/one-of call-name [* *' + +' and comp concat every-pred
                                         lazy-cat max merge min or some-fn str])
-               (= [call-ns call-name] parent))
+               (= [call-ns call-name] parent)
+               ;; Exclude instances of nesting when directly inside threading macros
+               (not (and (utils/one-of grandparent-ns [clojure.core cljs.core])
+                         (utils/one-of grandparent-name [-> ->> cond-> cond->> some-> some->> as->]))))
       (node->line
        (:filename call)
        (:expr call)
