@@ -366,6 +366,7 @@
        called-fn))))
 
 (defn handle-ignore [ctx expr]
+  ;; (prn (:clj-kondo.impl/generated expr))
   (let [cljc? (identical? :cljc (:base-lang ctx))
         lang (:lang ctx)
         m (meta expr)]
@@ -382,7 +383,10 @@
                             (identical? :all linters))
                       :all (set linters))
             ignore (cond-> (assoc m :ignore linters)
-                     node (assoc-in [:clj-kondo/ignore :linters] nil))]
+                     node (assoc-in [:clj-kondo/ignore :linters] nil))
+            ignore ignore #_(if (:clj-kondo.impl/generated expr)
+                     (assoc ignore :used true)
+                     ignore)]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                vconj ignore)))))
 
