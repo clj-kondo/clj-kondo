@@ -28,4 +28,7 @@
   (is
    (empty?
     (lint! "(ns foo) (concat [1 2] [3 4] (concat [5 6] [7 8]))"
-           '{:config-in-call {clojure.core/concat {:linters {:redundant-nested-call {:level :off}}}}}))))
+           '{:config-in-call {clojure.core/concat {:linters {:redundant-nested-call {:level :off}}}}})))
+  (is
+   (empty?
+    (lint! "(-> {:a 1} (merge {:b 2}) (merge :b 3))"))))
