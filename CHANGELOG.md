@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if-not` condition as always truthy
+
 ## 2024.11.14
 
 - [#2212](https://github.com/clj-kondo/clj-kondo/issues/2212): NEW linter: `:redundant-nested-call` ([@tomdl89](https://github.com/tomdl89)), set to level `:info` by default
