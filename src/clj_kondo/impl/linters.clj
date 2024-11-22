@@ -225,8 +225,11 @@
   [call]
   (let [[[call-ns call-name :as c] parent] (:callstack call)]
     (when (and (utils/one-of call-ns [clojure.core cljs.core])
-               (utils/one-of call-name [* *' + +' and comp concat every-pred
-                                        lazy-cat max merge min or some-fn str])
+               (utils/one-of call-name [* *' + +'
+                                        and or
+                                        lazy-cat max merge min str]
+                             ;; disabled for perf reasons: comp concat every-pred some-fn
+                             )
                (= [call-ns call-name] parent)
                ;; Exclude instances of nesting when directly inside threading macros
                (let [{call-row :row
