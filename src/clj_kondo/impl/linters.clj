@@ -220,13 +220,26 @@
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
 (defn lint-redundant-nested-call
+  ;; TODO: check performance of comp, concat, every-pred, some-fn
   "Lints calls of variadic functions/macros when nested."
   [call]
-  (let [[[call-ns call-name] parent] (:callstack call)]
+  (let [[[call-ns call-name :as c] parent] (:callstack call)]
     (when (and (utils/one-of call-ns [clojure.core cljs.core])
-               (utils/one-of call-name [* *' + +' and comp concat every-pred
-                                        lazy-cat max merge min or some-fn str])
-               (= [call-ns call-name] parent))
+               (utils/one-of call-name [* *' + +'
+                                        and or
+                                        lazy-cat max merge min str]
+                             ;; disabled for perf reasons: comp concat every-pred some-fn
+                             )
+               (= [call-ns call-name] parent)
+               ;; Exclude instances of nesting when directly inside threading macros
+               (let [{call-row :row
+                      call-col :col} (meta c)
+                     {parent-row :row
+                      parent-col :col} (meta parent)]
+                 (and parent-row call-row
+                      (<= parent-row call-row)
+                      parent-col call-col
+                      (< parent-col call-col))))
       (node->line
        (:filename call)
        (:expr call)
@@ -885,7 +898,9 @@
               ignore ignores]
         (let [m (:clj-kondo/ignore ignore)]
           (when (map? m)
-            (when-not (:used ignore)
+            (when-not (or (:used ignore)
+                          ;; #2433
+                          (:derived-location ignore))
               (findings/reg-finding! ctx (assoc m
                                                 :type :redundant-ignore
                                                 :message "Redundant ignore"
