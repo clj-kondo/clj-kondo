@@ -19,8 +19,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if-not` condition as always truthy
 - [#2433](https://github.com/clj-kondo/clj-kondo/issues/2433): false positive redundant ignore with hook
 - Document `:cljc` config option. ([@NoahTheDuke](https://github.com/NoahTheDuke))
+- [#2431](https://github.com/clj-kondo/clj-kondo/issues/2431): only apply redundant-nested-call linter for nested exprs
+- Relax `:redundant-nested-call` for `comp`, `concat`, `every-pred` and `some-fn` since it may affect performance
 
 ## 2024.11.14
 
