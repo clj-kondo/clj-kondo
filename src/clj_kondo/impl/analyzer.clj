@@ -1739,10 +1739,18 @@
        (node->line (:filename ctx) expr
                    linter
                    msg)))
-    (let [[condition & args] args]
+    (let [[condition & clauses] args]
       (when condition
         (analyze-expression** ctx (assoc condition :condition true)))
-      (analyze-children ctx args false))))
+      (analyze-children ctx clauses false))))
+
+(defn analyze-if-not
+  "Analyzes if-not macro"
+  [ctx expr]
+  (let [[condition & clauses] (rest (:children expr))]
+    (when condition
+      (analyze-expression** ctx (assoc condition :condition true)))
+    (analyze-children ctx clauses false)))
 
 (defn analyze-constructor
   "Analyzes (new Foo ...) constructor call."
@@ -2477,6 +2485,7 @@
                           (if top-level? (analyze-import ctx expr)
                               (analyze-children ctx children))
                           if (analyze-if ctx expr)
+                          if-not (analyze-if-not ctx expr)
                           new (analyze-constructor ctx expr)
                           set! (analyze-set! ctx expr)
                           = (analyze-= ctx expr)
