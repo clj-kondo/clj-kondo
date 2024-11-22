@@ -9,6 +9,7 @@
   (:import [java.io PushbackReader]))
 
 (def ^:dynamic *reader-exceptions* nil)
+(def ^:dynamic *reader-features* [:clj :cljs])
 
 ;; ## Decisions
 

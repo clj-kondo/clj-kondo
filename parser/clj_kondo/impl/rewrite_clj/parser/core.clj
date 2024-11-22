@@ -6,7 +6,8 @@
    [clj-kondo.impl.rewrite-clj.parser.string :refer [parse-string parse-regex]]
    [clj-kondo.impl.rewrite-clj.parser.token :refer [parse-token]]
    [clj-kondo.impl.rewrite-clj.parser.utils :as u]
-   [clj-kondo.impl.rewrite-clj.reader :as reader]))
+   [clj-kondo.impl.rewrite-clj.reader :as reader]
+   [clojure.string :as str]))
 
 ;; ## Base Parser
 
@@ -167,12 +168,32 @@
                                       :linters v)}))))))
 
 (defn- read-with-ignore-hint [reader]
-  (let [hint (parse-printables reader :uneval 1 true)
-        im (ignore-meta hint)]
-    (if im
-      (vary-meta (parse-next reader)
-                 into im)
-      (parse-next reader))))
+  (let [[node] (parse-printables reader :uneval 1 true)
+        im (ignore-meta [node])]
+    (cond im
+          (vary-meta (parse-next reader)
+                     into im)
+          (and node
+               (= :reader-macro (node/tag node))
+               (let [sv (-> node :children first :string-value)]
+                 (str/starts-with? sv "?")))
+          (let [children (->> node :children last :children
+                              (partition 2)
+                              (keep (fn [[k v]]
+                                      (let [k (and (= :token (node/tag k))
+                                                   (node/sexpr k))]
+                                        (when (keyword? k)
+                                          [k v]))))
+                              (into {}))]
+            ;; If the reader conditional contains all features or :default,
+            ;; then it can be ignored.
+            ;; Otherwise, add :clj-kondo/uneval metadata to discard later.
+            (if (or (every? children reader/*reader-features*)
+                    (contains? children :default))
+              (parse-next reader)
+              (vary-meta node assoc :clj-kondo/uneval (set (remove children reader/*reader-features*)))))
+          :else
+          (parse-next reader))))
 
 (defmethod parse-next* :sharp
   [reader]

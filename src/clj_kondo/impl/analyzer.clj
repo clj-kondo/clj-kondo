@@ -34,7 +34,7 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
-   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
+   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions* *reader-features*]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
@@ -3321,7 +3321,11 @@
               ctx (assoc ctx
                          :inline-configs (atom [])
                          :main-ns (atom nil))
-              parsed (binding [*reader-exceptions* reader-exceptions]
+              cljc-config (:cljc config)
+              features (or (:features cljc-config)
+                           *reader-features*)
+              parsed (binding [*reader-exceptions* reader-exceptions
+                               *reader-features* features]
                        (p/parse-string input))
               fname (fs/file-name filename)
               ctx (case fname
@@ -3338,12 +3342,9 @@
               (run! #(findings/reg-finding! ctx %) (->findings e filename))))
           (case lang
             :cljc
-            (let [cljc-config (:cljc config)
-                  features (or (:features cljc-config)
-                               [:clj :cljs])]
-              (doseq [lang features]
-                (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
-                                     (:children (select-lang ctx parsed lang)))))
+            (doseq [lang features]
+              (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
+                                   (:children (select-lang ctx parsed lang))))
             (:clj :cljs :edn)
             (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
                              :uri uri)]

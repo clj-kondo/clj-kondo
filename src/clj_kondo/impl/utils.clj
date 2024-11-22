@@ -114,16 +114,23 @@
 
 (defn select-lang-children [ctx node lang]
   (if-let [children (:children node)]
-    (let [new-children (reduce
-                        (fn [acc node]
-                          (let [splice? (= "?@" (some-> node :children first :string-value))]
-                            (if-let [processed (select-lang ctx node lang splice?)]
-                              (if splice?
-                                (into acc (:children processed))
-                                (conj acc processed))
-                              acc)))
-                        []
-                        children)]
+    (let [new-children (loop [acc []
+                              children children]
+                         (if-let [node (first children)]
+                           (let [splice? (= "?@" (some-> node :children first :string-value))
+                                 node-meta (meta node)]
+                             (cond
+                               (not (:clj-kondo/uneval node-meta))
+                               (if-let [processed (select-lang ctx node lang splice?)]
+                                 (if splice?
+                                   (recur (into acc (:children processed)) (next children))
+                                   (recur (conj acc processed) (next children)))
+                                 (recur acc (next children)))
+                               (contains? (:clj-kondo/uneval node-meta) lang)
+                               (recur acc (drop 2 children))
+                               :else
+                               (recur acc (next children))))
+                           acc))]
       (assoc node :children
              new-children))
     node))
