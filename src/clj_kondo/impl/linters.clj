@@ -233,7 +233,9 @@
                       call-col :col} (meta c)
                      {parent-row :row
                       parent-col :col} (meta parent)]
-                 (and (<= parent-row call-row)
+                 (and parent-row call-row
+                      (<= parent-row call-row)
+                      parent-col call-col
                       (< parent-col call-col))))
       (node->line
        (:filename call)
