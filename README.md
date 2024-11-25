@@ -154,6 +154,52 @@ Lint a project classpath:
 $ clj-kondo --lint "$(lein classpath)"
 ```
 
+Help:
+``` shellsession
+$ clj-kondo --help
+clj-kondo v2024.11.14
+
+Options:
+
+--lint <file>: a file can either be a normal file, directory or classpath. In the
+case of a directory or classpath, only .clj, .cljs and .cljc will be
+processed. Use - as filename for reading from stdin.
+
+--lang <lang>: if lang cannot be derived from the file extension this option will be
+used. Supported values: clj, cljs, cljc.
+
+--filename <file>: in case stdin is used for linting, use this to set the
+reported filename.
+
+--cache-dir: when this option is provided, the cache will be resolved to this
+directory. If --cache is false, this option will be ignored.
+
+--cache: if false, won't use cache. Otherwise, will try to resolve cache
+using `--cache-dir`. If `--cache-dir` is not set, cache is resolved using the
+nearest `.clj-kondo` directory in the current and parent directories.
+
+--config <config>: extra config that is merged. May be a file or an EDN expression. See https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md.
+
+--config-dir <config-dir>: use this config directory instead of auto-detected
+.clj-kondo dir.
+
+--parallel: lint sources in parallel.
+
+--dependencies: don't report any findings. Useful for populating cache while linting dependencies.
+
+--copy-configs: copy configs from dependencies while linting.
+
+--skip-lint: skip lint/analysis, still check for other tasks like copy-configs.
+
+--fail-level <level>: minimum severity for exit with error code.  Supported values:
+warning, error.  The default level if unspecified is warning.
+
+--report-level <level>: minimum severity for which to report.  Supported values:
+info, warning, error.  The default level if unspecified is info.
+
+--debug: print debug information.
+```
+
 ## Project setup
 
 To detect lint errors across namespaces in your project, a cache is needed. To
