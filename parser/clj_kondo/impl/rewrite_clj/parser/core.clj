@@ -6,7 +6,8 @@
    [clj-kondo.impl.rewrite-clj.parser.string :refer [parse-string parse-regex]]
    [clj-kondo.impl.rewrite-clj.parser.token :refer [parse-token]]
    [clj-kondo.impl.rewrite-clj.parser.utils :as u]
-   [clj-kondo.impl.rewrite-clj.reader :as reader]))
+   [clj-kondo.impl.rewrite-clj.reader :as reader]
+   [clojure.string :as str]))
 
 ;; ## Base Parser
 
@@ -166,13 +167,37 @@
             {:clj-kondo/ignore (assoc (meta node)
                                       :linters v)}))))))
 
+#_(defn spy [x]
+  (prn x)
+  x)
+
 (defn- read-with-ignore-hint [reader]
-  (let [hint (parse-printables reader :uneval 1 true)
-        im (ignore-meta hint)]
-    (if im
-      (vary-meta (parse-next reader)
-                 into im)
-      (parse-next reader))))
+  (let [[node] (parse-printables reader :uneval 1 true)
+        im (ignore-meta [node])
+        ]
+    (cond im
+          (vary-meta (parse-next reader)
+                     into im)
+          (and node
+               (= :reader-macro (node/tag node))
+               (let [sv (-> node :children first :string-value)]
+                 (str/starts-with? sv "?")))
+          (let [features reader/*reader-features*
+                children (when features
+                           (->> node :children last :children
+                                (take-nth 2)
+                                (keep :k)
+                                (into #{})))]
+            ;; If the reader conditional contains all features or :default,
+            ;; then it can be ignored.
+            ;; Otherwise, add :clj-kondo/uneval metadata to discard later.
+            (if (or (not features)
+                    (every? children features)
+                    (contains? children :default))
+              (parse-next reader)
+              (vary-meta node assoc :clj-kondo/uneval (set (remove children features)))))
+          :else
+          (parse-next reader))))
 
 (defmethod parse-next* :sharp
   [reader]

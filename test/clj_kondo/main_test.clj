@@ -170,7 +170,16 @@
   (is (empty? (lint! "^#?(:clj :a :cljsr :b) [1 2 3]"
                      "--lang" "cljc")))
   (assert-submaps [{:row 1, :col 1, :level :error, :message "Reader conditionals are only allowed in .cljc files"}]
-                  (lint! "#?(:clj 1)" "--lang" "clj")))
+                  (lint! "#?(:clj 1)" "--lang" "clj"))
+  (assert-submaps2 [{:file "<stdin>",
+                     :row 1,
+                     :col 19,
+                     :level :error,
+                     :message "Expected: number, received: keyword. [clj]"}]
+                   (lint! "(+ 1 #_#?(:clj 2) :three 4)"
+                          {:linters {:type-mismatch {:level :error}}
+                           :output {:langs true}}
+                          "--lang" "cljc")))
 
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
