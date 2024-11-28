@@ -32,4 +32,12 @@
      :level :warning,
      :message "Condition always true"}]
    (lint! "(if-not odd? 1 2)"
+          '{:linters {:condition-always-true {:level :warning}}}))
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 12,
+     :level :warning,
+     :message "Condition always true"}]
+   (lint! "(if-let [a odd?] 1 2)"
           '{:linters {:condition-always-true {:level :warning}}})))
