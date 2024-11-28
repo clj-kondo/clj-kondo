@@ -173,7 +173,8 @@
 
 (defn- read-with-ignore-hint [reader]
   (let [[node] (parse-printables reader :uneval 1 true)
-        im (ignore-meta [node])]
+        im (ignore-meta [node])
+        ]
     (cond im
           (vary-meta (parse-next reader)
                      into im)
@@ -181,7 +182,8 @@
                (= :reader-macro (node/tag node))
                (let [sv (-> node :children first :string-value)]
                  (str/starts-with? sv "?")))
-          (let [children (when reader/*reader-features*
+          (let [features reader/*reader-features*
+                children (when features
                            (->> node :children last :children
                                 (take-nth 2)
                                 (keep :k)
@@ -189,11 +191,11 @@
             ;; If the reader conditional contains all features or :default,
             ;; then it can be ignored.
             ;; Otherwise, add :clj-kondo/uneval metadata to discard later.
-            (if (or (not reader/*reader-features*)
-                    (every? children reader/*reader-features*)
+            (if (or (not features)
+                    (every? children features)
                     (contains? children :default))
               (parse-next reader)
-              (vary-meta node assoc :clj-kondo/uneval (set (remove children reader/*reader-features*)))))
+              (vary-meta node assoc :clj-kondo/uneval (set (remove children features)))))
           :else
           (parse-next reader))))
 
