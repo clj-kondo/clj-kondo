@@ -3331,8 +3331,9 @@
                          :inline-configs (atom [])
                          :main-ns (atom nil))
               cljc-config (:cljc config)
-              features (or (:features cljc-config)
-                           *reader-features*)
+              features (when (identical? :cljc lang)
+                         (or (:features cljc-config)
+                             [:clj :cljs]))
               parsed (binding [*reader-exceptions* reader-exceptions
                                *reader-features* features]
                        (p/parse-string input))

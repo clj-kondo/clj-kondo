@@ -167,6 +167,10 @@
             {:clj-kondo/ignore (assoc (meta node)
                                       :linters v)}))))))
 
+#_(defn spy [x]
+  (prn x)
+  x)
+
 (defn- read-with-ignore-hint [reader]
   (let [[node] (parse-printables reader :uneval 1 true)
         im (ignore-meta [node])]
@@ -177,18 +181,16 @@
                (= :reader-macro (node/tag node))
                (let [sv (-> node :children first :string-value)]
                  (str/starts-with? sv "?")))
-          (let [children (->> node :children last :children
-                              (partition 2)
-                              (keep (fn [[k v]]
-                                      (let [k (and (= :token (node/tag k))
-                                                   (node/sexpr k))]
-                                        (when (keyword? k)
-                                          [k v]))))
-                              (into {}))]
+          (let [children (when reader/*reader-features*
+                           (->> node :children last :children
+                                (take-nth 2)
+                                (keep :k)
+                                (into #{})))]
             ;; If the reader conditional contains all features or :default,
             ;; then it can be ignored.
             ;; Otherwise, add :clj-kondo/uneval metadata to discard later.
-            (if (or (every? children reader/*reader-features*)
+            (if (or (not reader/*reader-features*)
+                    (every? children reader/*reader-features*)
                     (contains? children :default))
               (parse-next reader)
               (vary-meta node assoc :clj-kondo/uneval (set (remove children reader/*reader-features*)))))
