@@ -1,11 +1,15 @@
 (ns clj-kondo.impl.parser-test
   (:require [clj-kondo.impl.parser :as parser :refer [parse-string]]
-            [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
+            [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*
+                                                       *reader-features*]]
             [clj-kondo.impl.utils :as utils]
             [clojure.test :as t :refer [deftest is are]]))
 
 (deftest omit-unevals-test
-  (is (zero? (count (:children (parse-string "#_#_1 2"))))))
+  (is (zero? (count (:children (parse-string "#_#_1 2")))))
+  (is (= 3 (count (:children
+                   (binding [*reader-features* #{:clj :cljs}]
+                     (parse-string "#_#?(:clj 1) 2 3")))))))
 
 (deftest namespaced-maps-test
   (is (= '#:it{:a 1} (utils/sexpr (utils/parse-string "#::it {:a 1}"))))
