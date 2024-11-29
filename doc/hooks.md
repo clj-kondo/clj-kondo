@@ -645,7 +645,7 @@ Here are some example hooks from libraries.
 
 - coffi: [defcfn](https://github.com/IGJoshua/coffi/blob/master/resources/clj-kondo.exports/org.suskalo/coffi/hooks/coffi.clj)
 
-More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
+More examples of hooks can be found in the [configs](https://github.com/clj-kondo/configs) project.
 
 ### Disrecommend usage of function or macro
 
