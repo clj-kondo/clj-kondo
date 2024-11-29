@@ -1041,7 +1041,7 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 
 *Default level:* `:off`.
 
-*Example trigger:* `(let [{:keys [a]} {:a 1}] a)`.
+*Example trigger:* `(let [{:keys [:a]} {:a 1}] a)`.
 
 *Example message:* `Keyword binding should be a symbol: :a`
 
