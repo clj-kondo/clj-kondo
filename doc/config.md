@@ -664,16 +664,11 @@ For example, if the `claypoole` library itself wanted to export config, it would
 Clj-kondo, when asked, will copy clj-kondo configs found in library dependencies.
 As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
 
-1. Include `clj-kondo/config` in your `deps.edn`:
-    ```Clojure
-    {:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config"
-                              :sha "c37c13ea09b6aaf23db3a7a9a0574f422bb0b4c2"}}}
-    ```
-2. Ensure a `.clj-kondo` directory exists, if necessary:
+1. Ensure a `.clj-kondo` directory exists, if necessary:
     ```
     $ mkdir .clj-kondo
     ```
-3. Then ask clj-kondo to copy configs like so:
+2. Then ask clj-kondo to copy configs like so:
     ```
     $ clj-kondo --lint "$(clojure -Spath)" --copy-configs --skip-lint
     Configs copied:
@@ -683,7 +678,7 @@ As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
     - .clj-kondo/clj-kondo/rum
     - .clj-kondo/clj-kondo/slingshot
     ```
-4. Now enrichen clj-kondo's linting cache via:
+3. Now enrichen clj-kondo's linting cache via:
     ```
     $ clj-kondo --lint $(clojure -Spath) --dependencies --parallel
     ```
