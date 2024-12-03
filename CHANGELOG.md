@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2431](https://github.com/clj-kondo/clj-kondo/issues/2431): only apply redundant-nested-call linter for nested exprs
 - Relax `:redundant-nested-call` for `comp`, `concat`, `every-pred` and `some-fn` since it may affect performance
 - [#2446](https://github.com/clj-kondo/clj-kondo/issues/2446): false positive `:redundant-ignore`
+- [#2448](https://github.com/clj-kondo/clj-kondo/issues/2448): redundant nested call in hook gen'ed code
 
 ## 2024.11.14
 

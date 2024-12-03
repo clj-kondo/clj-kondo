@@ -222,7 +222,8 @@
 (defn lint-redundant-nested-call
   "Lints calls of variadic functions/macros when nested."
   [call]
-  (let [[[call-ns call-name :as c] parent] (:callstack call)]
+  (let [[[call-ns call-name :as c] parent] (:callstack call)
+        mc (meta c)]
     (when (and (utils/one-of call-ns [clojure.core cljs.core])
                (utils/one-of call-name [* *' + +'
                                         and or
@@ -231,8 +232,8 @@
                              )
                (= [call-ns call-name] parent)
                ;; Exclude instances of nesting when directly inside threading macros
-               (let [mc (meta c)
-                     {call-row :row
+               (not (:derived-location mc))
+               (let [{call-row :row
                       call-col :col} mc
                      {parent-row :row
                       parent-col :col} (meta parent)]
