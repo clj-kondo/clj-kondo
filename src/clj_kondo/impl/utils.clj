@@ -391,7 +391,10 @@
             ignore (cond-> (assoc m :ignore linters)
                      node (assoc-in [:clj-kondo/ignore :linters] nil))]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
-               vconj ignore)))))
+               (fn [ignores]
+                 (if (some #(= (:clj-kondo/ignore-id ignore) (:clj-kondo/ignore-id %)) ignores)
+                   ignores
+                   (vconj ignores ignore))))))))
 
 (defn err [& xs]
   (binding [*out* *err*]
