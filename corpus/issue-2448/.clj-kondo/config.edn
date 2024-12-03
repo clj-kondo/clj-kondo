@@ -1,0 +1,4 @@
+{:hooks {:analyze-call {ductile.util/if+ hooks/ifplus-hook
+                        ductile.util/when+ hooks/whenplus-hook
+                        ductile.util/cond+ hooks/condplus-hook}}
+ :linters {:redundant-nested-call {:level :warning}}}
