@@ -1,0 +1,20 @@
+{:linters {:claypoole {:level :warning}
+           :unused-binding {:level :warning}}
+ :lint-as {com.climate.claypoole/with-shutdown! clojure.core/let}
+ :hooks   {:analyze-call {com.climate.claypoole/future             hooks/future
+                          com.climate.claypoole/completable-future hooks/completable-future
+                          com.climate.claypoole/pdoseq             hooks/pdoseq
+                          com.climate.claypoole/pmap               hooks/pmap
+                          com.climate.claypoole/upmap              hooks/upmap
+                          com.climate.claypoole/pvalues            hooks/pvalues
+                          com.climate.claypoole/upvalues           hooks/upvalues
+                          com.climate.claypoole/pfor               hooks/pfor
+                          com.climate.claypoole/upfor              hooks/upfor
+                          com.climate.claypoole.lazy/pdoseq        hooks/pdoseq
+                          com.climate.claypoole.lazy/pmap          hooks/pmap
+                          com.climate.claypoole.lazy/upmap         hooks/upmap
+                          com.climate.claypoole.lazy/pvalues       hooks/pvalues
+                          com.climate.claypoole.lazy/upvalues      hooks/upvalues
+                          com.climate.claypoole.lazy/pfor          hooks/pfor
+                          com.climate.claypoole.lazy/upfor         hooks/upfor}}}
+
