@@ -463,3 +463,14 @@ my-ns/special-map \"
    (lint! (fs/file "corpus" "issue-2433" "src" "foobar.clj")
           "--config" (slurp (fs/file "corpus" "issue-2433" ".clj-kondo" "config.edn"))
           "--config-dir" (fs/file "corpus" "issue-2433" ".clj-kondo"))))
+
+(deftest issue-2446-hooks-redundant-ignore-test
+  (assert-submaps2
+   [{:file "corpus/issue-2446/src/foobar.clj",
+     :row 16,
+     :col 21,
+     :level :warning,
+     :message "unused binding n"}]
+   (lint! (fs/file "corpus" "issue-2446" "src" "foobar.clj")
+          "--config" (slurp (fs/file "corpus" "issue-2446" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2446" ".clj-kondo"))))

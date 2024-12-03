@@ -156,16 +156,17 @@
 
 (defn ignore-meta [uneval]
   (let [node (first uneval)]
-    (if-let [k (:k node)]
-      (when (identical? :clj-kondo/ignore k)
-        {:clj-kondo/ignore (assoc (meta node)
-                                  :linters :all)})
-      (when (identical? :map (node/tag node))
-        (let [[k v] (:children node)]
-          (when (identical? :clj-kondo/ignore (:k k))
-            ;; attach raw node, might need further processing for cljc
-            {:clj-kondo/ignore (assoc (meta node)
-                                      :linters v)}))))))
+    (some-> (if-let [k (:k node)]
+             (when (identical? :clj-kondo/ignore k)
+               {:clj-kondo/ignore (assoc (meta node)
+                                         :linters :all)})
+             (when (identical? :map (node/tag node))
+               (let [[k v] (:children node)]
+                 (when (identical? :clj-kondo/ignore (:k k))
+                   ;; attach raw node, might need further processing for cljc
+                   {:clj-kondo/ignore (assoc (meta node)
+                                             :linters v)}))))
+            (assoc :clj-kondo/ignore-id (gensym)))))
 
 #_(defn spy [x]
   (prn x)

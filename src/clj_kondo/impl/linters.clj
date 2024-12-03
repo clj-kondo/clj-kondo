@@ -220,7 +220,6 @@
          (format "Single arg use of %s always returns the arg itself" call-name))))))
 
 (defn lint-redundant-nested-call
-  ;; TODO: check performance of comp, concat, every-pred, some-fn
   "Lints calls of variadic functions/macros when nested."
   [call]
   (let [[[call-ns call-name :as c] parent] (:callstack call)]
@@ -232,8 +231,9 @@
                              )
                (= [call-ns call-name] parent)
                ;; Exclude instances of nesting when directly inside threading macros
-               (let [{call-row :row
-                      call-col :col} (meta c)
+               (let [mc (meta c)
+                     {call-row :row
+                      call-col :col} mc
                      {parent-row :row
                       parent-col :col} (meta parent)]
                  (and parent-row call-row
@@ -531,22 +531,23 @@
             (when (contains? var-info/unused-values normalized-sym)
               (let [unused-value-conf (-> config :linters :unused-value)]
                 (when-not (identical? :off (:level unused-value-conf))
-                  (let [parent-call (let [cs (:callstack call)]
-                                      (second cs))
+                  (let [cs (:callstack call)
+                        parent-call (second cs)
                         core? (utils/one-of (first parent-call) [clojure.core cljs.core])
                         core-sym (when core?
                                    (second parent-call))
                         unused?
-                        (or (and core?
-                                 (or
-                                  ;; doseq always return nil
-                                  (utils/one-of core-sym [doseq])
-                                  (< idx (dec (:len call))))
-                                 (utils/one-of core-sym [do fn defn defn-
-                                                         let when-let loop binding with-open
-                                                         doseq try when when-not when-first
-                                                         when-some future]))
-                            (= '[clojure.test deftest] parent-call))]
+                        (and (not (:clj-kondo.impl/generated (meta (first cs))))
+                             (or (and core?
+                                      (or
+                                       ;; doseq always return nil
+                                       (utils/one-of core-sym [doseq])
+                                       (< idx (dec (:len call))))
+                                      (utils/one-of core-sym [do fn defn defn-
+                                                              let when-let loop binding with-open
+                                                              doseq try when when-not when-first
+                                                              when-some future]))
+                                 (= '[clojure.test deftest] parent-call)))]
                     (when unused?
                       (findings/reg-finding!
                        (cond-> ctx
