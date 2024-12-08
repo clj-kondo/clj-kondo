@@ -31,12 +31,11 @@
     (async/alt!!
       (async/chan)
       ([x]
-       (if x
+       (when x
          (async/alt!!
            (async/chan)
            ([_]
-            (recur)))
-         nil)))))" linter-config))))
+            (recur))))))))" linter-config))))
   (testing "if-some"
     (is (empty? (lint! "(loop []
   (if true
