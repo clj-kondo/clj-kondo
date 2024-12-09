@@ -69,10 +69,9 @@
                         :top-level? top-level?
                         :arg-types (if add-new-arg-types?
                                      (let [[k v] (first callstack)]
-                                       (if (and (symbol? k)
-                                                (symbol? v))
-                                         (atom [])
-                                         nil))
+                                       (when (and (symbol? k)
+                                                  (symbol? v))
+                                         (atom [])))
                                      (:arg-types ctx))
                         :len len)]
          (into []
@@ -1971,10 +1970,10 @@
                                                        keep keep-indexed])
         arg-count (if (and transducer-eligable?
                            (zero? arg-count)) ;; transducer
-                    (if (and core-ns?
-                             (or (= 'map hof-resolved-name)
-                                 (= 'mapcat hof-resolved-name)))
-                      nil 1)
+                    (when-not (and core-ns?
+                                   (or (= 'map hof-resolved-name)
+                                       (= 'mapcat hof-resolved-name)))
+                      1)
                     arg-count)
         ctx (update ctx :callstack
                     (fn [cs]
@@ -2113,9 +2112,8 @@
   ;; see https://clojure.org/reference/java_interop#dot
   (findings/warn-reflection ctx expr)
   (let [[instance meth & args] children]
-    (if instance (analyze-expression** ctx instance)
-        ;; TODO, warning, instance is required
-        nil)
+    ;; TODO, warning if no instance. Instance is required
+    (when instance (analyze-expression** ctx instance))
     (when meth
       (if (and (identical? :list (utils/tag meth)) (not args))
         (let [[meth & children] (:children meth)]
@@ -2246,10 +2244,9 @@
                   (update ctx :config config/merge-config! cfg)
                   ctx)
             prev-callstack (:callstack ctx)
-            arg-types (if (and resolved-namespace resolved-name
-                               (not (linter-disabled? ctx :type-mismatch)))
-                        (atom [])
-                        nil)
+            arg-types (when (and resolved-namespace resolved-name
+                                 (not (linter-disabled? ctx :type-mismatch)))
+                        (atom []))
             ctx (assoc ctx :arg-types arg-types)]
         (cond unresolved-ns
               (do
@@ -2715,9 +2712,8 @@
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
         ctx (update ctx :callstack conj [nil :token])
-        arg-types (if (not (linter-disabled? ctx :type-mismatch))
-                    (atom [])
-                    nil)
+        arg-types (when-not (linter-disabled? ctx :type-mismatch)
+                    (atom []))
         ctx (assoc ctx :arg-types arg-types)
         analyzed
         (let [next-ctx ctx]
@@ -3234,10 +3230,9 @@
            update base-lang into (:used-namespaces init-ns))
     (loop [ctx init-ctx
            [expression & rest-expressions] expressions]
-      (if expression
+      (when expression
         (let [ctx (analyze-expression* ctx expression)]
-          (recur ctx rest-expressions))
-        nil))))
+          (recur ctx rest-expressions))))))
 
 ;;;; processing of string input
 
