@@ -3162,6 +3162,48 @@ foo/baz
                      {:linters {:missing-else-branch {:level :warning}}
                       :config-in-ns '{foo {:linters {:missing-else-branch {:level :off}}}}}))))
 
+(deftest if-nil-return-test
+  (assert-submaps
+   [{:file "<stdin>",
+     :row 1,
+     :col 1,
+     :level :warning,
+     :message "For nil return, prefer when."}
+    {:file "<stdin>",
+     :row 1,
+     :col 17,
+     :level :warning,
+     :message "For nil return, prefer when-not."}
+    {:file "<stdin>",
+     :row 1,
+     :col 33,
+     :level :warning,
+     :message "For nil return, prefer when."}
+    {:file "<stdin>",
+     :row 1,
+     :col 53,
+     :level :warning,
+     :message "For nil return, prefer when-let."}
+    {:file "<stdin>",
+     :row 1,
+     :col 74,
+     :level :warning,
+     :message "For nil return, prefer when-some."}]
+   (lint! "(if true 1 nil) (if true nil 1) (if-not true nil 1) (if-let [x 1] x nil) (if-some [x 1] x nil)"
+          {:linters {:if-nil-return {:level :warning}}}))
+  (is (empty? (lint! "(if-let [x 7] nil :foo)"
+                     {:linters {:if-nil-return {:level :warning}, :unused-binding {:level :off}}})))
+  (is (empty? (lint! "(if true 1 nil) (if true nil 1) (if-not true nil 1) (if-let [x 1] x nil) (if-some [x 1] x nil)"
+                     {:linters {:if-nil-return {:level :off}}})))
+  (is (empty? (lint! "(ns foo {:clj-kondo/config '{:linters {:if-nil-return {:level :off}}}})
+                      (if true 1 nil) (if true nil 1) (if-not true nil 1) (if-let [x 1] x nil) (if-some [x 1] x nil)"
+                     {:linters {:if-nil-return {:level :warning}}})))
+  (is (empty? (lint! "#_:clj-kondo/ignore (if true 1 nil)"
+                     {:linters {:if-nil-return {:level :warning}}})))
+  (is (empty? (lint! "(ns foo) (if true 1 nil)"
+                     {:linters {:if-nil-return {:level :warning}}
+                      :config-in-ns '{foo {:linters {:if-nil-return {:level :off}}}}}))))
+
 (deftest single-key-in-test
   (doseq [lang ["clj" "cljs"]]
     (assert-submaps

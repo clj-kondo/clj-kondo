@@ -113,6 +113,33 @@
                                  (node->line (:filename ctx) expr :missing-else-branch
                                              (format "Missing else branch."))))))))
 
+(defn lint-if-nil-return
+  "Lint returning nil from if-like expressions. When-like expressions are
+  preferred."
+  [ctx expr]
+  (let [config (:config ctx)
+        level (-> config :linters :if-nil-return :level)]
+    (when-not (identical? :off level)
+      (let [children (:children expr)
+            [_condition then-branch else-branch] (rest children)]
+        (cond (= [:value nil] (find else-branch :value))
+              (when-let [preferred (get '{if when
+                                          if-let when-let
+                                          if-some when-some
+                                          if-not when-not}
+                                        (:value (first children)))]
+                (findings/reg-finding! ctx
+                                       (node->line (:filename ctx) expr :if-nil-return
+                                                   (format "For nil return, prefer %s." preferred))))
+              (= [:value nil] (find then-branch :value))
+              ;; We don't check if-let and if-some here as there'd be an unused binding warning anyway
+              (when-let [preferred (get '{if when-not
+                                          if-not when}
+                                        (:value (first children)))]
+                (findings/reg-finding! ctx
+                                       (node->line (:filename ctx) expr :if-nil-return
+                                                   (format "For nil return, prefer %s." preferred)))))))))
+
 (defn lint-single-key-in [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :single-key-in)
     (let [[_ _ keyvec] (:children call)]
@@ -133,7 +160,8 @@
       (lint-cond ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
        [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
-      (lint-missing-else-branch ctx (:expr call))
+      (do (lint-missing-else-branch ctx (:expr call))
+          (lint-if-nil-return ctx (:expr call)))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
@@ -143,7 +171,8 @@
 
     ;; special forms which are not fns
     (when (= 'if (:name call))
-      (lint-missing-else-branch ctx (:expr call)))
+      (lint-missing-else-branch ctx (:expr call))
+      (lint-if-nil-return ctx (:expr call)))
     (when (contains? var-info/unused-values
                      (symbol (let [cns (str called-ns)]
                                (if (= "cljs.core" cns) "clojure.core" cns))
@@ -491,8 +520,7 @@
                                   :message (str
                                             (format "#'%s is deprecated"
                                                     (str fn-ns "/" fn-name))
-                                            (if (true? deprecated)
-                                              nil
+                                            (when-not (true? deprecated)
                                               (str " since " deprecated)))})))
       (when called-fn
         (when-let [loc (:redundant-fn-wrapper-parent-loc call)]

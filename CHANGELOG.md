@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2451): Lint for nil return from if-like forms
 - [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if-let` etc condition as always truthy
 - [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if-not` condition as always truthy
 - [#2433](https://github.com/clj-kondo/clj-kondo/issues/2433): false positive redundant ignore with hook
