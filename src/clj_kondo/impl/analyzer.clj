@@ -2478,7 +2478,7 @@
                           this-as (analyze-this-as ctx expr)
                           memfn (analyze-memfn ctx expr)
                           empty? (analyze-empty? ctx expr)
-                          format (analyze-format ctx expr)
+                          (format printf) (analyze-format ctx expr)
                           (use require)
                           (if top-level? (namespace-analyzer/analyze-require ctx expr)
                               (analyze-children ctx children))
