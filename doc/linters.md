@@ -65,6 +65,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing map value](#missing-map-value)
     - [Missing test assertion](#missing-test-assertion)
     - [Namespace name mismatch](#namespace-name-mismatch)
+    - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
     - [Not empty?](#not-empty)
     - [Plus one](#plus-one)
@@ -111,7 +112,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused referred var](#unused-referred-var)
     - [Use](#use)
     - [Warn on reflection](#warn-on-reflection)
-- [Underscore in namespace](#underscore-in-namespace)
+    - [Underscore in namespace](#underscore-in-namespace)
 
 <!-- markdown-toc end -->
 
@@ -1183,6 +1184,20 @@ correspond with the file name of the file.
 
 *Example message:* `Namespace name does not match file name: example-namespace.foo`
 
+### Nil return from if-like forms
+
+*Keyword:* `:if-nil-return`.
+
+*Description:* warn when if-like form explicitly returns nil from either
+branch. It is idiomatic in Clojure to prefer when-like forms, which (implicitly)
+return nil when the condition is not met.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(if true 1 nil)`.
+
+*Example message:* `For nil return, prefer when`.
+
 ### Non-arg vec return type hint
 
 *Keyword:* `:non-arg-vec-return-type-hint`.
@@ -2113,7 +2128,7 @@ namespaces. Defaults to only warning when doing interop.
 The value of `:warn-only-on-interop` can be set to `false` to always warn in
 Clojure namespaces.
 
-## Underscore in namespace
+### Underscore in namespace
 
 *Keyword:* `:underscore-in-namespace`
 
