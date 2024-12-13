@@ -692,7 +692,7 @@
             :let [linter-config (apply config/merge-config! linter-configs)
                   {:keys [message level]
                    :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
-                  ctx (assoc ctx :lang lang :base-lang (:base-lang ns))]]
+                  ctx (assoc ctx :lang lang :base-lang (:base-lang ns) :config linter-config)]]
       (findings/reg-finding!
        ctx
        (-> (node->line filename ns-sym :discouraged-namespace message)
