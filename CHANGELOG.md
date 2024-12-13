@@ -30,6 +30,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Relax `:redundant-nested-call` for `comp`, `concat`, `every-pred` and `some-fn` since it may affect performance
 - [#2446](https://github.com/clj-kondo/clj-kondo/issues/2446): false positive `:redundant-ignore`
 - [#2448](https://github.com/clj-kondo/clj-kondo/issues/2448): redundant nested call in hook gen'ed code
+- [#2424](https://github.com/clj-kondo/clj-kondo/issues/2424): fix combination of :config-in-ns and :discouraged-namespace
 
 ## 2024.11.14
 
