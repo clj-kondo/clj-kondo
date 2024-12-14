@@ -222,7 +222,7 @@
                     (node->line (:filename ctx)
                                 expr
                                 :syntax
-                                (str "unsupported binding form " sym)))))))
+                                (str "unsupported binding form sym=" sym)))))))
            ;; keyword
            (:k expr)
            (let [k (:k expr)]
@@ -251,14 +251,14 @@
                   (node->line (:filename ctx)
                               expr
                               :syntax
-                              (str "unsupported binding form " k))))))
+                              (str "unsupported binding form k=" k))))))
            :else
            (findings/reg-finding!
             ctx
             (node->line (:filename ctx)
                         expr
                         :syntax
-                        (str "unsupported binding form " expr))))
+                        (str "unsupported binding form extract-bindings=" expr))))
          :vector (let [children (:children expr)
                        all-tokens? (every? #(identical? :token %) (map :tag children))
                        exclude-as? (-> ctx :config :linters :unused-binding
@@ -344,7 +344,7 @@
           (node->line (:filename ctx)
                       expr
                       :syntax
-                      (str "unsupported binding form " expr))))))))
+                      (str "unsupported binding form expr=" expr))))))))
 
 (defn analyze-in-ns [ctx {:keys [:children] :as expr}]
   (let [{:keys [:row :col]} expr
@@ -2503,138 +2503,140 @@
                           (with-precision) (analyze-with-precision ctx expr children)
                           (var) (analyze-var ctx expr children)
                           ;; catch-all
-                          (case [resolved-as-namespace resolved-as-name]
-                            [clj-kondo.lint-as def-catch-all]
-                            (analyze-def-catch-all ctx expr)
-                            [schema.core fn]
-                            (analyze-schema ctx 'fn expr 'schema.core/fn defined-by->lint-as)
-                            [schema.core def]
-                            (analyze-schema ctx 'def expr 'schema.core/def defined-by->lint-as)
-                            [schema.core defn]
-                            (analyze-schema ctx 'defn expr 'schema.core/defn defined-by->lint-as)
-                            [schema.core defmethod]
-                            (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
-                            [schema.core defrecord]
-                            (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
-                            ([clojure.test deftest]
-                             [clojure.test deftest-]
-                             [cljs.test deftest])
-                            (test/analyze-deftest ctx expr defined-by defined-by->lint-as)
-                            ([clojure.core.match match] [cljs.core.match match])
-                            (match/analyze-match ctx expr)
-                            [clojure.string replace]
-                            (analyze-clojure-string-replace ctx expr)
-                            [cljs.test async]
-                            (test/analyze-cljs-test-async ctx expr)
-                            ([clojure.test are] [cljs.test are])
-                            (test/analyze-are ctx resolved-namespace expr)
-                            ([clojure.test.check.properties for-all])
-                            (analyze-like-let ctx expr)
-                            [cljs.spec.alpha def]
-                            (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
-                            [clojure.spec.alpha def]
-                            (spec/analyze-def ctx expr 'clojure.spec.alpha/def)
-                            ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
-                            (spec/analyze-fdef (assoc ctx
-                                                      :analyze-children
-                                                      analyze-children) expr)
-                            ([clojure.spec.alpha keys] [cljs.spec.alpha keys])
-                            (spec/analyze-keys ctx expr)
-                            ([clojure.spec.gen.alpha lazy-combinators]
-                             [clojure.spec.gen.alpha lazy-prims]
-                             [cljs.spec.gen.alpha lazy-combinators]
-                             [cljs.spec.gen.alpha lazy-prims])
-                            (analyze-declare ctx expr defined-by defined-by->lint-as)
-                            [potemkin import-vars]
-                            (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
-                                                          'potemkin/import-vars
-                                                          defined-by->lint-as)
-                            ([clojure.core.async alt!] [clojure.core.async alt!!]
-                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
-                            (core-async/analyze-alt!
-                             (assoc ctx
-                                    :analyze-expression** analyze-expression**
-                                    :extract-bindings extract-bindings)
-                             expr)
-                            ([clojure.core.async defblockingop])
-                            (analyze-defn ctx expr defined-by defined-by->lint-as)
-                            ([clojure.core.reducers defcurried])
-                            (analyze-defn ctx expr defined-by defined-by->lint-as)
-                            ([clojure.template do-template])
-                            (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
-                            ([datahike.api q]
-                             [datascript.core q]
-                             [datomic.api q]
-                             [datomic.client.api q]
-                             [datalevin.core q]
-                             [datomic-type-extensions.api q])
-                            (do (datalog/analyze-datalog ctx expr)
-                                (analyze-children ctx children false))
-                            ([compojure.core GET]
-                             [compojure.core POST]
-                             [compojure.core PUT]
-                             [compojure.core DELETE]
-                             [compojure.core HEAD]
-                             [compojure.core OPTIONS]
-                             [compojure.core PATCH]
-                             [compojure.core ANY]
-                             [compojure.core context]
-                             [compojure.core rfn])
-                            (compojure/analyze-compojure-macro ctx expr resolved-as-name)
-                            ([clojure.java.jdbc with-db-transaction]
-                             [clojure.java.jdbc with-db-connection]
-                             [clojure.java.jdbc with-db-metadata]
-                             [next.jdbc with-transaction])
-                            (jdbc/analyze-like-jdbc-with ctx expr)
-                            ([clojure.tools.logging debugf]
-                             [clojure.tools.logging infof]
-                             [clojure.tools.logging errorf]
-                             [clojure.tools.logging logf]
-                             [clojure.tools.logging spyf]
-                             [clojure.tools.logging tracef]
-                             [clojure.tools.logging warnf])
-                            (analyze-formatted-logging ctx expr)
-                            [clojure.data.xml alias-uri]
-                            (xml/analyze-alias-uri ctx expr)
-                            [clojure.data.xml.impl export-api]
-                            (xml/analyze-export-api ctx expr)
-                            [cljs.core simple-benchmark]
-                            (analyze-like-let ctx expr)
-                            [babashka.process $]
-                            (babashka/analyze-$ ctx expr)
-                            ([re-frame.core reg-event-db]
-                             [re-frame.core reg-event-ctx]
-                             [re-frame.core reg-sub-raw]
-                             [re-frame.core reg-fx]
-                             [re-frame.core reg-cofx])
-                            (re-frame/analyze-reg
-                             ctx expr
-                             (symbol (str resolved-namespace) (str resolved-name)))
-                            ([re-frame.core subscribe])
-                            (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
-                            ([re-frame.core dispatch]
-                             [re-frame.core dispatch-sync])
-                            (re-frame/analyze-dispatch ctx expr (str resolved-namespace))
-                            ([re-frame.core reg-sub])
-                            (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace)
-                                                                       (str resolved-name)))
-                            ([re-frame.core reg-event-fx])
-                            (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace)
-                                                                            (str resolved-name)))
-                            ([re-frame.core inject-cofx])
-                            (re-frame/analyze-inject-cofx ctx expr (str resolved-namespace))
+                          (do
+                            (binding [*out* *err*] (println 'analyze-call= [resolved-as-namespace resolved-as-name]))
+                            (case [resolved-as-namespace resolved-as-name]
+                              [clj-kondo.lint-as def-catch-all]
+                              (analyze-def-catch-all ctx expr)
+                              [schema.core fn]
+                              (analyze-schema ctx 'fn expr 'schema.core/fn defined-by->lint-as)
+                              [schema.core def]
+                              (analyze-schema ctx 'def expr 'schema.core/def defined-by->lint-as)
+                              [schema.core defn]
+                              (analyze-schema ctx 'defn expr 'schema.core/defn defined-by->lint-as)
+                              [schema.core defmethod]
+                              (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
+                              [schema.core defrecord]
+                              (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
+                              ([clojure.test deftest]
+                               [clojure.test deftest-]
+                               [cljs.test deftest])
+                              (test/analyze-deftest ctx expr defined-by defined-by->lint-as)
+                              ([clojure.core.match match] [cljs.core.match match])
+                              (match/analyze-match ctx expr)
+                              [clojure.string replace]
+                              (analyze-clojure-string-replace ctx expr)
+                              [cljs.test async]
+                              (test/analyze-cljs-test-async ctx expr)
+                              ([clojure.test are] [cljs.test are])
+                              (test/analyze-are ctx resolved-namespace expr)
+                              ([clojure.test.check.properties for-all])
+                              (analyze-like-let ctx expr)
+                              [cljs.spec.alpha def]
+                              (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
+                              [clojure.spec.alpha def]
+                              (spec/analyze-def ctx expr 'clojure.spec.alpha/def)
+                              ([clojure.spec.alpha fdef] [cljs.spec.alpha fdef])
+                              (spec/analyze-fdef (assoc ctx
+                                                        :analyze-children
+                                                        analyze-children) expr)
+                              ([clojure.spec.alpha keys] [cljs.spec.alpha keys])
+                              (spec/analyze-keys ctx expr)
+                              ([clojure.spec.gen.alpha lazy-combinators]
+                               [clojure.spec.gen.alpha lazy-prims]
+                               [cljs.spec.gen.alpha lazy-combinators]
+                               [cljs.spec.gen.alpha lazy-prims])
+                              (analyze-declare ctx expr defined-by defined-by->lint-as)
+                              [potemkin import-vars]
+                              (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
+                                                            'potemkin/import-vars
+                                                            defined-by->lint-as)
+                              ([clojure.core.async alt!] [clojure.core.async alt!!]
+                                                         [cljs.core.async alt!] [cljs.core.async alt!!])
+                              (core-async/analyze-alt!
+                               (assoc ctx
+                                      :analyze-expression** analyze-expression**
+                                      :extract-bindings extract-bindings)
+                               expr)
+                              ([clojure.core.async defblockingop])
+                              (analyze-defn ctx expr defined-by defined-by->lint-as)
+                              ([clojure.core.reducers defcurried])
+                              (analyze-defn ctx expr defined-by defined-by->lint-as)
+                              ([clojure.template do-template])
+                              (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
+                              ([datahike.api q]
+                               [datascript.core q]
+                               [datomic.api q]
+                               [datomic.client.api q]
+                               [datalevin.core q]
+                               [datomic-type-extensions.api q])
+                              (do (datalog/analyze-datalog ctx expr)
+                                  (analyze-children ctx children false))
+                              ([compojure.core GET]
+                               [compojure.core POST]
+                               [compojure.core PUT]
+                               [compojure.core DELETE]
+                               [compojure.core HEAD]
+                               [compojure.core OPTIONS]
+                               [compojure.core PATCH]
+                               [compojure.core ANY]
+                               [compojure.core context]
+                               [compojure.core rfn])
+                              (compojure/analyze-compojure-macro ctx expr resolved-as-name)
+                              ([clojure.java.jdbc with-db-transaction]
+                               [clojure.java.jdbc with-db-connection]
+                               [clojure.java.jdbc with-db-metadata]
+                               [next.jdbc with-transaction])
+                              (jdbc/analyze-like-jdbc-with ctx expr)
+                              ([clojure.tools.logging debugf]
+                               [clojure.tools.logging infof]
+                               [clojure.tools.logging errorf]
+                               [clojure.tools.logging logf]
+                               [clojure.tools.logging spyf]
+                               [clojure.tools.logging tracef]
+                               [clojure.tools.logging warnf])
+                              (analyze-formatted-logging ctx expr)
+                              [clojure.data.xml alias-uri]
+                              (xml/analyze-alias-uri ctx expr)
+                              [clojure.data.xml.impl export-api]
+                              (xml/analyze-export-api ctx expr)
+                              [cljs.core simple-benchmark]
+                              (analyze-like-let ctx expr)
+                              [babashka.process $]
+                              (babashka/analyze-$ ctx expr)
+                              ([re-frame.core reg-event-db]
+                               [re-frame.core reg-event-ctx]
+                               [re-frame.core reg-sub-raw]
+                               [re-frame.core reg-fx]
+                               [re-frame.core reg-cofx])
+                              (re-frame/analyze-reg
+                               ctx expr
+                               (symbol (str resolved-namespace) (str resolved-name)))
+                              ([re-frame.core subscribe])
+                              (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
+                              ([re-frame.core dispatch]
+                               [re-frame.core dispatch-sync])
+                              (re-frame/analyze-dispatch ctx expr (str resolved-namespace))
+                              ([re-frame.core reg-sub])
+                              (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace)
+                                                                         (str resolved-name)))
+                              ([re-frame.core reg-event-fx])
+                              (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace)
+                                                                              (str resolved-name)))
+                              ([re-frame.core inject-cofx])
+                              (re-frame/analyze-inject-cofx ctx expr (str resolved-namespace))
                             ;; catch-all
-                            (let [next-ctx (cond-> ctx
-                                             (one-of [resolved-namespace resolved-name]
-                                                     [[clojure.core.async thread]
-                                                      [clojure.core dosync]
-                                                      [clojure.core future]
-                                                      [clojure.core lazy-seq]
-                                                      [clojure.core lazy-cat]])
-                                             (-> (assoc-in [:recur-arity :fixed-arity] 0)
-                                                 (assoc :seen-recur? (volatile! nil))
-                                                 (dissoc :protocol-fn)))]
-                              (analyze-children next-ctx children false))))]
+                              (let [next-ctx (cond-> ctx
+                                               (one-of [resolved-namespace resolved-name]
+                                                       [[clojure.core.async thread]
+                                                        [clojure.core dosync]
+                                                        [clojure.core future]
+                                                        [clojure.core lazy-seq]
+                                                        [clojure.core lazy-cat]])
+                                               (-> (assoc-in [:recur-arity :fixed-arity] 0)
+                                                   (assoc :seen-recur? (volatile! nil))
+                                                   (dissoc :protocol-fn)))]
+                                (analyze-children next-ctx children false)))))]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed
                       (let [in-def (:in-def ctx)
