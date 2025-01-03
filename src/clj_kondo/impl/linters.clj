@@ -195,7 +195,16 @@
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-str-call
-                                      :message "Single argument to str already is a string"))))))
+                                      :message "Single argument to str already is a string")))
+      (when (and
+             (= '= (:name called-fn))
+             (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+             (some #(= :double %) tags)
+             (not (identical? :off (-> call :config :linters :double-equals :level))))
+        (findings/reg-finding! ctx
+                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                      :type :double-equals
+                                      :message "Equality comparison of floating point number"))))))
 
 (defn show-arities [fixed-arities varargs-min-arity]
   (let [fas (vec (sort fixed-arities))

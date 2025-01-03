@@ -173,7 +173,8 @@
                                       ;; the version itself is configured at the top level
                                       }
               :redundant-ignore {:level :info}
-              :schema-misplaced-return {:level :warning}}
+              :schema-misplaced-return {:level :warning}
+              :double-equals {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
