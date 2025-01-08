@@ -180,6 +180,7 @@
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
+  (prn :arg-types (:arg-types call))
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
@@ -196,14 +197,16 @@
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (prn :retje)
       (when (and
              (= '= (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
              (some #(= :double %) tags)
-             (not (identical? :off (-> call :config :linters :double-equals :level))))
+             (not (identical? :off (-> call :config :linters :equals-float :level))))
+        (prn :dude)
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
-                                      :type :double-equals
+                                      :type :equals-float
                                       :message "Equality comparison of floating point number"))))))
 
 (defn show-arities [fixed-arities varargs-min-arity]

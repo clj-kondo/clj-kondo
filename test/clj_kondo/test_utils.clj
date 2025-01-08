@@ -159,7 +159,7 @@
                  (catch Throwable e
                    (.printStackTrace e))))]
      ;; (println input)
-     ;; (println res)
+     (println :res res)
      (parse-output res))))
 
 (def windows? (-> (System/getProperty "os.name")
