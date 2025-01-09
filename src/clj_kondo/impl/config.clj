@@ -157,6 +157,7 @@
               :uninitialized-var {:level :warning}
               :equals-false {:level :off}
               :equals-true {:level :off}
+              :equals-float {:level :off}
               :plus-one {:level :off}
               :minus-one {:level :off}
               :protocol-method-varargs {:level :error}
@@ -173,7 +174,8 @@
                                       ;; the version itself is configured at the top level
                                       }
               :redundant-ignore {:level :info}
-              :schema-misplaced-return {:level :warning}}
+              :schema-misplaced-return {:level :warning}
+              }
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

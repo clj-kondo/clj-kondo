@@ -19,10 +19,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2451): Lint for nil return from if-like forms
+- [#2457](https://github.com/clj-kondo/clj-kondo/issues/2457): NEW linter: `:equals-float`, warn on comparison of floating point numbers with `=`. This level of this linter is `:off` by default.
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2451): lint for `nil` return from `if`-like forms
 - Add `printf` to vars linted by `analyze-format`. ([@tomdl89](https://github.com/tomdl89))
-- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if-let` etc condition as always truthy
-- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): Report var usage in `if-not` condition as always truthy
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): report var usage in `if-let` etc condition as always truthy
+- [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): report var usage in `if-not` condition as always truthy
 - [#2433](https://github.com/clj-kondo/clj-kondo/issues/2433): false positive redundant ignore with hook
 - Document `:cljc` config option. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#2439](https://github.com/clj-kondo/clj-kondo/issues/2439): uneval may apply to nnext form if reader conditional doesn't yield a form ([@NoahTheDuke](https://github.com/NoahTheDuke))
@@ -30,7 +31,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Relax `:redundant-nested-call` for `comp`, `concat`, `every-pred` and `some-fn` since it may affect performance
 - [#2446](https://github.com/clj-kondo/clj-kondo/issues/2446): false positive `:redundant-ignore`
 - [#2448](https://github.com/clj-kondo/clj-kondo/issues/2448): redundant nested call in hook gen'ed code
-- [#2424](https://github.com/clj-kondo/clj-kondo/issues/2424): fix combination of :config-in-ns and :discouraged-namespace
+- [#2424](https://github.com/clj-kondo/clj-kondo/issues/2424): fix combination of `:config-in-ns` and `:discouraged-namespace`
 
 ## 2024.11.14
 

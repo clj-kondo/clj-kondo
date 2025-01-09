@@ -787,6 +787,19 @@ The default configuration for this linter is:
 Possible values for `:position` are `:first` and `:last`
 The `:only-in-test-assertion` boolean activates the linter only in a test assertion context, e.g. `(clojure.test/is (= (+ 1 2 3) 1))`
 
+### Equals float
+
+*Keyword:* `:equals-float`
+
+*Description:* warn on usage of comparison with `=` on floating point numbers,
+e.g. `(= 0.1 x)`. In many cases this can lead to issues due to rounding errors.
+
+*Default level:* `:off`
+
+*Example trigger:* `(= 0.1 x)`
+
+*Example message:* `Equality comparison of floating point number`
+
 ### Equals false
 
 *Keyword:* `:equals-false`
