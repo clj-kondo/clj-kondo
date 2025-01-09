@@ -551,6 +551,8 @@ pattern. The warning can be made undone on the namespace level (e.g. via
 {:linters {:discouraged-var {clojure.core/read-string {:level :off}}}}
 ```
 
+An additional `:arities #{1 2 :varargs}` configuration is allowed to limit the warning to certain arities of a var call.
+
 *Example trigger:*
 
 With the configuration above:
