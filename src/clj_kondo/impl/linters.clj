@@ -398,6 +398,7 @@
                   fn-ns (:ns called-fn)
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
+                  _ (prn :arity arity) ;; YES, the arity!!
                   in-def (:in-def call)
                   recursive? (and
                               (= fn-ns caller-ns-sym)
@@ -430,9 +431,7 @@
                                                         :derived-name-location (:derived-location name-meta)))))))
                   call-config (:config call)
                   fn-sym (symbol (str resolved-ns)
-                                 (str fn-name))
-                  _
-                  (namespace/lint-discouraged-var! ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym)]
+                                 (str fn-name))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and ;; unresolved?
@@ -472,6 +471,10 @@
                   (and call?
                        (not (utils/linter-disabled? call :redundant-nested-call))
                        (lint-redundant-nested-call call))]]
+      ;; TODO: can we add information here about what arity we are calling?
+      (namespace/lint-discouraged-var! ctx (:config call) resolved-ns fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
+                                                                                                                       :fixed-arities fixed-arities
+                                                                                                                       :arity arity})
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)
