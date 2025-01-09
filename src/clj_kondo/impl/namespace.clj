@@ -622,13 +622,14 @@
             (when-not (identical? :off (:level cfg))
               (let [arities (:arities cfg)
                     arity (:arity arity-info)]
-                (when (or (not arities)
+                (when (or (not arity-info)
+                          (not arities)
                           (not arity)
                           (let [called-arity (or (contains? (:fixed-arities arity-info) arity)
                                                  (let [varargs-min-arity (:varargs-min-arity arity-info)]
                                                    (when (and varargs-min-arity (>= arity varargs-min-arity))
                                                      :varargs)))]
-                            (contains? arities called-arity)))
+                            (contains? (set arities) called-arity)))
                   (findings/reg-finding! ctx {:filename filename
                                               :level (:level cfg)
                                               :row row
@@ -727,7 +728,7 @@
                                                (:filename ctx)
                                                row end-row col end-col
                                                (symbol (str ns-sym) ns*)
-                                               {})
+                                               nil)
                         nil))
                     {:name (symbol (name name-sym))
                      :unresolved? true
