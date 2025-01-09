@@ -398,7 +398,6 @@
                   fn-ns (:ns called-fn)
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
-                  _ (prn :arity arity) ;; YES, the arity!!
                   in-def (:in-def call)
                   recursive? (and
                               (= fn-ns caller-ns-sym)
