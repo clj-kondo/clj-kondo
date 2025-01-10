@@ -105,3 +105,20 @@
 (js/fetch.foo)"
           '{:linters {:discouraged-var {js/fetch {:message "Use web.http/js-fetch instead"}}}}
           "--lang" "cljs")))
+
+(deftest arity-test
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 29,
+     :level :warning,
+     :message "Don't use lazy version of map"}
+    {:file "<stdin>",
+     :row 1,
+     :col 34,
+     :level :error,
+     :message
+     "clojure.core/inc is called with 4 args but expects 1"}]
+   (lint! "(map inc) (map inc [1 2 3]) (map inc [1 2 3] [1 2 3] [1 2 3] [1 2 3])"
+          '{:linters  {:discouraged-var {clojure.core/map {:message "Don't use lazy version of map"
+                                                           :arities #{2 :varargs}}}}})))

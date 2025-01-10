@@ -303,7 +303,7 @@
                   allow-forward-reference? (:allow-forward-reference? call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
-            :let [fn-name (:name call)
+            :let [call-fn-name (:name call)
                   caller-ns-sym (:ns call)
                   call-lang (:lang call)
                   ctx (assoc ctx :lang call-lang :base-lang base-lang)
@@ -319,10 +319,10 @@
                   ;; _ (prn :used (:used-namespaces idacs))
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
-                                                resolved-ns fn-name unresolved? refer-alls)
+                                                resolved-ns call-fn-name unresolved? refer-alls)
                   #_#__ (when (not call?)
                           (clojure.pprint/pprint (dissoc call :config)))
-                  name-meta (meta fn-name)
+                  name-meta (meta call-fn-name)
                   name-row (:row name-meta)
                   name-col (:col name-meta)
                   name-end-row (:end-row name-meta)
@@ -337,7 +337,7 @@
                              (not allow-forward-reference?)
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
-                     ctx caller-ns-sym resolved-ns fn-name
+                     ctx caller-ns-sym resolved-ns call-fn-name
                      (if call?
                        (assoc call
                               :row name-row
@@ -382,7 +382,7 @@
                   _ (when (and (not unresolved-var)
                                (not valid-call?))
                       (namespace/reg-unresolved-symbol!
-                       ctx caller-ns-sym fn-name
+                       ctx caller-ns-sym call-fn-name
                        (if call?
                          (assoc call
                                 :row (or name-row row)
@@ -401,7 +401,7 @@
                   in-def (:in-def call)
                   recursive? (and
                               (= fn-ns caller-ns-sym)
-                              (= fn-name in-def))
+                              (= call-fn-name in-def))
                   _ (when (:analysis ctx)
                       (when-not (:interop? call)
                         (let [mexpr (meta (:expr call))]
@@ -411,7 +411,7 @@
                                                  row
                                                  col
                                                  caller-ns-sym
-                                                 resolved-ns fn-name arity
+                                                 resolved-ns call-fn-name arity
                                                  (when (= :cljc base-lang)
                                                    call-lang)
                                                  in-def
@@ -430,9 +430,7 @@
                                                         :derived-name-location (:derived-location name-meta)))))))
                   call-config (:config call)
                   fn-sym (symbol (str resolved-ns)
-                                 (str fn-name))
-                  _
-                  (namespace/lint-discouraged-var! ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym)]
+                                 (str call-fn-name))]
             :when valid-call?
             :let [fn-name (:name called-fn)
                   _ (when (and ;; unresolved?
@@ -472,6 +470,9 @@
                   (and call?
                        (not (utils/linter-disabled? call :redundant-nested-call))
                        (lint-redundant-nested-call call))]]
+      (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
+                                                                                                                       :fixed-arities fixed-arities
+                                                                                                                       :arity arity})
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)

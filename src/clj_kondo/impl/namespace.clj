@@ -609,7 +609,7 @@
                 (format "Namespace only aliased but wasn't loaded: %s"
                         ns-sym))))))))))
 
-(defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym]
+(defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym arity-info]
   (let [discouraged-var-config
         (get-in call-config [:linters :discouraged-var])]
     (when-not (or (identical? :off (:level discouraged-var-config))
@@ -620,15 +620,25 @@
         (doseq [fn-lookup-sym candidates]
           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
             (when-not (identical? :off (:level cfg))
-              (findings/reg-finding! ctx {:filename filename
-                                          :level (:level cfg)
-                                          :row row
-                                          :end-row end-row
-                                          :col col
-                                          :end-col end-col
-                                          :type :discouraged-var
-                                          :message (or (:message cfg)
-                                                       (str "Discouraged var: " fn-sym))}))))))))
+              (let [arities (:arities cfg)
+                    arity (:arity arity-info)]
+                (when (or (not arity-info)
+                          (not arities)
+                          (not arity)
+                          (let [called-arity (or (contains? (:fixed-arities arity-info) arity)
+                                                 (let [varargs-min-arity (:varargs-min-arity arity-info)]
+                                                   (when (and varargs-min-arity (>= arity varargs-min-arity))
+                                                     :varargs)))]
+                            (contains? (set arities) called-arity)))
+                  (findings/reg-finding! ctx {:filename filename
+                                              :level (:level cfg)
+                                              :row row
+                                              :end-row end-row
+                                              :col col
+                                              :end-col end-col
+                                              :type :discouraged-var
+                                              :message (or (:message cfg)
+                                                           (str "Discouraged var: " fn-sym))}))))))))))
 
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
@@ -717,7 +727,8 @@
                         (lint-discouraged-var! ctx (:config ctx) ns-sym var-name
                                                (:filename ctx)
                                                row end-row col end-col
-                                               (symbol (str ns-sym) ns*))
+                                               (symbol (str ns-sym) ns*)
+                                               nil)
                         nil))
                     {:name (symbol (name name-sym))
                      :unresolved? true
