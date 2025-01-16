@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2025.01.16
 
 - [#2457](https://github.com/clj-kondo/clj-kondo/issues/2457): NEW linter: `:equals-float`, warn on comparison of floating point numbers with `=`. This level of this linter is `:off` by default.
 - [#2272](https://github.com/clj-kondo/clj-kondo/issues/2451): lint for `nil` return from `if`-like forms
