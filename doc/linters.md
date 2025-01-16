@@ -42,6 +42,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
     - [Quoted case test constant](#quoted-case-test-constant)
     - [Equals expected position](#equals-expected-position)
+    - [Equals float](#equals-float)
     - [Equals false](#equals-false)
     - [Equals true](#equals-true)
     - [File](#file)
@@ -93,6 +94,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
+    - [Unexpected recur](#unexpected-recur)
     - [Uninitialized var](#uninitialized-var)
     - [Unused alias](#unused-alias)
     - [Unused binding](#unused-binding)
@@ -1627,6 +1629,18 @@ You can add or override type annotations. See
 *Example trigger:* `(let [{:keys [i] :or {i 2 j 3}} {}] i)`
 
 *Example message:* `j is not bound in this destructuring form`.
+
+### Unexpected recur
+
+*Keyword:* `:unexpected-recur`
+
+*Description:* `(recur ...)` is called where it's not expected
+
+*Default level:* `:error`
+
+*Example trigger:* `(ns foo) (recur)`
+
+*Example message:* `Unexpected usage of recur.`
 
 ### Uninitialized var
 
