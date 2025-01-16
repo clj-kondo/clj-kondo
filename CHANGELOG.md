@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## 2025.01.16
 
 - [#2457](https://github.com/clj-kondo/clj-kondo/issues/2457): NEW linter: `:equals-float`, warn on comparison of floating point numbers with `=`. This level of this linter is `:off` by default.
+- [#2219](https://github.com/clj-kondo/clj-kondo/issues/2219): allow arity config for `:discouraged-var`
 - [#2272](https://github.com/clj-kondo/clj-kondo/issues/2451): lint for `nil` return from `if`-like forms
 - Add `printf` to vars linted by `analyze-format`. ([@tomdl89](https://github.com/tomdl89))
 - [#2272](https://github.com/clj-kondo/clj-kondo/issues/2272): report var usage in `if-let` etc condition as always truthy
@@ -32,7 +33,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2446](https://github.com/clj-kondo/clj-kondo/issues/2446): false positive `:redundant-ignore`
 - [#2448](https://github.com/clj-kondo/clj-kondo/issues/2448): redundant nested call in hook gen'ed code
 - [#2424](https://github.com/clj-kondo/clj-kondo/issues/2424): fix combination of `:config-in-ns` and `:discouraged-namespace`
-- [#2219](https://github.com/clj-kondo/clj-kondo/issues/2219): allow arity config for `:discouraged-var`
 
 ## 2024.11.14
 
