@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2465](https://github.com/clj-kondo/clj-kondo/issues/2465): fix `:discouraged-var` linter for fixed arities
+
 ## 2025.01.16
 
 - [#2457](https://github.com/clj-kondo/clj-kondo/issues/2457): NEW linter: `:equals-float`, warn on comparison of floating point numbers with `=`. This level of this linter is `:off` by default.
