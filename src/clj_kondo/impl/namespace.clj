@@ -625,7 +625,8 @@
                 (when (or (not arity-info)
                           (not arities)
                           (not arity)
-                          (let [called-arity (or (contains? (:fixed-arities arity-info) arity)
+                          (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
+                                                   arity)
                                                  (let [varargs-min-arity (:varargs-min-arity arity-info)]
                                                    (when (and varargs-min-arity (>= arity varargs-min-arity))
                                                      :varargs)))]
