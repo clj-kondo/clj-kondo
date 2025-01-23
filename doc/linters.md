@@ -1394,6 +1394,19 @@ warn on additional vars.
 
 *Example message:* `Redundant ignore`.
 
+*Config:* to suppress warnings for specific linters, use the configuration:
+
+```clojure
+{:linters {:redundant-ignore {:exclude [:clojure-lsp/unused-public-var]}}}
+```
+
+along with:
+
+```clojure
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn foo [])
+```
+
 ### Redundant nested call
 
 *Keyword*: `:redundant-nested-call`
