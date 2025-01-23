@@ -18,3 +18,8 @@
             (with-out-str
               (apply println strs))))"
           config)))
+
+(deftest redundant-ignore-exclude-test
+  (is (empty?
+       (lint! "#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var :unused-binding]} (defn foo [])"
+              (assoc-in config [:linters :redundant-ignore :exclude] [:clojure-lsp/unused-public-var])))))

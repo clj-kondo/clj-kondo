@@ -931,23 +931,27 @@
 
 (defn lint-redundant-ignores
   [ctx]
-  (when-not (identical? :off (-> ctx :config :linters :redundant-ignore :level))
-    (let [ignores @(:ignores ctx)]
-      (doseq [[filename m] ignores
-              [lang ignores] m
-              ignore ignores]
-        (let [linters (:ignore ignore)
-              m (:clj-kondo/ignore ignore)]
-          (when (map? m)
-            (when-not (some qualified-keyword? linters) ;; this signifies a custom linter, e.g. clojure-lsp/unused-public-var
-              (when-not (or (:used ignore)
-                            ;; #2433
-                            (:derived-location ignore))
-                (findings/reg-finding! ctx (assoc m
-                                                  :type :redundant-ignore
-                                                  :message "Redundant ignore"
-                                                  :lang lang
-                                                  :filename filename))))))))))
+  (let [cfg (-> ctx :config :linters :redundant-ignore)
+        excludes (some-> cfg :exclude set)]
+    (when-not (identical? :off (-> cfg :level))
+      (let [ignores @(:ignores ctx)]
+        (doseq [[filename m] ignores
+                [lang ignores] m
+                ignore ignores]
+          (let [linters (:ignore ignore)
+                m (:clj-kondo/ignore ignore)]
+            (when (map? m)
+              (when-not (and excludes
+                             (seqable? linters)
+                             (some excludes linters))
+                (when-not (or (:used ignore)
+                              ;; #2433
+                              (:derived-location ignore))
+                  (findings/reg-finding! ctx (assoc m
+                                                    :type :redundant-ignore
+                                                    :message "Redundant ignore"
+                                                    :lang lang
+                                                    :filename filename)))))))))))
 
 ;;;; scratch
 
