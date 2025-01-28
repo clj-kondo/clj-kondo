@@ -477,8 +477,8 @@
         fc (first children)
         docstring (when fc
                     (string-from-token fc))
-        doc-node (when docstring
-                   fc)
+        doc-node-raw (when docstring
+                       fc)
         meta-node (when fc
                     (let [t (tag fc)]
                       (if (= :map t)
@@ -497,7 +497,7 @@
         [doc-node docstring] (or (and meta-node-meta
                                       (:doc meta-node-meta)
                                       (docstring/docs-from-meta meta-node))
-                                 [doc-node docstring])
+                                 [doc-node-raw docstring])
         [doc-node docstring] (if docstring
                                [doc-node docstring]
                                (when (some-> metadata :doc str)
@@ -568,7 +568,9 @@
                          :underscore-in-namespace
                          (str "Avoid underscore in namespace name: " ns-name))))
 
-        clauses children
+        clauses (cond-> children
+                  doc-node-raw next
+                  meta-node next)
         _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw-node (-> ?require-clause :children first)
@@ -608,6 +610,15 @@
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
         gen-class? (some #(= :gen-class (some-> % :children first :k)) clauses)
+        leftovers (for [clause clauses
+                        :let [valid-kw (-> clause :children first :k)
+                              valid-kw (one-of valid-kw [:require :require-macros :use
+                                                         :import :refer-clojure
+                                                         :load :gen-class])]
+                        :when (not valid-kw)]
+                    clause)
+        _ (when (seq leftovers)
+            (namespace/lint-unknown-clauses ctx leftovers))
         ns (cond->
             (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                           :imports imports

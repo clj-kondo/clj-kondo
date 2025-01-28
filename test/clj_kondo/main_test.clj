@@ -3022,6 +3022,22 @@ foo/baz
      :message "Unsorted import: [abar.core Bar]"}]
    (lint! "(ns foo (:import [bar.core Foo] [abar.core Bar])) Foo Bar" {:linters {:unsorted-imports {:level :warning}}})))
 
+(deftest unknown-ns-option-test
+  (assert-submaps2
+   [{:file "<stdin>"
+     :row 1
+     :col 9
+     :level :warning
+     :message "Unknown ns option: [clojure.set]"}]
+   (lint! "(ns foo [clojure.set])" {:linters {:unknown-ns-option {:level :warning}}}))
+  (assert-submaps2
+   [{:file "<stdin>"
+     :row 1
+     :col 34
+     :level :warning
+     :message "Unknown ns option: [clojure.set]"}]
+   (lint! "(ns foo \"example\" {:no-doc true} [clojure.set])" {:linters {:unknown-ns-option {:level :warning}}})))
+
 (deftest set!-test
   (assert-submaps '[{:col 13 :message #"arg"}]
                   (lint! "(declare x) (set! (.-foo x) 1 2 3)"))
