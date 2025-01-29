@@ -101,9 +101,7 @@
      (node->line (:filename ctx)
                  clause
                  :unknown-ns-option
-                 (str "Unknown ns option: " (if (sequential? clause)
-                                              (first clause)
-                                              clause))))))
+                 (str "Unknown ns option: " clause)))))
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
