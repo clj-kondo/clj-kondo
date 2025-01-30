@@ -1587,7 +1587,9 @@
           ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
           ;; is linted as (fn [x y z])
           (let [fn-children (:children c)
-                protocol-method-name (first fn-children)]
+                protocol-method-name (first fn-children)
+                protocol-fn? (and (not= "extend-protocol" def-by)
+                                  (not= "extend-type" def-by))]
             (when (and current-protocol
                        (not= "definterface" def-by))
               (let [[protocol-ns protocol-name]
@@ -1609,9 +1611,16 @@
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
             (utils/handle-ignore ctx c)
-            (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
-                        (assoc c :protocol-fn (and (not= "extend-protocol" def-by)
-                                                   (not= "extend-type" def-by))))
+            (let [children (:children c)]
+              (if (and (not protocol-fn?)
+                       (= 'Class/forName (:value (first children))))
+                (when (str/starts-with? (try (sexpr (second children))
+                                             (catch Exception _ "")) "[")
+                  (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
+                                                    :level :warning
+                                                    :message "Prefer a symbol to refer to the array class")))
+                (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
+                            (assoc c :protocol-fn protocol-fn?))))
             (recur current-protocol (rest children) protocol-ns protocol-name)))))))
 
 (defn analyze-defrecord
