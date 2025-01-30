@@ -3039,6 +3039,9 @@ foo/baz
      :message "Unknown ns option: [clojure.set]"}]
    (lint! "(ns foo [clojure.set])" {:linters {:unknown-ns-option {:level :warning}}}))
   (assert-submaps2
+   nil
+   (lint! "(ns foo ^:clj-kondo/ignore [clojure.set])" {:linters {:unknown-ns-option {:level :warning}}}))
+  (assert-submaps2
    [{:file "<stdin>"
      :row 1
      :col 34
