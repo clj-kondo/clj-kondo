@@ -1813,7 +1813,15 @@ foo/foo ;; this does use the private var
       :col 26,
       :level :error,
       :message "Protocol methods do not support varargs."})
-   (lint! "(defprotocol Foo (foo [x & xs]))")))
+   (lint! "(defprotocol Foo (foo [x & xs]))"))
+
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 32,
+     :level :warning,
+     :message "Prefer a symbol to refer to the array class"}]
+   (lint! "(defprotocol Foo) (extend-type (Class/forName \"[Ljava.lang.String;\") Foo)")))
 
 (deftest defrecord-test
   (assert-submaps
