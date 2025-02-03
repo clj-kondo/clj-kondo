@@ -1,4 +1,5 @@
 {:linters
  {:discouraged-var {clojure.core/read-string {}}}
  :hooks
- {:macroexpand {clojure.template/do-template clojure.template/do-template}}}
+ {:macroexpand {clojure.template/do-template clojure.template/do-template
+                foobar/dude foobar/dude}}}

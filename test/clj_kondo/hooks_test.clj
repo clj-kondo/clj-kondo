@@ -485,3 +485,14 @@ my-ns/special-map \"
    (lint! (fs/file "corpus" "issue-2448" "src" "foobar.clj")
           "--config" (slurp (fs/file "corpus" "issue-2448" ".clj-kondo" "config.edn"))
           "--config-dir" (fs/file "corpus" "issue-2448" ".clj-kondo"))))
+
+(deftest issue-2466-reader-macro-roundtrip-test
+  (assert-submaps2
+   [{:file "corpus/issue-2448/src/foobar.clj",
+     :row 13,
+     :col 5,
+     :level :warning,
+     :message "Redundant nested call: or"}]
+   (lint! (fs/file "corpus" "issue-2448" "src" "foobar.clj")
+          "--config" (slurp (fs/file "corpus" "issue-2448" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2448" ".clj-kondo"))))
