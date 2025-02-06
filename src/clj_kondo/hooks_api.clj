@@ -6,6 +6,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.node.protocols]
+   [clj-kondo.impl.rewrite-clj.parser :as parser]
    [clj-kondo.impl.utils :as utils])
   (:refer-clojure :exclude [macroexpand resolve]))
 
@@ -18,6 +19,9 @@
       (let [m (meta node)]
         (or (:clj-kondo.impl/generated m)
             (not (:row m))))))
+
+(defn parse-string [s]
+  (parser/parse-string s))
 
 (defn node? [n]
   (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node n))
