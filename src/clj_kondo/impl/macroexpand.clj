@@ -191,19 +191,43 @@
                   fn-body])
       (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
 
-(defn expand-do-template [_ctx node]
+(defn expand-do-template [ctx node]
   (let [[_ argv expr & values] (:children node)
         c (count (:children argv))
         argv (:children argv)
         new-node
         (if (pos? c) ;; prevent infinite partition
           (list-node (list* (token-node 'do)
-                            (map (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
-                                 (partition c values))))
+                            (mapv (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
+                                  (partition c values))))
           expr)
         new-node (walk/postwalk #(if (map? %)
                                    (assoc % :clj-kondo.impl/generated true)
                                    %) new-node)]
+    (cond
+      (zero? c)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   node
+                   :do-template
+                   "No args defined. Expected at least 1."))
+      (empty? values)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   node
+                   :do-template
+                   (str "No values provided. Expected: multiple of " c ".")))
+
+      :else
+      (when-not (zero? (mod (count values) (count argv)))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx)
+                     node
+                     :do-template
+                     (str "Incorrect number of values provided. Expected: multiple of " c ".")))))
     new-node))
 
 ;;;; Scratch
