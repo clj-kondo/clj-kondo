@@ -22,6 +22,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2465](https://github.com/clj-kondo/clj-kondo/issues/2465): fix `:discouraged-var` linter for fixed arities
 - [#2473](https://github.com/clj-kondo/clj-kondo/issues/2473): New linter: `:unknown-ns-options` will warn on malformed `(ns)` calls. The linter is `{:level :warning}` by default.
 - [#2277](https://github.com/clj-kondo/clj-kondo/issues/2277): prefer an array class symbol over `(Class/forName ...)` in `defprotocol` and `extend-type`
+- [#2475](https://github.com/clj-kondo/clj-kondo/issues/2475): add `:do-template` linter to check args & values counts
+- [#2466](https://github.com/clj-kondo/clj-kondo/issues/2466): false positive with tagged literal in macroexpand hook
 
 ## 2025.01.16
 

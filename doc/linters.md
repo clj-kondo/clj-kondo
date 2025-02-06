@@ -30,6 +30,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Discouraged var](#discouraged-var)
     - [Discouraged namespace](#discouraged-namespace)
     - [Discouraged tag](#discouraged-tag)
+    - [Do-template](#do-template)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
@@ -632,6 +633,18 @@ Given the above configuration:
 ```
 Prefer #java-time/instant
 ```
+
+### Do-template ###
+
+*Keyword:* `:do-template`.
+
+*Description:* warn on incorrect usages of `clojure.template/do-template`: no args, no values, or incorrect number of values.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(clojure.template/do-template [a b] (prn a b) 1 2 3)`
+
+*Example message:* `Incorrect number of values provided. Expected: multiple of 2.`.
 
 ### Docstring blank
 

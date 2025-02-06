@@ -207,7 +207,8 @@ transforming the original rewrite-clj node.
 This is done either by simply throwing an error within the hook, or instead 
 calling `reg-finding!`. They are similar, but the latter allows for defining 
 precise details, including naming the linter type and defining the range to
-report the diagnostics for (eg where to render "squigglies").
+report the diagnostics for (eg where to render "squigglies"). If transformation
+is not needed, just return `nil` from the hook after registering findings.
 
 This is an example for re-frame's `dispatch` function which checks if the
 dispatched event used a qualified keyword.
