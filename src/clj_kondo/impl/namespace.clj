@@ -620,7 +620,7 @@
         (doseq [fn-lookup-sym candidates]
           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
             (when-not (or (identical? :off (:level cfg))
-                          (:clj-kondo.impl/generated (meta expr)))
+                          (:clj-kondo.impl/generated expr))
               (let [arities (:arities cfg)
                     arity (:arity arity-info)]
                 (when (or (not arity-info)
