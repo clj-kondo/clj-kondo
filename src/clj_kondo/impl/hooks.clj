@@ -129,7 +129,7 @@
                  (if-let [m (meta node)]
                    (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
                      (do (vreset! !!last-meta (assoc m :derived-location true))
-                         (utils/mark-generate node))
+                         node #_(utils/mark-generate node))
                      (-> (with-meta node
                            (merge @!!last-meta (meta node)))
                          utils/mark-generate))
