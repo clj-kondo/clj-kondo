@@ -93,6 +93,19 @@
                    :else (recur raw-ns
                                 (next ns-list))))))))))
 
+(defn lint-unknown-clauses
+  [ctx clauses]
+  (let [config (:config ctx)
+        level (-> config :linters :unknown-ns-option :level)]
+    (when-not (identical? :off level)
+      (doseq [clause clauses]
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx)
+                     clause
+                     :unknown-ns-option
+                     (str "Unknown ns option: " clause)))))))
+
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."

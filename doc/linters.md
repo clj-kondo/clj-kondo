@@ -1808,6 +1808,18 @@ A regex is also supported:
 
 This will exclude all bindings starting with `_x`.
 
+### Unknown ns option
+
+*Keyword*: `:unknown-ns-option`
+
+*Description:* warn on unknown top-level `ns` options.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(ns foo [clojure.set])`.
+
+*Example message:* `"Unknown ns option: [clojure.set]"`.
+
 ### Unknown :require option
 
 *Keyword:* `:unknown-require-option`

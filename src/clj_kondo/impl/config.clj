@@ -43,6 +43,7 @@
               :unbound-destructuring-default {:level :warning}
               :used-underscored-binding {:level :off}
               :unknown-require-option {:level :warning}
+              :unknown-ns-option {:level :warning}
               :unused-binding {:level :warning
                                :exclude-destructured-keys-in-fn-args false
                                :exclude-destructured-as false
