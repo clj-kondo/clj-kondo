@@ -1,7 +1,7 @@
 (ns clj-kondo.do-template-test
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
-   [clojure.test :refer [deftest is testing]]))
+   [clojure.test :refer [deftest is]]))
 
 (deftest all-okay-test
   (is (empty?
