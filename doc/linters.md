@@ -101,6 +101,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused binding](#unused-binding)
     - [Unused value](#unused-value)
     - [Used underscored bindings](#used-underscored-bindings)
+    - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
     - [Unreachable code](#unreachable-code)
     - [Unused import](#unused-import)
