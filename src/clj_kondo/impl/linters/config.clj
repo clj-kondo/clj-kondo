@@ -9,6 +9,7 @@
 (set! *warn-on-reflection* true)
 
 (def expected-linter-keys (set (keys (:linters default-config))))
+(def expected-top-level-keys #{:min-clj-kondo-version})
 
 (defn lint-map-vals [ctx node-map ks]
   (doseq [[kw-node val-node] node-map]
@@ -39,6 +40,7 @@
     (let [k (sexpr key-node)]
       (when (and
              (simple-keyword? k)
+             (not (contains? expected-top-level-keys k))
              (contains? expected-linter-keys k))
         (findings/reg-finding!
          ctx

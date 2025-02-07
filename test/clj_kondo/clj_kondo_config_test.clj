@@ -16,7 +16,9 @@
   (testing "Linter config should go under :linters"
     (assert-submaps
      '({:file ".clj-kondo/config.edn", :row 1, :col 2, :level :warning, :message "Linter config should go under :linters"})
-     (lint! "{:unresolved-symbol {}}" "--filename" ".clj-kondo/config.edn"))))
+     (lint! "{:unresolved-symbol {}}" "--filename" ".clj-kondo/config.edn")))
+  (testing ":min-clj-kondo-version is an expected top-level key"
+    (is (empty? (lint! "{:min-clj-kondo-version \"2025.01.16\"}" "--filename" ".clj-kondo/config.edn")))))
 
 (deftest should-be-map-test
   (testing "Top level maps"
