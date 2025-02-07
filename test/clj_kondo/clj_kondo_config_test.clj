@@ -70,13 +70,38 @@
                    "--filename"
                    ".clj-kondo/config.edn"))))
     (testing "Find when version before minimum"
-      (assert-submaps2
-       [{:file "<clj-kondo>", :row 1, :col 1, :level :warning, :message
-         (format "Version %s below configured minimum %s"
-                 version/version
-                 (version-shifted-by-days 1))}]
-       (lint!
-             ""
-             {:min-clj-kondo-version (version-shifted-by-days 1)}
-             "--filename"
-             ".clj-kondo/config.edn")))))
+      (testing "No min-clj-kondo-version in analyzed config"
+        (assert-submaps2
+         [{:file "<clj-kondo>", :row 1, :col 1, :level :warning, :message
+           (format "Version %s below configured minimum %s"
+                   version/version
+                   (version-shifted-by-days 1))}]
+         (lint!
+               ""
+               {:min-clj-kondo-version (version-shifted-by-days 1)}
+               "--filename"
+               ".clj-kondo/config.edn")))
+
+      (testing "min-clj-kondo-version in analyzed config is not the highest"
+        (assert-submaps2
+         [{:file "<clj-kondo>", :row 1, :col 1, :level :warning, :message
+           (format "Version %s below configured minimum %s"
+                   version/version
+                   (version-shifted-by-days 2))}]
+         (lint!
+          (pr-str {:min-clj-kondo-version (version-shifted-by-days 1)})
+          {:min-clj-kondo-version (version-shifted-by-days 2)}
+          "--filename"
+          ".clj-kondo/config.edn")))
+
+      (testing "min-clj-kondo-version in analyzed config is the source of the finding"
+        (assert-submaps2
+         [{:file ".clj-kondo/config.edn", :row 1, :col 2, :level :warning, :message
+           (format "Version %s below configured minimum %s"
+                   version/version
+                   (version-shifted-by-days 1))}]
+         (lint!
+          (pr-str {:min-clj-kondo-version (version-shifted-by-days 1)})
+          {:min-clj-kondo-version (version-shifted-by-days 1)}
+          "--filename"
+          ".clj-kondo/config.edn"))))))
