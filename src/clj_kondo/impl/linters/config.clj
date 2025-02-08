@@ -82,16 +82,21 @@
                   (compare-versions {:minimum minimum-version
                                      :current version/version}))]
     (when warning
-      (let [[version-node version-value-node] (into [] (drop-while (complement min-clj-kondo-version-node?)) (:children expr))]
-        (findings/reg-finding!
-         ctx
-         (if (= minimum-version (string-from-token version-value-node))
-           (node->line (:filename ctx) version-node :min-clj-kondo-version warning)
-           {:message  warning
-            :filename "<clj-kondo>"
-            :type     :min-clj-kondo-version
-            :row      1
-            :col      1}))))))
+      (findings/reg-finding!
+       ctx
+       (if (seq expr)
+         (node->line
+          (:filename ctx)
+          (let [version-value-node (second (drop-while (complement min-clj-kondo-version-node?) (:children expr)))]
+            (if (= minimum-version (string-from-token version-value-node))
+              version-value-node
+              expr))
+          :min-clj-kondo-version warning)
+         {:message  warning
+          :filename "<clj-kondo>"
+          :type     :min-clj-kondo-version
+          :row      1
+          :col      1})))))
 
 (defn lint-config [ctx expr]
   (check-minimum-version ctx expr)

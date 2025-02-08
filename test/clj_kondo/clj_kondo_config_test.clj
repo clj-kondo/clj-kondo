@@ -84,7 +84,7 @@
 
       (testing "min-clj-kondo-version in analyzed config is not the highest"
         (assert-submaps2
-         [{:file "<clj-kondo>", :row 1, :col 1, :level :warning, :message
+         [{:file ".clj-kondo/config.edn", :row 1, :col 1, :level :warning, :message
            (format "Version %s below configured minimum %s"
                    version/version
                    (version-shifted-by-days 2))}]
@@ -96,7 +96,7 @@
 
       (testing "min-clj-kondo-version in analyzed config is the source of the finding"
         (assert-submaps2
-         [{:file ".clj-kondo/config.edn", :row 1, :col 2, :level :warning, :message
+         [{:file ".clj-kondo/config.edn", :row 1, :col 25, :level :warning, :message
            (format "Version %s below configured minimum %s"
                    version/version
                    (version-shifted-by-days 1))}]
