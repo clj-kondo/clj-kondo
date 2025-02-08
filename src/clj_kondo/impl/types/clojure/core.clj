@@ -976,9 +976,7 @@
                     :coll
                     t)))}
    ;; 6903
-   'mapv {:arities {1 {:args [:ifn]
-                       :ret :transducer}
-                    :varargs {:args '[:ifn :seqable {:op :rest
+   'mapv {:arities {:varargs {:args '[:ifn :seqable {:op :rest
                                                      :spec :seqable}]
                               :ret :vector}}}
    ;; 6921
