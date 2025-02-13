@@ -142,7 +142,8 @@
 (defn resolve [{:keys [name call]}]
   (let [ctx utils/*ctx*
         ret (namespace/resolve-name ctx call (-> ctx :ns :name) name nil)]
-    (select-keys ret [:ns :name])))
+    (when-not (:unresolved? ret)
+      (select-keys ret [:ns :name]))))
 
 (defn callstack []
   (utils/format-callstack utils/*ctx*))

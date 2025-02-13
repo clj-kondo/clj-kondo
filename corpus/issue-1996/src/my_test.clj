@@ -6,4 +6,6 @@
 
 (my-test
  (with-redefs [inc dec] 1)
- (foo/with-redefs [inc dec] 1))
+ (foo/with-redefs [inc dec] 1)
+ (inc 1)
+ (dude 1))
