@@ -210,6 +210,7 @@ jobs:
     docker:
       - image: "circleci/clojure:openjdk-11-lein-2.9.8-bullseye" # fix for #1909
     working_directory: ~/repo
+    resource_class: large
     environment:
       LEIN_ROOT: "true"
       GRAALVM_HOME: /home/circleci/graalvm-ce-java11-22.3.0
