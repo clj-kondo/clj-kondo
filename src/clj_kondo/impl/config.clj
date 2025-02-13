@@ -4,7 +4,6 @@
   (:require
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
-   [clj-kondo.impl.version :as version]
    [clojure.set :as set]
    [clojure.walk :as walk]))
 
@@ -544,40 +543,6 @@
   (defn deprecated-namespace-excluded? [config required]
     (let [cfg (delayed-cfg config)]
       (contains? cfg required))))
-
-(defn ^:private compare-versions
-  "Returns a finding message if the current version
-   is below the minimum version"
-  [{minimum :minimum
-    current :current}]
-  (let [earlier-version (fn
-                          [v1 v2]
-                          (first (sort [v1 v2])))]
-    (when
-     (not=
-      minimum
-      (earlier-version
-       current
-       minimum))
-      (str
-       "Version "
-       current
-       " below configured minimum "
-       minimum))))
-
-(defn check-minimum-version
-  "Prints a warning if the version is below the configured minimum"
-  [ctx]
-  (let [minimum-version (-> ctx :config :min-clj-kondo-version)
-        warning (when minimum-version
-                  (compare-versions {:minimum minimum-version
-                                     :current version/version}))]
-    (when warning
-      (findings/reg-finding! ctx {:message warning
-                                  :filename "<clj-kondo>"
-                                  :type :min-clj-kondo-version
-                                  :row 1
-                                  :col 1}))))
 
 ;; (defn ns-group-1 [m full-ns-name]
 ;;   (when-let [r (:regex m)]

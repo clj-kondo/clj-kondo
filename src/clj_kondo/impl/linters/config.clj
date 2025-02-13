@@ -4,7 +4,8 @@
   (:require [clj-kondo.impl.config :refer [default-config]]
             [clj-kondo.impl.findings :as findings]
             [clj-kondo.impl.linters.edn-utils :as edn-utils]
-            [clj-kondo.impl.utils :refer [sexpr node->line]]))
+            [clj-kondo.impl.utils :refer [sexpr node->line keyword-node? node->keyword string-from-token]]
+            [clj-kondo.impl.version :as version]))
 
 (set! *warn-on-reflection* true)
 
@@ -49,7 +50,56 @@
                      :clj-kondo-config
                      "Linter config should go under :linters"))))))
 
+(defn ^:private compare-versions
+  "Returns a finding message if the current version
+   is below the minimum version"
+  [{minimum :minimum
+    current :current}]
+  (let [earlier-version (fn
+                          [v1 v2]
+                          (first (sort [v1 v2])))]
+    (when
+     (not=
+      minimum
+      (earlier-version
+       current
+       minimum))
+      (str
+       "Version "
+       current
+       " below configured minimum "
+       minimum))))
+
+(defn min-clj-kondo-version-node? [n]
+  (and (keyword-node? n)
+       (= :min-clj-kondo-version (node->keyword n))))
+
+(defn check-minimum-version
+  "Registers a finding if the version is below the configured minimum"
+  [ctx expr]
+  (let [minimum-version (-> ctx :config :min-clj-kondo-version)
+        warning (when minimum-version
+                  (compare-versions {:minimum minimum-version
+                                     :current version/version}))]
+    (when warning
+      (findings/reg-finding!
+       ctx
+       (if (seq expr)
+         (node->line
+          (:filename ctx)
+          (let [version-value-node (second (drop-while (complement min-clj-kondo-version-node?) (:children expr)))]
+            (if (= minimum-version (string-from-token version-value-node))
+              version-value-node
+              expr))
+          :min-clj-kondo-version warning)
+         {:message  warning
+          :filename "<clj-kondo>"
+          :type     :min-clj-kondo-version
+          :row      1
+          :col      1})))))
+
 (defn lint-config [ctx expr]
+  (check-minimum-version ctx expr)
   (try
     (let [config-edn (edn-utils/sexpr-keys expr)
           config-map (edn-utils/node-map expr)
