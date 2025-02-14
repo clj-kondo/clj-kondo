@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2463](https://github.com/clj-kondo/clj-kondo/issues/2463): using :min-clj-kondo-version results in incorrect warning ([@imrekoszo](https://github.com/imrekoszo))
 - [#2464](https://github.com/clj-kondo/clj-kondo/issues/2464): `:min-clj-kondo-version` warning/error should have a location in `config.edn` ([@imrekoszo](https://github.com/imrekoszo))
 - [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472) hooks `api/resolve` returns nil for unresolved symbols and locals
+- #2472: add `api/env` to determine if symbol is local
 
 ## 2025.01.16
 

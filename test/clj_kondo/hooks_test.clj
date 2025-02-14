@@ -404,8 +404,7 @@ my-ns/special-map \"
 (deftest resolve-in-hook-test
   (assert-submaps2
    '({:file "corpus/issue-1996/src/my_test.clj", :row 9, :col 4, :level :warning, :message "Don't use with-redefs"}
-     {:file "corpus/issue-1996/src/my_test.clj", :row 12, :col 5, :level :error, :message "Unresolved: dude"}
-     {:file "corpus/issue-1996/src/my_test.clj", :row 13, :col 4, :level :error, :message "Unresolved: x"})
+     {:file "corpus/issue-1996/src/my_test.clj", :row 12, :col 5, :level :error, :message "Unresolved: dude"})
    (lint! (io/file "corpus" "issue-1996" "src")
           "--config-dir" (.getPath (io/file "corpus" "issue-1996" ".clj-kondo")))))
 

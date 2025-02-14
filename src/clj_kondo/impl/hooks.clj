@@ -56,6 +56,7 @@
    'ns-analysis api/ns-analysis
    'generated-node? api/generated-node?
    'resolve api/resolve
+   'env     api/env
    'set-node api/set-node
    'set-node? api/set-node?
    'node? api/node?

@@ -150,6 +150,10 @@
         (when-not (:unresolved? ret)
           (select-keys ret [:ns :name]))))))
 
+(defn env []
+  (let [bnds (:bindings utils/*ctx*)]
+    (zipmap (keys bnds) (repeat {}))))
+
 (defn callstack []
   (utils/format-callstack utils/*ctx*))
 

@@ -23,4 +23,6 @@
     (lint-with-redefs (api/resolve {:name (api/sexpr (first (:children foo-wrd)))}) foo-wrd)
     (lint-unresolved (api/resolve {:name (api/sexpr (first (:children inc-node)))}) inc-node)
     (lint-unresolved (api/resolve {:name (api/sexpr (first (:children dude-node)))}) (first (:children dude-node)))
-    (lint-unresolved (api/resolve {:name (api/sexpr local)}) local)))
+    (let [sym (api/sexpr local)]
+      (when-not (get (api/env) sym)
+        (lint-unresolved (api/resolve {:name sym}) local)))))
