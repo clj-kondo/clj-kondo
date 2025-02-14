@@ -139,11 +139,16 @@
       {}
       (map #(ns-analysis* % ns-sym) [:cljc :clj :cljs])))))
 
-(defn resolve [{:keys [name call]}]
+(defn resolve [{:keys [name call locals]}]
   (let [ctx utils/*ctx*
-        ret (namespace/resolve-name ctx call (-> ctx :ns :name) name nil)]
-    (when-not (:unresolved? ret)
-      (select-keys ret [:ns :name]))))
+        locals (or (:bindings ctx)
+                   locals)]
+    (if (and (simple-symbol? name)
+             (contains? locals name))
+      nil
+      (let [ret (namespace/resolve-name ctx call (-> ctx :ns :name) name nil)]
+        (when-not (:unresolved? ret)
+          (select-keys ret [:ns :name]))))))
 
 (defn callstack []
   (utils/format-callstack utils/*ctx*))

@@ -26,7 +26,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2466](https://github.com/clj-kondo/clj-kondo/issues/2466): false positive with tagged literal in macroexpand hook
 - [#2463](https://github.com/clj-kondo/clj-kondo/issues/2463): using :min-clj-kondo-version results in incorrect warning ([@imrekoszo](https://github.com/imrekoszo))
 - [#2464](https://github.com/clj-kondo/clj-kondo/issues/2464): `:min-clj-kondo-version` warning/error should have a location in `config.edn` ([@imrekoszo](https://github.com/imrekoszo))
-- [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472) pt 1, hooks `api/resolve` returns nil for unresolved symbol
+- [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472) hooks `api/resolve` returns nil for unresolved symbols and locals
 
 ## 2025.01.16
 

@@ -4,8 +4,10 @@
 (defn my-test [& xs]
   (prn xs))
 
-(my-test
- (with-redefs [inc dec] 1)
- (foo/with-redefs [inc dec] 1)
- (inc 1)
- (dude 1))
+(let [x 1]
+  (my-test
+   (with-redefs [inc dec] 1)
+   (foo/with-redefs [inc dec] 1)
+   (inc 1)
+   (dude 1)
+   x))
