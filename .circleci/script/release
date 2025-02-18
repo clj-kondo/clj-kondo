@@ -21,7 +21,7 @@ cd /tmp/release
 arch=${CLJ_KONDO_ARCH:-amd64}
 
 if [ "$CLJ_KONDO_STATIC" = "true" ] && [ "$CLJ_KONDO_ARCH" != "aarch64" ]; then
-    arch="$arch-static"
+    arch="static-$arch"
 fi
 
 archive="clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-$arch.zip"
