@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+INSTALL_DIR="${1:-$HOME}"
+
+GRAALVM_VERSION="${GRAALVM_VERSION:-23}"
+
+GRAALVM_PLATFORM=$CLJ_KONDO_PLATFORM
+
+case "${CLJ_KONDO_ARCH:-}" in
+    aarch64)
+        GRAALVM_ARCH="aarch64"
+        ;;
+    *)
+        GRAALVM_ARCH="x64"
+        ;;
+esac
+
+GRAALVM_DIR_NAME="graalvm-$GRAALVM_VERSION"
+GRAALVM_FILENAME="graalvm-jdk-${GRAALVM_VERSION}_${GRAALVM_PLATFORM}-${GRAALVM_ARCH}_bin.tar.gz"
+DOWNLOAD_URL="https://download.oracle.com/graalvm/23/archive/${GRAALVM_FILENAME}"
+
+pushd "$INSTALL_DIR" >/dev/null
+
+if ! [ -d "$GRAALVM_DIR_NAME" ]; then
+    echo "Downloading GraalVM $GRAALVM_PLATFORM-$GRAALVM_ARCH-$GRAALVM_VERSION on '$PWD'..."
+    echo "$DOWNLOAD_URL"
+    curl --fail -LO "$DOWNLOAD_URL"
+    ls -la
+    mkdir "$GRAALVM_DIR_NAME"
+    tar xzvf "$GRAALVM_FILENAME" -C "$GRAALVM_DIR_NAME" --strip-components 1
+    ls -la "$GRAALVM_DIR_NAME"
+fi
+
+popd >/dev/null
