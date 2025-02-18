@@ -66,6 +66,8 @@ build_script:
 
     where java
 
+    dir graalvm
+
     dir %GRAALVM_HOME%\bin
 
     where native-image
