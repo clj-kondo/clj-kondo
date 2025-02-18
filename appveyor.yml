@@ -68,6 +68,8 @@ build_script:
 
     where native-image
 
+    dir %GRAALVM_HOME%\bin
+
     call script/compile.bat
 
     echo Creating zip archive
