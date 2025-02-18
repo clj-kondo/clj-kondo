@@ -23,7 +23,7 @@ jobs:
         tools-deps: '1.10.1.727'
 
     - name: Cache
-      uses: actions/cache@v1
+      uses: actions/cache@v4.2.0
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
