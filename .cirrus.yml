@@ -4,7 +4,7 @@ macos_instance:
 task:
   env:
     LEIN_ROOT: "true"
-    GRAALVM_VERSION: "22.3.0"
+    GRAALVM_VERSION: "23"
     GRAALVM_HOME: ${HOME}/graalvm-${GRAALVM_VERSION}/Contents/Home
     CLJ_KONDO_PLATFORM: macos  # used in release script
     CLJ_KONDO_ARCH: aarch64
