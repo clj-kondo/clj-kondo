@@ -48,10 +48,6 @@ build_script:
 
     powershell -Command "if (Test-Path('graalvm')) { return } else { Expand-Archive graalvm.zip graalvm }"
 
-    where java
-
-    java -version
-
     REM set the PATH only after you ran vcvars64 since it wipes the existing PATH
 
     set JAVA_HOME=%GRAALVM_HOME%
@@ -65,12 +61,6 @@ build_script:
     where cl
 
     where java
-
-    dir graalvm
-
-    dir %GRAALVM_HOME%\bin
-
-    where native-image
 
     call script/compile.bat
 
