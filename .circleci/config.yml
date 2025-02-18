@@ -67,7 +67,8 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_HOME: /home/circleci/graalvm-ce-java11-22.3.0
+      GRAALVM_VERSION: '23'
+      GRAALVM_HOME: /home/circleci/graalvm-23
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_ARCH: amd64 # used in release script
       CLJ_KONDO_TEST_ENV: native
@@ -101,11 +102,7 @@ jobs:
       - run:
           name: Download GraalVM
           command: |
-            cd ~
-            if ! [ -d graalvm-ce-java11-22.3.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java11-linux-amd64-22.3.0.tar.gz
-              tar xzf graalvm-ce-java11-linux-amd64-22.3.0.tar.gz
-            fi
+            script/install-graalvm
       - run:
           name: Build binary
           command: |
@@ -143,7 +140,8 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_HOME: /home/circleci/graalvm-ce-java11-22.3.0
+      GRAALVM_VERSION: "23"
+      GRAALVM_HOME: /home/circleci/graalvm-23
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_ARCH: aarch64 # used in release script
       CLJ_KONDO_STATIC: "true"
@@ -172,11 +170,7 @@ jobs:
       - run:
           name: Download GraalVM
           command: |
-            cd ~
-            if ! [ -d graalvm-ce-java11-22.3.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java11-linux-aarch64-22.3.0.tar.gz
-              tar xzf graalvm-ce-java11-linux-aarch64-22.3.0.tar.gz
-            fi
+            script/install-graalvm
       - run:
           name: Build binary
           command: |
@@ -213,8 +207,9 @@ jobs:
     resource_class: large
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_HOME: /home/circleci/graalvm-ce-java11-22.3.0
-      CLJ_KONDO_PLATFORM: linux-static # used in release script
+      GRAALVM_VERSION: '23'
+      GRAALVM_HOME: /home/circleci/graalvm-23
+      CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_STATIC: true
       CLJ_KONDO_MUSL: true
@@ -252,11 +247,7 @@ jobs:
       - run:
           name: Download GraalVM
           command: |
-            cd ~
-            if ! [ -d graalvm-ce-java11-22.3.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java11-linux-amd64-22.3.0.tar.gz
-              tar xzf graalvm-ce-java11-linux-amd64-22.3.0.tar.gz
-            fi
+            script/install-graalvm
       - run:
           name: Build binary
           command: |
@@ -290,7 +281,8 @@ jobs:
     macos:
       xcode: "13.4.1"
     environment:
-      GRAALVM_HOME: /Users/distiller/graalvm-ce-java11-22.3.0/Contents/Home
+      GRAALVM_VERSION: "23"
+      GRAALVM_HOME: /Users/distiller/graalvm-23/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
@@ -331,12 +323,7 @@ jobs:
       - run:
           name: Download GraalVM
           command: |
-            cd ~
-            ls -la
-            if ! [ -d graalvm-ce-java11-22.3.0 ]; then
-              curl -O -sL https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java11-darwin-amd64-22.3.0.tar.gz
-              tar xzf graalvm-ce-java11-darwin-amd64-22.3.0.tar.gz
-            fi
+            script/install-graalvm
       - run:
           name: Build binary
           command: |
