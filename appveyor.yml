@@ -7,8 +7,8 @@ image: Visual Studio 2022
 clone_folder: C:\projects\clj-kondo
 
 environment:
-  GRAALVM_HOME: C:\projects\babashka\graalvm\graalvm-jdk-23+37.1
-  JAVA_HOME: C:\projects\babashka\graalvm\graalvm-jdk-23+37.1
+  GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-jdk-23+37.1
+  JAVA_HOME: C:\projects\clj-kondo\graalvm\graalvm-jdk-23+37.1
 
 cache:
   - C:\ProgramData\chocolatey\lib -> project.clj, appveyor.yml
