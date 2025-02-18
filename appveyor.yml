@@ -64,6 +64,10 @@ build_script:
 
     where cl
 
+    where java
+
+    where native-image
+
     call script/compile.bat
 
     echo Creating zip archive
