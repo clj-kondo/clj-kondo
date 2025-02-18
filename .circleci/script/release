@@ -18,6 +18,12 @@ cd /tmp/release
 
 ## release binary as zip archive
 
+arch=${CLJ_KONDO_ARCH:-amd64}
+
+if [ "$CLJ_KONDO_STATIC" = "true" ]; then
+    arch="$arch-static"
+fi
+
 archive="clj-kondo-$VERSION-$CLJ_KONDO_PLATFORM-${CLJ_KONDO_ARCH:-amd64}.zip"
 
 zip "$archive" clj-kondo

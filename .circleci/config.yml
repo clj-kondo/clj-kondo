@@ -209,7 +209,7 @@ jobs:
       LEIN_ROOT: "true"
       GRAALVM_VERSION: '23'
       GRAALVM_HOME: /home/circleci/graalvm-23
-      CLJ_KONDO_PLATFORM: linux-static # used in release script
+      CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_STATIC: true
       CLJ_KONDO_MUSL: true
