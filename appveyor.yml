@@ -66,9 +66,9 @@ build_script:
 
     where java
 
-    where native-image
-
     dir %GRAALVM_HOME%\bin
+
+    where native-image
 
     call script/compile.bat
 
