@@ -8,6 +8,7 @@ clone_folder: C:\projects\clj-kondo
 
 environment:
   GRAALVM_HOME: C:\projects\babashka\graalvm\graalvm-jdk-23+37.1
+  JAVA_HOME: C:\projects\babashka\graalvm\graalvm-jdk-23+37.1
 
 cache:
   - C:\ProgramData\chocolatey\lib -> project.clj, appveyor.yml
@@ -46,6 +47,22 @@ build_script:
     powershell -Command "if (Test-Path('graalvm')) { return } else { (New-Object Net.WebClient).DownloadFile('https://download.oracle.com/graalvm/23/archive/graalvm-jdk-23_windows-x64_bin.zip', 'graalvm.zip') }"
 
     powershell -Command "if (Test-Path('graalvm')) { return } else { Expand-Archive graalvm.zip graalvm }"
+
+    where java
+
+    java -version
+
+    REM set the PATH only after you ran vcvars64 since it wipes the existing PATH
+
+    set JAVA_HOME=%GRAALVM_HOME%
+
+    set PATH=%GRAALVM_HOME%\bin;%PATH%
+
+    echo %PATH%
+
+    echo %VSINSTALLDIR%
+
+    where cl
 
     call script/compile.bat
 
