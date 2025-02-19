@@ -18,6 +18,7 @@ there
   (is (hooks-api/token-node? (parse-string "foo")))
   (is (hooks-api/token-node? (parse-string "nil")))
   (is (hooks-api/token-node? (parse-string "1")))
+  (is (hooks-api/quote-node? (parse-string "'ABC")))
   (is (hooks-api/vector-node? (parse-string "[1]")))
   (is (hooks-api/list-node? (parse-string "(+ 1 2 3)")))
   (is (hooks-api/set-node? (parse-string "#{1 2 3}")))
@@ -30,6 +31,8 @@ there
        (hooks-api/string-node "hello")))
   (is (hooks-api/token-node?
        (hooks-api/token-node 'foo)))
+  (is (hooks-api/quote-node?
+       (hooks-api/quote-node 'ABC)))
   (is (hooks-api/vector-node?
        (hooks-api/vector-node [1 2 3])))
   (is (hooks-api/list-node?
