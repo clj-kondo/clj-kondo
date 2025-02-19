@@ -42,6 +42,8 @@
    'string-node? api/string-node?
    'token-node api/token-node
    'token-node? api/token-node?
+   'quote-node api/quote-node
+   'quote-node? api/quote-node?
    'vector-node api/vector-node
    'vector-node? api/vector-node?
    'map-node api/map-node

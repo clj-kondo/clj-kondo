@@ -44,6 +44,12 @@
 (def token-node
   (comp utils/mark-generate utils/token-node))
 
+(defn quote-node? [n]
+  (instance? clj_kondo.impl.rewrite_clj.node.quote.QuoteNode n))
+
+(def quote-node
+  (comp utils/mark-generate utils/quote-node))
+
 (defn vector-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :vector (utils/tag n))))

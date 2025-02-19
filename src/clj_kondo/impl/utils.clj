@@ -6,6 +6,7 @@
    [clj-kondo.impl.analyzer.common :as common]
    [clj-kondo.impl.rewrite-clj.node.keyword :as k]
    [clj-kondo.impl.rewrite-clj.node.protocols :as node]
+   [clj-kondo.impl.rewrite-clj.node.quote :as node-quote]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
@@ -26,6 +27,7 @@
 (def list-node seq/list-node)
 (def set-node seq/set-node)
 (def token-node token/token-node)
+(def quote-node node-quote/quote-node)
 (def keyword-node k/keyword-node)
 (def string-node node-string/string-node)
 (def sexpr node/sexpr)
