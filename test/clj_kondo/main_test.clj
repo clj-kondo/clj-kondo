@@ -3710,6 +3710,11 @@ foo/")))
                         :unresolved-namespace {:level :warning}
                         :unused-import {:level :warning}}})))
 
+(deftest issue-2490-test
+  (is (empty? (lint! "^{:clj-kondo/ignore [:unresolved-symbol]} x
+^{:clj-kondo/ignore [:unresolved-symbol]} y"
+                     {:linters {:unresolved-symbol {:level :warning}}}))))
+
 ;;;; Scratch
 
 (comment

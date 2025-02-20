@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472) hooks `api/resolve` returns nil for unresolved symbols and locals
 - [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472): add `api/env` to determine if symbol is local
 - [#2482](https://github.com/clj-kondo/clj-kondo/issues/2482): Upgrade to Oracle GraalVM 23
+- [#2490](https://github.com/clj-kondo/clj-kondo/issues/2490): restore unofficial support for ignore hints via metadata
 
 ## 2025.01.16
 
