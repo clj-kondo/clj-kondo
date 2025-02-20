@@ -17,20 +17,20 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2025.02.20
 
-- [#2465](https://github.com/clj-kondo/clj-kondo/issues/2465): fix `:discouraged-var` linter for fixed arities
-- [#2473](https://github.com/clj-kondo/clj-kondo/issues/2473): New linter: `:unknown-ns-options` will warn on malformed `(ns)` calls. The linter is `{:level :warning}` by default.
-- [#2277](https://github.com/clj-kondo/clj-kondo/issues/2277): prefer an array class symbol over `(Class/forName ...)` in `defprotocol` and `extend-type`
+- [#2473](https://github.com/clj-kondo/clj-kondo/issues/2473): New linter: `:unknown-ns-options` will warn on malformed `(ns)` calls. The linter is `{:level :warning}` by default. ([@Noahtheduke](https://github.com/Noahtheduke))
 - [#2475](https://github.com/clj-kondo/clj-kondo/issues/2475): add `:do-template` linter to check args & values counts ([@imrekoszo](https://github.com/imrekoszo))
-- [#2466](https://github.com/clj-kondo/clj-kondo/issues/2466): false positive with tagged literal in macroexpand hook
-- [#2463](https://github.com/clj-kondo/clj-kondo/issues/2463): using :min-clj-kondo-version results in incorrect warning ([@imrekoszo](https://github.com/imrekoszo))
+- [#2465](https://github.com/clj-kondo/clj-kondo/issues/2465): fix `:discouraged-var` linter for fixed arities
+- [#2277](https://github.com/clj-kondo/clj-kondo/issues/2277): prefer an array class symbol over `(Class/forName ...)` in `defprotocol` and `extend-type`
+- [#2466](https://github.com/clj-kondo/clj-kondo/issues/2466): fix false positive with tagged literal in macroexpand hook
+- [#2463](https://github.com/clj-kondo/clj-kondo/issues/2463): using `:min-clj-kondo-version` results in incorrect warning ([@imrekoszo](https://github.com/imrekoszo))
 - [#2464](https://github.com/clj-kondo/clj-kondo/issues/2464): `:min-clj-kondo-version` warning/error should have a location in `config.edn` ([@imrekoszo](https://github.com/imrekoszo))
-- [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472) hooks `api/resolve` returns nil for unresolved symbols and locals
+- [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472) hooks `api/resolve` should return `nil` for unresolved symbols and locals
 - [#2472](https://github.com/clj-kondo/clj-kondo/issues/2472): add `api/env` to determine if symbol is local
 - [#2482](https://github.com/clj-kondo/clj-kondo/issues/2482): Upgrade to Oracle GraalVM 23
-- [#2490](https://github.com/clj-kondo/clj-kondo/issues/2490): restore unofficial support for ignore hints via metadata
 - [#2483](https://github.com/clj-kondo/clj-kondo/issues/2483): add `api/quote-node` and `api/quote-node?` to hooks API ([@camsaul](https://github.com/camsaul))
+- [#2490](https://github.com/clj-kondo/clj-kondo/issues/2490): restore unofficial support for ignore hints via metadata
 
 ## 2025.01.16
 
