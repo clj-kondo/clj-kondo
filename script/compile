@@ -20,7 +20,10 @@ args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
        "-H:+ReportExceptionStackTraces"
        "--verbose"
        "--no-fallback"
-       "-J-Xmx3g" "$@")
+       "-J-Xmx3g"
+       "-march=compatibility"
+       "-O1"
+       "$@")
 
 if [ "$CLJ_KONDO_STATIC" = "true" ]; then
     if [ "$CLJ_KONDO_MUSL" = "true" ]; then
