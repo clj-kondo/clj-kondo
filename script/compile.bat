@@ -30,6 +30,8 @@ call %GRAALVM_HOME%\bin\native-image.cmd ^
   "-H:+ReportExceptionStackTraces" ^
   "--no-fallback" ^
   "--verbose" ^
-  "-J-Xmx3g"
+  "-J-Xmx3g" ^
+  "-march=compatibility" ^
+  "-O1"
 
 if %errorlevel% neq 0 exit /b %errorlevel%

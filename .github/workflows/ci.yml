@@ -51,19 +51,19 @@ jobs:
 
       - name: Setup GraalVM
         if: "matrix.static == false"
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@v1.3.1
         with:
-          version: '22.3.0'
-          java-version: '11'
+          java-version: '23'
+          distribution: 'graalvm'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup GraalVM+musl
         if: "matrix.static == true"
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@v1.3.1
         with:
-          version: '22.3.0'
-          java-version: '11'
+          java-version: '23'
+          distribution: 'graalvm'
           components: 'native-image'
           native-image-musl: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
