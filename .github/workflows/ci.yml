@@ -53,8 +53,8 @@ jobs:
         if: "matrix.static == false"
         uses: graalvm/setup-graalvm@v1.3.1
         with:
-          version: '22.3.0'
-          java-version: '11'
+          java-version: '23'
+          distribution: 'graalvm'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
