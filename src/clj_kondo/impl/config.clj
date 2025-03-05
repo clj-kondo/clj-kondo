@@ -176,6 +176,7 @@
               :redundant-ignore {:level :info}
               :schema-misplaced-return {:level :warning}
               :do-template {:level :warning}
+              :reader-error {:level :error}
               }
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->

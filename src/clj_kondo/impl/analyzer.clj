@@ -36,6 +36,7 @@
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions* *reader-features*]]
    [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils :refer [ex-info?]]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
@@ -3222,7 +3223,10 @@
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To
   optimize cache lookups later on, calls are indexed by the namespace
-  they call to, not the ns where the call occurred."
+  they call to, not the ns where the call occurred.
+
+  Additionally, any uncaught exceptions thrown by clojure.tools.reader
+  are reported as :reader-error."
   [{:keys [:base-lang :lang :config] :as ctx}
    expressions]
   (let [init-ns (when-not (= :edn lang)
@@ -3240,7 +3244,26 @@
     (loop [ctx init-ctx
            [expression & rest-expressions] expressions]
       (when expression
-        (let [ctx (analyze-expression* ctx expression)]
+        (let [ctx (try
+                    (analyze-expression* ctx expression)
+                    (catch Exception e
+                      (if-not (ex-info? e)
+                        (throw e)
+
+                        (let [d (ex-data e)]
+                          (if-not (= :reader-exception (:type d))
+                            (throw e)
+
+                            (let [{:keys [row col end-row end-col]} (meta expression)]
+                              (findings/reg-finding! ctx
+                                                     {:filename (:filename ctx)
+                                                      :row row
+                                                      :col col
+                                                      :end-row end-row
+                                                      :end-col end-col
+                                                      :type :reader-error
+                                                      :message (.getMessage e)})
+                              ctx))))))]
           (recur ctx rest-expressions))))))
 
 ;;;; processing of string input
