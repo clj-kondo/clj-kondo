@@ -53,6 +53,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Inline def](#inline-def)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
+    - [Reader error](#reader-error)
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
     - [Line length](#line-length)
@@ -991,6 +992,20 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 *Example trigger:* `(fn ([x] x) ([y]) x)`.
 
 *Example message:* `More than one function overload with arity 2.`.
+
+### Reader error
+
+*Keyword:* `:reader-error`.
+
+*Description:* warn on reader errors, such as unsupported escape sequences.
+
+*Default level:* `:error`.
+
+*Example trigger:* `"\a"`.
+
+*Example message:* `Unsupported escape character: \a.`.
+
+These are reader error exception messages thrown by the `clojure.tools.reader` reader during the analysis phase.
 
 ### Reduce without initial value
 
