@@ -1643,31 +1643,32 @@
                                    {})
         arglists? (:analyze-arglists? ctx)
         ctx (ctx-with-bindings ctx bindings)]
-    (namespace/reg-var! ctx ns-name record-name expr (cond-> metadata
-                                                       (identical? :clj lang) (assoc :class true)))
-    (namespace/reg-imports! ctx ns-name {(with-meta record-name
-                                           {:clj-kondo/mark-used true}) ns-name})
-    (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
-      (doseq [[_ fields] (group-by identity (:children binding-vector))]
-        (when (> (count fields) 1)
-          (doseq [field fields]
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) field
-                         :duplicate-field
-                         (format "Duplicate field name: %s" (:value field))))))))
-    (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
-                        (assoc-some metadata
-                                    :arglist-strs (when arglists?
-                                                    [(str binding-vector)])
-                                    :fixed-arities #{field-count}))
-    (when (= "defrecord" (name defined-by->lint-as))
-      (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
-                          expr (assoc-some metadata
-                                           :arglist-strs (when arglists?
-                                                           ["[m]"])
-                                           :fixed-arities #{1})))
-    (analyze-protocol-impls ctx defined-by defined-by->lint-as ns-name (nnext children))))
+    (when (and record-name bindings)
+      (namespace/reg-var! ctx ns-name record-name expr (cond-> metadata
+                                                         (identical? :clj lang) (assoc :class true)))
+      (namespace/reg-imports! ctx ns-name {(with-meta record-name
+                                             {:clj-kondo/mark-used true}) ns-name})
+      (when-not (identical? :off (-> ctx :config :linters :duplicate-field :level))
+        (doseq [[_ fields] (group-by identity (:children binding-vector))]
+          (when (> (count fields) 1)
+            (doseq [field fields]
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) field
+                           :duplicate-field
+                           (format "Duplicate field name: %s" (:value field))))))))
+      (namespace/reg-var! ctx ns-name (symbol (str "->" record-name)) expr
+                          (assoc-some metadata
+                                      :arglist-strs (when arglists?
+                                                      [(str binding-vector)])
+                                      :fixed-arities #{field-count}))
+      (when (= "defrecord" (name defined-by->lint-as))
+        (namespace/reg-var! ctx ns-name (symbol (str "map->" record-name))
+                            expr (assoc-some metadata
+                                             :arglist-strs (when arglists?
+                                                             ["[m]"])
+                                             :fixed-arities #{1})))
+      (analyze-protocol-impls ctx defined-by defined-by->lint-as ns-name (nnext children)))))
 
 (defn analyze-defmethod [ctx expr]
   (let [children (next (:children expr))
@@ -2268,9 +2269,9 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                         [[ns n]
-                          (config/lint-as config
-                                          [resolved-namespace resolved-name])]
+                            [[ns n]
+                             (config/lint-as config
+                                             [resolved-namespace resolved-name])]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2284,7 +2285,7 @@
                          (case [resolved-namespace resolved-name]
                            ([clojure.test testing] [cljs.test testing])
                            (when (:analysis-context ctx)
-                                ;; only use testing hook when analysis is requested
+                             ;; only use testing hook when analysis is requested
                              test/testing-hook)
                            nil))))
                     transformed (when hook-fn
@@ -2559,7 +2560,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
+                             [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
@@ -3096,7 +3097,7 @@
                                                      :col col
                                                      :expr expr})
                               _ (dorun ret) ;; realize all returned expressions
-                                            ;; to not be bitten by laziness
+                              ;; to not be bitten by laziness
                               maybe-call (some #(when (= id (:id %)) %) ret)]
                           (if (identical? :call (:type maybe-call))
                             (types/add-arg-type-from-call ctx maybe-call expr)
