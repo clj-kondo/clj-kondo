@@ -1850,7 +1850,11 @@ foo/foo ;; this does use the private var
    '({:file "corpus/deftype.cljs", :row 9, :col 10, :level :warning, :message "unused binding coll"}
      {:file "corpus/deftype.cljs", :row 17, :col 16, :level :warning, :message "unused binding coll"})
    (lint! (io/file "corpus" "deftype.cljs")
-          "--config" "{:linters {:unused-binding {:level :warning}}}")))
+          "--config" "{:linters {:unused-binding {:level :warning}}}"))
+
+  (assert-submaps
+   [{:file "<stdin>", :row 1, :col 1, :level :error, :message "clojure.core/deftype is called with 0 args but expects 2 or more"}]
+   (lint! "(deftype)")))
 
 (deftest defmulti-test
   (assert-submaps

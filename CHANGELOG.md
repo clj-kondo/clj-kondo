@@ -20,6 +20,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2493](https://github.com/clj-kondo/clj-kondo/issues/2493): reduce image size of native image
+- [#2496](https://github.com/clj-kondo/clj-kondo/issues/2496): Malformed `deftype` form results in `NPE`
+
 
 ## 2025.02.20
 
