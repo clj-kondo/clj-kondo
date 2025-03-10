@@ -1056,7 +1056,7 @@
   (let [ns (:ns ctx)
         [alias-expr ns-expr :as children] (rest (:children expr))
         alias-sym
-        (let [t (tag alias-expr)]
+        (when-let [t (and alias-expr (tag alias-expr))]
           (or (when (identical? :quote t)
                 (:value (first (:children alias-expr))))
               (when (identical? :list t)
@@ -1065,7 +1065,7 @@
                                           utils/symbol-from-token))
                     (utils/symbol-from-token (second children)))))))
         ns-sym
-        (let [t (tag ns-expr)]
+        (when-let [t (and ns-expr (tag ns-expr))]
           (or (when (identical? :quote t)
                 (:value (first (:children ns-expr))))
               (when (identical? :list t)
