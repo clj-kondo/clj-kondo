@@ -46,6 +46,8 @@
     (.setLength buf 0)
     (conj lines s)))
 
+(def valid-escape-chars #{\t \b \n \r \f \' \" \\})
+
 (defn read-string-data
   [reader]
   (ignore reader)
@@ -53,14 +55,18 @@
     (loop [escape? false
            lines []]
       (if-let [c (r/read-char reader)]
-        (cond (and (not escape?) (= c \"))
-              (flush-into lines buf)
+        (do
+          (when escape?
+            (when-not (contains? valid-escape-chars c)
+              (throw-reader reader "Unsupported escape character: %s" (pr-str c))))
+          (cond (and (not escape?) (= \" c))
+                (flush-into lines buf)
 
-              (= c \newline)
-              (recur escape? (flush-into lines buf))
+                (= \newline c)
+                (recur escape? (flush-into lines buf))
 
-              :else
-              (do
-                (.append buf c)
-                (recur (and (not escape?) (= c \\)) lines)))
+                :else
+                (do
+                  (.append buf c)
+                  (recur (and (not escape?) (= \\ c)) lines))))
         (throw-reader reader "Unexpected EOF while reading string.")))))
