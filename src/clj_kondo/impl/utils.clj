@@ -10,8 +10,8 @@
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
-   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clj-kondo.impl.rewrite-clj.parser :as p]
+   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
    [clojure.string :as str]))
