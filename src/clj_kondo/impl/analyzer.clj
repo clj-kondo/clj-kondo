@@ -3396,10 +3396,6 @@
             (throw e)
             (run! #(findings/reg-finding! ctx %) (->findings e filename))))
         (finally
-          (doseq [e @reader-exceptions]
-            (if dev?
-              (throw e)
-              (run! #(findings/reg-finding! ctx %) (->findings e filename))))
           (swap! files inc)
           (let [output-cfg (:output config)]
             (when (and (= :text (:format output-cfg))
@@ -3410,7 +3406,11 @@
             (file-analyzed-fn {:filename filename
                                :uri uri
                                :total-files total-files
-                               :files-done @files})))))))
+                               :files-done @files}))
+          (doseq [e @reader-exceptions]
+            (if dev?
+              (throw e)
+              (run! #(findings/reg-finding! ctx %) (->findings e filename)))))))))
 
 ;;;; Scratch
 
