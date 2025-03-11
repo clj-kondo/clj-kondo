@@ -11,6 +11,7 @@
    [clj-kondo.impl.rewrite-clj.node.string :as node-string]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.parser :as p]
+   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
    [clojure.string :as str]))
@@ -30,7 +31,20 @@
 (def quote-node node-quote/quote-node)
 (def keyword-node k/keyword-node)
 (def string-node node-string/string-node)
-(def sexpr node/sexpr)
+
+(defn sexpr [node]
+  (try
+    (node/sexpr node)
+    (catch clojure.lang.ExceptionInfo e
+      (if *reader-exceptions*
+        (let [{:keys [type ex-kind]} (ex-data e)]
+          (if (and (= :reader-exception type)
+                   (= :reader-error ex-kind))
+            (let [m (meta node)
+                  f (assoc m :message (.getMessage e))]
+              (swap! *reader-exceptions* conj (ex-info "Syntax error" {:findings [f]})))
+            (throw e)))
+        (throw e)))))
 
 (defn list-node? [n]
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)

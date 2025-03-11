@@ -3308,11 +3308,12 @@
   [{:keys [:config :file-analyzed-fn :total-files :files] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
-  (let [ctx (assoc ctx :filename filename)]
-    (binding [utils/*ctx* ctx]
+  (let [ctx (assoc ctx :filename filename)
+        reader-exceptions (atom [])]
+    (binding [utils/*ctx* ctx
+              *reader-exceptions* reader-exceptions]
       (try
-        (let [reader-exceptions (atom [])
-              [only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
+        (let [[only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
               (when (identical? :clj lang)
                 (let [cfg (-> config :linters :warn-on-reflection)]
                   (when-not (identical? :off (:level cfg))
@@ -3340,8 +3341,7 @@
               features (when (identical? :cljc lang)
                          (or (:features cljc-config)
                              [:clj :cljs]))
-              parsed (binding [*reader-exceptions* reader-exceptions
-                               *reader-features* features]
+              parsed (binding [*reader-features* features]
                        (p/parse-string input))
               fname (fs/file-name filename)
               ctx (case fname
@@ -3352,10 +3352,6 @@
                      [:unresolved-symbol :unresolved-namespace :private-call])
                     ctx)
               line-length-findings (lint-line-length ctx config filename input)]
-          (doseq [e @reader-exceptions]
-            (if dev?
-              (throw e)
-              (run! #(findings/reg-finding! ctx %) (->findings e filename))))
           (case lang
             :cljc
             (doseq [lang features]
@@ -3400,6 +3396,10 @@
             (throw e)
             (run! #(findings/reg-finding! ctx %) (->findings e filename))))
         (finally
+          (doseq [e @reader-exceptions]
+            (if dev?
+              (throw e)
+              (run! #(findings/reg-finding! ctx %) (->findings e filename))))
           (swap! files inc)
           (let [output-cfg (:output config)]
             (when (and (= :text (:format output-cfg))
