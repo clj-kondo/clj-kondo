@@ -43,7 +43,7 @@
         token-col (rt/get-column-number reader)]
     (try
       (let [first-char (r/next reader)
-            s (->> (if (= first-char \\)
+            s (->> (if (= \\ first-char)
                      (read-to-char-boundary reader)
                      (read-to-boundary reader))
                    (str first-char))
@@ -56,6 +56,8 @@
                  (= :reader-exception (:type (ex-data e))))
           (let [f {:row token-row
                    :col token-col
+                   :end-row (rt/get-line-number reader)
+                   :end-col (rt/get-column-number reader)
                    :message (.getMessage e)}]
             (swap! r/*reader-exceptions* conj (ex-info "Syntax error" {:findings [f]}))
             reader)
