@@ -158,6 +158,8 @@
                :filename "test.clj"
                :row 1
                :col 1
+               :end-row 1
+               :end-col 5
                :message "Invalid number: 1..1."}]
              @(:findings (analyze "1..1")))))
     (testing "empty (require)"
