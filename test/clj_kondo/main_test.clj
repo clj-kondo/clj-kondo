@@ -3333,7 +3333,12 @@ foo/
      {:file "<stdin>", :row 3, :col 1, :level :error, :message "Invalid symbol: foo/."})
    (lint! "
 (inc)
-foo/")))
+foo/"))
+  (testing "end-col"
+    (assert-submaps
+     '{:type :syntax, :filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6, :message "Invalid symbol: dude/.", :level :error}
+     (-> (with-in-str "dude/" (clj-kondo/run! {:lint ["-"]}))
+         :findings first))))
 
 (deftest continue-on-invalid-keyword-test
   (assert-submaps
