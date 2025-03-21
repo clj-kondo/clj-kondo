@@ -285,6 +285,31 @@
        :redundant-nested-call
        (format "Redundant nested call: %s" call-name)))))
 
+(defn ^:private ->caller-args [arities arg-types*]
+  (when (and arities arg-types*)
+    (let [arg-types @arg-types*
+          varargs? (:varargs arities)
+          vararg-start (:min-arity (:varargs arities))
+          arg-vec (if varargs?
+                    (get-in arities [:varargs :arg-vec])
+                    (get-in arities [(count arg-types) :arg-vec]))]
+      (vec
+        (map-indexed (fn [idx arg-type]
+                       (let [name (if (and varargs? (>= idx vararg-start))
+                                    (nth arg-vec (inc vararg-start) nil)
+                                    (nth arg-vec idx nil))]
+                         (utils/assoc-some
+                           {:row (:row arg-type)
+                            :col (:col arg-type)}
+                           :name (some-> (cond
+                                           (map? name)
+                                           (:as name)
+
+                                           (symbol? name)
+                                           name)
+                                         str))))
+                     arg-types)))))
+
 #_(require 'clojure.pprint)
 
 (defn lint-var-usage
@@ -426,6 +451,7 @@
                                                         :name-end-col name-end-col
                                                         :end-row end-row
                                                         :end-col end-col
+                                                        :args (->caller-args (:arities called-fn) (:arg-types call))
                                                         :derived-location (:derived-location call)
                                                         :derived-name-location (:derived-location name-meta)))))))
                   call-config (:config call)
