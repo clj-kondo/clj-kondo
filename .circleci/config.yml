@@ -67,8 +67,8 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_VERSION: '23'
-      GRAALVM_HOME: /home/circleci/graalvm-23
+      GRAALVM_VERSION: '24'
+      GRAALVM_HOME: /home/circleci/graalvm-24
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_ARCH: amd64 # used in release script
       CLJ_KONDO_TEST_ENV: native
@@ -127,7 +127,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-java11-22.3.0
           key: linux-amd64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -140,8 +139,8 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_VERSION: "23"
-      GRAALVM_HOME: /home/circleci/graalvm-23
+      GRAALVM_VERSION: "24"
+      GRAALVM_HOME: /home/circleci/graalvm-24
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_ARCH: aarch64 # used in release script
       CLJ_KONDO_STATIC: "true"
@@ -195,7 +194,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-java11-22.3.0
           key: linux-aarch64-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -207,8 +205,8 @@ jobs:
     resource_class: large
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_VERSION: '23'
-      GRAALVM_HOME: /home/circleci/graalvm-23
+      GRAALVM_VERSION: '24'
+      GRAALVM_HOME: /home/circleci/graalvm-24
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_STATIC: true
@@ -272,7 +270,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-java11-22.3.0
           key: linux-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release
@@ -281,8 +278,8 @@ jobs:
     macos:
       xcode: "13.4.1"
     environment:
-      GRAALVM_VERSION: "23"
-      GRAALVM_HOME: /Users/distiller/graalvm-23/Contents/Home
+      GRAALVM_VERSION: "24"
+      GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
     steps:
@@ -344,7 +341,6 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
-            - ~/graalvm-ce-java11-22.3.0
           key: mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
       - store_artifacts:
           path: /tmp/release

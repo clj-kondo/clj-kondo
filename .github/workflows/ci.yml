@@ -53,7 +53,7 @@ jobs:
         if: "matrix.static == false"
         uses: graalvm/setup-graalvm@v1.3.1
         with:
-          java-version: '23'
+          java-version: '24'
           distribution: 'graalvm'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
         if: "matrix.static == true"
         uses: graalvm/setup-graalvm@v1.3.1
         with:
-          java-version: '23'
+          java-version: '24'
           distribution: 'graalvm'
           components: 'native-image'
           native-image-musl: true

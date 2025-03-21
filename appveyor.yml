@@ -7,8 +7,8 @@ image: Visual Studio 2022
 clone_folder: C:\projects\clj-kondo
 
 environment:
-  GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-jdk-23+37.1
-  JAVA_HOME: C:\projects\clj-kondo\graalvm\graalvm-jdk-23+37.1
+  GRAALVM_HOME: C:\projects\clj-kondo\graalvm\graalvm-jdk-24+36.1
+  JAVA_HOME: C:\projects\clj-kondo\graalvm\graalvm-jdk-24+36.1
 
 cache:
   - C:\ProgramData\chocolatey\lib -> project.clj, appveyor.yml
@@ -44,7 +44,7 @@ build_script:
 - cmd: >-
     call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 
-    powershell -Command "if (Test-Path('graalvm')) { return } else { (New-Object Net.WebClient).DownloadFile('https://download.oracle.com/graalvm/23/archive/graalvm-jdk-23_windows-x64_bin.zip', 'graalvm.zip') }"
+    powershell -Command "if (Test-Path('graalvm')) { return } else { (New-Object Net.WebClient).DownloadFile('https://download.oracle.com/graalvm/24/archive/graalvm-jdk-24_windows-x64_bin.zip', 'graalvm.zip') }"
 
     powershell -Command "if (Test-Path('graalvm')) { return } else { Expand-Archive graalvm.zip graalvm }"
 
