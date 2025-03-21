@@ -32,6 +32,7 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.parser :as p]
+   [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions* *reader-features*]]
@@ -557,7 +558,8 @@
             (let [arg-tags (when (some identity args)
                              args)
                   v (assoc-some {}
-                                :ret ret :min-arity min-arity
+                                :arg-vec (node/sexpr arg-vec)
+                                :ret (or ret :unknown) :min-arity min-arity
                                 :args arg-tags
                                 :arglist-str arglist-str)]
               (if varargs?

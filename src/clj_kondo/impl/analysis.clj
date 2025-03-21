@@ -41,7 +41,8 @@
                                :end-row
                                :end-col
                                :derived-location
-                               :derived-name-location]))
+                               :derived-name-location
+                               :args]))
                 :arity arity
                 :lang lang
                 :from-var in-def

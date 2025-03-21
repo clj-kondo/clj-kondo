@@ -757,6 +757,54 @@
                           :to :clj-kondo/unknown-namespace})
                   var-usages)))))
 
+(deftest usage-arg-types-test
+  (testing "multiple arity"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo ([bar baz] 2) ([bar] 1))\n"
+                        "(foo 1 2)") {:config {:analysis {:locals true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 2 :col 6}
+                            {:name "baz" :row 2 :col 8}]}]
+        var-usages)))
+  (testing "no arg name"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [{:keys [a]} baz] a)\n"
+                        "(foo {:a 1} 2)") {:config {:analysis {:locals true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:row 2 :col 6}
+                            {:name "baz" :row 2 :col 13}]}]
+        var-usages)))
+  (testing "arg from :as"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [{:keys [a] :as bar} baz] bar)\n"
+                        "(foo {:a 1} 2)") {:config {:analysis {:locals true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 2 :col 6}
+                            {:name "baz" :row 2 :col 13}]}]
+        var-usages)))
+  (testing "varargs only"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [& baz] baz)\n"
+                        "(foo {:a 1} 2 :foo)") {:config {:analysis {:locals true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "baz" :row 2 :col 6}
+                            {:name "baz" :row 2 :col 13}
+                            {:name "baz" :row 2 :col 15}]}]
+        var-usages)))
+  (testing "args and varargs"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [bar & baz] bar)\n"
+                        "(foo {:a 1} 2)") {:config {:analysis {:locals true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 2 :col 6}
+                            {:name "baz" :row 2 :col 13}]}]
+        var-usages))))
+
 (deftest analysis-test
   (let [{:keys [:var-definitions
                 :var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]
