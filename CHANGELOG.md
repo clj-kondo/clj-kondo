@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2499](https://github.com/clj-kondo/clj-kondo/issues/2499): Fix `(alias)` bug ([@Noahtheduke](https://github.com/Noahtheduke))
 - [#2492](https://github.com/clj-kondo/clj-kondo/issues/2492): Report unsupported escape characters in strings
 - [#2502](https://github.com/clj-kondo/clj-kondo/issues/2502): add end locations to invalid symbol
+- document var-usages location info edge cases ([@sheluchin](https://github.com/sheluchin))
 - Upgrade to GraalVM 24
 
 ## 2025.02.20

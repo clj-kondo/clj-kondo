@@ -126,6 +126,11 @@ The analysis output consists of a map with:
   - `:from`: the namespace from which the var was used
   - `:to`: the namespace of the used var
   - `:from-var`: the function name from which the var was used
+ 
+  - Location Information (`row`, `col`, `end-row`, `end-col`, `name-row`, `name-col`, `name-end-row`, `name-end-col`):
+    - there are two special cases:
+      - indirect usages: e.g. expansions/generated expressions - none of the location info is available
+      - non-invocation usages: e.g. var used as an argument - location info is available, except the `name-*` fields
 
   Optional:
   - `:arity`: if the usage was a function call, the amount of arguments passed
