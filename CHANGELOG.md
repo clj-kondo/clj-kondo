@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2492](https://github.com/clj-kondo/clj-kondo/issues/2492): Report unsupported escape characters in strings
 - [#2502](https://github.com/clj-kondo/clj-kondo/issues/2502): add end locations to invalid symbol
 - Upgrade to GraalVM 24
+- Bump datalog parser
 
 ## 2025.02.20
 
