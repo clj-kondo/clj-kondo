@@ -758,52 +758,101 @@
                   var-usages)))))
 
 (deftest usage-arg-types-test
-  (testing "multiple arity"
+  (testing "config is not enabled"
     (let [{:keys [var-usages]}
-          (analyze (str "(defn foo ([bar baz] 2) ([bar] 1))\n"
-                        "(foo 1 2)") {:config {:analysis {:locals true}}})]
+          (analyze (str "(defn foo [bar baz] 2)\n"
+                        "(foo 1 2)") {:config {:analysis true}})]
       (assert-submaps
         '[{:name defn}
-          {:name foo :args [{:name "bar" :row 2 :col 6}
-                            {:name "baz" :row 2 :col 8}]}]
+          {:name foo}]
+        var-usages)
+      (is (nil? (:args (second var-usages))))))
+  (testing "multiple arity"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo ([bar] 1) ([bar baz] 2) ([bar baz qux] 3))\n"
+                        "(foo 1 2)") {:config {:analysis {:var-usages-args true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 2 :col 6 :end-row 2 :end-col 7}
+                            {:name "baz" :row 2 :col 8 :end-row 2 :end-col 9}]}]
+        var-usages)))
+  (testing "wrong arity call"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [bar baz] 2)\n"
+                        "(foo 1)") {:config {:analysis {:var-usages-args true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 2 :col 6 :end-row 2 :end-col 7}]}]
+        var-usages)))
+  (testing "nested call"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [bar baz] 1)\n"
+                        "(defn bar [a b] (foo a b))") {:config {:analysis {:var-usages-args true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 2 :col 22 :end-row 2 :end-col 23}
+                            {:name "bar" :row 2 :col 24 :end-row 2 :end-col 25}]}
+          {:name defn}]
         var-usages)))
   (testing "no arg name"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [{:keys [a]} baz] a)\n"
-                        "(foo {:a 1} 2)") {:config {:analysis {:locals true}}})]
+                        "(foo {:a 1} 2)") {:config {:analysis {:var-usages-args true}}})]
       (assert-submaps
         '[{:name defn}
-          {:name foo :args [{:row 2 :col 6}
-                            {:name "baz" :row 2 :col 13}]}]
+          {:name foo :args [{:row 2 :col 6  :end-row 2 :end-col 12}
+                            {:name "baz" :row 2 :col 13  :end-row 2 :end-col 14}]}]
         var-usages)))
   (testing "arg from :as"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [{:keys [a] :as bar} baz] bar)\n"
-                        "(foo {:a 1} 2)") {:config {:analysis {:locals true}}})]
+                        "(foo {:a 1} 2)") {:config {:analysis {:var-usages-args true}}})]
       (assert-submaps
         '[{:name defn}
-          {:name foo :args [{:name "bar" :row 2 :col 6}
-                            {:name "baz" :row 2 :col 13}]}]
+          {:name foo :args [{:name "bar" :row 2 :col 6 :end-row 2 :end-col 12}
+                            {:name "baz" :row 2 :col 13 :end-row 2 :end-col 14}]}]
         var-usages)))
   (testing "varargs only"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [& baz] baz)\n"
-                        "(foo {:a 1} 2 :foo)") {:config {:analysis {:locals true}}})]
+                        "(foo {:a 1} 2 :foo)") {:config {:analysis {:var-usages-args true}}})]
       (assert-submaps
         '[{:name defn}
-          {:name foo :args [{:name "baz" :row 2 :col 6}
-                            {:name "baz" :row 2 :col 13}
-                            {:name "baz" :row 2 :col 15}]}]
+          {:name foo :args [{:name "baz" :row 2 :col 6 :end-row 2 :end-col 12}
+                            {:name "baz" :row 2 :col 13 :end-row 2 :end-col 14}
+                            {:name "baz" :row 2 :col 15 :end-row 2 :end-col 19}]}]
         var-usages)))
   (testing "args and varargs"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [bar & baz] bar)\n"
-                        "(foo {:a 1} 2)") {:config {:analysis {:locals true}}})]
+                        "(foo {:a 1} 2)") {:config {:analysis {:var-usages-args true}}})]
       (assert-submaps
         '[{:name defn}
-          {:name foo :args [{:name "bar" :row 2 :col 6}
-                            {:name "baz" :row 2 :col 13}]}]
-        var-usages))))
+          {:name foo :args [{:name "bar" :row 2 :col 6 :end-row 2 :end-col 12}
+                            {:name "baz" :row 2 :col 13 :end-row 2 :end-col 14}]}]
+        var-usages)))
+  (testing "Definition in other ns"
+    (let [{:keys [var-usages]}
+          (analyze (str "(ns some.cool-ns)\n"
+                        "(defn foo [bar & baz] bar)\n"
+                        "(ns another.cool-ns (:require [some.cool-ns :as some]))\n"
+                        "(some/foo {:a 1} 2)") {:config {:analysis {:var-usages-args true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:name "bar" :row 4 :col 11 :end-row 4 :end-col 17}
+                            {:name "baz" :row 4 :col 18 :end-row 4 :end-col 19}]}]
+        var-usages)))
+  (testing "Excluding specific ns"
+    (let [{:keys [var-usages]}
+          (analyze (str "(ns some.cool-ns)\n"
+                        "(defn foo [bar & baz] bar)\n"
+                        "(ns another.cool-ns (:require [some.cool-ns :as some]))\n"
+                        "(some/foo {:a 1} 2)") {:config {:analysis {:var-usages-args {:exclude-when-definition-ns #{'some.cool-ns}}}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo}]
+        var-usages)
+      (is (nil? (:args (second var-usages)))))))
 
 (deftest analysis-test
   (let [{:keys [:var-definitions

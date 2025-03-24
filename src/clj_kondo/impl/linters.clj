@@ -285,14 +285,21 @@
        :redundant-nested-call
        (format "Redundant nested call: %s" call-name)))))
 
-(defn ^:private ->caller-args [arities arg-types*]
-  (when (and arities arg-types*)
-    (let [arg-types @arg-types*
+(defn ^:private ->caller-args
+  [{:keys [arities ns]}
+   {:keys [arg-types]}
+   {:keys [analyze-var-usages-args]}]
+  (when (and analyze-var-usages-args
+             arities
+             arg-types
+             (not (contains? (set (:exclude-when-definition-ns analyze-var-usages-args)) ns)))
+    (let [arg-types @arg-types
           varargs? (:varargs arities)
           vararg-start (:min-arity (:varargs arities))
           arg-vec (if varargs?
                     (get-in arities [:varargs :arg-vec])
-                    (get-in arities [(count arg-types) :arg-vec]))]
+                    (or (get-in arities [(count arg-types) :arg-vec])
+                        (:arg-vec (second (last arities)))))]
       (vec
         (map-indexed (fn [idx arg-type]
                        (let [name (if (and varargs? (>= idx vararg-start))
@@ -300,7 +307,9 @@
                                     (nth arg-vec idx nil))]
                          (utils/assoc-some
                            {:row (:row arg-type)
-                            :col (:col arg-type)}
+                            :col (:col arg-type)
+                            :end-row (:end-row arg-type)
+                            :end-col (:end-col arg-type)}
                            :name (some-> (cond
                                            (map? name)
                                            (:as name)
@@ -451,7 +460,7 @@
                                                         :name-end-col name-end-col
                                                         :end-row end-row
                                                         :end-col end-col
-                                                        :args (->caller-args (:arities called-fn) (:arg-types call))
+                                                        :args (->caller-args called-fn call ctx)
                                                         :derived-location (:derived-location call)
                                                         :derived-name-location (:derived-location name-meta)))))))
                   call-config (:config call)

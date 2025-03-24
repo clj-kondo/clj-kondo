@@ -156,6 +156,7 @@
             analyze-meta? (or analysis-var-meta analysis-ns-meta)
             analyze-symbols? (some-> analysis-cfg :symbols)
             analyze-callstack-in-defs? (some-> analysis-cfg :var-definitions :callstack)
+            analyze-var-usages-args (get analysis-cfg :var-usages-args)
             analysis (when analysis-cfg
                        (atom (cond-> {:namespace-definitions []
                                       :namespace-usages []
@@ -211,6 +212,7 @@
                  :analysis-context analysis-context
                  :analyze-symbols? analyze-symbols?
                  :analyze-callstack-in-defs? analyze-callstack-in-defs?
+                 :analyze-var-usages-args analyze-var-usages-args
                  :java-class-usages java-class-usages
                  ;; set of files which should not be flushed into cache
                  ;; most notably hook configs, as they can conflict with original sources
