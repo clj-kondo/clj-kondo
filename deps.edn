@@ -1,6 +1,6 @@
 {:paths ["src" "parser" "resources" "inlined"]
  :deps {com.cognitect/transit-clj {:mvn/version "1.0.333"}
-        io.replikativ/datalog-parser {:mvn/version "0.2.29"}
+        io.replikativ/datalog-parser {:mvn/version "0.2.30"}
         cheshire/cheshire {:mvn/version "5.13.0"}
         nrepl/bencode {:mvn/version "1.2.0"}
         org.babashka/sci {:mvn/version "0.9.44"}
