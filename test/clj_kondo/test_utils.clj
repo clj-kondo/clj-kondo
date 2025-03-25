@@ -264,6 +264,11 @@
 (defn template [expr replacement-map]
   (walk/postwalk-replace replacement-map expr))
 
+(defn normalize-newlines [s]
+  (if (and s windows?)
+    (str/replace s "\r\n" "\n")
+    s))
+
 ;;;; Scratch
 
 (comment
