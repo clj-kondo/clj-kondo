@@ -171,7 +171,9 @@
               :parameters []
               :row 40 :end-row 45 :col 5 :end-col 5}]
          tu/windows? (mapv (fn [m]
-                                (update m :doc #(str/replace % "\n" "\r\n")))))
+                             (if (:doc m)
+                               (update m :doc #(str/replace % "\n" "\r\n"))
+                               m))))
        java-member-definitions))))
 
 (deftest class-usages-test
