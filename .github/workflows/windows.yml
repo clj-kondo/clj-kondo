@@ -46,7 +46,7 @@ jobs:
           bb: latest
           lein: latest
 
-      - name: Build uberjar
+      - name: Build
         shell: cmd
         run: |
           set CLJ_KONDO_TEST_ENV=jvm
