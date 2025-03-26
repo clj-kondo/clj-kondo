@@ -123,52 +123,57 @@
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
        java-class-definitions)
       (assert-submaps2
-       '[{:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:public :field}
-          :name "bar1"
-          :type "Double"
-          :row 15 :col 5 :end-row 15 :end-col 23}
-         {:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:public :field :final}
-          :name "bar2"
-          :type "Double"
-          :row 16 :col 5 :end-row 16 :end-col 35}
-         {:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:public :static :field :final}
-          :name "bar3"
-          :type "Double"
-          :row 17 :col 5 :end-row 17 :end-col 42}
-         {:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public}
-          :name "AwesomeClass"
-          :parameters ["double a"]
-          :row 19 :col 5 :end-row 21 :end-col 5}
-         {:return-type "int"
-          :name "coolSum1"
-          :class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public}
-          :parameters ["double a" "double b"]
-          :row 23 :col 5 :end-row 29 :end-col 5}
-         {:return-type "File[]"
-          :name "coolParse"
-          :class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public :static}
-          :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
-          :parameters ["List<String> filenames"]
-          :row 36 :end-row 38 :col 5 :end-col 5}
-         {:return-type "Foo"
-          :name "foo"
-          :class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public}
-          :parameters []
-          :row 40 :end-row 45 :col 5 :end-col 5}]
+       (cond->>
+           '[{:class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:public :field}
+              :name "bar1"
+              :type "Double"
+              :row 15 :col 5 :end-row 15 :end-col 23}
+             {:class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:public :field :final}
+              :name "bar2"
+              :type "Double"
+              :row 16 :col 5 :end-row 16 :end-col 35}
+             {:class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:public :static :field :final}
+              :name "bar3"
+              :type "Double"
+              :row 17 :col 5 :end-row 17 :end-col 42}
+             {:class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:method :public}
+              :name "AwesomeClass"
+              :parameters ["double a"]
+              :row 19 :col 5 :end-row 21 :end-col 5}
+             {:return-type "int"
+              :name "coolSum1"
+              :class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:method :public}
+              :parameters ["double a" "double b"]
+              :row 23 :col 5 :end-row 29 :end-col 5}
+             {:return-type "File[]"
+              :name "coolParse"
+              :class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:method :public :static}
+              :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
+              :parameters ["List<String> filenames"]
+              :row 36 :end-row 38 :col 5 :end-col 5}
+             {:return-type "Foo"
+              :name "foo"
+              :class "foo.bar.AwesomeClass"
+              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+              :flags #{:method :public}
+              :parameters []
+              :row 40 :end-row 45 :col 5 :end-col 5}]
+         tu/windows? (mapv (fn [m]
+                             (if (:doc m)
+                               (update m :doc #(str/replace % "\n" "\r\n"))
+                               m))))
        java-member-definitions))))
 
 (deftest class-usages-test

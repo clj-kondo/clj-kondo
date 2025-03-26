@@ -1,0 +1,74 @@
+name: windows build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+
+    # if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: windows-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      GRAALVM_VERSION: "24"
+      CLJ_KONDO_TEST_ENV: native
+      CLJ_KONDO_PLATFORM: windows
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          submodules: 'true'
+
+      - name: Cache deps
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('project.clj') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1.3.3
+        with:
+          java-version: '24'
+          distribution: 'graalvm'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@13.2
+        with:
+          cli: latest
+          bb: latest
+          lein: latest
+
+      - name: Test JVM
+        shell: cmd
+        run: |
+          set CLJ_KONDO_TEST_ENV=jvm
+          call script/test.bat
+
+      - name: Build binary
+        shell: cmd
+        run: |
+          call script/compile.bat
+
+      - name: Test binary
+        shell: cmd
+        run: |
+          call lein clean
+          set CLJ_KONDO_TEST_ENV=native
+          call script/test.bat
+
+      - name: Upload binary
+        shell: cmd
+        run: |
+          echo Creating zip archive
+          set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
+          set zip=clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip
+          jar -cMf %zip% clj-kondo.exe
+          call bb release-artifact %zip%

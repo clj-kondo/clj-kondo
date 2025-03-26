@@ -543,7 +543,11 @@
 
 (defn copied-config-paths [ctx use-import-dir?]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
-    (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
+    (let [rel-cfg-dir (str (if (and (.isAbsolute cfg-dir)
+                                    (or (not utils/windows?)
+                                        ;; check if cfg-dir and current dir are on the same drive
+                                        (= (first (str (.getAbsoluteFile (io/file "."))))
+                                           (first (str cfg-dir)))))
                              (.relativize (.normalize (.toPath (.getAbsoluteFile (io/file "."))))
                                           (.normalize (.toPath cfg-dir)))
                              cfg-dir))
