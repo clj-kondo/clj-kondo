@@ -28,6 +28,8 @@ Further analysis can be returned by providing `:analysis` with a map of options:
 - `:java-class-usages`: when truthy, return `:java-class-usages` as described below.
 - `:java-member-definitions`: when truthy, return `:java-member-definitions` as described below.
 - `:instance-invocations`: when truthy, return `:instance-invocations` as described below.
+- `:var-usages-args`: when truthy return `:args` in `:var-usages` as described below
+  - `:exclude-when-definition-ns`: a set of symbols, namespaces to exclude from the args. e.g `#{'clojure.core}`
 
 ### Metadata
 
@@ -126,6 +128,12 @@ The analysis output consists of a map with:
   - `:from`: the namespace from which the var was used
   - `:to`: the namespace of the used var
   - `:from-var`: the function name from which the var was used
+  - `:args`: a list of the passed arguments of a function call if any, only provided with `{:var-usages-args ...}`:
+    - `:name`: the name of the arg in its respective definition.
+    - `:row`: the start row of the arg.
+    - `:col`: the start col of the arg.
+    - `:end-row`: the end row of the arg.
+    - `:end-col`: the end col of the arg.
  
   - Location Information (`row`, `col`, `end-row`, `end-col`, `name-row`, `name-col`, `name-end-row`, `name-end-col`):
     - there are two special cases:
