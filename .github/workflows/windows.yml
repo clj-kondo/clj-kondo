@@ -54,7 +54,7 @@ jobs:
           if %errorlevel% neq 0 exit /b %errorlevel%
 
           call script/compile.bat
-
+          REM compilation succeeded
           lein clean
           set CLJ_KONDO_TEST_ENV=native
           call script/test.bat
