@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - document var-usages location info edge cases ([@sheluchin](https://github.com/sheluchin))
 - Upgrade to GraalVM 24
 - Bump datalog parser
+- [#2509](https://github.com/clj-kondo/clj-kondo/issues/2509): analysis: add :args to :var-usages if configured.
 
 ## 2025.02.20
 
