@@ -60,7 +60,7 @@ jobs:
       - name: Test binary
         shell: cmd
         run: |
-          lein clean
+          call lein clean
           set CLJ_KONDO_TEST_ENV=native
           call script/test.bat
 
