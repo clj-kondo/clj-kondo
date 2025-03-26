@@ -180,8 +180,8 @@
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
-  (when-let [arg-types (:arg-types call)]
-    (let [arg-types @arg-types
+  (when-let [args (and (:lint-arg-types? call) (:args call))]
+    (let [arg-types @args
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
       ;; (prn (:name called-fn) :tags tags )
       (types/lint-arg-types ctx called-fn arg-types tags call)
@@ -284,6 +284,40 @@
        (:expr call)
        :redundant-nested-call
        (format "Redundant nested call: %s" call-name)))))
+
+(defn ^:private ->caller-args
+  [{:keys [arities ns]}
+   {:keys [args]}
+   {:keys [analyze-var-usages-args]}]
+  (when (and analyze-var-usages-args
+             args
+             arities
+             (not (contains? (set (:exclude-when-definition-ns analyze-var-usages-args)) ns)))
+    (let [args @args
+          varargs? (:varargs arities)
+          vararg-start (:min-arity (:varargs arities))
+          arg-vec (if varargs?
+                    (get-in arities [:varargs :arg-vec])
+                    (or (get-in arities [(count args) :arg-vec])
+                        (:arg-vec (second (last arities)))))]
+      (vec
+        (map-indexed (fn [idx arg-type]
+                       (let [name (if (and varargs? (>= idx vararg-start))
+                                    (nth arg-vec (inc vararg-start) nil)
+                                    (nth arg-vec idx nil))]
+                         (utils/assoc-some
+                           {:row (:row arg-type)
+                            :col (:col arg-type)
+                            :end-row (:end-row arg-type)
+                            :end-col (:end-col arg-type)}
+                           :name (some-> (cond
+                                           (map? name)
+                                           (:as name)
+
+                                           (symbol? name)
+                                           name)
+                                         str))))
+                     args)))))
 
 #_(require 'clojure.pprint)
 
@@ -426,6 +460,7 @@
                                                         :name-end-col name-end-col
                                                         :end-row end-row
                                                         :end-col end-col
+                                                        :args (->caller-args called-fn call ctx)
                                                         :derived-location (:derived-location call)
                                                         :derived-name-location (:derived-location name-meta)))))))
                   call-config (:config call)
