@@ -558,7 +558,7 @@
             (let [arg-tags (when (some identity args)
                              args)
                   v (assoc-some {}
-                                :arg-vec (node/sexpr arg-vec)
+                                :arg-vec (when arg-vec (node/sexpr arg-vec))
                                 :ret (or ret :unknown) :min-arity min-arity
                                 :args arg-tags
                                 :arglist-str arglist-str)]
@@ -2724,7 +2724,7 @@
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
         ctx (update ctx :callstack conj [nil :token])
-        lint-arg-types? (linter-disabled? ctx :type-mismatch)
+        lint-arg-types? (not (linter-disabled? ctx :type-mismatch))
         args (atom [])
         ctx (assoc ctx :args args :lint-arg-types? lint-arg-types?)
         analyzed
@@ -2906,32 +2906,30 @@
                                             :message "Unused value"
                                             :filename (:filename ctx))))))))
 
-(defn ^:private add-args
-  [ctx arg]
-   (when-let [args (:args ctx)]
-     (swap! args conj arg)))
-
 (defn ^:private add-args-from-expr
   ([ctx expr] (add-args-from-expr ctx expr (types/expr->tag ctx expr)))
   ([ctx expr tag]
-   (add-args ctx (assoc-some (meta expr) :tag tag))))
+   (when-let [args (:args ctx)]
+     (swap! args conj (assoc-some (meta expr) :tag tag)))))
 
 (defn ^:private add-args-from-call [ctx call expr]
-  (add-args ctx
-            (when-let [r (types/ret-tag-from-call ctx call expr)]
-              (assoc r
-                     :row (:row call)
-                     :col (:col call)
-                     :end-row (:end-row call)
-                     :end-col (:end-col call)))))
+  (when (:lint-arg-types? ctx)
+    (when-let [args (:args ctx)]
+      (swap! args conj (when-let [r (types/ret-tag-from-call ctx call expr)]
+                         (assoc r
+                                :row (:row call)
+                                :col (:col call)
+                                :end-row (:end-row call)
+                                :end-col (:end-col call)))))))
 
 (defn ^:private add-args-from-usage [ctx usage expr]
-  (add-args ctx (when-let [r (types/tag-from-usage ctx usage expr)]
-                  (assoc r
-                         :row (:row usage)
-                         :col (:col usage)
-                         :end-row (:end-row usage)
-                         :end-col (:end-col usage)))))
+  (when-let [args (:args ctx)]
+    (swap! args conj (when-let [r (types/tag-from-usage ctx usage expr)]
+                       (assoc r
+                              :row (:row usage)
+                              :col (:col usage)
+                              :end-row (:end-row usage)
+                              :end-col (:end-col usage))))))
 
 #_(requiring-resolve 'clojure.set/union)
 

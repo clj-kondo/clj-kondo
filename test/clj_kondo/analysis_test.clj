@@ -776,6 +776,16 @@
           {:name foo :args [{:name "bar" :row 2 :col 6 :end-row 2 :end-col 7}
                             {:name "baz" :row 2 :col 8 :end-row 2 :end-col 9}]}]
         var-usages)))
+  (testing "anon fn"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [foo bar] 1)\n"
+                        "(foo #(%1 %2) 2)") {:config {:analysis {:var-usages-args true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name fn*}
+          {:name foo :args [{:name "foo" :row 2 :col 6 :end-row 2 :end-col 14}
+                            {:name "bar" :row 2 :col 15 :end-row 2 :end-col 16}]}]
+        var-usages)))
   (testing "different arg types"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [bar baz qux nee] 2)\n"
