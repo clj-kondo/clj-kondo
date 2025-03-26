@@ -46,21 +46,27 @@ jobs:
           bb: latest
           lein: latest
 
-      - name: Build
+      - name: Test JVM
         shell: cmd
         run: |
           set CLJ_KONDO_TEST_ENV=jvm
           call script/test.bat
-          if %errorlevel% neq 0 exit /b %errorlevel%
 
+      - name: Build binary
+        shell: cmd
+        run: |
           call script/compile.bat
-          if %errorlevel% neq 0 exit /b %errorlevel%
 
+      - name: Test binary
+        shell: cmd
+        run: |
           lein clean
           set CLJ_KONDO_TEST_ENV=native
           call script/test.bat
-          if %errorlevel% neq 0 exit /b %errorlevel%
 
+      - name: Upload binary
+        shell: cmd
+        run: |
           echo Creating zip archive
           set /P CLJ_KONDO_VERSION=< resources\CLJ_KONDO_VERSION
           set zip=clj-kondo-%CLJ_KONDO_VERSION%-windows-amd64.zip
