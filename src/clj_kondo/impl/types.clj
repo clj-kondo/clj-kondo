@@ -277,7 +277,7 @@
       (when (not (:unresolved? call))
         (or (when-let [ret (:ret call)]
               {:tag ret})
-            (when-let [arg-types (:arg-types call)]
+            (when-let [args (:args call)]
               (let [called-ns (:resolved-ns call)
                     called-name (:name call)]
                 (if-let [spec
@@ -290,7 +290,7 @@
                        (when-let [t (:ret ca)]
                          {:tag t})))
                    (if-let [fn-spec (:fn spec)]
-                     (when-let [t (fn-spec @arg-types)]
+                     (when-let [t (fn-spec @args)]
                        {:tag t})
                      (when-let [t (:ret spec)]
                        {:tag t})))
@@ -300,22 +300,22 @@
       ;; Keyword calls are handled differently, we try to resolve the return
       ;; type dynamically for the 1-arity version.
       (let [nm (:name call)
-            arg-types (:arg-types call)
-            arg-types (when arg-types (deref arg-types))
-            arg-count (count arg-types)]
+            args (:args call)
+            args (when args (deref args))
+            arg-count (count args)]
         (when (and (keyword? nm)
                    (= 1 arg-count))
-          (when-let [arg-type (first arg-types)]
-            (let [call* (:call arg-type)]
+          (when-let [arg (first args)]
+            (let [call* (:call arg)]
               (if call*
                 {:call (assoc call*
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
                                          nm))}
-                (let [t (:tag arg-type)
+                (let [t (:tag arg)
                       nm (:name call)]
                   (if (:req t)
-                    {:tag (get (:req (:tag arg-type))
+                    {:tag (get (:req (:tag arg))
                                nm)}
                     (when-let [v (:val t)]
                       {:tag (get v nm)}))))))))))
@@ -375,36 +375,6 @@
               nil)]
     ;; (prn (sexpr expr) '-> ret)
     ret))
-
-(defn add-arg-type-from-expr
-  ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
-  ([ctx expr tag]
-   (when-let [arg-types (:arg-types ctx)]
-     (let [m (meta expr)]
-       (swap! arg-types conj (when tag
-                               {:tag tag
-                                :row (:row m)
-                                :col (:col m)
-                                :end-row (:end-row m)
-                                :end-col (:end-col m)}))))))
-
-(defn add-arg-type-from-call [ctx call expr]
-  (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call expr)]
-                            (assoc r
-                                   :row (:row call)
-                                   :col (:col call)
-                                   :end-row (:end-row call)
-                                   :end-col (:end-col call))))))
-
-(defn add-arg-type-from-usage [ctx usage expr]
-  (when-let [arg-types (:arg-types ctx)]
-    (swap! arg-types conj (when-let [r (tag-from-usage ctx usage expr)]
-                            (assoc r
-                                   :row (:row usage)
-                                   :col (:col usage)
-                                   :end-row (:end-row usage)
-                                   :end-col (:end-col usage))))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [ca (called-arity arities arity)]

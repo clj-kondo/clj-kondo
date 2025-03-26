@@ -180,8 +180,8 @@
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
-  (when-let [arg-types (:arg-types call)]
-    (let [arg-types @arg-types
+  (when-let [args (and (:lint-arg-types? call) (:args call))]
+    (let [arg-types @args
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
       ;; (prn (:name called-fn) :tags tags )
       (types/lint-arg-types ctx called-fn arg-types tags call)
@@ -287,18 +287,18 @@
 
 (defn ^:private ->caller-args
   [{:keys [arities ns]}
-   {:keys [arg-types]}
+   {:keys [args]}
    {:keys [analyze-var-usages-args]}]
   (when (and analyze-var-usages-args
+             args
              arities
-             arg-types
              (not (contains? (set (:exclude-when-definition-ns analyze-var-usages-args)) ns)))
-    (let [arg-types @arg-types
+    (let [args @args
           varargs? (:varargs arities)
           vararg-start (:min-arity (:varargs arities))
           arg-vec (if varargs?
                     (get-in arities [:varargs :arg-vec])
-                    (or (get-in arities [(count arg-types) :arg-vec])
+                    (or (get-in arities [(count args) :arg-vec])
                         (:arg-vec (second (last arities)))))]
       (vec
         (map-indexed (fn [idx arg-type]
@@ -317,7 +317,7 @@
                                            (symbol? name)
                                            name)
                                          str))))
-                     arg-types)))))
+                     args)))))
 
 #_(require 'clojure.pprint)
 

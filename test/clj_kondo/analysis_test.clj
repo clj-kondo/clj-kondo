@@ -757,7 +757,7 @@
                           :to :clj-kondo/unknown-namespace})
                   var-usages)))))
 
-(deftest usage-arg-types-test
+(deftest usage-args-test
   (testing "config is not enabled"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [bar baz] 2)\n"
@@ -776,6 +776,21 @@
           {:name foo :args [{:name "bar" :row 2 :col 6 :end-row 2 :end-col 7}
                             {:name "baz" :row 2 :col 8 :end-row 2 :end-col 9}]}]
         var-usages)))
+  (testing "different arg types"
+    (let [{:keys [var-usages]}
+          (analyze (str "(defn foo [bar baz qux nee] 2)\n"
+                        "(foo\n"
+                        " [:foo]\n"
+                        " {:a 1}\n"
+                        " \"quxx\"\n"
+                        " nil)") {:config {:analysis {:var-usages-args true}}})]
+      (assert-submaps
+        '[{:name defn}
+          {:name foo :args [{:row 3 :col 2 :end-row 3 :end-col 8 :name "bar"}
+                            {:row 4 :col 2 :end-row 4 :end-col 8 :name "baz"}
+                            {:row 5 :col 2 :end-row 5 :end-col 8 :name "qux"}
+                            {:row 6 :col 2 :end-row 6 :end-col 5 :name "nee"}]}]
+        var-usages)))
   (testing "wrong arity call"
     (let [{:keys [var-usages]}
           (analyze (str "(defn foo [bar baz] 2)\n"
@@ -786,12 +801,13 @@
         var-usages)))
   (testing "nested call"
     (let [{:keys [var-usages]}
-          (analyze (str "(defn foo [bar baz] 1)\n"
-                        "(defn bar [a b] (foo a b))") {:config {:analysis {:var-usages-args true}}})]
+          (analyze (str "(defn foo [bar baz qux] 1)\n"
+                        "(defn bar [a b] (foo a b [:foo :bar]))") {:config {:analysis {:var-usages-args true}}})]
       (assert-submaps
         '[{:name defn}
           {:name foo :args [{:name "bar" :row 2 :col 22 :end-row 2 :end-col 23}
-                            {:name "bar" :row 2 :col 24 :end-row 2 :end-col 25}]}
+                            {:name "baz" :row 2 :col 24 :end-row 2 :end-col 25}
+                            {:name "qux" :row 2 :col 26 :end-row 2 :end-col 37}]}
           {:name defn}]
         var-usages)))
   (testing "no arg name"
