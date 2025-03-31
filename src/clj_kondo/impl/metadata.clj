@@ -50,7 +50,7 @@
                   cljs?
                   (assoc 'js {}
                          'number {})))
-               (assoc :args (atom []) :lint-arg-types? (:lint-arg-types? ctx)))
+               (assoc :args (atom [])))
            ;; use dorun to force analysis, we don't use the end result!
            _ (if only-usage?
                (run! #(dorun (common/analyze-usages2 meta-ctx %))

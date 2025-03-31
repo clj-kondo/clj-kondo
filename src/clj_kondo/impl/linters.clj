@@ -180,7 +180,7 @@
       (lint-missing-test-assertion ctx call))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
-  (when-let [args (and (:lint-arg-types? call) (:args call))]
+  (when-let [args (:args call)]
     (let [arg-types @args
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
       ;; (prn (:name called-fn) :tags tags )

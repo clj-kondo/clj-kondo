@@ -782,7 +782,7 @@
         call (-> callstack second second)
         let? (= 'let call)
         ;; don't register arg types on the same level
-        ctx (assoc ctx :lint-arg-types? false)]
+        ctx (assoc ctx :arg-types (atom []))]
     (loop [[binding value & rest-bindings] (-> binding-vector :children)
            bindings (:bindings ctx)
            arities (:arities ctx)
@@ -1836,7 +1836,7 @@
   (let [children (next (:children expr))
         args (:args ctx)]
     (dorun (analyze-children ctx children false))
-    (when (and args (:lint-arg-types? ctx))
+    (when args
       (let [args @args
             types (rest (map :tag args))
             match-type (types/keyword (first types))
@@ -2254,10 +2254,10 @@
                   (update ctx :config config/merge-config! cfg)
                   ctx)
             prev-callstack (:callstack ctx)
-            args (atom [])
-            lint-arg-types? (and resolved-namespace resolved-name
-                                 (not (linter-disabled? ctx :type-mismatch)))
-            ctx (assoc ctx :args args :lint-arg-types? lint-arg-types?)]
+            args (when (and resolved-namespace resolved-name
+                            (not (linter-disabled? ctx :type-mismatch)))
+                   (atom []))
+            ctx (assoc ctx :args args)]
         (cond unresolved-ns
               (do
                 (namespace/reg-unresolved-namespace! ctx ns-name
@@ -2365,7 +2365,6 @@
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
                                     :args args
-                                    :lint-arg-types? lint-arg-types?
                                     :interop? interop?
                                     :resolved-core? resolved-core?
                                     :idx (:idx ctx)
@@ -2684,7 +2683,6 @@
                                         :config (:config ctx)
                                         :top-ns (:top-ns ctx)
                                         :args (:args ctx)
-                                        :lint-arg-types? (:lint-arg-types? ctx)
                                         :simple? (simple-symbol? full-fn-name)
                                         :interop? interop?
                                         :resolved-core? resolved-core?
@@ -2724,9 +2722,9 @@
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
         ctx (update ctx :callstack conj [nil :token])
-        lint-arg-types? (not (linter-disabled? ctx :type-mismatch))
-        args (atom [])
-        ctx (assoc ctx :args args :lint-arg-types? lint-arg-types?)
+        args (when (not (linter-disabled? ctx :type-mismatch))
+               (atom []))
+        ctx (assoc ctx :args args)
         analyzed
         (let [next-ctx ctx]
           (analyze-children next-ctx children false))
@@ -2747,8 +2745,7 @@
                     :base-lang base-lang
                     :lang lang
                     :filename (:filename ctx)
-                    :args args
-                    :lint-arg-types? lint-arg-types?}
+                    :args args}
         ret-tag (or (:ret m)
                     (types/ret-tag-from-call ctx proto-call expr))
         call (cond-> proto-call
@@ -2939,7 +2936,7 @@
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
-                 (meta/lift-meta-content2 (dissoc ctx :lint-arg-types?) expr)
+                 (meta/lift-meta-content2 (dissoc ctx :args) expr)
                  expr)
           t (tag expr)
           {:keys [row col]} (meta expr)
@@ -2960,7 +2957,7 @@
                    (analyze-children ctx children)))
         :syntax-quote (do
                         (lint-unused-value ctx expr)
-                        (analyze-usages2 (dissoc ctx :lint-arg-types?) expr))
+                        (analyze-usages2 (assoc ctx :args nil) expr))
         :var (do
                (lint-unused-value ctx expr)
                (analyze-var ctx expr (:children expr)))
@@ -3026,7 +3023,7 @@
               (let [expanded-node (macroexpand/expand-fn expr)
                     m (meta expanded-node)
                     has-first-arg? (:clj-kondo.impl/fn-has-first-arg m)]
-                (recur (cond-> (assoc ctx :lint-arg-types? false :in-fn-literal true)
+                (recur (cond-> (assoc ctx :args nil :in-fn-literal true)
                          has-first-arg? (update :bindings assoc '% {}))
                        expanded-node)))
         :token
@@ -3063,7 +3060,7 @@
         :list
         (if-let [function (some->>
                             (first children)
-                            (meta/lift-meta-content2 (dissoc ctx :lint-arg-types?)))]
+                            (meta/lift-meta-content2 (assoc ctx :args nil)))]
           (if (or (:quoted ctx) (= :edn lang))
             (analyze-children (update ctx :callstack (fn [cs]
                                                        (cons [:list nil] cs))) children)
