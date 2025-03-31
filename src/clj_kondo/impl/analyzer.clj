@@ -558,7 +558,9 @@
             (let [arg-tags (when (some identity args)
                              args)
                   v (assoc-some {}
-                                :arg-vec (when arg-vec (node/sexpr arg-vec))
+                                ;; TODO: arg-vec only when args analysis is required
+                                :arg-vec (when arg-vec (try (node/sexpr arg-vec)
+                                                            (catch Exception _ nil)))
                                 :ret (or ret :unknown) :min-arity min-arity
                                 :args arg-tags
                                 :arglist-str arglist-str)]
