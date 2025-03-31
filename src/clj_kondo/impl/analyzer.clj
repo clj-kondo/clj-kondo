@@ -2910,14 +2910,13 @@
      (swap! args conj (assoc-some (meta expr) :tag tag)))))
 
 (defn ^:private add-args-from-call [ctx call expr]
-  (when (:lint-arg-types? ctx)
-    (when-let [args (:args ctx)]
-      (swap! args conj (when-let [r (types/ret-tag-from-call ctx call expr)]
-                         (assoc r
-                                :row (:row call)
-                                :col (:col call)
-                                :end-row (:end-row call)
-                                :end-col (:end-col call)))))))
+  (when-let [args (:args ctx)]
+    (swap! args conj (when-let [r (types/ret-tag-from-call ctx call expr)]
+                       (assoc r
+                              :row (:row call)
+                              :col (:col call)
+                              :end-row (:end-row call)
+                              :end-col (:end-col call))))))
 
 (defn ^:private add-args-from-usage [ctx usage expr]
   (when-let [args (:args ctx)]
