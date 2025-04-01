@@ -1363,7 +1363,7 @@
         (analyze "(ns foo)
                   (defprotocol Foo (bar [_]) (baz [_]))")]
     (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))
-    (is (= {} (select-keys (first var-definitions) [:protocol-ns :protocol-name])))
+    (is (= {} (select-keys (some #(when (= 'Foo (:name %)) %) var-definitions) [:protocol-ns :protocol-name])))
     (assert-submaps
      '[{:name Foo}
        {:name bar :protocol-ns foo :protocol-name Foo}
@@ -1649,13 +1649,7 @@
                          {:meta true}))))
   (testing "defprotocol"
     (doseq [opts [{:meta true} {}]]
-      (is (= [(ana-defprotocol-expected (cond-> {:name 'SomeProto
-                                                 :end-row 4
-                                                 :name-col 37
-                                                 :name-end-col 46
-                                                 :end-col 51 }
-                                          (:meta opts) (assoc :meta {:m1 42 :no-doc true})))
-              (ana-defprotocol-expected (cond-> {:name 'private-method
+      (is (= [(ana-defprotocol-expected (cond-> {:name 'private-method
                                                  :private true
                                                  :protocol-ns 'user
                                                  :protocol-name 'SomeProto
@@ -1686,7 +1680,13 @@
                                                  :name-col 26
                                                  :name-end-col 43
                                                  :end-col 50}
-                                          (:meta opts) (assoc :meta {:deprecated "v1.2"})))]
+                                          (:meta opts) (assoc :meta {:deprecated "v1.2"})))
+              (ana-defprotocol-expected (cond-> {:name 'SomeProto
+                                                 :end-row 4
+                                                 :name-col 37
+                                                 :name-end-col 46
+                                                 :end-col 51 }
+                                          (:meta opts) (assoc :meta {:m1 42 :no-doc true})))]
              (ana-vars-meta "(defprotocol ^{:m1 42 :no-doc true} SomeProto
   (^:private private-method [_])
   (public-method [_])
