@@ -1150,13 +1150,13 @@
                                 {:name f2,
                                  :defined-by clojure.core/defn
                                  :arglist-strs ["[e]" "[f f']"]}
-                                {:name AP}
                                 {:name f3,
                                  :defined-by clojure.core/defprotocol
                                  :arglist-strs ["[g]"]}
                                 {:name f4,
                                  :defined-by clojure.core/defprotocol
                                  :arglist-strs ["[h]" "[i i']"]}
+                                {:name AP}
                                 {:name AR}
                                 {:name ->AR
                                  :defined-by clojure.core/defrecord
@@ -2264,18 +2264,7 @@
           var-defs-iface (filter #(= 'clojure.core/definterface (:defined-by %)) var-defs)
           protocol-impls (:protocol-impls analysis)
           foo-usages (filter #(= 'foo (:method-name %)) protocol-impls)]
-      (assert-submaps2 '({:end-row 1,
-                          :name-end-col 19,
-                          :name-end-row 1,
-                          :name-row 1,
-                          :ns user,
-                          :name IFoo,
-                          :defined-by clojure.core/definterface,
-                          :col 1,
-                          :name-col 15,
-                          :end-col 30,
-                          :row 1}
-                         {:fixed-arities #{1},
+      (assert-submaps2 '({:fixed-arities #{1},
                           :end-row 1,
                           :name-end-col 24,
                           :protocol-ns user,
@@ -2288,6 +2277,17 @@
                           :col 20,
                           :name-col 21,
                           :end-col 29,
+                          :row 1}
+                         {:end-row 1,
+                          :name-end-col 19,
+                          :name-end-row 1,
+                          :name-row 1,
+                          :ns user,
+                          :name IFoo,
+                          :defined-by clojure.core/definterface,
+                          :col 1,
+                          :name-col 15,
+                          :end-col 30,
                           :row 1})
                        var-defs-iface)
       (assert-submaps2 '({:impl-ns user,
