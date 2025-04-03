@@ -320,6 +320,7 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns call-fn-name unresolved? refer-alls)
+
                   #_#__ (when (not call?)
                           (clojure.pprint/pprint (dissoc call :config)))
                   name-meta (meta call-fn-name)

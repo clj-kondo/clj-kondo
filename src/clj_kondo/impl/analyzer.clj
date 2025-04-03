@@ -1553,6 +1553,7 @@
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
   (let [def-by (name defined-by)]
+    (prn (partition-by utils/symbol-from-token children))
     (loop [current-protocol nil
            children children
            protocol-ns nil
@@ -1596,25 +1597,25 @@
             (let [fn-children (:children c)
                   protocol-method-name (first fn-children)
                   protocol-fn? (and (not= "extend-protocol" def-by)
-                                    (not= "extend-type" def-by))]
+                                    (not= "extend-type" def-by))
+                  [protocol-ns protocol-name]
+                  (if (or (not= "extend-protocol" def-by)
+                          (not protocol-ns))
+                    (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
+                      [pns pname])
+                    ;; we already have the resolved ns + name for extend-protocol
+                    [protocol-ns protocol-name])]
               (when (and current-protocol
                          (not= "definterface" def-by))
-                (let [[protocol-ns protocol-name]
-                      (if (or (not= "extend-protocol" def-by)
-                              (not protocol-ns))
-                        (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
-                          [pns pname])
-                        ;; we already have the resolved ns + name for extend-protocol
-                        [protocol-ns protocol-name])]
-                  (analysis/reg-protocol-impl! ctx
-                                               (:filename ctx)
-                                               ns-name
-                                               protocol-ns
-                                               protocol-name
-                                               c
-                                               protocol-method-name
-                                               defined-by
-                                               defined-by->lint-as)))
+                (analysis/reg-protocol-impl! ctx
+                                             (:filename ctx)
+                                             ns-name
+                                             protocol-ns
+                                             protocol-name
+                                             c
+                                             protocol-method-name
+                                             defined-by
+                                             defined-by->lint-as))
               ;; protocol-fn-name might contain metadata
               (meta/lift-meta-content2 ctx protocol-method-name)
               (utils/handle-ignore ctx c)
@@ -1629,7 +1630,7 @@
                   (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                               (assoc c :protocol-fn protocol-fn?))))
               (recur current-protocol (rest children) protocol-ns protocol-name (conj methods (:value protocol-method-name))))))
-        (prn :current-protocol current-protocol methods)))))
+        (prn :current-protocol2 protocol-ns protocol-name current-protocol methods)))))
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
