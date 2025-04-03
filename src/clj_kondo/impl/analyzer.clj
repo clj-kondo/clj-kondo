@@ -1556,74 +1556,80 @@
     (loop [current-protocol nil
            children children
            protocol-ns nil
-           protocol-name nil]
-      (when-first [c children]
-        (if-let [sym (utils/symbol-from-token c)]
-          ;; We have encountered a protocol or interface name, or a
-          ;; record or type name (in the case of extend-protocol and
-          ;; extend-type). We need to deal with extend-protocol in a
-          ;; special way, as there is a single protocol being extented
-          ;; to multiple records/types.
-          (do
-            (when-not (and (identical? :cljs (:lang ctx))
-                           (= 'Object sym))
-              (analyze-expression** ctx c))
-            (recur (case (name defined-by)
-                     "extend-protocol" (if (nil? current-protocol)
-                                         ;; extend-protocol has the protocol name as
-                                         ;; it first symbol
-                                         sym
-                                         ;; but has record/type names in its body that
-                                         ;; we need to ignore, and keep the initial
-                                         ;; (and only) protocol name.
-                                         current-protocol)
-                     "extend-type" (if (nil? current-protocol)
-                                     ;; extend-type has a type name as it first symbol,
-                                     ;; not a protocol name. We need to skip it.
-                                     (utils/symbol-from-token (second children))
-                                     sym)
-                     ;; The rest of the use cases have only protocol names in their body.
-                     sym)
-                   (rest children) protocol-ns protocol-name))
-          ;; Assume protocol fn impl. Analyzing the fn sym can cause false
-          ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
-          ;; is linted as (fn [x y z])
-          (let [fn-children (:children c)
-                protocol-method-name (first fn-children)
-                protocol-fn? (and (not= "extend-protocol" def-by)
-                                  (not= "extend-type" def-by))]
-            (when (and current-protocol
-                       (not= "definterface" def-by))
-              (let [[protocol-ns protocol-name]
-                    (if (or (not= "extend-protocol" def-by)
-                            (not protocol-ns))
-                      (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
-                        [pns pname])
-                      ;; we already have the resolved ns + name for extend-protocol
-                      [protocol-ns protocol-name])]
-                (analysis/reg-protocol-impl! ctx
-                                             (:filename ctx)
-                                             ns-name
-                                             protocol-ns
-                                             protocol-name
-                                             c
-                                             protocol-method-name
-                                             defined-by
-                                             defined-by->lint-as)))
-            ;; protocol-fn-name might contain metadata
-            (meta/lift-meta-content2 ctx protocol-method-name)
-            (utils/handle-ignore ctx c)
-            (let [children (:children c)]
-              (if (and (not protocol-fn?)
-                       (= 'Class/forName (:value (first children))))
-                (when (str/starts-with? (try (sexpr (second children))
-                                             (catch Exception _ "")) "[")
-                  (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
-                                                    :level :warning
-                                                    :message "Prefer a symbol to refer to the array class")))
-                (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
-                            (assoc c :protocol-fn protocol-fn?))))
-            (recur current-protocol (rest children) protocol-ns protocol-name)))))))
+           protocol-name nil
+           methods []]
+      (if (seq children)
+        (let [c (first children)]
+          (if-let [sym (utils/symbol-from-token c)]
+            ;; We have encountered a protocol or interface name, or a
+            ;; record or type name (in the case of extend-protocol and
+            ;; extend-type). We need to deal with extend-protocol in a
+            ;; special way, as there is a single protocol being extented
+            ;; to multiple records/types.
+            (do
+              (when-not (and (identical? :cljs (:lang ctx))
+                             (= 'Object sym))
+                (analyze-expression** ctx c))
+              ;; TODO: register var usage (protocol implementation) with implemented meths
+              (prn :current-protocol current-protocol methods)
+              (recur (case (name defined-by)
+                       "extend-protocol" (if (nil? current-protocol)
+                                           ;; extend-protocol has the protocol name as
+                                           ;; it first symbol
+                                           sym
+                                           ;; but has record/type names in its body that
+                                           ;; we need to ignore, and keep the initial
+                                           ;; (and only) protocol name.
+                                           current-protocol)
+                       "extend-type" (if (nil? current-protocol)
+                                       ;; extend-type has a type name as it first symbol,
+                                       ;; not a protocol name. We need to skip it.
+                                       (utils/symbol-from-token (second children))
+                                       sym)
+                       ;; The rest of the use cases have only protocol names in their body.
+                       sym)
+                     (rest children) protocol-ns protocol-name
+                     []))
+            ;; Assume protocol fn impl. Analyzing the fn sym can cause false
+            ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
+            ;; is linted as (fn [x y z])
+            (let [fn-children (:children c)
+                  protocol-method-name (first fn-children)
+                  protocol-fn? (and (not= "extend-protocol" def-by)
+                                    (not= "extend-type" def-by))]
+              (when (and current-protocol
+                         (not= "definterface" def-by))
+                (let [[protocol-ns protocol-name]
+                      (if (or (not= "extend-protocol" def-by)
+                              (not protocol-ns))
+                        (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
+                          [pns pname])
+                        ;; we already have the resolved ns + name for extend-protocol
+                        [protocol-ns protocol-name])]
+                  (analysis/reg-protocol-impl! ctx
+                                               (:filename ctx)
+                                               ns-name
+                                               protocol-ns
+                                               protocol-name
+                                               c
+                                               protocol-method-name
+                                               defined-by
+                                               defined-by->lint-as)))
+              ;; protocol-fn-name might contain metadata
+              (meta/lift-meta-content2 ctx protocol-method-name)
+              (utils/handle-ignore ctx c)
+              (let [children (:children c)]
+                (if (and (not protocol-fn?)
+                         (= 'Class/forName (:value (first children))))
+                  (when (str/starts-with? (try (sexpr (second children))
+                                               (catch Exception _ "")) "[")
+                    (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
+                                                      :level :warning
+                                                      :message "Prefer a symbol to refer to the array class")))
+                  (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
+                              (assoc c :protocol-fn protocol-fn?))))
+              (recur current-protocol (rest children) protocol-ns protocol-name (conj methods (:value protocol-method-name))))))
+        (prn :current-protocol current-protocol methods)))))
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
