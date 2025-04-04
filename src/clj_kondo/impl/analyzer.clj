@@ -1552,7 +1552,11 @@
                                         :defined-by->lint-as defined-by->lint-as))))))
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
-  (let [def-by (name defined-by)]
+  (let [def-by (name defined-by)
+        end? (fn [children]
+               (let [snd (second children)]
+                 (or (not snd)
+                     (utils/symbol-from-token snd))))]
     ;; TODO: before recur, we check if the next thing is a symbol or the children are empty
     ;; If not, we know that we encountered all methods and we register a var usage (or some other dedicated protocol impl atom)
     (loop [current-protocol nil
@@ -1560,7 +1564,7 @@
            protocol-ns nil
            protocol-name nil
            methods []]
-      (let [c (first children)]
+      (when-let [c (first children)]
         (if-let [sym (utils/symbol-from-token c)]
           ;; We have encountered a protocol or interface name, or a
           ;; record or type name (in the case of extend-protocol and
@@ -1627,7 +1631,12 @@
                                                     :message "Prefer a symbol to refer to the array class")))
                 (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                             (assoc c :protocol-fn protocol-fn?))))
-            (recur current-protocol (rest children) protocol-ns protocol-name (conj methods (:value protocol-method-name)))))))))
+            (let [methods (conj methods (:value protocol-method-name))]
+              (when (end? children)
+                (namespace/reg-protocol-impl! ctx ns-name {:protocol-ns protocol-ns
+                                                           :protocol-name protocol-name
+                                                           :methods methods}))
+              (recur current-protocol (rest children) protocol-ns protocol-name methods))))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."

@@ -954,6 +954,12 @@
                                                     :lang lang
                                                     :filename filename)))))))))))
 
+(defn lint-protocol-impls!
+  [ctx]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [_ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
+    (prn (:protocol-impls ns))))
+
 ;;;; scratch
 
 (comment
