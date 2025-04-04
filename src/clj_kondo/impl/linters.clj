@@ -963,7 +963,11 @@
                 protocol-name (:protocol-name protocol-impl)]]
     (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
       (when-let [methods (:methods resolved)]
-        (prn (:methods protocol-impl) methods)))))
+        (let [methods (set methods)
+              missing (remove (set (:methods protocol-impl)) methods)]
+          (doseq [missing missing]
+            (findings/reg-finding! ctx {:type :missing-protocol-method
+                                        })))))))
 
 ;;;; scratch
 

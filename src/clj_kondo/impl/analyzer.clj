@@ -1557,12 +1557,11 @@
                (let [snd (second children)]
                  (or (not snd)
                      (utils/symbol-from-token snd))))]
-    ;; TODO: before recur, we check if the next thing is a symbol or the children are empty
-    ;; If not, we know that we encountered all methods and we register a var usage (or some other dedicated protocol impl atom)
     (loop [current-protocol nil
            children children
            protocol-ns nil
            protocol-name nil
+           protocol-node nil
            methods []]
       (when-let [c (first children)]
         (if-let [sym (utils/symbol-from-token c)]
@@ -1575,24 +1574,26 @@
             (when-not (and (identical? :cljs (:lang ctx))
                            (= 'Object sym))
               (analyze-expression** ctx c))
-            (recur (case (name defined-by)
-                     "extend-protocol" (if (nil? current-protocol)
-                                         ;; extend-protocol has the protocol name as
-                                         ;; it first symbol
-                                         sym
-                                         ;; but has record/type names in its body that
-                                         ;; we need to ignore, and keep the initial
-                                         ;; (and only) protocol name.
-                                         current-protocol)
-                     "extend-type" (if (nil? current-protocol)
-                                     ;; extend-type has a type name as it first symbol,
-                                     ;; not a protocol name. We need to skip it.
-                                     (utils/symbol-from-token (second children))
-                                     sym)
-                     ;; The rest of the use cases have only protocol names in their body.
-                     sym)
-                   (rest children) protocol-ns protocol-name
-                   []))
+            (let [[protocol-name' protocol-node] (case (name defined-by)
+                                                  "extend-protocol" (if (nil? current-protocol)
+                                                                      ;; extend-protocol has the protocol name as
+                                                                      ;; it first symbol
+                                                                      [sym c]
+                                                                      ;; but has record/type names in its body that
+                                                                      ;; we need to ignore, and keep the initial
+                                                                      ;; (and only) protocol name.
+                                                                      [current-protocol protocol-node])
+                                                  "extend-type" (if (nil? current-protocol)
+                                                                  ;; extend-type has a type name as it first symbol,
+                                                                  ;; not a protocol name. We need to skip it.
+                                                                  (let [snd (second children)]
+                                                                    [(utils/symbol-from-token snd) snd])
+                                                                  [sym c])
+                                                  ;; The rest of the use cases have only protocol names in their body.
+                                                  [sym c])]
+              (recur protocol-name'
+               (rest children) protocol-ns protocol-name
+               protocol-node [])))
           ;; Assume protocol fn impl. Analyzing the fn sym can cause false
           ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
           ;; is linted as (fn [x y z])
@@ -1633,10 +1634,11 @@
                             (assoc c :protocol-fn protocol-fn?))))
             (let [methods (conj methods (:value protocol-method-name))]
               (when (end? children)
-                (namespace/reg-protocol-impl! ctx ns-name {:protocol-ns protocol-ns
-                                                           :protocol-name protocol-name
-                                                           :methods methods}))
-              (recur current-protocol (rest children) protocol-ns protocol-name methods))))))))
+                (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
+                                                                 {:protocol-ns protocol-ns
+                                                                  :protocol-name protocol-name
+                                                                  :methods methods})))
+              (recur current-protocol (rest children) protocol-ns protocol-name protocol-node methods))))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
