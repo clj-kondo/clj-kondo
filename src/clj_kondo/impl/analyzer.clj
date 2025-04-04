@@ -1590,7 +1590,19 @@
                                                                     [(utils/symbol-from-token snd) snd])
                                                                   [sym c])
                                                   ;; The rest of the use cases have only protocol names in their body.
-                                                  [sym c])]
+                                                  [sym c])
+                  [protocol-ns protocol-name]
+                  (if (or (not= "extend-protocol" def-by)
+                          (not protocol-ns))
+                    (let [{pns :ns pname :name} (when protocol-name' (resolve-name ctx true ns-name protocol-name' nil))]
+                      [pns pname])
+                    ;; we already have the resolved ns + name for extend-protocol
+                    [protocol-ns protocol-name])]
+              (when (end? children) ;; TODO: this is not the end for extend-type!
+                (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
+                                                                 {:protocol-ns protocol-ns
+                                                                  :protocol-name protocol-name'
+                                                                  :methods methods})))
               (recur protocol-name'
                (rest children) protocol-ns protocol-name
                protocol-node [])))
@@ -1600,14 +1612,7 @@
           (let [fn-children (:children c)
                 protocol-method-name (first fn-children)
                 protocol-fn? (and (not= "extend-protocol" def-by)
-                                  (not= "extend-type" def-by))
-                [protocol-ns protocol-name]
-                (if (or (not= "extend-protocol" def-by)
-                        (not protocol-ns))
-                  (let [{pns :ns pname :name} (when current-protocol (resolve-name ctx true ns-name current-protocol nil))]
-                    [pns pname])
-                  ;; we already have the resolved ns + name for extend-protocol
-                  [protocol-ns protocol-name])]
+                                  (not= "extend-type" def-by))]
             (when (and current-protocol
                        (not= "definterface" def-by))
               (analysis/reg-protocol-impl! ctx
