@@ -250,7 +250,7 @@
                     (l/lint-discouraged-namespaces! ctx)
                     (l/lint-class-usage ctx idacs)
                     (l/lint-redundant-ignores ctx)
-                    (l/lint-protocol-impls! ctx))))
+                    (l/lint-protocol-impls! ctx idacs))))
             _ (when custom-lint-fn
                 (binding [utils/*ctx* ctx]
                   (custom-lint-fn (cond->

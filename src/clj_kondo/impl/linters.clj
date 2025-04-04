@@ -955,10 +955,15 @@
                                                     :filename filename)))))))))))
 
 (defn lint-protocol-impls!
-  [ctx]
+  [ctx idacs]
   (doseq [ns (namespace/list-namespaces ctx)
-          :let [_ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
-    (prn (:protocol-impls ns))))
+          :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
+          protocol-impl (:protocol-impls ns)
+          :let [protocol-ns (:protocol-ns protocol-impl)
+                protocol-name (:protocol-name protocol-impl)]]
+    (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
+      (when-let [methods (:methods resolved)]
+        (prn (:methods protocol-impl) methods)))))
 
 ;;;; scratch
 
