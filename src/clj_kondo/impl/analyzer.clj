@@ -1604,7 +1604,7 @@
                 [protocol-ns protocol-name]
                 (if (or (not= "extend-protocol" def-by)
                         (not protocol-ns))
-                  (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
+                  (let [{pns :ns pname :name} (when current-protocol (resolve-name ctx true ns-name current-protocol nil))]
                     [pns pname])
                   ;; we already have the resolved ns + name for extend-protocol
                   [protocol-ns protocol-name])]
