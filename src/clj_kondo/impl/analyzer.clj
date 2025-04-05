@@ -1553,10 +1553,9 @@
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
   (let [def-by (name defined-by)
-        end? (fn [children]
-               (let [snd (second children)]
-                 (or (not snd)
-                     (utils/symbol-from-token snd))))]
+        end? (fn [node]
+               (or (not node)
+                   (utils/symbol-from-token node)))]
     (loop [current-protocol nil
            children children
            protocol-ns nil
@@ -1574,23 +1573,24 @@
             (when-not (and (identical? :cljs (:lang ctx))
                            (= 'Object sym))
               (analyze-expression** ctx c))
-            (let [[protocol-name' protocol-node] (case (name defined-by)
-                                                  "extend-protocol" (if (nil? current-protocol)
-                                                                      ;; extend-protocol has the protocol name as
-                                                                      ;; it first symbol
-                                                                      [sym c]
-                                                                      ;; but has record/type names in its body that
-                                                                      ;; we need to ignore, and keep the initial
-                                                                      ;; (and only) protocol name.
-                                                                      [current-protocol protocol-node])
-                                                  "extend-type" (if (nil? current-protocol)
-                                                                  ;; extend-type has a type name as it first symbol,
-                                                                  ;; not a protocol name. We need to skip it.
-                                                                  (let [snd (second children)]
-                                                                    [(utils/symbol-from-token snd) snd])
-                                                                  [sym c])
-                                                  ;; The rest of the use cases have only protocol names in their body.
-                                                  [sym c])
+            (let [[protocol-name' protocol-node end-node]
+                  (case (name defined-by)
+                    "extend-protocol" (if (nil? current-protocol)
+                                        ;; extend-protocol has the protocol name as
+                                        ;; it first symbol
+                                        [sym c (second (rest children))]
+                                        ;; but has record/type names in its body that
+                                        ;; we need to ignore, and keep the initial
+                                        ;; (and only) protocol name.
+                                        [current-protocol protocol-node (second children)])
+                    "extend-type" (if (nil? current-protocol)
+                                    ;; extend-type has a type name as it first symbol,
+                                    ;; not a protocol name. We need to skip it.
+                                    (let [snd (second children)]
+                                      [(utils/symbol-from-token snd) snd (second (rest children))])
+                                    [sym c (second children)])
+                    ;; The rest of the use cases have only protocol names in their body.
+                    [sym c (second children)])
                   [protocol-ns protocol-name]
                   (if (or (not= "extend-protocol" def-by)
                           (not protocol-ns))
@@ -1598,14 +1598,14 @@
                       [pns pname])
                     ;; we already have the resolved ns + name for extend-protocol
                     [protocol-ns protocol-name])]
-              (when (end? children) ;; TODO: this is not the end for extend-type!
+              (when (end? end-node)
                 (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
                                                                  {:protocol-ns protocol-ns
                                                                   :protocol-name protocol-name'
                                                                   :methods methods})))
               (recur protocol-name'
-               (rest children) protocol-ns protocol-name
-               protocol-node [])))
+                     (rest children) protocol-ns protocol-name
+                     protocol-node [])))
           ;; Assume protocol fn impl. Analyzing the fn sym can cause false
           ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
           ;; is linted as (fn [x y z])
@@ -1638,7 +1638,7 @@
                 (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                             (assoc c :protocol-fn protocol-fn?))))
             (let [methods (conj methods (:value protocol-method-name))]
-              (when (end? children)
+              (when (end? (second children))
                 (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
                                                                  {:protocol-ns protocol-ns
                                                                   :protocol-name protocol-name
@@ -3404,8 +3404,8 @@
                     (if (and configs (not (false? (:auto-load-configs config))))
                       (binding [cache/*lock-file-name* ".lock"]
                         (cache/with-cache ;; lock config dir for concurrent writes
-                          cfg-dir
-                          10
+                            cfg-dir
+                            10
                           (spit (doto inline-file
                                   (io/make-parents)) (apply config/merge-config! configs))))
                       (when (fs/exists? inline-file)
