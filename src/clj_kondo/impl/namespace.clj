@@ -841,3 +841,9 @@
 ;;;; Scratch
 
 (comment)
+
+(defn reg-protocol-impl! [{:keys [base-lang lang namespaces]} ns-name protocol-impl]
+  (let [path [base-lang lang ns-name]]
+    (swap! namespaces update-in path
+           (fn [ns]
+             (update ns :protocol-impls (fnil conj []) protocol-impl)))))

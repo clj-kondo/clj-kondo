@@ -65,6 +65,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing docstring](#missing-docstring)
     - [Missing else branch](#missing-else-branch)
     - [Missing map value](#missing-map-value)
+    - [Missing protocol method](#missing-protocol-method)
     - [Missing test assertion](#missing-test-assertion)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
@@ -1180,6 +1181,28 @@ misses a value.
 *Example trigger:* `{:a 1 :b}`
 
 *Example message:* `missing value for key :b`.
+
+### Missing protocol method
+
+*Keyword:* `:missing-protocol-method`.
+
+*Description:* warn on missing protocol method
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(defprotocol IFoo
+  (foo [_])
+  (bar [_)))
+
+(defrecord Foo []
+  IFoo
+  (foo [_]))
+```
+
+*Example message:* `Missing protocol method(s): bar`.
 
 ### Missing test assertion
 

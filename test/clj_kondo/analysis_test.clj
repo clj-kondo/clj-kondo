@@ -1150,13 +1150,13 @@
                                 {:name f2,
                                  :defined-by clojure.core/defn
                                  :arglist-strs ["[e]" "[f f']"]}
-                                {:name AP}
                                 {:name f3,
                                  :defined-by clojure.core/defprotocol
                                  :arglist-strs ["[g]"]}
                                 {:name f4,
                                  :defined-by clojure.core/defprotocol
                                  :arglist-strs ["[h]" "[i i']"]}
+                                {:name AP}
                                 {:name AR}
                                 {:name ->AR
                                  :defined-by clojure.core/defrecord
@@ -1363,7 +1363,7 @@
         (analyze "(ns foo)
                   (defprotocol Foo (bar [_]) (baz [_]))")]
     (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))
-    (is (= {} (select-keys (first var-definitions) [:protocol-ns :protocol-name])))
+    (is (= {} (select-keys (some #(when (= 'Foo (:name %)) %) var-definitions) [:protocol-ns :protocol-name])))
     (assert-submaps
      '[{:name Foo}
        {:name bar :protocol-ns foo :protocol-name Foo}
@@ -1649,13 +1649,7 @@
                          {:meta true}))))
   (testing "defprotocol"
     (doseq [opts [{:meta true} {}]]
-      (is (= [(ana-defprotocol-expected (cond-> {:name 'SomeProto
-                                                 :end-row 4
-                                                 :name-col 37
-                                                 :name-end-col 46
-                                                 :end-col 51 }
-                                          (:meta opts) (assoc :meta {:m1 42 :no-doc true})))
-              (ana-defprotocol-expected (cond-> {:name 'private-method
+      (is (= [(ana-defprotocol-expected (cond-> {:name 'private-method
                                                  :private true
                                                  :protocol-ns 'user
                                                  :protocol-name 'SomeProto
@@ -1686,7 +1680,13 @@
                                                  :name-col 26
                                                  :name-end-col 43
                                                  :end-col 50}
-                                          (:meta opts) (assoc :meta {:deprecated "v1.2"})))]
+                                          (:meta opts) (assoc :meta {:deprecated "v1.2"})))
+              (ana-defprotocol-expected (cond-> {:name 'SomeProto
+                                                 :end-row 4
+                                                 :name-col 37
+                                                 :name-end-col 46
+                                                 :end-col 51 }
+                                          (:meta opts) (assoc :meta {:m1 42 :no-doc true})))]
              (ana-vars-meta "(defprotocol ^{:m1 42 :no-doc true} SomeProto
   (^:private private-method [_])
   (public-method [_])
@@ -2264,18 +2264,7 @@
           var-defs-iface (filter #(= 'clojure.core/definterface (:defined-by %)) var-defs)
           protocol-impls (:protocol-impls analysis)
           foo-usages (filter #(= 'foo (:method-name %)) protocol-impls)]
-      (assert-submaps2 '({:end-row 1,
-                          :name-end-col 19,
-                          :name-end-row 1,
-                          :name-row 1,
-                          :ns user,
-                          :name IFoo,
-                          :defined-by clojure.core/definterface,
-                          :col 1,
-                          :name-col 15,
-                          :end-col 30,
-                          :row 1}
-                         {:fixed-arities #{1},
+      (assert-submaps2 '({:fixed-arities #{1},
                           :end-row 1,
                           :name-end-col 24,
                           :protocol-ns user,
@@ -2288,6 +2277,17 @@
                           :col 20,
                           :name-col 21,
                           :end-col 29,
+                          :row 1}
+                         {:end-row 1,
+                          :name-end-col 19,
+                          :name-end-row 1,
+                          :name-row 1,
+                          :ns user,
+                          :name IFoo,
+                          :defined-by clojure.core/definterface,
+                          :col 1,
+                          :name-col 15,
+                          :end-col 30,
                           :row 1})
                        var-defs-iface)
       (assert-submaps2 '({:impl-ns user,

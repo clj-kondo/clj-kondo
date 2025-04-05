@@ -320,6 +320,7 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns call-fn-name unresolved? refer-alls)
+
                   #_#__ (when (not call?)
                           (clojure.pprint/pprint (dissoc call :config)))
                   name-meta (meta call-fn-name)
@@ -952,6 +953,22 @@
                                                     :message "Redundant ignore"
                                                     :lang lang
                                                     :filename filename)))))))))))
+
+(defn lint-protocol-impls!
+  [ctx idacs]
+  (doseq [ns (namespace/list-namespaces ctx)
+          :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
+          protocol-impl (:protocol-impls ns)
+          :let [protocol-ns (:protocol-ns protocol-impl)
+                protocol-name (:protocol-name protocol-impl)]]
+    (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
+      (when-let [methods (:methods resolved)]
+        (let [missing (remove (set (:methods protocol-impl)) methods)]
+          (when (seq missing)
+            (findings/reg-finding! ctx (assoc protocol-impl
+                                              :type :missing-protocol-method
+                                              :filename (:filename ns)
+                                              :message (str "Missing protocol method(s): " (str/join ", " missing))))))))))
 
 ;;;; scratch
 

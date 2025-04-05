@@ -1484,78 +1484,85 @@
         transduce-arity-vecs (filter
                               ;; skip last docstring
                               #(when (= :vector (tag %)) %))]
-    (when protocol-name
-      (namespace/reg-var! ctx ns-name protocol-name expr
-                          (assoc-some name-meta
-                                      :user-meta (when (:analysis-var-meta ctx)
-                                                   (:user-meta name-meta))
-                                      :doc docstring
-                                      :defined-by defined-by
-                                      :defined-by->lint-as defined-by->lint-as)))
     (docstring/lint-docstring! ctx doc-node docstring)
-    (doseq [c (next children)
-            :when (= :list (tag c)) ;; skip first docstring
-            :let [children (:children c)
-                  name-node (first children)
-                  name-node (meta/lift-meta-content2 ctx name-node)
-                  name-meta (meta name-node)
-                  fn-name (:value name-node)
-                  arities (rest children)
-                  docstring (string-from-token (last children))
-                  doc-node (when docstring
-                             (last children))]]
-      ;; This is here for analyzing usages of type hints, but it also causes
-      ;; false positives in the analysis, so we can improve this
-      (let [ctx (utils/ctx-with-linter-disabled ctx :unresolved-symbol)]
-        (run! #(analyze-usages2 ctx %) arities))
-      (when fn-name
-        (let [arglist-strs (when (:analyze-arglists? ctx)
-                             (->> arities
-                                  (into [] (comp transduce-arity-vecs (map str)))
-                                  (not-empty)))
-              fixed-arities (into #{}
-                                  (comp transduce-arity-vecs
-                                        (map #(let [children (:children %)]
-                                                (run! (fn [child]
-                                                        (when (= '& (:value child))
-                                                          (findings/reg-finding!
-                                                           ctx
-                                                           (node->line
-                                                            (:filename ctx)
-                                                            child
-                                                            :protocol-method-varargs
-                                                            "Protocol methods do not support varargs."))))
-                                                      children)
-                                                (count children))))
-                                  arities)]
-          (utils/handle-ignore ctx c)
-          (namespace/reg-var!
-           (cond-> ctx
-             (= 'clojure.core/definterface defined-by->lint-as)
-             (assoc :skip-reg-var true)) ns-name fn-name c
-           (assoc-some (merge name-meta (meta c))
-                       :user-meta (when (:analysis-var-meta ctx)
-                                    (:user-meta name-meta))
-                       :doc docstring
-                       :arglist-strs arglist-strs
-                       :name-row (:row name-meta)
-                       :name-col (:col name-meta)
-                       :name-end-row (:end-row name-meta)
-                       :name-end-col (:end-col name-meta)
-                       :fixed-arities fixed-arities
-                       :protocol-ns ns-name
-                       :protocol-name protocol-name
-                       :defined-by defined-by
-                       :defined-by->lint-as defined-by->lint-as))
-          (docstring/lint-docstring! ctx doc-node docstring))))))
+    (let [meths (for [c (next children)
+                      :when (= :list (tag c)) ;; skip first docstring
+                      :let [children (:children c)
+                            name-node (first children)
+                            name-node (meta/lift-meta-content2 ctx name-node)
+                            name-meta (meta name-node)
+                            fn-name (:value name-node)
+                            arities (rest children)
+                            docstring (string-from-token (last children))
+                            doc-node (when docstring
+                                       (last children))]]
+                  ;; This is here for analyzing usages of type hints, but it also causes
+                  ;; false positives in the analysis, so we can improve this
+                  (do (let [ctx (utils/ctx-with-linter-disabled ctx :unresolved-symbol)]
+                        (run! #(analyze-usages2 ctx %) arities))
+                      (when fn-name
+                        (let [arglist-strs (when (:analyze-arglists? ctx)
+                                             (->> arities
+                                                  (into [] (comp transduce-arity-vecs (map str)))
+                                                  (not-empty)))
+                              fixed-arities (into #{}
+                                                  (comp transduce-arity-vecs
+                                                        (map #(let [children (:children %)]
+                                                                (run! (fn [child]
+                                                                        (when (= '& (:value child))
+                                                                          (findings/reg-finding!
+                                                                           ctx
+                                                                           (node->line
+                                                                            (:filename ctx)
+                                                                            child
+                                                                            :protocol-method-varargs
+                                                                            "Protocol methods do not support varargs."))))
+                                                                      children)
+                                                                (count children))))
+                                                  arities)]
+                          (utils/handle-ignore ctx c)
+                          (namespace/reg-var!
+                           (cond-> ctx
+                             (= 'clojure.core/definterface defined-by->lint-as)
+                             (assoc :skip-reg-var true)) ns-name fn-name c
+                           (assoc-some (merge name-meta (meta c))
+                                       :user-meta (when (:analysis-var-meta ctx)
+                                                    (:user-meta name-meta))
+                                       :doc docstring
+                                       :arglist-strs arglist-strs
+                                       :name-row (:row name-meta)
+                                       :name-col (:col name-meta)
+                                       :name-end-row (:end-row name-meta)
+                                       :name-end-col (:end-col name-meta)
+                                       :fixed-arities fixed-arities
+                                       :protocol-ns ns-name
+                                       :protocol-name protocol-name
+                                       :defined-by defined-by
+                                       :defined-by->lint-as defined-by->lint-as))
+                          (docstring/lint-docstring! ctx doc-node docstring)))
+                      fn-name))]
+      (when protocol-name
+        (namespace/reg-var! ctx ns-name protocol-name expr
+                            (assoc-some name-meta
+                                        :user-meta (when (:analysis-var-meta ctx)
+                                                     (:user-meta name-meta))
+                                        :doc docstring
+                                        :methods (vec meths)
+                                        :defined-by defined-by
+                                        :defined-by->lint-as defined-by->lint-as))))))
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
-  (let [def-by (name defined-by)]
+  (let [def-by (name defined-by)
+        end? (fn [node]
+               (or (not node)
+                   (utils/symbol-from-token node)))]
     (loop [current-protocol nil
            children children
            protocol-ns nil
-           protocol-name nil]
-      (when-first [c children]
+           protocol-name nil
+           protocol-node nil
+           methods []]
+      (when-let [c (first children)]
         (if-let [sym (utils/symbol-from-token c)]
           ;; We have encountered a protocol or interface name, or a
           ;; record or type name (in the case of extend-protocol and
@@ -1566,23 +1573,39 @@
             (when-not (and (identical? :cljs (:lang ctx))
                            (= 'Object sym))
               (analyze-expression** ctx c))
-            (recur (case (name defined-by)
-                     "extend-protocol" (if (nil? current-protocol)
-                                         ;; extend-protocol has the protocol name as
-                                         ;; it first symbol
-                                         sym
-                                         ;; but has record/type names in its body that
-                                         ;; we need to ignore, and keep the initial
-                                         ;; (and only) protocol name.
-                                         current-protocol)
-                     "extend-type" (if (nil? current-protocol)
-                                     ;; extend-type has a type name as it first symbol,
-                                     ;; not a protocol name. We need to skip it.
-                                     (utils/symbol-from-token (second children))
-                                     sym)
-                     ;; The rest of the use cases have only protocol names in their body.
-                     sym)
-                   (rest children) protocol-ns protocol-name))
+            (let [[protocol-name' protocol-node end-node]
+                  (case (name defined-by)
+                    "extend-protocol" (if (nil? current-protocol)
+                                        ;; extend-protocol has the protocol name as
+                                        ;; it first symbol
+                                        [sym c (second (rest children))]
+                                        ;; but has record/type names in its body that
+                                        ;; we need to ignore, and keep the initial
+                                        ;; (and only) protocol name.
+                                        [current-protocol protocol-node (second children)])
+                    "extend-type" (if (nil? current-protocol)
+                                    ;; extend-type has a type name as it first symbol,
+                                    ;; not a protocol name. We need to skip it.
+                                    (let [snd (second children)]
+                                      [(utils/symbol-from-token snd) snd (second (rest children))])
+                                    [sym c (second children)])
+                    ;; The rest of the use cases have only protocol names in their body.
+                    [sym c (second children)])
+                  [protocol-ns protocol-name]
+                  (if (or (not= "extend-protocol" def-by)
+                          (not protocol-ns))
+                    (let [{pns :ns pname :name} (when protocol-name' (resolve-name ctx true ns-name protocol-name' nil))]
+                      [pns pname])
+                    ;; we already have the resolved ns + name for extend-protocol
+                    [protocol-ns protocol-name])]
+              (when (end? end-node)
+                (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
+                                                                 {:protocol-ns protocol-ns
+                                                                  :protocol-name protocol-name'
+                                                                  :methods methods})))
+              (recur protocol-name'
+                     (rest children) protocol-ns protocol-name
+                     protocol-node [])))
           ;; Assume protocol fn impl. Analyzing the fn sym can cause false
           ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
           ;; is linted as (fn [x y z])
@@ -1592,22 +1615,15 @@
                                   (not= "extend-type" def-by))]
             (when (and current-protocol
                        (not= "definterface" def-by))
-              (let [[protocol-ns protocol-name]
-                    (if (or (not= "extend-protocol" def-by)
-                            (not protocol-ns))
-                      (let [{pns :ns pname :name} (resolve-name ctx true ns-name current-protocol nil)]
-                        [pns pname])
-                      ;; we already have the resolved ns + name for extend-protocol
-                      [protocol-ns protocol-name])]
-                (analysis/reg-protocol-impl! ctx
-                                             (:filename ctx)
-                                             ns-name
-                                             protocol-ns
-                                             protocol-name
-                                             c
-                                             protocol-method-name
-                                             defined-by
-                                             defined-by->lint-as)))
+              (analysis/reg-protocol-impl! ctx
+                                           (:filename ctx)
+                                           ns-name
+                                           protocol-ns
+                                           protocol-name
+                                           c
+                                           protocol-method-name
+                                           defined-by
+                                           defined-by->lint-as))
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
             (utils/handle-ignore ctx c)
@@ -1621,7 +1637,13 @@
                                                     :message "Prefer a symbol to refer to the array class")))
                 (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                             (assoc c :protocol-fn protocol-fn?))))
-            (recur current-protocol (rest children) protocol-ns protocol-name)))))))
+            (let [methods (conj methods (:value protocol-method-name))]
+              (when (end? (second children))
+                (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
+                                                                 {:protocol-ns protocol-ns
+                                                                  :protocol-name protocol-name
+                                                                  :methods methods})))
+              (recur current-protocol (rest children) protocol-ns protocol-name protocol-node methods))))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."
@@ -3382,8 +3404,8 @@
                     (if (and configs (not (false? (:auto-load-configs config))))
                       (binding [cache/*lock-file-name* ".lock"]
                         (cache/with-cache ;; lock config dir for concurrent writes
-                          cfg-dir
-                          10
+                            cfg-dir
+                            10
                           (spit (doto inline-file
                                   (io/make-parents)) (apply config/merge-config! configs))))
                       (when (fs/exists? inline-file)
