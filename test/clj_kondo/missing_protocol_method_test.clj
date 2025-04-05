@@ -41,7 +41,18 @@
                      {:file "<stdin>", :row 12, :col 5, :level :warning, :message "Missing protocol method(s): bar"}
 
                      {:file "<stdin>", :row 27, :col 3, :level :warning, :message "Missing protocol method(s): foo, bar"}
-                     {:file "<stdin>", :row 31, :col 3, :level :warning, :message "Missing protocol method(s): bar"})
+                     {:file "<stdin>", :row 31, :col 3, :level :warning, :message "Missing protocol method(s): bar"}
+
+                     {:file "<stdin>",
+                      :row 44,
+                      :col 3,
+                      :level :warning,
+                      :message "Missing protocol method(s): foo, bar"}
+                     {:file "<stdin>",
+                      :row 47,
+                      :col 3,
+                      :level :warning,
+                      :message "Missing protocol method(s): bar"})
                    (lint!
                     "(ns scratch)
 
@@ -83,8 +94,18 @@
   (foo [this]
     (recur this))
   (bar [this]
-    (recur this)))")))
+    (recur this)))
 
-;; TODO: reify
+(reify
+  IDude)
+
+(reify
+  IDude
+  (foo [_]))
+
+(reify
+  IDude
+  (foo [_])
+  (bar [_]))")))
 
 ;; TODO: docs
