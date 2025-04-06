@@ -2232,11 +2232,16 @@
            :full-fn-name
            :row :col
            :expr] :as m}]
-  (let [not-is-dot (and (not= '. full-fn-name)
+  (let [ns-name (:name ns)
+        not-is-dot (and (not= '. full-fn-name)
                         (not= '.. full-fn-name))]
     (cond
       (and not-is-dot
-           (str/ends-with? full-fn-name "."))
+           (str/ends-with? full-fn-name ".")
+           (simple-symbol? full-fn-name)
+           (let [ns (namespace/get-namespace ctx (:base-lang ctx) lang ns-name)]
+             (and (not (contains? (:referred-vars ns) full-fn-name))
+                  (not (contains? (:vars ns) full-fn-name)))))
       (recur ctx
              (let [expr (macroexpand/expand-dot-constructor ctx expr)]
                (assoc m
@@ -2252,8 +2257,7 @@
                       :full-fn-name '.
                       :arg-count (inc (:arg-count m)))))
       :else
-      (let [ns-name (:name ns)
-            children (:children expr)
+      (let [children (:children expr)
             name-node (first children)
             children (rest children)
             {resolved-namespace :ns

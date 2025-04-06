@@ -3732,6 +3732,25 @@ foo/"))
 ^{:clj-kondo/ignore [:unresolved-symbol]} y"
                      {:linters {:unresolved-symbol {:level :warning}}}))))
 
+(deftest issue-2512-test
+  (is (empty? (lint! "(ns lib-python)
+
+(defmacro #_:clj-kondo/ignore py. [_& args])
+
+(ns foobar
+  (:require [lib-python :as p :refer [py.]]))
+
+(def #_:clj-kondo/ignore my. (fn [_]))
+
+(declare x)
+
+(p/py. x 'length)
+(py. x 'length)
+
+(my. \"dude\")
+"
+                     {:linters {:unresolved-symbol {:level :warning}}}))))
+
 ;;;; Scratch
 
 (comment

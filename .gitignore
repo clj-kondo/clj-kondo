@@ -94,3 +94,4 @@ corpus/issue-2239/.clj-kondo/.cache
 src/scratch.clj
 .portal
 src/scratch.cljc
+src/scratch2.clj
