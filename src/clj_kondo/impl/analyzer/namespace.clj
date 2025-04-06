@@ -504,7 +504,7 @@
                                  (some docstring/docs-from-meta ns-name-metas)))
         global-config (:global-config ctx)
         ns-name (or
-                 (when-let [?name (sexpr ns-name-expr)]
+                 (when-let [?name (when ns-name-expr (sexpr ns-name-expr))]
                    (if (symbol? ?name) ?name
                        (findings/reg-finding!
                         ctx
@@ -620,13 +620,13 @@
         _ (when (seq leftovers)
             (namespace/lint-unknown-clauses ctx leftovers))
         ns (cond->
-            (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
-                          :imports imports
-                          :gen-class gen-class?
-                          :deprecated deprecated)
-                   (merge-with into
-                               analyzed-require-clauses
-                               refer-clj))
+               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                             :imports imports
+                             :gen-class gen-class?
+                             :deprecated deprecated)
+                      (merge-with into
+                                  analyzed-require-clauses
+                                  refer-clj))
              (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))
@@ -635,8 +635,8 @@
                                                      'clojure.core 'cljs.core)))]
     (when (:analysis ctx)
       (when true #_(java/analyze-class-usages? ctx)
-        (doseq [[k v] imports]
-          (java/reg-class-usage! ctx (str v "." k) nil (assoc (meta k) :import true))))
+            (doseq [[k v] imports]
+              (java/reg-class-usage! ctx (str v "." k) nil (assoc (meta k) :import true))))
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
                                                          :user-meta (when (:analysis-ns-meta ctx)

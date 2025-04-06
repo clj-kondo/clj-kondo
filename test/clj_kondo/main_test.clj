@@ -3751,6 +3751,22 @@ foo/"))
 "
                      {:linters {:unresolved-symbol {:level :warning}}}))))
 
+(deftest issue-2511-test
+  (assert-submaps2 '({:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/cond-> is called with 0 args but expects 1 or more"}
+                     {:file "<stdin>", :row 4, :col 1, :level :error, :message "clojure.core/cond->> is called with 0 args but expects 1 or more"} {:file "<stdin>", :row 5, :col 1, :level :error, :message "clojure.core/defmethod is called with 0 args but expects 2 or more"}
+                     {:file "<stdin>", :row 6, :col 1, :level :error, :message "clojure.core/doto is called with 0 args but expects 1 or more"}
+                     {:file "<stdin>", :row 9, :col 1, :level :warning, :message "Unresolved symbol: x"})
+                   (lint! "(ns repro)
+
+(cond->)
+(cond->>)
+(defmethod)
+(doto)
+#_(ns)
+
+x"
+              {:linters {:unresolved-symbol {:level :warning}}})))
+
 ;;;; Scratch
 
 (comment
