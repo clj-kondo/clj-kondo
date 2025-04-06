@@ -90,7 +90,7 @@
 
 (defn expand-doto [_ctx expr]
   (when-let [children (next (:children expr))]
-    (let [[_doto x & forms] children
+    (let [[x & forms] children
           gx (with-meta-of (token-node (gensym "_"))
                (with-meta x (assoc (meta x) :clj-kondo.impl/generated true)))
           ret (list-node
