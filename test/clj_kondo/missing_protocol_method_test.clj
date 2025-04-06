@@ -108,4 +108,23 @@
   (foo [_])
   (bar [_]))")))
 
-;; TODO: docs
+(deftest ignore-hint-test
+  (is (empty? (lint!
+              "(ns scratch)
+
+(defprotocol IDude
+  (foo [_])
+  (bar [_]))
+
+(defrecord Foo []
+  #_:clj-kondo/ignore IDude)
+
+(defrecord Dude []
+  #_:clj-kondo/ignore IDude
+  (foo [_]))
+
+(defrecord Dude2 []
+  IDude
+  (foo [_])
+  (bar [_]))
+"))))
