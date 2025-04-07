@@ -96,6 +96,8 @@
   - `:skip-lint`: optional. A boolean indicating if linting should be
   skipped. Other tasks like copying configs will still be done if `:copy-configs` is true.`
 
+  - `:repro`: optional. Boolean indicating that the home dir config should be ignored.
+
   - `:debug`: optional. Print debug info.
 
   Returns a map with `:findings`, a seqable of finding maps, a
@@ -117,6 +119,7 @@
            custom-lint-fn
            file-analyzed-fn
            skip-lint
+           repro
            debug]
     :or {cache true}
     :as args}]
@@ -133,7 +136,7 @@
                   :else
                   (core-impl/config-dir (io/file (System/getProperty "user.dir"))))
             ;; for backward compatibility non-sequential config should be wrapped into collection
-            config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]) debug)
+            config (core-impl/resolve-config cfg-dir (if (sequential? config) config [config]) repro debug)
             use-import-dir (:use-import-dir config)
             classpath (:classpath config)
             config (dissoc config :classpath)
@@ -285,11 +288,15 @@
 
 (defn resolve-config
   "Returns the configuration for `cfg-dir` merged with home,
-  clj-kondo default configs and optional `config` if provided."
+  clj-kondo default configs and optional `config` if provided.
+  Other params:
+  - `repro`: ignore home directory"
   ([cfg-dir]
    (resolve-config cfg-dir {}))
   ([cfg-dir config]
-   (core-impl/resolve-config cfg-dir config false)))
+   (core-impl/resolve-config cfg-dir config false false))
+  ([cfg-dir config repro]
+   (core-impl/resolve-config cfg-dir config repro false)))
 
 (defn config-hash
   "Return the hash of the provided clj-kondo config."

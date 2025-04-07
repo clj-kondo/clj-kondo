@@ -58,6 +58,8 @@ Options:
   --report-level <level>: minimum severity for which to report.  Supported values:
     info, warning, error.  The default level if unspecified is info.
 
+  --repro: ignore home dir configuration
+
   --debug: print debug information.
 "))
 
@@ -82,6 +84,7 @@ Options:
     "--fail-level"   :scalar
     "--report-level" :scalar
     "--debug"        :scalar
+    "--repro"        :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -134,7 +137,8 @@ Options:
                      "warning")
      :report-level (or (last (get opts "--report-level"))
                        "info")
-     :debug (contains? opts "--debug")}))
+     :debug (contains? opts "--debug")
+     :repro (contains? opts "--repro")}))
 
 (def fail-level? #{"warning" "error"})
 (def report-level? (conj fail-level? "info"))

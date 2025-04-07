@@ -144,7 +144,7 @@
                                  4
                                  3)}))))
 
-(defn resolve-config [^java.io.File cfg-dir configs debug]
+(defn resolve-config [^java.io.File cfg-dir configs ignore-home? debug]
   (let [local-config (when cfg-dir
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
@@ -163,7 +163,9 @@
                      (seq discovered))
             (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
-        skip-home? (some-> local-config-paths meta :replace)
+        skip-home? (or
+                    ignore-home?
+                    (some-> local-config-paths meta :replace))
         ;; local config exists implicitly when configs are discovered, even when
         ;; local-config was nil
         local-config (if (seq discovered)
