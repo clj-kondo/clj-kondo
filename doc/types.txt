@@ -131,6 +131,7 @@ compile-directive {2 {:ret :vector}}
 two-forms {1 {:ret {:type :map, :val {}}}}
 add-core-ns {1 {:ret {:type :map, :val {}, :row 439, :col 5, :end-row 444, :end-col 22}}}
 format-simple-cardinal {1 {:ret :string}}
+format-simple-number {1 {:ret #{:string :nil}}}
 float-parts {1 {:ret #{:vector}}}
 get-fixed {3 {:ret #{:string}}}
 abort? {1 {:ret #{:boolean}}}
