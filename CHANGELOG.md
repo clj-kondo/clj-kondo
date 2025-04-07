@@ -31,6 +31,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - document var-usages location info edge cases ([@sheluchin](https://github.com/sheluchin))
 - Upgrade to GraalVM 24
 - Bump datalog parser
+- Bump built-in cache
 
 ## 2025.02.20
 
