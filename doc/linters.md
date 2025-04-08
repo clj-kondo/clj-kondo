@@ -1195,7 +1195,7 @@ misses a value.
 ``` clojure
 (defprotocol IFoo
   (foo [_])
-  (bar [_)))
+  (bar [_]))
 
 (defrecord Foo []
   IFoo
