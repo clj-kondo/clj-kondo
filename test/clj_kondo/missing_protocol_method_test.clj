@@ -128,3 +128,20 @@
   (foo [_])
   (bar [_]))
 "))))
+
+(deftest config-in-ns-test
+  (is (empty? (lint! "(ns repro)
+
+(defprotocol IFoo
+  (foo [_])
+  (bar [_]))
+
+(defrecord Foo []
+  IFoo
+  (foo [_]
+    ;; trigger the :unused-value linter so we can verify :config-in-ns settings
+    (do
+      :foo
+      :bar)))"
+                     '{:config-in-ns {repro {:linters {:missing-protocol-method {:level :off}
+                                                       :unused-value {:level :off}}}}} ))))
