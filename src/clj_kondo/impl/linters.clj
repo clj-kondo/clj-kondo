@@ -957,7 +957,10 @@
 (defn lint-protocol-impls!
   [ctx idacs]
   (doseq [ns (namespace/list-namespaces ctx)
-          :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
+          :let [ns-config (:config ns)
+                ctx (if ns-config (assoc ctx :config ns-config)
+                        ctx)
+                ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
           protocol-impl (:protocol-impls ns)
           :let [protocol-ns (:protocol-ns protocol-impl)
                 protocol-name (:protocol-name protocol-impl)]]
