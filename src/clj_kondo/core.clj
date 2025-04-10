@@ -252,8 +252,10 @@
                     (l/lint-unresolved-namespaces! ctx)
                     (l/lint-discouraged-namespaces! ctx)
                     (l/lint-class-usage ctx idacs)
+                    (l/lint-protocol-impls! ctx idacs)
+                    ;; redundant ignore should go last!
                     (l/lint-redundant-ignores ctx)
-                    (l/lint-protocol-impls! ctx idacs))))
+                    )))
             _ (when custom-lint-fn
                 (binding [utils/*ctx* ctx]
                   (custom-lint-fn (cond->

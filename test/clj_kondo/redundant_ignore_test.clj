@@ -23,3 +23,12 @@
   (is (empty?
        (lint! "#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var :unused-binding]} (defn foo [])"
               (assoc-in config [:linters :redundant-ignore :exclude] [:clojure-lsp/unused-public-var])))))
+
+(deftest redundant-ignore-on-missing-protocol-test
+  (is (empty? (lint! "(defprotocol IFoo
+  (dude [_]))
+
+(defrecord MyFoo []
+  #_:clj-kondo/ignore IFoo
+  (dudex [_]))"
+                     config))))
