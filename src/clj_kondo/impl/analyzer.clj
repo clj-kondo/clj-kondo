@@ -1637,7 +1637,10 @@
                                                     :message "Prefer a symbol to refer to the array class")))
                 (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                             (assoc c :protocol-fn protocol-fn?))))
-            (let [methods (conj methods (:value protocol-method-name))]
+            (let [methods (conj methods (let [val (:value protocol-method-name)]
+                                          (if (qualified-symbol? val)
+                                            (symbol (name val))
+                                            val)))]
               (when (end? (second children))
                 (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
                                                                  {:protocol-ns protocol-ns
