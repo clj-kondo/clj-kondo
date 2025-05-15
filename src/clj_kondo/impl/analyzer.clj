@@ -1914,7 +1914,7 @@
 (defn analyze-format-string [ctx format-str-node format-str args]
   (let [;; we aren't interested in %% or %n
         format-str (str/replace format-str #"%[%n]" "")
-        percents (re-seq #"%[^\s%]+" format-str)
+        percents (re-seq #"%.[^\s%]*" format-str)
         [indexed unindexed]
         (reduce (fn [[indexed unindexed] percent]
                   (if-let [[_ pos] (re-find #"^%(\d+)\$" percent)]
