@@ -43,4 +43,5 @@ Examples:
 `%1$s foo
 `%1$s bar abc
 `%1$s baz`\" 'cmd)")))
-  (is (empty? (lint! "(format \"%%%s\" \"foo\")"))))
+  (is (empty? (lint! "(format \"%%%s\" \"foo\")")))
+  (is (empty? (lint! "(format \"% .1f\" 1.0)"))))
