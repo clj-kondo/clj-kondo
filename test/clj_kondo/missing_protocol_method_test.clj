@@ -145,3 +145,16 @@
       :bar)))"
                      '{:config-in-ns {repro {:linters {:missing-protocol-method {:level :off}
                                                        :unused-value {:level :off}}}}} ))))
+
+(deftest ignore-prefix-test
+  (is (empty? (lint! "
+
+(ns protocols)
+
+(defprotocol InlineValue (sqlize [_]))
+
+(require '[protocols :as p])
+
+(extend-protocol p/InlineValue
+  nil
+  (p/sqlize [_] \"NULL\"))"))))
