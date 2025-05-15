@@ -24,7 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2025.04.07
 
-- [#1292](https://github.com/clj-kondo/clj-kondo/issues/1292): NEW linter: `:missing-protocol-method`. See [docs](doc/linters.md)
+- [#1292](https://github.com/clj-kondo/clj-kondo/issues/1292): NEW linter: `:missing-protocol-method`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 - [#2512](https://github.com/clj-kondo/clj-kondo/issues/2512): support vars ending with `.`, e.g. `py.` according to clojure analyzer
 - [#2516](https://github.com/clj-kondo/clj-kondo/issues/2516): add new `--repro` flag to ignore home configuration
 - [#2493](https://github.com/clj-kondo/clj-kondo/issues/2493): reduce image size of native image
