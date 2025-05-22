@@ -949,6 +949,7 @@
                               ;; #2433
                               (:derived-location ignore))
                   (findings/reg-finding! ctx (assoc m
+                                                    :cljc (:cljc ignore)
                                                     :type :redundant-ignore
                                                     :message "Redundant ignore"
                                                     :lang lang
