@@ -2,7 +2,8 @@
   (:require [clj-kondo.test-utils :refer [lint! assert-submaps2]]
             [clojure.test :refer [deftest is testing]]))
 
-(def config {:linters {:redundant-ignore {:level :warning}}})
+(def config {:linters {:redundant-ignore {:level :warning}
+                       :unresolved-symbol {:level :error}}})
 
 (deftest redundant-ignore-test
   (assert-submaps2
@@ -32,3 +33,10 @@
   #_:clj-kondo/ignore IFoo
   (dudex [_]))"
                      config))))
+
+(deftest cljc-test
+  (is (empty? (lint! "#_{:clj-kondo/ignore #?(:cljs [:unresolved-symbol])}
+(defn foo []
+  [#?(:cljs z)]) ;; x is only used in cljs, but unused is ignored for clj, so no warning
+"
+                     config "--filename" "foo.cljc"))))

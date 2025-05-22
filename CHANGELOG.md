@@ -23,6 +23,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2524](https://github.com/clj-kondo/clj-kondo/issues/2524): support `:redundant-ignore` on `:missing-protocol-method`
 - [#2536](https://github.com/clj-kondo/clj-kondo/issues/2536): false positive with `format` and whitespace flag after percent
 - [#2535](https://github.com/clj-kondo/clj-kondo/issues/2535): false positive `:missing-protocol-method` when using alias in method
+- [#2534](https://github.com/clj-kondo/clj-kondo/issues/2534): make `:redunant-ignore` aware of `.cljc`
+
 
 ## 2025.04.07
 
