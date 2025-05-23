@@ -2288,12 +2288,13 @@
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
         (cond unresolved-ns
-              (do
+              (let [fn-name (-> full-fn-name name symbol)]
                 (namespace/reg-unresolved-namespace! ctx ns-name
                                                      (with-meta unresolved-ns
-                                                       (meta full-fn-name)))
+                                                       (assoc (meta full-fn-name)
+                                                              :name fn-name)))
                 (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
-                                                               (symbol (name full-fn-name))])
+                                                               fn-name])
                                   children))
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
