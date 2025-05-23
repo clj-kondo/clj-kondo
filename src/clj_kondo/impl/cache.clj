@@ -6,9 +6,12 @@
    [clojure.java.io :as io]
    [clojure.string :as str]
    [cognitect.transit :as transit])
-  (:import [java.io RandomAccessFile]))
+  (:import [java.io RandomAccessFile]
+           [java.util.concurrent.locks ReentrantLock]))
 
 (set! *warn-on-reflection* true)
+
+(def ^ReentrantLock thread-lock (ReentrantLock.))
 
 (defn built-in-cache-resource [lang ns-sym]
   (io/resource (str "clj_kondo/impl/cache/built_in/"
@@ -105,6 +108,12 @@
                      (recur (inc retry#)
                             (* 2 backoff#)))))))))))
 
+(defmacro with-thread-lock [& body]
+  `(do
+     (.lock thread-lock)
+     (try ~@body
+          (finally (.unlock thread-lock)))))
+
 (defn load-when-missing [idacs cache-dir lang ns-sym]
   (if (string? (-> ns-sym meta :raw-name))
     ;; if raw-name is a string, the source is JavaScript, there is no point in
@@ -189,8 +198,9 @@
 
 (defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir
-    (with-cache cache-dir 6
-      (sync-cache* idacs config-dir cache-dir))
+    (with-thread-lock
+      (with-cache cache-dir 6
+        (sync-cache* idacs config-dir cache-dir)))
     (sync-cache* idacs config-dir cache-dir)))
 
 ;;;; Scratch

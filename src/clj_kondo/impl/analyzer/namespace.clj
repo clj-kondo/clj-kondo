@@ -288,8 +288,9 @@
             (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
                   referred (if (and referred-all
                                     (identical? :clj base-lang))
-                             (let [referred (cache/with-cache (:cache-dir ctx) 6
-                                              (cache/from-cache-1 (:cache-dir ctx) :clj ns-name))]
+                             (let [referred (cache/with-thread-lock
+                                              (cache/with-cache (:cache-dir ctx) 6
+                                                (cache/from-cache-1 (:cache-dir ctx) :clj ns-name)))]
                                (keep (fn [[k v]]
                                        (when-not (:class v)
                                          k))

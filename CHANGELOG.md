@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2535](https://github.com/clj-kondo/clj-kondo/issues/2535): false positive `:missing-protocol-method` when using alias in method
 - [#2534](https://github.com/clj-kondo/clj-kondo/issues/2534): make `:redunant-ignore` aware of `.cljc`
 - [#2527](https://github.com/clj-kondo/clj-kondo/issues/2527): add test for using ns-group + config-in-ns for `:missing-protocol-method` linter
+- [#2218](https://github.com/clj-kondo/clj-kondo/issues/2218): use `ReentrantLock` to coordinate writes to cache directory within same process
 
 
 ## 2025.04.07
