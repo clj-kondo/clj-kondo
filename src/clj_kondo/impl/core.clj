@@ -384,7 +384,7 @@
       (.execute es
                 (bound-fn []
                   (analyze-task ctx deque dev?)
-                  (.countDown latch))))
+                (.countDown latch))))
     (.await latch)
     (.shutdown es)))
 
