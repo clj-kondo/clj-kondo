@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2536](https://github.com/clj-kondo/clj-kondo/issues/2536): false positive with `format` and whitespace flag after percent
 - [#2535](https://github.com/clj-kondo/clj-kondo/issues/2535): false positive `:missing-protocol-method` when using alias in method
 - [#2534](https://github.com/clj-kondo/clj-kondo/issues/2534): make `:redunant-ignore` aware of `.cljc`
+- [#2527](https://github.com/clj-kondo/clj-kondo/issues/2527): add test for using ns-group + config-in-ns for `:missing-protocol-method` linter
 
 
 ## 2025.04.07

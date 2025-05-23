@@ -146,6 +146,25 @@
                      '{:config-in-ns {repro {:linters {:missing-protocol-method {:level :off}
                                                        :unused-value {:level :off}}}}} ))))
 
+
+(deftest ns-groups-test
+  (is (empty? (lint! "(ns foo-test)
+
+(defprotocol IFoo
+  (foo [_])
+  (bar [_]))
+
+(defrecord Foo []
+  IFoo
+  (foo [_]
+    ;; trigger the :unused-value linter so we can verify :config-in-ns settings
+    (do
+      :foo
+      :bar)))"
+                     '{:ns-groups [{:pattern ".*-test$" :name test-namespaces}]
+                       :config-in-ns {test-namespaces {:linters {:missing-protocol-method {:level :off}
+                                                                 :unused-value {:level :off}}}}} ))))
+
 (deftest ignore-prefix-test
   (is (empty? (lint! "
 
