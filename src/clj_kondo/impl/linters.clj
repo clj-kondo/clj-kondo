@@ -904,7 +904,9 @@
         :row (:row m)
         :col (:col m)
         :end-row (:end-row m)
-        :end-col (:end-col m)}))))
+        :end-col (:end-col m)
+        :ns un
+        :name (:name m)}))))
 
 (defn lint-class-usage [ctx idacs]
   (when-let [jm (:java-member-definitions idacs)]
