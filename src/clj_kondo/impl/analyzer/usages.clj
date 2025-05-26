@@ -86,7 +86,8 @@
                                           resolved-ns)
            (namespace/reg-unresolved-namespace! ctx ns-name
                                                 (with-meta (symbol (namespace symbol-val))
-                                                  (meta expr)))))))))
+                                                  (assoc (meta expr)
+                                                         :name (-> symbol-val name symbol))))))))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
@@ -197,7 +198,8 @@
                                (namespace/reg-unresolved-namespace!
                                 ctx ns-name
                                 (with-meta n
-                                  (meta expr)))))
+                                  (assoc (meta expr)
+                                         :name (-> symbol-val name symbol))))))
                            (if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
                                (if (and (not= "." symbol-str)

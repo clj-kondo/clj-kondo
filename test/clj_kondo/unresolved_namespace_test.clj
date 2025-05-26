@@ -82,11 +82,11 @@ x/bar ;; <- no warning")))
      (analyze! "(clojure.string/includes? \"foo\" \"o\")")))
   (testing "not in a function call"
     (assert-submaps2
-     [{:row 1 :col 2
+     [{:row 1 :col 1
        :level :warning
        :ns 'clojure.java.classpath
        :name 'classpath
-       :message "Unresolved namespace clojure.string. Are you missing a require?"}]
+       :message "Unresolved namespace clojure.java.classpath. Are you missing a require?"}]
      (analyze! "clojure.java.classpath/classpath"))))
 
 (deftest excluded-implies-already-required
