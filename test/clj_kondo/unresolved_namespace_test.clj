@@ -1,6 +1,7 @@
 (ns clj-kondo.unresolved-namespace-test
   (:require
-   [clj-kondo.test-utils :refer [lint! assert-submaps2]]
+   [clj-kondo.core :as clj-kondo]
+   [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.java.io :as io]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -59,6 +60,34 @@ x/bar ;; <- no warning")))
     (lint! "(foo-db/dude)"
            '{:ns-groups [{:name db :pattern "-db$"}]
              :linters {:unresolved-namespace {:exclude [db]}}}))))
+
+(defn ^:private analyze!
+  ([input] (analyze! input nil))
+  ([input config]
+   (:findings
+    (with-in-str
+      input
+      (clj-kondo/run! (merge
+                       {:lint ["-"]}
+                       config))))))
+
+(deftest unresolved-namespace-extra-analysis-test
+  (testing "in a function call"
+    (assert-submaps2
+     [{:row 1 :col 2
+       :level :warning
+       :ns 'clojure.string
+       :name 'includes?
+       :message "Unresolved namespace clojure.string. Are you missing a require?"}]
+     (analyze! "(clojure.string/includes? \"foo\" \"o\")")))
+  (testing "not in a function call"
+    (assert-submaps2
+     [{:row 1 :col 1
+       :level :warning
+       :ns 'clojure.java.classpath
+       :name 'classpath
+       :message "Unresolved namespace clojure.java.classpath. Are you missing a require?"}]
+     (analyze! "clojure.java.classpath/classpath"))))
 
 (deftest excluded-implies-already-required
   (assert-submaps2
