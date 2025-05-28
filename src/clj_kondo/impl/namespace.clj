@@ -429,23 +429,22 @@
    name-sym ns-sym package class-name expr opts]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
-  (when true #_(java/analyze-class-usages? ctx)
-    (let [name-meta (meta name-sym)
-          loc (or (meta expr)
-                  (meta class-name))
-          name-sym-str (name name-sym)
-          static-method-name (when (and (not= name-sym-str (str class-name))
-                                        (not (str/includes? name-sym-str ".")))
-                               name-sym-str)]
-      (java/reg-class-usage! ctx
-                             (str package "." class-name)
-                             static-method-name
-                             (assoc loc
-                                    :call (:call opts)
-                                    :name-row (or (:row name-meta) (:row loc))
-                                    :name-col (or (:col name-meta) (:col loc))
-                                    :name-end-row (or (:end-row name-meta) (:end-row loc))
-                                    :name-end-col (or (:end-col name-meta) (:end-col loc)))))))
+  (let [name-meta (meta name-sym)
+        loc (or (meta expr)
+                (meta class-name))
+        name-sym-str (name name-sym)
+        static-method-name (when (and (not= name-sym-str (str class-name))
+                                      (not (str/includes? name-sym-str ".")))
+                             name-sym-str)]
+    (java/reg-class-usage! ctx
+                           (str package "." class-name)
+                           static-method-name
+                           (assoc loc
+                                  :call (:call opts)
+                                  :name-row (or (:row name-meta) (:row loc))
+                                  :name-col (or (:col name-meta) (:col loc))
+                                  :name-end-row (or (:end-row name-meta) (:end-row loc))
+                                  :name-end-col (or (:end-col name-meta) (:end-col loc))))))
 
 (defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]

@@ -275,6 +275,7 @@
   ([ctx class-name method-name loc+data]
    (reg-class-usage! ctx class-name method-name loc+data nil nil))
   ([ctx class-name method-name loc+data name-meta opts]
+   ;; TODO insert discouraged method here
    (let [constructor-expr (:constructor-expr ctx)
          loc+data* loc+data
          loc+data (merge loc+data (meta constructor-expr))
