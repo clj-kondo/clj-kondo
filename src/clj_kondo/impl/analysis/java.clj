@@ -275,29 +275,28 @@
   ([ctx class-name method-name loc+data]
    (reg-class-usage! ctx class-name method-name loc+data nil nil))
   ([ctx class-name method-name loc+data name-meta opts]
-   (when true #_(analyze-class-usages? ctx)
-     (let [constructor-expr (:constructor-expr ctx)
-           loc+data* loc+data
-           loc+data (merge loc+data (meta constructor-expr))
-           name-meta (or name-meta
-                         (when constructor-expr
-                           loc+data*))]
-       (swap! (:java-class-usages ctx)
-              conj #_#_#_update :java-class-usages conj
-              (merge {:class class-name
-                      :uri (:uri ctx)
-                      :filename (:filename ctx)
-                      :call (:call opts)
-                      :config (:config ctx)
-                      :lang (:lang ctx)}
-                     loc+data
-                     (when method-name
-                       {:method-name method-name})
-                     (when name-meta
-                       {:name-row (:row name-meta)
-                        :name-col (:col name-meta)
-                        :name-end-row (:end-row name-meta)
-                        :name-end-col (:end-col name-meta)})))))
+   (let [constructor-expr (:constructor-expr ctx)
+         loc+data* loc+data
+         loc+data (merge loc+data (meta constructor-expr))
+         name-meta (or name-meta
+                       (when constructor-expr
+                         loc+data*))]
+     (swap! (:java-class-usages ctx)
+            conj
+            (merge {:class class-name
+                    :uri (:uri ctx)
+                    :filename (:filename ctx)
+                    :call (:call opts)
+                    :config (:config ctx)
+                    :lang (:lang ctx)}
+                   loc+data
+                   (when method-name
+                     {:method-name method-name})
+                   (when name-meta
+                     {:name-row (:row name-meta)
+                      :name-col (:col name-meta)
+                      :name-end-row (:end-row name-meta)
+                      :name-end-col (:end-col name-meta)}))))
    nil))
 
 #_:clj-kondo/ignore
