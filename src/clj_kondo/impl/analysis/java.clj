@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -271,33 +272,49 @@
 (defn analyze-class-usages? [ctx]
   (identical? :clj (:lang ctx)))
 
+(defn lint-discouraged-method! [ctx class-name method-name loc+data]
+  (let [discouraged-meth-config
+        (get-in (:config ctx) [:linters :discouraged-java-method])]
+    (when-not (or (identical? :off (:level discouraged-meth-config))
+                  (empty? (dissoc discouraged-meth-config :level)))
+      (when-let [cfg (get-in discouraged-meth-config [(symbol class-name) (symbol method-name)])]
+        (findings/reg-finding! ctx
+                               (assoc loc+data
+                                      :filename (:filename ctx)
+                                      :level (or (:level cfg) (:level discouraged-meth-config))
+                                      :type :discouraged-java-method
+                                      :message (or (:message cfg)
+                                                   (str "Discouraged method: " method-name))))))))
+
 (defn reg-class-usage!
   ([ctx class-name method-name loc+data]
    (reg-class-usage! ctx class-name method-name loc+data nil nil))
   ([ctx class-name method-name loc+data name-meta opts]
-   (when true #_(analyze-class-usages? ctx)
-     (let [constructor-expr (:constructor-expr ctx)
-           loc+data* loc+data
-           loc+data (merge loc+data (meta constructor-expr))
-           name-meta (or name-meta
-                         (when constructor-expr
-                           loc+data*))]
-       (swap! (:java-class-usages ctx)
-              conj #_#_#_update :java-class-usages conj
-              (merge {:class class-name
-                      :uri (:uri ctx)
-                      :filename (:filename ctx)
-                      :call (:call opts)
-                      :config (:config ctx)
-                      :lang (:lang ctx)}
-                     loc+data
-                     (when method-name
-                       {:method-name method-name})
-                     (when name-meta
-                       {:name-row (:row name-meta)
-                        :name-col (:col name-meta)
-                        :name-end-row (:end-row name-meta)
-                        :name-end-col (:end-col name-meta)})))))
+   (let [constructor-expr (:constructor-expr ctx)
+         loc+data* loc+data
+         loc+data (merge loc+data (meta constructor-expr))
+         name-meta (or name-meta
+                       (when constructor-expr
+                         loc+data*))]
+     (when method-name
+       (lint-discouraged-method! ctx class-name method-name
+                                 loc+data))
+     (swap! (:java-class-usages ctx)
+            conj
+            (merge {:class class-name
+                    :uri (:uri ctx)
+                    :filename (:filename ctx)
+                    :call (:call opts)
+                    :config (:config ctx)
+                    :lang (:lang ctx)}
+                   loc+data
+                   (when method-name
+                     {:method-name method-name})
+                   (when name-meta
+                     {:name-row (:row name-meta)
+                      :name-col (:col name-meta)
+                      :name-end-row (:end-row name-meta)
+                      :name-end-col (:end-col name-meta)}))))
    nil))
 
 #_:clj-kondo/ignore

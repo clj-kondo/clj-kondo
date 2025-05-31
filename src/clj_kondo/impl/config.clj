@@ -139,6 +139,7 @@
               :discouraged-var {:level :warning}
               :discouraged-namespace {:level :warning}
               :discouraged-tag {:level :warning}
+              :discouraged-java-method {:level :warning}
               :redundant-call {:level :off
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}

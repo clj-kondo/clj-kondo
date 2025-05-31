@@ -27,9 +27,10 @@ configuration. For general configurations options, go [here](config.md).
         - [Bb.edn cyclic task dependency](#bbedn-cyclic-task-dependency)
         - [Bb.edn Unexpected key](#bbedn-unexpected-key)
         - [Bb.edn task docstring missing](#bbedn-task-docstring-missing)
-    - [Discouraged var](#discouraged-var)
+    - [Discouraged Java method](#discouraged-java-method)
     - [Discouraged namespace](#discouraged-namespace)
     - [Discouraged tag](#discouraged-tag)
+    - [Discouraged var](#discouraged-var)
     - [Do-template](#do-template)
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
@@ -534,42 +535,25 @@ Global :requires belong in the :tasks map.
 Docstring missing for task: a
 ```
 
-### Discouraged var
+### Discouraged Java method
 
-*Keyword*: `:discouraged-var`
+*Keyword*: `:discouraged-java-method`
 
-*Description:* warn on the usage of a var that is discouraged to be used.
+*Description:* warn on the usage of a discouraged Java method
 
-*Default level:* `:warning`
+*Default level:* `:warning` (can be overriden per method)
 
 *Config:*
 
 ``` clojure
-{:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
+{:linters  {:discouraged-java-method {java.lang.System {exit {:level :error
+                                                              :message "Don't use System/exit directly"}}}}}
 ```
-
-The matching namespace symbol may be given a group name using a regex
-pattern. The warning can be made undone on the namespace level (e.g. via
-`:config-in-ns` or ns metadata) by providing `:level` on the var level:
-
-``` clojure
-{:linters {:discouraged-var {clojure.core/read-string {:level :off}}}}
-```
-
-An additional `:arities #{1 2 :varargs}` configuration is allowed to limit the warning to certain arities of a var call.
 
 *Example trigger:*
 
-With the configuration above:
-
 ``` clojure
-(read-string "(+ 1 2 3)")
-```
-
-*Example message:*
-
-```
-Use edn/read-string instead of read-string
+(System/exit 1)
 ```
 
 ### Discouraged namespace
@@ -634,6 +618,44 @@ Given the above configuration:
 
 ```
 Prefer #java-time/instant
+```
+
+### Discouraged var
+
+*Keyword*: `:discouraged-var`
+
+*Description:* warn on the usage of a var that is discouraged to be used.
+
+*Default level:* `:warning`
+
+*Config:*
+
+``` clojure
+{:linters {:discouraged-var {clojure.core/read-string {:message "Use edn/read-string instead of read-string"}}}}
+```
+
+The matching namespace symbol may be given a group name using a regex
+pattern. The warning can be made undone on the namespace level (e.g. via
+`:config-in-ns` or ns metadata) by providing `:level` on the var level:
+
+``` clojure
+{:linters {:discouraged-var {clojure.core/read-string {:level :off}}}}
+```
+
+An additional `:arities #{1 2 :varargs}` configuration is allowed to limit the warning to certain arities of a var call.
+
+*Example trigger:*
+
+With the configuration above:
+
+``` clojure
+(read-string "(+ 1 2 3)")
+```
+
+*Example message:*
+
+```
+Use edn/read-string instead of read-string
 ```
 
 ### Do-template ###
