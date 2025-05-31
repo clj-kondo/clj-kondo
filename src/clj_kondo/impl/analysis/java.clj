@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
-   [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
