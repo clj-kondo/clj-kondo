@@ -61,11 +61,7 @@
                                         [clojure.core do]
                                         [cljs.core do]
                                         [clojure.core let]
-                                        [cljs.core let]
-                                        [clojure.core if]
-                                        [cljs.core if]
-                                        [clojure.core when]
-                                        [cljs.core when]])))]
+                                        [cljs.core let]])))]
      (when-not (and (:in-comment ctx)
                     (:skip-comments config))
        (let [len (count children)
