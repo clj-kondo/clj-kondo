@@ -24,12 +24,14 @@
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
         row-col-files (map #(select-keys % [:row :col :file])
                            linted)]
-    (assert-submaps
+    (assert-submaps2
      '({:row 5, :col 3, :file "corpus/inline_def.clj"}
        {:row 8, :col 3, :file "corpus/inline_def.clj"}
        {:row 10, :col 10, :file "corpus/inline_def.clj"}
        {:row 12, :col 16, :file "corpus/inline_def.clj"}
-       {:row 14, :col 18, :file "corpus/inline_def.clj"})
+       {:row 14, :col 18, :file "corpus/inline_def.clj"}
+       {:row 16, :col 8, :file "corpus/inline_def.clj"}
+       {:row 20, :col 29, :file "corpus/inline_def.clj"})
      row-col-files)
     (is (= #{"inline def"} (set (map :message linted)))))
   (doseq [lang [:clj :cljs]]
