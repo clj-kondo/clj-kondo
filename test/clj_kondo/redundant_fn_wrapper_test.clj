@@ -39,4 +39,8 @@
   (is (empty?
        (lint! "(declare x) (.then x #(:foo %))"
               {:linters {:redundant-fn-wrapper {:level :warning}}}
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(fn [x] #?(:cljs (identity x) :clj (identity (* x 2))))"
+              {:linters {:redundant-fn-wrapper {:level :warning}}}
+              "--filename" "foo.cljc"))))
