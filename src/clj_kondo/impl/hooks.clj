@@ -153,7 +153,9 @@
 (defn macroexpand [macro node bindings]
   (let [call (api/sexpr node)
         args (rest call)
-        res (apply macro call bindings args)
+        res (apply macro call (cond-> bindings
+                                (identical? :cljs (:lang utils/*ctx*))
+                                (assoc :ns (select-keys (:ns utils/*ctx*) [:name]))) args)
         coerced (api/coerce res)
         annotated (annotate coerced (meta node))
         lifted (meta/lift-meta-content2 utils/*ctx* annotated)]

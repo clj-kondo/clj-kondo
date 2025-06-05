@@ -207,7 +207,8 @@
                                                   prev-declared?)
                                          ns-sym))
                                      (when-let [qv (get (:referred-vars ns) var-sym)]
-                                       (:ns qv))
+                                       (when-not (:cljs-macro-self-require qv)
+                                         (:ns qv)))
                                      (let [core-ns (case lang
                                                      :clj 'clojure.core
                                                      :cljs 'cljs.core)]

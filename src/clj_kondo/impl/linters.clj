@@ -651,7 +651,8 @@
           (when-not
               (or (contains? used-referred-vars k)
                   (config/unused-referred-var-excluded config var-ns k)
-                  (contains? refer-all-nss var-ns))
+                  (contains? refer-all-nss var-ns)
+                  (:cljs-macro-self-require (meta k)))
             (let [filename (:filename v)
                   referred-ns (export-ns-sym var-ns)]
               (findings/reg-finding!
