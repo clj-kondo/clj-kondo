@@ -183,7 +183,7 @@
                                    (str "require with " child-k)))))
                   (recur
                    (nnext children)
-                   (cond (and (not cljs-macros-self-require?) (sequential? opt))
+                   (cond (sequential? opt)
                          (let [;; undo referred-all when using :only with :use
                                m (if (and use? (= :only child-k))
                                    (do (findings/reg-finding!
@@ -218,7 +218,9 @@
                            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
-                                           (meta %))) opt-expr-children))
+                                           (cond-> (meta %)
+                                             cljs-macros-self-require?
+                                             (assoc :cljs-macro-self-require true)))) opt-expr-children))
                          (= :all opt)
                          (assoc m :referred-all opt-expr)
                          :else m)))
@@ -303,10 +305,12 @@
                 :require-kw require-kw
                 :excluded excluded
                 :referred (concat (map (fn [r]
-                                         [r {:ns ns-name
-                                             :name r
-                                             :filename filename
-                                             :config config}])
+                                         [r (cond-> {:ns ns-name
+                                                     :name r
+                                                     :filename filename
+                                                     :config config}
+                                              (:cljs-macro-self-require (meta r))
+                                              (assoc :cljs-macro-self-require true))])
                                        referred)
                                   (map (fn [[original-name new-name]]
                                          [new-name {:ns ns-name
