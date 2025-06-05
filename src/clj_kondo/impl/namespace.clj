@@ -452,11 +452,11 @@
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
     (let [ns-groups (cons unresolved-ns (config/ns-groups config unresolved-ns filename))]
       (when-not
-       (or
-        (some #(config/unresolved-namespace-excluded config %)
-              ns-groups)
+          (or
+           (some #(config/unresolved-namespace-excluded config %)
+                 ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-        (config/unresolved-symbol-excluded config callstack :dummy))
+           (config/unresolved-symbol-excluded config callstack :dummy))
         (let [unresolved-ns (vary-meta unresolved-ns
                                        ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
                                        ;; we must include the filename here
@@ -636,15 +636,18 @@
                           (:clj-kondo.impl/generated expr))
               (let [arities (:arities cfg)
                     arity (:arity arity-info)]
-                (when (or (not arity-info)
-                          (not arities)
-                          (not arity)
-                          (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
-                                                   arity)
-                                                 (let [varargs-min-arity (:varargs-min-arity arity-info)]
-                                                   (when (and varargs-min-arity (>= arity varargs-min-arity))
-                                                     :varargs)))]
-                            (contains? (set arities) called-arity)))
+                (when (and (or (not arity-info)
+                               (not arities)
+                               (not arity)
+                               (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
+                                                        arity)
+                                                      (let [varargs-min-arity (:varargs-min-arity arity-info)]
+                                                        (when (and varargs-min-arity (>= arity varargs-min-arity))
+                                                          :varargs)))]
+                                 (contains? (set arities) called-arity)))
+                           (let [langs (:langs cfg)]
+                             (or (not langs)
+                                 (contains? (set langs) (:lang ctx)))))
                   (findings/reg-finding! ctx {:filename filename
                                               :level (:level cfg)
                                               :row row
