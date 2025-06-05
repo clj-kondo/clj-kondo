@@ -197,6 +197,7 @@
                                    :var-same-name-except-case
                                    (str "Var name " var-sym " differs only in case from: " (str/join ", " clashing-vars))))))
                   ;; declare is idempotent
+                  ;; (prn (:callstack ctx))
                   (when (and top-level? hard-def?)
                     (when-not (= 'clojure.core/definterface (:defined-by metadata))
                       (when-let [redefined-ns

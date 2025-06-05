@@ -466,8 +466,6 @@
             (partition 2 children))))
 
 (defn analyze-fn-body [ctx body]
-  #_(prn :ana-fn-body)
-  #_(prn (:analyzed-arity body))
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [:arg-bindings
@@ -1024,17 +1022,17 @@
         parsed-bodies
         (let [ctx (-> ctx
                       (assoc :fn-body-count (count bodies))
-                      (assoc :fn-parent-loc (meta expr)))]
-          (map #(analyze-fn-body
-                 (if ?fn-name
-                   (-> ctx
-                       (update :bindings conj [?fn-name
-                                               (assoc (meta ?name-expr)
-                                                      :name ?fn-name
-                                                      :filename filename)])
-                       (update :arities assoc ?fn-name
-                               arity))
-                   ctx) %) bodies))
+                      (assoc :fn-parent-loc (meta expr)))
+              ctx (if ?fn-name
+                    (-> ctx
+                        (update :bindings conj [?fn-name
+                                                (assoc (meta ?name-expr)
+                                                       :name ?fn-name
+                                                       :filename filename)])
+                        (update :arities assoc ?fn-name
+                                arity))
+                    ctx)]
+          (map #(analyze-fn-body ctx %) bodies))
         arities
         (when-not (some-> ctx :def-meta :macro)
           (extract-arity-info ctx parsed-bodies))
@@ -1393,7 +1391,11 @@
       {:ret ret})))
 
 (defn lint-inline-def! [ctx expr]
-  (when (:in-def ctx)
+  (when (or (:in-def ctx)
+            (and (not (:top-level? ctx))
+                 (let [[parent-ns parent-fn] (second (:callstack ctx))]
+                   (and (utils/one-of parent-ns [clojure.core cljs.core])
+                        (utils/one-of parent-fn [fn defmethod])))))
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :inline-def "inline def"))))
