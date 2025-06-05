@@ -500,11 +500,8 @@ my-ns/special-map \"
 
 (deftest issue-2529-ns-in-macroexpand
   (assert-submaps2
-   [{:file "corpus/issue-2529/src/foobar.clj",
-     :row 7,
-     :col 7,
-     :level :warning,
-     :message "Discouraged var: clojure.core/read-string"}]
-   (lint! (fs/file "corpus" "issue-2529" "src" "foobar.clj")
+   [{:file "corpus/issue-2529/src/foobar.cljc", :row 10, :col 1, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"}
+    {:file "corpus/issue-2529/src/foobar.cljc", :row 10, :col 1, :level :error, :message "cljs.core/inc is called with 3 args but expects 1"}]
+   (lint! (fs/file "corpus" "issue-2529" "src" "foobar.cljc")
           "--config" (slurp (fs/file "corpus" "issue-2529" ".clj-kondo" "config.edn"))
           "--config-dir" (fs/file "corpus" "issue-2529" ".clj-kondo"))))
