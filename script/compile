@@ -20,7 +20,6 @@ args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
        "-H:+ReportExceptionStackTraces"
        "--verbose"
        "--no-fallback"
-       "-J-Xmx3g"
        "-march=compatibility"
        "-O1"
        "$@")
