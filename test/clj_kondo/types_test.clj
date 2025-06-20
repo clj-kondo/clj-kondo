@@ -744,6 +744,10 @@
 (let [^String z \"z\"]
   (clojure.string/replace \"x\" \"y\" z))
 "
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(require '[clojure.string :as str]) (defn replace-str [_foo bar] bar)
+(str/replace \"foo\" #\"bar\" (partial replace-str \"dude\"))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
