@@ -506,7 +506,7 @@
                               :ret :ifn}}}
    ;; 2614
    'partial {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
-                                 :ret :fn}}}
+                                 :ret :ifn}}}
    ;; 2647 'sequence
    ;; 2672
    'every? {:arities {2 {:args [:ifn :seqable]
