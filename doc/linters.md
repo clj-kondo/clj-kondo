@@ -58,6 +58,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Loop without recur](#loop-without-recur)
     - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
+    - [Locking: suspicious lock](#locking-suspicious-lock)
     - [Main without gen-class](#main-without-gen-class)
     - [Minus one](#minus-one)
     - [Misplaced docstring](#misplaced-docstring)
