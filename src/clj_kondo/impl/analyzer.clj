@@ -2232,14 +2232,14 @@
   (analyze-children (assoc ctx :private-access? true) children))
 
 (defn- analyze-locking [ctx expr]
-  (let [[obj & body] (rest (:children expr))]
-    (let [analyzed (analyze-expression** ctx obj)
-          t (:tag analyzed)
-          _ (def a analyzed)
-          only-object? (zero? (count body))
+  (let [args (:arg-types ctx)
+        children (rest (:children expr))
+        ret (analyze-children ctx children false)
+        t (:tag (first @args))
+        obj (first children)]
+    (let [only-object? (= 1 (count children))
           no-symbol? (not (utils/symbol-from-token obj))
           interned-object? (one-of t [:keyword :string :boolean])]
-      (def t t)
       (when (or
              only-object?
              no-symbol?
@@ -2254,7 +2254,7 @@
                                                               "use of interned object considered unsafe"
                                                               no-symbol?
                                                               "object is local to locking scope"))))))
-    (analyze-children ctx body false)))
+    ret))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
