@@ -2235,7 +2235,7 @@
   (let [args (:arg-types ctx)
         children (rest (:children expr))
         ret (analyze-children ctx children false)
-        t (:tag (first @args))
+        t (:tag (some-> args deref first))
         obj (first children)]
     (let [only-object? (= 1 (count children))
           no-symbol? (not (utils/symbol-from-token obj))
