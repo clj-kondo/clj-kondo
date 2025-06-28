@@ -13,7 +13,7 @@
                       :row 1,
                       :col 10,
                       :level :warning,
-                      :message "Suspicious lock object: use of interned object considered unsafe"})
+                      :message "Suspicious lock object: use of interned object"})
                    (lint! "(locking ::dude (+ 1 2 3))" {:linters {:type-mismatch {:level :warning}}}))
   (assert-submaps2 '({:file "<stdin>",
                       :row 1,

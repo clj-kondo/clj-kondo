@@ -2251,7 +2251,7 @@
                                                         (cond only-object?
                                                               "no body provided"
                                                               interned-object?
-                                                              "use of interned object considered unsafe"
+                                                              "use of interned object"
                                                               no-symbol?
                                                               "object is local to locking scope"))))))
     ret))
