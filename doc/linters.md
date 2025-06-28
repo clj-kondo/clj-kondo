@@ -58,6 +58,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Loop without recur](#loop-without-recur)
     - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
+    - [Locking: suspicious lock](#locking-suspicious-lock)
     - [Main without gen-class](#main-without-gen-class)
     - [Minus one](#minus-one)
     - [Misplaced docstring](#misplaced-docstring)
@@ -1103,6 +1104,30 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 *Example trigger:* `(let [{:keys [:a]} {:a 1}] a)`.
 
 *Example message:* `Keyword binding should be a symbol: :a`
+
+### Locking: suspicious lock
+
+**Keyword:** `:locking-suspicious-lock`
+
+*Description:* warn on suspicious lock in `locking` macro:
+- With a single argument, it's likely that the lock object is simply omitted by mistake.
+- With lock objects that can be interned like keywords, strings, booleans and
+  numbers, the risk is that the lock is held in multiple places, but this
+  behavior depends on whether the value is interned by the runtime
+- With an argument that is not a symbol, it's likely that the lock object is
+  local to the `locking` expression and not shared between threads
+
+*Default level:* `:warning`
+
+*Example trigger:*
+- `(locking (+ 1 2 3))`
+- `(locking ::foo ...)`
+- `(locking (Object.) ...)`
+
+*Example message:*
+- `Suspicious lock object: no body provided`
+- `Suspicious lock object: use of interned object`
+- `Suspicious lock object: object is local to locking scope`
 
 ### Main without gen-class
 

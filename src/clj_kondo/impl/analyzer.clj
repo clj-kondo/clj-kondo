@@ -2231,6 +2231,31 @@
     (findings/reg-finding! ctx (assoc (meta expr) :filename (:filename ctx) :message "Condition always true" :type :condition-always-true)))
   (analyze-children (assoc ctx :private-access? true) children))
 
+(defn- analyze-locking [ctx expr]
+  (let [args (:arg-types ctx)
+        children (rest (:children expr))
+        ret (analyze-children ctx children false)
+        t (:tag (some-> args deref first))
+        obj (first children)]
+    (let [only-object? (= 1 (count children))
+          no-symbol? (not (utils/symbol-from-token obj))
+          interned-object? (one-of t [:keyword :string :boolean])]
+      (when (or
+             only-object?
+             no-symbol?
+             interned-object?)
+        (findings/reg-finding! ctx (assoc (meta obj)
+                                          :filename (:filename ctx)
+                                          :type :locking-suspicious-lock
+                                          :message (str "Suspicious lock object: "
+                                                        (cond only-object?
+                                                              "no body provided"
+                                                              interned-object?
+                                                              "use of interned object"
+                                                              no-symbol?
+                                                              "object is local to locking scope"))))))
+    ret))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2604,6 +2629,8 @@
                             (analyze-defn ctx expr defined-by defined-by->lint-as)
                             ([clojure.template do-template])
                             (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
+                            ([clojure.core locking])
+                            (analyze-locking ctx expr)
                             ([datahike.api q]
                              [datascript.core q]
                              [datomic.api q]
