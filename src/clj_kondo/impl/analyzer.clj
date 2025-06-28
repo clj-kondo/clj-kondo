@@ -2231,6 +2231,31 @@
     (findings/reg-finding! ctx (assoc (meta expr) :filename (:filename ctx) :message "Condition always true" :type :condition-always-true)))
   (analyze-children (assoc ctx :private-access? true) children))
 
+(defn- analyze-locking [ctx expr]
+  (let [[obj & body] (rest (:children expr))]
+    (let [analyzed (analyze-expression** ctx obj)
+          t (:tag analyzed)
+          _ (def a analyzed)
+          only-object? (zero? (count body))
+          no-symbol? (not (utils/symbol-from-token obj))
+          interned-object? (one-of t [:keyword :string :boolean])]
+      (def t t)
+      (when (or
+             only-object?
+             no-symbol?
+             interned-object?)
+        (findings/reg-finding! ctx (assoc (meta obj)
+                                          :filename (:filename ctx)
+                                          :type :locking-suspicious-lock
+                                          :message (str "Suspicious lock object: "
+                                                        (cond only-object?
+                                                              "no body provided"
+                                                              interned-object?
+                                                              "use of interned object considered unsafe"
+                                                              no-symbol?
+                                                              "object is local to locking scope"))))))
+    (analyze-children ctx body false)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2604,6 +2629,8 @@
                             (analyze-defn ctx expr defined-by defined-by->lint-as)
                             ([clojure.template do-template])
                             (analyze-expression** ctx (macroexpand/expand-do-template ctx expr))
+                            ([clojure.core locking])
+                            (analyze-locking ctx expr)
                             ([datahike.api q]
                              [datascript.core q]
                              [datomic.api q]
