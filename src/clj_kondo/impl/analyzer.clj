@@ -2239,7 +2239,9 @@
         obj (first children)]
     (let [only-object? (= 1 (count children))
           no-symbol? (not (utils/symbol-from-token obj))
-          interned-object? (one-of t [:keyword :string :boolean])]
+          interned-object? (and t
+                                (or (one-of t [:keyword :string :boolean])
+                                    (types/match? t :number)))]
       (when (or
              only-object?
              no-symbol?

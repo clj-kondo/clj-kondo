@@ -19,5 +19,11 @@
                       :row 1,
                       :col 10,
                       :level :warning,
+                      :message "Suspicious lock object: use of interned object"})
+                   (lint! "(locking 1 (+ 1 2 3))" {:linters {:type-mismatch {:level :warning}}}))
+  (assert-submaps2 '({:file "<stdin>",
+                      :row 1,
+                      :col 10,
+                      :level :warning,
                       :message "Suspicious lock object: object is local to locking scope"})
                    (lint! "(locking (Object.) (+ 1 2 3))")))
