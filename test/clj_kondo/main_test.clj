@@ -1290,6 +1290,41 @@ foo/foo ;; this does use the private var
                       (s/fn my-identity :- s/Any
                         [x :- s/Any] x)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
+(deftest schemaS-test
+  ;; FIXME:
+  ;; '({:col 1,
+  ;;    :file "<stdin>",
+  ;;    :level :error,
+  ;;    :message "yyyy/method1 is called with 3 args but expects 4 or 7",
+  ;;    :row 26})
+  (is (empty?
+       (lint! "(ns yyyy (:require [schema.core :as s]))
+(s/defprotocol MyProtocolWithSchema
+  \"Docstring\"
+  :extend-via-metadata true
+  (^:always-validate method1 :- s/Int
+    [this a :- s/Bool] :- s/Int
+    [this a :- s/Any, b :- s/Str]
+    \"Method doc2\")
+  (^:never-validate method2
+    [this] :- s/Int
+    \"Method doc2\"))
+
+(s/defrecord RecordSchema []
+  MyProtocolWithSchema
+  (method1
+    [_ a b]
+    (let [_ [a b]]
+      ;; \"doing cool stuff\"
+      1))
+  (method2
+    [_ a b]
+    (let [_ [a b]]
+      ;; \"doing cool stuff\"
+      2)))
+(def inst (.RecordSchema))
+(method1 inst :a \"test\")
+(method2 inst)"))))
 
 (deftest in-ns-test
   (assert-submaps
