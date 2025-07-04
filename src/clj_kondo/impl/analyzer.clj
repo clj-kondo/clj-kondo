@@ -2585,6 +2585,8 @@
                             (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
                             [schema.core defrecord]
                             (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
+                            [schema.core defprotocol]
+                            (analyze-schema ctx 'defprotocol expr 'schema.core/defprotocol defined-by->lint-as)
                             ([clojure.test deftest]
                              [clojure.test deftest-]
                              [cljs.test deftest])
