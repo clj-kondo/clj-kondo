@@ -10,7 +10,7 @@
     [this a :- s/Any, b :- s/Str]
     "Method doc2")
   (^:never-validate method2 :- s/Int
-    [this]
+    [this a :- s/Str]
     "Method doc2"))
 
 (s/defrecord RecordSchema [ab]
@@ -21,7 +21,7 @@
       ;; "doing cool stuff"
       ab))
   (method2
-    [_]
+    [_ a]
       ;; "doing cool stuff"
       2))
 
@@ -30,4 +30,4 @@
 (map->RecordSchema {:ab 1} 2)
 
 (method1 (->RecordSchema 1) :a "test")
-(method2 (map->RecordSchema {:ab 1}))
+(method2 (map->RecordSchema {:ab 1}) 'a)

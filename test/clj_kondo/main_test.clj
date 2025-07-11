@@ -1245,6 +1245,59 @@ foo/foo ;; this does use the private var
       :col 1,
       :level :error,
       :message "#'schema.defs/verify-signature is private"}
+     ;; SHOULD BE VALID
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 5,
+     ;;  :col 16,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: MyProtocolWithSchema"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 8,
+     ;;  :col 22,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: method1"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 9,
+     ;;  :col 6,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: this"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 9,
+     ;;  :col 11,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: a"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 10,
+     ;;  :col 23,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: b"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 12,
+     ;;  :col 21,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: method2"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 29,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/->RecordSchema is called with 2 args but expects 1"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 30,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/map->RecordSchema is called with 2 args but expects 1"}
+     ;; FIXME: expects 3 (this, a, b)
+     {:file "corpus/schema/defprotocol.clj",
+      :row 32,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/method1 is called with 3 args but expects 4 or 7"}
+     ;; FIXME: expects 2 (this and a)
+     {:file "corpus/schema/defprotocol.clj",
+      :row 33,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/method2 is called with 2 args but expects 4"}
      {:file "corpus/schema/defs.clj",
       :row 10,
       :col 1,
