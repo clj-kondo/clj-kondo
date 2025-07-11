@@ -1245,6 +1245,59 @@ foo/foo ;; this does use the private var
       :col 1,
       :level :error,
       :message "#'schema.defs/verify-signature is private"}
+     ;; SHOULD BE VALID
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 5,
+     ;;  :col 16,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: MyProtocolWithSchema"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 8,
+     ;;  :col 22,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: method1"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 9,
+     ;;  :col 6,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: this"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 9,
+     ;;  :col 11,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: a"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 10,
+     ;;  :col 23,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: b"}
+     ;; {:file "corpus/schema/defprotocol.clj",
+     ;;  :row 12,
+     ;;  :col 21,
+     ;;  :level :error,
+     ;;  :message "Unresolved symbol: method2"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 29,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/->RecordSchema is called with 2 args but expects 1"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 30,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/map->RecordSchema is called with 2 args but expects 1"}
+     ;; FIXME: expects 3 (this, a, b)
+     {:file "corpus/schema/defprotocol.clj",
+      :row 32,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/method1 is called with 3 args but expects 4 or 7"}
+     ;; FIXME: expects 2 (this and a)
+     {:file "corpus/schema/defprotocol.clj",
+      :row 33,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/method2 is called with 2 args but expects 4"}
      {:file "corpus/schema/defs.clj",
       :row 10,
       :col 1,
@@ -1290,6 +1343,41 @@ foo/foo ;; this does use the private var
                       (s/fn my-identity :- s/Any
                         [x :- s/Any] x)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
+(deftest schemaS-test
+  ;; FIXME:
+  ;; '({:col 1,
+  ;;    :file "<stdin>",
+  ;;    :level :error,
+  ;;    :message "yyyy/method1 is called with 3 args but expects 4 or 7",
+  ;;    :row 26})
+  (is (empty?
+       (lint! "(ns yyyy (:require [schema.core :as s]))
+(s/defprotocol MyProtocolWithSchema
+  \"Docstring\"
+  :extend-via-metadata true
+  (^:always-validate method1 :- s/Int
+    [this a :- s/Bool] :- s/Int
+    [this a :- s/Any, b :- s/Str]
+    \"Method doc2\")
+  (^:never-validate method2
+    [this] :- s/Int
+    \"Method doc2\"))
+
+(s/defrecord RecordSchema []
+  MyProtocolWithSchema
+  (method1
+    [_ a b]
+    (let [_ [a b]]
+      ;; \"doing cool stuff\"
+      1))
+  (method2
+    [_ a b]
+    (let [_ [a b]]
+      ;; \"doing cool stuff\"
+      2)))
+(def inst (.RecordSchema))
+(method1 inst :a \"test\")
+(method2 inst)"))))
 
 (deftest in-ns-test
   (assert-submaps

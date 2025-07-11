@@ -59,7 +59,7 @@
           (let [expr fst-child]
             (cond
               past-arg-schemas
-              (if (and (= 'defrecord fn-sym)
+              (if (and (#{'defprotocol 'defrecord} fn-sym)
                        (hooks/map-node? expr))
                 (-> res
                     (update :new-children (fn [children]

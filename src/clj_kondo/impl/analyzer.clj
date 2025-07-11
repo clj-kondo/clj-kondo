@@ -978,7 +978,7 @@
                     bodies arities)]
     (cond->
         ;; we return bodies so we don't have to run fn-arity twice over the bodies
-        {:bodies bodies}
+     {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1302,6 +1302,7 @@
                         children))))
 
 (declare analyze-defrecord)
+(declare analyze-defprotocol)
 
 (defn analyze-schema [ctx fn-sym expr defined-by defined-by->lint-as]
   (let [{:keys [:expr :schemas]}
@@ -1315,7 +1316,9 @@
        defn (analyze-defn ctx expr defined-by defined-by->lint-as)
        defmethod (analyze-defmethod ctx expr)
        defrecord
-       (analyze-defrecord ctx expr defined-by defined-by->lint-as))
+       (analyze-defrecord ctx expr defined-by defined-by->lint-as)
+       defprotocol
+       (analyze-defprotocol ctx expr defined-by defined-by->lint-as))
      (analyze-children ctx schemas))))
 
 (defn arity-match? [fixed-arities varargs-min-arity arg-count]
@@ -2328,9 +2331,9 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                            [[ns n]
-                             (config/lint-as config
-                                             [resolved-namespace resolved-name])]
+                         [[ns n]
+                          (config/lint-as config
+                                          [resolved-namespace resolved-name])]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2585,6 +2588,8 @@
                             (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
                             [schema.core defrecord]
                             (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
+                            [schema.core defprotocol]
+                            (analyze-schema ctx 'defprotocol expr 'schema.core/defprotocol defined-by->lint-as)
                             ([clojure.test deftest]
                              [clojure.test deftest-]
                              [cljs.test deftest])
@@ -2619,7 +2624,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                             [cljs.core.async alt!] [cljs.core.async alt!!])
+                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
