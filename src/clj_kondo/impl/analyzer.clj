@@ -941,6 +941,35 @@
        ctx
        (node->line (:filename ctx) expr :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
+(defn condition-always-true-linter
+  [ctx expr]
+  (findings/reg-finding! ctx (assoc (meta expr)
+                                    :filename (:filename ctx)
+                                    :message "Condition always true"
+                                    :type :condition-always-true)))
+
+(defn analyze-condition
+  [ctx condition]
+  (let [ctx (update ctx :arg-types #(or % (atom [])))
+        condition (assoc condition :condition true)
+        analyzed (doall (analyze-expression** ctx condition))
+        t (tag condition)
+        loc (select-keys (if (identical? :quote t)
+                           (meta (first (:children condition)))
+                           (meta condition))
+                         [:row :col :end-row :end-col])]
+    (when (not (linter-disabled? ctx :condition-always-true))
+      (when-let [arg-type (some->> @(:arg-types ctx)
+                                   (filter #(= loc (select-keys % [:row :col :end-row :end-col])))
+                                   (first)
+                                   :tag
+                                   types/keyword)]
+        (when (not (or (types/nilable? arg-type)
+                       (types/match? arg-type :nil)
+                       (types/match? arg-type :boolean)))
+          (condition-always-true-linter ctx condition))))
+    analyzed))
+
 (defn analyze-conditional-let [ctx call expr]
   (let [children (next (:children expr))
         bv (first children)
@@ -955,8 +984,7 @@
                                                         :analyzed))]
         (lint-two-forms-binding-vector! ctx call bv)
         (concat (:analyzed bindings)
-                (analyze-expression** (update ctx :callstack conj [:vector])
-                                      (assoc condition :condition true))
+                (analyze-condition (update ctx :callstack conj [:vector]) condition)
                 (if if?
                   ;; in the case of if, the binding is only valid in the first expression
                   (concat
@@ -1777,16 +1805,14 @@
                    linter
                    msg)))
     (let [[condition & clauses] args]
-      (when condition
-        (analyze-expression** ctx (assoc condition :condition true)))
+      (analyze-condition ctx condition)
       (analyze-children ctx clauses false))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"
   [ctx expr]
   (let [[condition & clauses] (rest (:children expr))]
-    (when condition
-      (analyze-expression** ctx (assoc condition :condition true)))
+    (analyze-condition ctx condition)
     (analyze-children ctx clauses false)))
 
 (defn analyze-constructor
@@ -1842,12 +1868,12 @@
 
 (defn analyze-when [ctx expr]
   (let [children (next (:children expr))
-        condition (assoc (first children) :condition true)
+        condition (first children)
         body (next children)]
-    (dorun (analyze-expression**
-            ;; avoid redundant do check for condition
-            (update ctx :callstack conj nil)
-            condition))
+    (analyze-condition
+      ;; avoid redundant do check for condition
+      (update ctx :callstack conj nil)
+      condition)
     (if-not (seq body)
       (findings/reg-finding!
        ctx
@@ -2228,7 +2254,7 @@
 
 (defn- analyze-var [ctx expr children]
   (when (:condition expr)
-    (findings/reg-finding! ctx (assoc (meta expr) :filename (:filename ctx) :message "Condition always true" :type :condition-always-true)))
+    (condition-always-true-linter ctx expr))
   (analyze-children (assoc ctx :private-access? true) children))
 
 (defn- analyze-locking [ctx expr]
