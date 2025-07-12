@@ -99,7 +99,11 @@
 
 (deftest constants-test
   (assert-submaps2
-   []
+   [{:file "<stdin>"
+     :row 3
+     :col 16
+     :level :warning
+     :message "Condition always true"}]
    (lint! "(let [a 4 b nil]
              (cond-> {}
                a (assoc :a a)
