@@ -189,7 +189,7 @@
    ;; 604 'gensym
    ;; 614 'keyword
    'keyword {:arities {1 {:args [#{:symbol :string :keyword}]
-                          :ret #{:nil :keyword}}
+                          :ret :keyword}
                        2 {:args [:nilable/string :string]
                           :ret :keyword}}}
    ;; 625 'find-keyword
