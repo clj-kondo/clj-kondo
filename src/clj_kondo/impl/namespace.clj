@@ -399,7 +399,7 @@
              ;; before removing this, check script/diff
              (:unresolved-symbol-disabled? sym-info)
              (config/unresolved-var-excluded config resolved-ns sym)
-             (let [symbol-name (name sym)]
+             (when-let [symbol-name (and (symbol? sym) (name sym))]
                (or (str/starts-with? symbol-name ".")
                    (class-name? symbol-name))))
     (swap! (:namespaces ctx) update-in

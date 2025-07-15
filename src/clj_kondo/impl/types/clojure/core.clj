@@ -189,7 +189,7 @@
    ;; 604 'gensym
    ;; 614 'keyword
    'keyword {:arities {1 {:args [#{:symbol :string :keyword}]
-                          :ret :keyword}
+                          :ret #{:nil :keyword}}
                        2 {:args [:nilable/string :string]
                           :ret :keyword}}}
    ;; 625 'find-keyword
@@ -388,15 +388,15 @@
    ;; 1555
    ;; NOTE: keys and vals can be called on seqs of MapEntry's, hence not :associative.
    'keys {:arities {1 {:args [:seqable]
-                       :ret :seq}}}
+                       :ret #{:nil :seq}}}}
    ;; 1561
    'vals {:arities {1 {:args [:seqable]
-                       :ret :seq}}}
+                       :ret #{:nil :seq}}}}
    ;; 1567 'key
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                       :req :seq}}}
+                       :req #{:nil :seq}}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret #{:nil :string}}}}
