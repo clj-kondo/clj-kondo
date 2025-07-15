@@ -58,17 +58,34 @@
                past-arg-schemas false]
           (let [expr fst-child]
             (cond
+              (not fst-child)
+              res
+              ;; Handle defprotocol case - simpler logic that only processes :list nodes
+              (and (= 'defprotocol fn-sym)
+                   (hooks/list-node? expr))
+              (let [new-child (remove-schemas-from-children expr)]
+                (recur rest-children
+                       index
+                       (-> res
+                           (update :new-children conj (:expr new-child))
+                           (update :schemas into (:schemas new-child)))
+                       past-arg-schemas))
+              ;; Handle defprotocol case - other nodes just get added as-is
+              (and (= 'defprotocol fn-sym)
+                   ((complement hooks/list-node?) expr))
+              (recur rest-children
+                     index
+                     (update res :new-children conj expr)
+                     past-arg-schemas)
+              ;; Original logic for non-defprotocol cases
               past-arg-schemas
-              (if (and (= 'defrecord fn-sym)
-                       (hooks/map-node? expr))
+              (if (and (= 'defrecord fn-sym) (hooks/map-node? expr))
                 (-> res
                     (update :new-children (fn [children]
                                             (into children rest-children)))
                     (update :schemas conj fst-child))
                 (update res :new-children (fn [children]
                                             (into (conj children fst-child) rest-children))))
-              (not fst-child)
-              res
               (has-schema-node? expr)
               (recur (next rest-children)
                      (inc index)

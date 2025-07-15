@@ -1245,6 +1245,21 @@ foo/foo ;; this does use the private var
       :col 1,
       :level :error,
       :message "#'schema.defs/verify-signature is private"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 37,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/->RecordSchema is called with 2 args but expects 1"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 38,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/map->RecordSchema is called with 2 args but expects 1"}
+     {:file "corpus/schema/defprotocol.clj",
+      :row 39,
+      :col 1,
+      :level :error,
+      :message "schema.defprotocol/->RecordSchema is called with 0 args but expects 1"}
      {:file "corpus/schema/defs.clj",
       :row 10,
       :col 1,
@@ -1290,6 +1305,26 @@ foo/foo ;; this does use the private var
                       (s/fn my-identity :- s/Any
                         [x :- s/Any] x)"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest defprotocol-schema-test
+  (is (assert-submaps2
+       '({:col 1,
+          :file "corpus/schema/defprotocol.clj",
+          :level :error,
+          :message "schema.defprotocol/->RecordSchema is called with 2 args but expects 1",
+          :row 37}
+         {:col 1,
+          :file "corpus/schema/defprotocol.clj",
+          :level :error,
+          :message
+          "schema.defprotocol/map->RecordSchema is called with 2 args but expects 1",
+          :row 38}
+         {:col 1,
+          :file "corpus/schema/defprotocol.clj",
+          :level :error,
+          :message "schema.defprotocol/->RecordSchema is called with 0 args but expects 1",
+          :row 39})
+       (lint!(io/file "corpus" "schema" "defprotocol.clj")))))
 
 (deftest in-ns-test
   (assert-submaps

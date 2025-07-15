@@ -1302,6 +1302,7 @@
                         children))))
 
 (declare analyze-defrecord)
+(declare analyze-defprotocol)
 
 (defn analyze-schema [ctx fn-sym expr defined-by defined-by->lint-as]
   (let [{:keys [:expr :schemas]}
@@ -1315,7 +1316,9 @@
        defn (analyze-defn ctx expr defined-by defined-by->lint-as)
        defmethod (analyze-defmethod ctx expr)
        defrecord
-       (analyze-defrecord ctx expr defined-by defined-by->lint-as))
+       (analyze-defrecord ctx expr defined-by defined-by->lint-as)
+       defprotocol
+       (analyze-defprotocol ctx expr defined-by defined-by->lint-as))
      (analyze-children ctx schemas))))
 
 (defn arity-match? [fixed-arities varargs-min-arity arg-count]
