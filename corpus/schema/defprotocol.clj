@@ -13,7 +13,6 @@
    [this a :- s/Str]
    "Method doc2"))
 
-;; TODO: support defrecord with schemas
 (s/defrecord RecordSchema [ab]
   "Docstring"
   MyProtocolWithSchema
