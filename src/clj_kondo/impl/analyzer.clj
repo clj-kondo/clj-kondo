@@ -959,15 +959,18 @@
                            (meta condition))
                          [:row :col :end-row :end-col])]
     (when (not (linter-disabled? ctx :condition-always-true))
-      (when-let [arg-type (some->> @(:arg-types ctx)
-                                   (filter #(= loc (select-keys % [:row :col :end-row :end-col])))
-                                   (first)
-                                   :tag
-                                   types/keyword)]
-        (when (not (or (types/nilable? arg-type)
-                       (types/match? arg-type :nil)
-                       (types/match? arg-type :boolean)))
-          (condition-always-true-linter ctx condition))))
+      (let [allow-keyword (-> ctx :config :linters :condition-always-true :allow-keywords)]
+        (when-let [arg-type (some->> @(:arg-types ctx)
+                                     (filter #(= loc (select-keys % [:row :col :end-row :end-col])))
+                                     (first)
+                                     :tag
+                                     types/keyword)]
+          (when (not (or (types/nilable? arg-type)
+                         (types/match? arg-type :nil)
+                         (types/match? arg-type :boolean)
+                         (when allow-keyword
+                           (types/match? arg-type :keyword))))
+            (condition-always-true-linter ctx condition)))))
     analyzed))
 
 (defn analyze-conditional-let [ctx call expr]

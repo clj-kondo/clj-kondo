@@ -258,14 +258,41 @@ enabling this linter, you can prepend the `case` expression with
 *Keyword:* `:condition-always-true`.
 
 *Description:* warn on a condition that evaluates to an always truthy constant,
-like when passing a function instead of calling it. This linter intentionally
-doesn't check for literally `true` values of vars since this is often a dev/production setting.
+like when passing a function instead of calling it or not calling `seq` on a lazy
+sequence. This linter intentionally doesn't check for literally `true` values of vars
+since this is often a dev/production setting.
 
 *Default level:* `:off` (will be `:warning` in a future release).
 
 *Example trigger:* `(if odd? :odd :even)`.
 
 *Example message:* `Condition always true`.
+
+*Config:*
+
+Many codebases use keywords in `cond->` and `cond->>` to indicate branches that will
+always be taken. These would be erroneously warned against, so by default, this linter
+won't warn against bare keywords. To raise warnings about keywords, this configuration:
+
+``` clojure
+{:linters {:condition-always-true {:allow-keywords false}}}
+```
+
+on this code
+
+```clojure
+(cond-> {}
+  :always (assoc :cool :beans)
+  (map? {}) (assoc :other :stuff)
+  :always (assoc :another :key))
+```
+
+will produce this warning:
+
+```
+example.clj:2:3 Condition always true.
+example.clj:4:3 Condition always true.
+```
 
 ### Conflicting-alias
 

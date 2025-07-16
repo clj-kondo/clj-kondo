@@ -5,7 +5,8 @@
 
 (def config
   {:linters {:type-mismatch {:level :error}
-             :condition-always-true {:level :warning}}})
+             :condition-always-true {:level :warning
+                                     :allow-keywords true}}})
 
 (deftest condition-always-true-test
   (assert-submaps2
@@ -75,27 +76,50 @@
           config)))
 
 (deftest keywords-test
-  (assert-submaps2
-   [{:file "<stdin>"
-     :row 1
-     :col 5
-     :level :warning
-     :message "Condition always true"}]
-   (lint! "(if :a 1 2)" config))
-  (assert-submaps2
-   [{:file "<stdin>"
-     :row 1
-     :col 12
-     :level :warning
-     :message "Condition always true"}]
-   (lint! "(if-let [a :a] 1 2)" config))
-  (assert-submaps2
-   [{:file "<stdin>"
-     :row 1
-     :col 7
-     :level :warning
-     :message "Condition always true"}]
-   (lint! "(when :a 1)" config)))
+  (testing ":allow-keywords true"
+    (assert-submaps2
+     []
+     (lint! "(if :a 1 2)" config))
+    (assert-submaps2
+     []
+     (lint! "(if-let [a :a] 1 2)" config))
+    (assert-submaps2
+     []
+     (lint! "(when :a 1)" config)))
+  (testing ":allow-keywords false"
+    (let [config (assoc-in config [:linters :condition-always-true :allow-keywords] false)]
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 5
+         :level :warning
+         :message "Condition always true"}]
+       (lint! "(if :a 1 2)"
+              config))
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 12
+         :level :warning
+         :message "Condition always true"}]
+       (lint! "(if-let [a :a] 1 2)"
+              config))
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 7
+         :level :warning
+         :message "Condition always true"}]
+       (lint! "(when :a 1)"
+              config))
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 12
+         :level :warning
+         :message "Condition always true"}]
+       (lint! "(cond-> {} :always (assoc :hello :goodbye))"
+              config)))))
 
 (deftest constants-test
   (assert-submaps2
@@ -132,14 +156,6 @@
   (assert-submaps2
    []
    (lint! "(cond-> {} true (assoc :hello :goodbye))"
-          config))
-  (assert-submaps2
-   [{:file "<stdin>"
-     :row 1
-     :col 12
-     :level :warning
-     :message "Condition always true"}]
-   (lint! "(cond-> {} :true (assoc :hello :goodbye))"
           config)))
 
 (deftest lazy-seqs-test

@@ -164,7 +164,8 @@
               :protocol-method-varargs {:level :error}
               :unused-alias {:level :off}
               :self-requiring-namespace {:level :off}
-              :condition-always-true {:level :off}
+              :condition-always-true {:level :off
+                                      :allow-keywords true}
               :underscore-in-namespace {:level :warning}
               :multiple-async-in-deftest {:level :warning}
               :java-static-field-call {:level :error}
