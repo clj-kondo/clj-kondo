@@ -72,7 +72,7 @@
                        past-arg-schemas))
               ;; Handle defprotocol case - other nodes just get added as-is
               (and (= 'defprotocol fn-sym)
-                   ((complement hooks/list-node?) expr))
+                   (not (hooks/list-node? expr)))
               (recur rest-children
                      index
                      (update res :new-children conj expr)
