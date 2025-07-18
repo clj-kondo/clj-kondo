@@ -9,6 +9,9 @@
 ;; a lot of this work was already figured out here:
 ;; https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
 
+(def seqable->nilable-seq {:arities {1 {:args [:seqable]
+                                        :ret #{:nil :seq}}}})
+
 (def seqable->seq {:arities {1 {:args [:seqable]
                                 :ret :seq}}})
 
@@ -63,7 +66,7 @@
    ;; 49
    'first seqable->any
    ;; 57
-   'next seqable->seq
+   'next seqable->nilable-seq
    ;; 66
    'rest seqable->seq
    ;; 75
@@ -76,14 +79,13 @@
    ;; 98
    'ffirst seqable->any
    ;; 105
-   'nfirst seqable->seq
+   'nfirst seqable->nilable-seq
    ;; 112
    'fnext seqable->any
    ;; 119
-   'nnext seqable->seq
+   'nnext seqable->nilable-seq
    ;; 126
-   'seq {:arities {1 {:args [:seqable]
-                      :ret :seq}}}
+   'seq seqable->nilable-seq
    ;; 139
    'instance? any->boolean
    ;; 146
@@ -118,7 +120,7 @@
    ;; 262
    'last seqable->any
    ;; 272
-   'butlast seqable->seq
+   'butlast seqable->nilable-seq
    ;; 283 'defn
    ;; 338 'to-array
    ;; 346 'cast
@@ -397,7 +399,7 @@
                        :req :seq}}}
    ;; 1589 'name
    ;; 1597
-   'namespace {:arities {1 {:ret :string}}}
+   'namespace {:arities {1 {:ret #{:nil :string}}}}
    ;; 1605
    'boolean any->boolean
    ;; 1612
@@ -778,7 +780,7 @@
    ;; 4858 're-groups
    ;; 4874
    're-seq {:arities {2 {:args [:regex :string]
-                         :ret :seq}}}
+                         :ret #{:nil :seq}}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
                              :ret #{:vector :string}}}}
@@ -786,7 +788,7 @@
    're-find {:arities {1 {:args [:any] ;; matcher
                           :ret #{:vector :string}}
                        2 {:args [:regex :string]
-                          :ret #{:vector :string}}}}
+                          :ret #{:nil :vector :string}}}}
    ;; 4911 'rand
    ;; 4919 'rand-int
    ;; 4925 'defn-
