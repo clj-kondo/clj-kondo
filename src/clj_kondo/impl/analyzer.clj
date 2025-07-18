@@ -950,20 +950,16 @@
 
 (defn analyze-condition
   [ctx condition]
-  (let [ctx (update ctx :arg-types #(or % (atom [])))
+  (let [;; arg-types could be nil due to type-mismatch being disabled
+        ctx (update ctx :arg-types #(or % (atom [])))
+        pos (-> ctx :arg-types deref count)
         condition (assoc condition :condition true)
-        analyzed (doall (analyze-expression** ctx condition))
-        t (tag condition)
-        loc (select-keys (if (identical? :quote t)
-                           (meta (first (:children condition)))
-                           (meta condition))
-                         [:row :col :end-row :end-col])]
+        analyzed (doall (analyze-expression** ctx condition))]
     (when (not (linter-disabled? ctx :condition-always-true))
-      (when-let [arg-type (some->> @(:arg-types ctx)
-                                   (filter #(= loc (select-keys % [:row :col :end-row :end-col])))
-                                   (first)
-                                   :tag
-                                   types/keyword)]
+      (when-let [arg-type (some-> @(:arg-types ctx)
+                                  (nth pos)
+                                  :tag
+                                  types/keyword)]
         (when (not (or (types/nilable? arg-type)
                        (types/match? arg-type :nil)
                        (types/match? arg-type :boolean)))
@@ -3021,7 +3017,7 @@
                  (lint-unused-value ctx expr)
                  (let [ctx (assoc ctx :quoted true)]
                    (types/add-arg-type-from-expr ctx (first (:children expr)))
-                   (analyze-children ctx children)))
+                   (analyze-children ctx children false)))
         :syntax-quote (do
                         (lint-unused-value ctx expr)
                         (analyze-usages2 (assoc ctx :arg-types nil) expr))
