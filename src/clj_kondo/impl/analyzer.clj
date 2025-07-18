@@ -951,12 +951,13 @@
 (defn analyze-condition
   [ctx condition]
   (let [;; arg-types could be nil due to type-mismatch being disabled
-        ctx (update ctx :arg-types #(or % (atom [])))
+        arg-types (or (:arg-types ctx) (atom []))
+        ctx (assoc ctx :arg-types arg-types)
         pos (-> ctx :arg-types deref count)
         condition (assoc condition :condition true)
         analyzed (doall (analyze-expression** ctx condition))]
     (when (not (linter-disabled? ctx :condition-always-true))
-      (when-let [arg-type (some-> @(:arg-types ctx)
+      (when-let [arg-type (some-> @arg-types
                                   (nth pos)
                                   :tag
                                   types/keyword)]
