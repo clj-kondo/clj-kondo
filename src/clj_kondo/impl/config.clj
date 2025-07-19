@@ -177,6 +177,7 @@
               :redundant-ignore {:level :info}
               :schema-misplaced-return {:level :warning}
               :do-template {:level :warning}
+              :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
               :locking-suspicious-lock {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}

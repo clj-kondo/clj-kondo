@@ -966,16 +966,21 @@
                         ctx)
                 ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
           protocol-impl (:protocol-impls ns)
+          protocol-methods (:methods protocol-impl)
           :let [protocol-ns (:protocol-ns protocol-impl)
                 protocol-name (:protocol-name protocol-impl)]]
     (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
       (when-let [methods (:methods resolved)]
-        (let [missing (remove (set (:methods protocol-impl)) methods)]
-          (when (seq missing)
-            (findings/reg-finding! ctx (assoc protocol-impl
-                                              :type :missing-protocol-method
-                                              :filename (:filename ns)
-                                              :message (str "Missing protocol method(s): " (str/join ", " missing))))))))))
+        (when-let [unresolved-protocol (seq (remove (set methods) protocol-methods))]
+          (findings/reg-finding! ctx (assoc protocol-impl
+                                            :type :unresolved-protocol-method
+                                            :filename (:filename ns)
+                                            :message (str "Unresolved protocol method(s): " (str/join ", " unresolved-protocol)))))
+        (when-let [missing (seq (remove (set protocol-methods) methods))]
+          (findings/reg-finding! ctx (assoc protocol-impl
+                                            :type :missing-protocol-method
+                                            :filename (:filename ns)
+                                            :message (str "Missing protocol method(s): " (str/join ", " missing)))))))))
 
 ;;;; scratch
 
