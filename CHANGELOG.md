@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2555](https://github.com/clj-kondo/clj-kondo/issues/2555): false positive with `clojure.string/replace` and `partial` as replacement fn
 - [#2566](https://github.com/clj-kondo/clj-kondo/issues/2566): Expand `:condition-always-true` check. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol`
+- [#2519](https://github.com/clj-kondo/clj-kondo/issues/2519): NEW linter: `:unresolved-protocol-method`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 
 ## 2025.06.05
 
