@@ -1233,6 +1233,28 @@ misses a value.
 
 *Example message:* `missing value for key :b`.
 
+### Unresolved protocol method
+
+*Keyword:* `:unresolved-protocol-method`.
+
+*Description:* warn on unresolved protocol method
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(defprotocol IFoo
+  (foo [_]))
+
+(defrecord Foo []
+  IFoo
+  (foo [_])
+  (foox [_])) ;; unresolved-protocol-method
+```
+
+*Example message:* `Unresolved protocol method(s): foox`.
+
 ### Missing protocol method
 
 *Keyword:* `:missing-protocol-method`.

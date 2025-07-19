@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2566](https://github.com/clj-kondo/clj-kondo/issues/2566): Expand `:condition-always-true` check. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol`
 - [#2571](https://github.com/clj-kondo/clj-kondo/issues/2571): false positive unresolved symbol when ignoring expression that goes through macroexpansion hook
+- [#2519](https://github.com/clj-kondo/clj-kondo/issues/2519): NEW linter: `:unresolved-protocol-method`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
 
 ## 2025.06.05
 
