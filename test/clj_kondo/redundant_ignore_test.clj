@@ -3,6 +3,7 @@
             [clojure.test :refer [deftest is testing]]))
 
 (def config {:linters {:redundant-ignore {:level :warning}
+                       :unresolved-protocol-method {:level :off}
                        :unresolved-symbol {:level :error}}})
 
 (deftest redundant-ignore-test

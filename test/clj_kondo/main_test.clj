@@ -1871,22 +1871,32 @@ foo/foo ;; this does use the private var
 (deftest defrecord-test
   (assert-submaps
    '({:file "corpus/defrecord.clj",
-      :row 6,
+      :row 8,
+      :col 3,
+      :level :warning,
+      :message "Missing protocol method(s): bar"}
+     {:file "corpus/defrecord.clj",
+      :row 9,
+      :col 4,
+      :level :warning,
+      :message "Unresolved protocol method: barx"}
+     {:file "corpus/defrecord.clj",
+      :row 13,
       :col 23,
       :level :warning,
       :message "unused binding this"}
      {:file "corpus/defrecord.clj",
-      :row 8,
+      :row 15,
       :col 1,
       :level :error,
       :message "defrecord/->Thing is called with 3 args but expects 2"}
      {:file "corpus/defrecord.clj",
-      :row 9,
+      :row 16,
       :col 1,
       :level :error,
       :message "defrecord/map->Thing is called with 2 args but expects 1"})
    (lint! (io/file "corpus" "defrecord.clj")
-          "--config" "{:linters {:unused-binding {:level :warning}}}"))
+          "--config" "{:linters {:unresolved-protocol-method {:level :warning} :unused-binding {:level :warning}}}"))
   (is (empty? (lint! (io/file "corpus" "record_protocol_metadata.clj")
                      {:unused-import {:level :warning}}))))
 

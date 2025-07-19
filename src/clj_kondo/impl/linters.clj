@@ -966,16 +966,23 @@
                         ctx)
                 ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
           protocol-impl (:protocol-impls ns)
-          :let [protocol-ns (:protocol-ns protocol-impl)
+          :let [protocol-methods (:methods protocol-impl)
+                protocol-ns (:protocol-ns protocol-impl)
                 protocol-name (:protocol-name protocol-impl)]]
     (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
       (when-let [methods (:methods resolved)]
-        (let [missing (remove (set (:methods protocol-impl)) methods)]
-          (when (seq missing)
-            (findings/reg-finding! ctx (assoc protocol-impl
-                                              :type :missing-protocol-method
-                                              :filename (:filename ns)
-                                              :message (str "Missing protocol method(s): " (str/join ", " missing))))))))))
+        (when-let [unresolved-protocol-methods (seq (remove (set methods) protocol-methods))]
+          (let [protocol-methods-meta (:methods-meta protocol-impl)]
+            (doseq [unresolved unresolved-protocol-methods]
+              (findings/reg-finding! ctx (assoc (get protocol-methods-meta unresolved)
+                                                :type :unresolved-protocol-method
+                                                :filename (:filename ns)
+                                                :message (str "Unresolved protocol method: " unresolved))))))
+        (when-let [missing (seq (remove (set protocol-methods) methods))]
+          (findings/reg-finding! ctx (assoc protocol-impl
+                                            :type :missing-protocol-method
+                                            :filename (:filename ns)
+                                            :message (str "Missing protocol method(s): " (str/join ", " missing)))))))))
 
 ;;;; scratch
 
