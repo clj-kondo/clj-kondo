@@ -2378,7 +2378,8 @@
                                   (let [filename (:filename ctx)]
                                     (binding [utils/*ctx* ctx]
                                       (sci/binding [sci/out *out*
-                                                    sci/err *err*]
+                                                    sci/err *err*
+                                                    sci/file filename]
                                         (try (hook-fn {:node expr
                                                        :cljc (identical? :cljc base-lang)
                                                        :lang lang
