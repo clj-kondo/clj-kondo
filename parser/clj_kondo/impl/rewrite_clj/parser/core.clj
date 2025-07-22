@@ -166,7 +166,7 @@
                    ;; attach raw node, might need further processing for cljc
                    {:clj-kondo/ignore (assoc (meta node)
                                              :linters v)}))))
-            (assoc :clj-kondo/ignore-id (gensym)))))
+            (assoc :clj-kondo/ignore-id (keyword (gensym))))))
 
 #_(defn spy [x]
   (prn x)

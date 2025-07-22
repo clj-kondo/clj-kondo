@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2555](https://github.com/clj-kondo/clj-kondo/issues/2555): false positive with `clojure.string/replace` and `partial` as replacement fn
 - [#2566](https://github.com/clj-kondo/clj-kondo/issues/2566): Expand `:condition-always-true` check. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol`
+- [#2571](https://github.com/clj-kondo/clj-kondo/issues/2571): false positive unresolved symbol when ignoring expression that goes through macroexpansion hook
 
 ## 2025.06.05
 
