@@ -3,6 +3,7 @@
    [babashka.fs :as fs]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]]))
@@ -505,3 +506,11 @@ my-ns/special-map \"
    (lint! (fs/file "corpus" "issue-2529" "src" "foobar.cljc")
           "--config" (slurp (fs/file "corpus" "issue-2529" ".clj-kondo" "config.edn"))
           "--config-dir" (fs/file "corpus" "issue-2529" ".clj-kondo"))))
+
+(deftest issue-2571-ns-in-macroexpand
+  (assert-submaps2
+   []
+   (:findings
+    (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2571" "src" "usage.clj")]
+                     :config (edn/read-string (slurp (fs/file "corpus" "issue-2571" ".clj-kondo" "config.edn")))
+                     :config-dir (fs/file "corpus" "issue-2571" ".clj-kondo")}))))

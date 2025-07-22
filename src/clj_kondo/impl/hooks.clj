@@ -159,7 +159,6 @@
         coerced (api/coerce res)
         annotated (annotate coerced (meta node))
         lifted (meta/lift-meta-content2 utils/*ctx* annotated)]
-    ;;
     lifted))
 
 (def hook-fn
