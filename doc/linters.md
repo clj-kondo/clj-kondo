@@ -1253,7 +1253,7 @@ misses a value.
   (foox [_])) ;; unresolved-protocol-method
 ```
 
-*Example message:* `Unresolved protocol method(s): foox`.
+*Example message:* `Unresolved protocol method: foox`.
 
 ### Missing protocol method
 
