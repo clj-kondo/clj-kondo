@@ -151,6 +151,9 @@
     lifted))
 
 (defn hook-fn
+  "NOTE: we used to cache looking up the hook function by memoizing a function of
+  the configuration + namespace + var-name. Storing this causes a lot of memory
+  consumption and for big projects it was actually slower because of slight variations in the configuration map."
   [ctx config ns-sym var-sym]
   (try (let [sym (symbol (str ns-sym)
                          (str var-sym))
