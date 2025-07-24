@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol`
 - [#2571](https://github.com/clj-kondo/clj-kondo/issues/2571): false positive unresolved symbol when ignoring expression that goes through macroexpansion hook
 - Bump SCI to `0.10.47`
+- Drop caching for hook fns, solves memory issue with Cursive + metabase
 
 ## 2025.06.05
 
