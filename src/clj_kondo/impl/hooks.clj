@@ -109,7 +109,6 @@
 
 (def load-lock (Object.))
 
-
 (defn walk
   [inner outer form]
   (cond
