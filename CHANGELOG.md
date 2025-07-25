@@ -20,10 +20,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2560](https://github.com/clj-kondo/clj-kondo/issues/2560): NEW linter: `:locking-suspicious-lock`: report when locking is used on a single arg, interned value or local object
-- [#2519](https://github.com/clj-kondo/clj-kondo/issues/2519): NEW linter: `:unresolved-protocol-method`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md)
+- [#2519](https://github.com/clj-kondo/clj-kondo/issues/2519): NEW linter: `:unresolved-protocol-method`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md) ([@emerson-matos](https://github.com/emerson-matos))
 - [#2555](https://github.com/clj-kondo/clj-kondo/issues/2555): false positive with `clojure.string/replace` and `partial` as replacement fn
 - [#2566](https://github.com/clj-kondo/clj-kondo/issues/2566): Expand `:condition-always-true` check. ([@NoahTheDuke](https://github.com/NoahTheDuke))
-- [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol`
+- [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol` ([@emerson-matos](https://github.com/emerson-matos))
 - [#2571](https://github.com/clj-kondo/clj-kondo/issues/2571): false positive unresolved symbol when ignoring expression that goes through macroexpansion hook
 - Bump SCI to `0.10.47`
 - Drop caching for hook fns, solves memory issue with Cursive + big projects like metabase
