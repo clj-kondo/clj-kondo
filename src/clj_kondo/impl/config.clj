@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
-  (:refer-clojure :exclude [unquote memoize])
+  (:refer-clojure :exclude [unquote])
   (:require
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]

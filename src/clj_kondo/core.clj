@@ -128,9 +128,7 @@
                        (do (run! (assoc args :skip-lint true))
                            false)
                        copy-configs)]
-    (binding [hooks/*debug* debug
-              utils/*memo-factory* nil #_(let [f (fn [_] (atom (core.cache/lu-cache-factory {} :threshold 1)))]
-                                     (memoize f))]
+    (binding [hooks/*debug* debug]
       (let [start-time (System/currentTimeMillis)
             cfg-dir
             (cond config-dir (io/file config-dir)
