@@ -512,8 +512,6 @@
            :name var})
         (:callstack ctx)))
 
-(def ^:dynamic *memo-factory* nil)
-
 ;;;; Scratch
 
 (comment
