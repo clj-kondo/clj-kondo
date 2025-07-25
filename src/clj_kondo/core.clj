@@ -8,7 +8,6 @@
    [clj-kondo.impl.config :refer [merge-config!]]
    [clj-kondo.impl.core :as core-impl]
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.hooks :as hooks.impl]
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clj-kondo.impl.sarif :as sarif]
