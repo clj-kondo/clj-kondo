@@ -3401,8 +3401,7 @@
   (let [ctx (assoc ctx :filename filename)
         reader-exceptions (atom [])]
     (binding [utils/*ctx* ctx
-              *reader-exceptions* reader-exceptions
-              hooks/*mem* (atom {})]
+              *reader-exceptions* reader-exceptions]
       (try
         (let [[only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
               (when (identical? :clj lang)

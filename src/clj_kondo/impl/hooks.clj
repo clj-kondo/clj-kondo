@@ -97,17 +97,16 @@
 (defn reset-ctx! []
   (alter-var-root #'sci-ctx (constantly (initial-ctx))))
 
-(def ^:dynamic *mem* nil)
-
 (defn memoize-without-ctx
   [f]
   (fn [ctx & args]
-    (if-let [mem *mem*]
-      (if-let [e (find @mem args)]
-        (val e)
-        (let [ret (apply f ctx args)]
-          (swap! mem assoc args ret)
-          ret))
+    (if-let [memo-factory utils/*memo-factory*]
+      (let [mem (memo-factory :hooks)]
+        (if-let [e (find @mem args)]
+          (val e)
+          (let [ret (apply f ctx args)]
+            (swap! mem assoc args ret)
+            ret)))
       (apply f ctx args))))
 
 (defn walk
