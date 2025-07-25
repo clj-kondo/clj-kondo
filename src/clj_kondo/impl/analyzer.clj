@@ -1591,10 +1591,13 @@
            protocol-ns nil
            protocol-name nil
            protocol-node nil
-           methods-meta {}
            methods []]
       (when-let [c (first children)]
-        (if-let [sym (utils/symbol-from-token c)]
+        (if-let [[_ sym] (when-let [[_ v :as v'] (find c :value)]
+                           (when (or (symbol? v)
+                                     ;; extend-type to nil
+                                     (nil? v))
+                             v'))]
           ;; We have encountered a protocol or interface name, or a
           ;; record or type name (in the case of extend-protocol and
           ;; extend-type). We need to deal with extend-protocol in a
@@ -1633,11 +1636,10 @@
                 (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
                                                                  {:protocol-ns protocol-ns
                                                                   :protocol-name protocol-name'
-                                                                  :methods-meta methods-meta
                                                                   :methods methods})))
               (recur protocol-name'
                      (rest children) protocol-ns protocol-name
-                     protocol-node methods-meta [])))
+                     protocol-node [])))
           ;; Assume protocol fn impl. Analyzing the fn sym can cause false
           ;; positives. We are passing it to analyze-fn as is, so (foo [x y z])
           ;; is linted as (fn [x y z])
@@ -1645,6 +1647,8 @@
                 protocol-method-name (first fn-children)
                 protocol-fn? (and (not= "extend-protocol" def-by)
                                   (not= "extend-type" def-by))]
+            (when protocol-method-name
+              (utils/handle-ignore ctx protocol-method-name))
             (when (and current-protocol
                        (not= "definterface" def-by))
               (analysis/reg-protocol-impl! ctx
@@ -1669,18 +1673,20 @@
                                                     :message "Prefer a symbol to refer to the array class")))
                 (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
                             (assoc c :protocol-fn protocol-fn?))))
-            (let [methods-meta (merge methods-meta {(:value protocol-method-name) (meta protocol-method-name)})
-                  methods (conj methods (let [val (:value protocol-method-name)]
-                                          (if (qualified-symbol? val)
-                                            (symbol (name val))
-                                            val)))]
+            (let [methods (conj methods (let [val (:value protocol-method-name)
+                                              val (if (qualified-symbol? val)
+                                                    (symbol (name val))
+                                                    val)]
+                                          (cond-> val
+                                            (symbol? val)
+                                            (with-meta
+                                              (meta protocol-method-name)))))]
               (when (end? (second children))
-                (namespace/reg-protocol-impl! ctx ns-name (merge (meta protocol-node)
-                                                                 {:protocol-ns protocol-ns
-                                                                  :protocol-name protocol-name
-                                                                  :methods-meta methods-meta
-                                                                  :methods methods})))
-              (recur current-protocol (rest children) protocol-ns protocol-name protocol-node methods-meta methods))))))))
+                (namespace/reg-protocol-impl! ctx ns-name (assoc (meta protocol-node)
+                                                                 :protocol-ns protocol-ns
+                                                                 :protocol-name protocol-name
+                                                                 :methods methods)))
+              (recur current-protocol (rest children) protocol-ns protocol-name protocol-node methods))))))))
 
 (defn analyze-defrecord
   "Analyzes defrecord and deftype."

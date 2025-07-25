@@ -3,7 +3,8 @@
             [clojure.test :refer [deftest is testing]]))
 
 (def config {:linters {:redundant-ignore {:level :warning}
-                       :unresolved-protocol-method {:level :off}
+                       :unresolved-protocol-method {:level :warning}
+                       :missing-protocol-method {:level :warning}
                        :unresolved-symbol {:level :error}}})
 
 (deftest redundant-ignore-test
@@ -26,13 +27,13 @@
        (lint! "#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var :unused-binding]} (defn foo [])"
               (assoc-in config [:linters :redundant-ignore :exclude] [:clojure-lsp/unused-public-var])))))
 
-(deftest redundant-ignore-on-missing-protocol-test
+(deftest redundant-ignore-on-missing-and-unresolved-protocol-test
   (is (empty? (lint! "(defprotocol IFoo
   (dude [_]))
 
 (defrecord MyFoo []
   #_:clj-kondo/ignore IFoo
-  (dudex [_]))"
+  (#_:clj-kondo/ignore dudex [_]))"
                      config))))
 
 (deftest cljc-test

@@ -972,12 +972,11 @@
     (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
       (when-let [methods (:methods resolved)]
         (when-let [unresolved-protocol-methods (seq (remove (set methods) protocol-methods))]
-          (let [protocol-methods-meta (:methods-meta protocol-impl)]
-            (doseq [unresolved unresolved-protocol-methods]
-              (findings/reg-finding! ctx (assoc (get protocol-methods-meta unresolved)
-                                                :type :unresolved-protocol-method
-                                                :filename (:filename ns)
-                                                :message (str "Unresolved protocol method: " unresolved))))))
+          (doseq [unresolved unresolved-protocol-methods]
+            (findings/reg-finding! ctx (assoc (meta unresolved)
+                                              :type :unresolved-protocol-method
+                                              :filename (:filename ns)
+                                              :message (str "Unresolved protocol method: " unresolved)))))
         (when-let [missing (seq (remove (set protocol-methods) methods))]
           (findings/reg-finding! ctx (assoc protocol-impl
                                             :type :missing-protocol-method
