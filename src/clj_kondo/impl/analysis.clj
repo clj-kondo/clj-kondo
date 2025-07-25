@@ -210,15 +210,14 @@
       (let [method-meta (meta method-name-node)
             k :instance-invocations
             derived-location (:derived-location method-meta)]
-        (when k
-          (swap! analysis update k conj
-                 (cond->
-                  {:method-name (str method-name-node)
-                   :filename (:filename ctx)
-                   :name-row (:row method-meta)
-                   :name-col (:col method-meta)
-                   :name-end-row (:end-row method-meta)
-                   :name-end-col (:end-col method-meta)}
-                   (= :cljc (:base-lang ctx))
-                   (assoc :lang (:lang ctx))
-                   derived-location (assoc :derived-location true))))))))
+        (swap! analysis update k conj
+               (cond->
+                   {:method-name (str method-name-node)
+                    :filename (:filename ctx)
+                    :name-row (:row method-meta)
+                    :name-col (:col method-meta)
+                    :name-end-row (:end-row method-meta)
+                    :name-end-col (:end-col method-meta)}
+                 (= :cljc (:base-lang ctx))
+                 (assoc :lang (:lang ctx))
+                 derived-location (assoc :derived-location true)))))))
