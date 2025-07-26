@@ -448,10 +448,13 @@
                    (set syms))]
     (contains? excluded sym-ns)))
 
+(defn unused-binding-excluded-config [config]
+  (let [excluded (get-in config [:linters :unused-binding :exclude-patterns])
+        regexes (map re-pattern (filter string? excluded))]
+    {:regexes regexes}))
+
 (defn unused-binding-excluded? [config binding-sym]
-  (let [{:keys [:regexes]} (let [excluded (get-in config [:linters :unused-binding :exclude-patterns])
-                                 regexes (map re-pattern (filter string? excluded))]
-                             {:regexes regexes})
+  (let [{:keys [:regexes]} config
         binding-str (str binding-sym)]
     (boolean (some (fn [regex]
                      (re-find regex binding-str)) regexes))))
