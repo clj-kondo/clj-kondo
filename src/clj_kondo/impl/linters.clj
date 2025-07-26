@@ -621,11 +621,12 @@
                   config (or ns-config config)
                   ns-excluded-config (config/unused-namespace-excluded-config config)
                   refer-all-excluded-config (config/refer-all-excluded-config config)
+                  deprecated-namespace-excluded-config (config/deprecated-namespace-excluded-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
       (doseq [required required]
         (when-let [depr (:deprecated (utils/resolve-ns idacs (:base-lang ns) (:lang ns) required))]
-          (when-not (config/deprecated-namespace-excluded? config required)
+          (when-not (config/deprecated-namespace-excluded? deprecated-namespace-excluded-config required)
             (let [filename (:filename (meta required))]
               (findings/reg-finding!
                ctx
@@ -723,7 +724,8 @@
                 ctx)
           ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))
           config (:config ctx)
-          unused-binding-excluded-config (config/unused-binding-excluded-config config)]
+          unused-binding-excluded-config (config/unused-binding-excluded-config config)
+          used-underscored-binding-excluded-config (config/used-underscored-binding-excluded-config config)]
       (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
         (doseq [binding (into #{}
                               (comp
@@ -732,7 +734,7 @@
                                (remove :clj-kondo.impl/generated)
                                (filter #(str/starts-with? (str (:name %)) "_")))
                               (:used-bindings ns))
-                :when (not (config/used-underscored-binding-excluded? (:config ctx)
+                :when (not (config/used-underscored-binding-excluded? used-underscored-binding-excluded-config
                                                                       (:name binding)))]
           (findings/reg-finding!
            ctx

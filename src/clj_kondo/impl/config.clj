@@ -459,11 +459,14 @@
     (boolean (some (fn [regex]
                      (re-find regex binding-str)) regexes))))
 
+(defn used-underscored-binding-excluded-config [config]
+  (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
+        syms (set (filter symbol? excluded))
+        regexes (map re-pattern (filter string? excluded))]
+    {:syms syms :regexes regexes}))
+
 (defn used-underscored-binding-excluded? [config binding-sym]
-  (let [{:keys [syms regexes]} (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
-                                     syms (set (filter symbol? excluded))
-                                     regexes (map re-pattern (filter string? excluded))]
-                                 {:syms syms :regexes regexes})]
+  (let [{:keys [syms regexes]} config]
     (or (contains? syms binding-sym)
         (let [binding-str (str binding-sym)]
           (boolean (some #(re-find % binding-str) regexes))))))
@@ -488,10 +491,12 @@
        x))
    coll))
 
+(defn deprecated-namespace-excluded-config [config ]
+  (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
+    (set excluded)))
+
 (defn deprecated-namespace-excluded? [config required]
-  (let [cfg (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
-              (set excluded))]
-    (contains? cfg required)))
+  (contains? config required))
 
 ;;;; Scratch
 
