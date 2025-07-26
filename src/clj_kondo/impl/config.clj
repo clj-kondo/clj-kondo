@@ -248,7 +248,7 @@
                                 :col 0
                                 :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
                                 :filename (:filename utils/*ctx*)})
-        'clj-kondo/unknown-var)))
+        nil)))
 
 (defn fq-syms->vecs
   [fq-syms]
@@ -278,13 +278,9 @@
              (some #(= disabled-sym %) callstack))
            disabled))))
 
-(defn lint-as-config [config]
-  (let [m (get config :lint-as)]
-    (zipmap (fq-syms->vecs (keys m))
-            (fq-syms->vecs (vals m)))))
-
 (defn lint-as [config v]
-  (get (lint-as-config config) v))
+  (some-> (get-in config [:lint-as v])
+          fq-sym->vec))
 
 (defn unused-namespace-excluded [config ns-sym]
   (let [{:keys [:syms :regexes]} (let [excluded (get-in config [:linters :unused-namespace :exclude])

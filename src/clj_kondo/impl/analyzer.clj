@@ -2341,8 +2341,9 @@
              :as _m}
             (resolve-name ctx true ns-name full-fn-name expr)
             expr-meta (meta expr)
+            resolved-var-sym (symbol (str resolved-namespace) (str resolved-name))
             cfg (when-let [in-call-cfg (:config-in-call config)]
-                  (get in-call-cfg (symbol (str resolved-namespace) (str resolved-name))))
+                  (get in-call-cfg resolved-var-sym))
             cfg (when cfg
                   (config/expand-ignore cfg))
             ctx (if cfg
@@ -2366,8 +2367,7 @@
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
                             [[ns n]
-                             (config/lint-as config
-                                             [resolved-namespace resolved-name])]
+                             (config/lint-as config resolved-var-sym)]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2475,15 +2475,11 @@
                       (analyze-expression** (assoc-some ctx :defined-by (:defined-by transformed))
                                             node)))
                   ;;;; End macroexpansion
-                  (let [fq-sym (when (and resolved-namespace
-                                          resolved-name)
-                                 (symbol (str resolved-namespace)
-                                         (str resolved-name)))
-                        unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
+                  (let [unknown-ns? (= :clj-kondo/unknown-namespace resolved-namespace)
                         resolved-namespace* (if unknown-ns?
                                               ns-name resolved-namespace)
-                        ctx (if (and fq-sym
-                                     (not (one-of fq-sym [clojure.core/doto])))
+                        ctx (if (and resolved-var-sym
+                                     (not (= 'clojure.core/doto resolved-var-sym)))
                               (update ctx :callstack
                                       (fn [cs]
                                         (let [generated? (:clj-kondo.impl/generated expr)]
