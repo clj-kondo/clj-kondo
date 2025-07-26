@@ -28,6 +28,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2575](https://github.com/clj-kondo/clj-kondo/issues/2575): false positive type mismatch with nested keyword call and `str`
 - Bump SCI to `0.10.47`
 - Drop caching for hook fns, solves memory issue with Cursive + big projects like metabase
+- [#2568](https://github.com/clj-kondo/clj-kondo/issues/2568): support `:deprecated-namespace` for `.cljc` namespaces
 
 ## 2025.06.05
 
