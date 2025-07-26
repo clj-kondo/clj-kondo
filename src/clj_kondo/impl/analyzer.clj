@@ -679,12 +679,18 @@
         arities (extract-arity-info ctx parsed-bodies)
         ;; Merge in schema type information if available
         schema-arities (get (:schema-arities ctx) fn-name)
-        _ (when schema-arities (println "DEBUG: Merging schema arities for" fn-name ":" schema-arities))
+        ;; Validate return types before merging  
+        _ (when schema-arities
+            (doseq [[arity-count schema-arity] schema-arities
+                    :let [inferred-arity (get arities arity-count)
+                          schema-ret (:ret schema-arity)
+                          inferred-ret (:ret inferred-arity)]
+                    :when (and schema-ret inferred-ret)]
+              (when-not ((requiring-resolve 'clj-kondo.impl.schema-types/schema-type-compatible?) schema-ret inferred-ret)
+                ((requiring-resolve 'clj-kondo.impl.schema-types/emit-schema-type-mismatch!)
+                 ctx schema-ret inferred-ret expr))))
         arities (if schema-arities
-                  (do (println "DEBUG: Before merge:" arities)
-                      (let [merged (merge arities schema-arities)]
-                        (println "DEBUG: After merge:" merged)
-                        merged))
+                  (merge arities schema-arities)
                   arities)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]

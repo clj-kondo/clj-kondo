@@ -64,6 +64,55 @@
     schema-type
     schema-type))
 
+(defn emit-schema-type-mismatch!
+  "Emit a schema type mismatch warning"
+  [ctx expected-schema actual-type expr]
+  (let [expected-label (case expected-schema
+                         :string "string"
+                         :int "integer"
+                         :number "number"
+                         :boolean "boolean"
+                         :keyword "keyword"
+                         :symbol "symbol"
+                         :vector "vector"
+                         :map "map"
+                         :set "set"
+                         :nil "nil"
+                         :any "any"
+                         (str expected-schema))
+        actual-label (case actual-type
+                       :string "string"
+                       :int "integer"
+                       :number "number"
+                       :boolean "boolean"
+                       :keyword "keyword"
+                       :symbol "symbol"
+                       :vector "vector"
+                       :map "map"
+                       :set "set"
+                       :nil "nil"
+                       :any "any"
+                       (str actual-type))]
+    (when expr
+      (require 'clj-kondo.impl.findings)
+      ((resolve 'clj-kondo.impl.findings/reg-finding!) ctx
+       {:filename (:filename ctx)
+        :row (:row expr)
+        :col (:col expr)
+        :end-row (:end-row expr)
+        :end-col (:end-col expr)
+        :type :schema-type-mismatch
+        :message (str "Schema return type mismatch. Expected: " expected-label
+                      ", actual: " actual-label ".")}))))
+
+(defn schema-type-compatible?
+  "Check if two schema types are compatible"
+  [expected actual]
+  (or (= expected actual)
+      (= :any expected)
+      (= :any actual)
+      (and (= :number expected) (= :int actual))))
+
 (defn convert-schema-to-type-spec
   "Convert extracted schema type information to clj-kondo type spec format"
   [schema-types]
