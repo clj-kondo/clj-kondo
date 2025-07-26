@@ -36,6 +36,7 @@
    [clj-kondo.impl.rewrite-clj.node.token :as token]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions* *reader-features*]]
    [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.schema-types :as schema-types]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
@@ -676,6 +677,15 @@
                            bodies)
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
+        ;; Merge in schema type information if available
+        schema-arities (get (:schema-arities ctx) fn-name)
+        _ (when schema-arities (println "DEBUG: Merging schema arities for" fn-name ":" schema-arities))
+        arities (if schema-arities
+                  (do (println "DEBUG: Before merge:" arities)
+                      (let [merged (merge arities schema-arities)]
+                        (println "DEBUG: After merge:" merged)
+                        merged))
+                  arities)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
     (when fn-name
@@ -1329,11 +1339,36 @@
 (declare analyze-defrecord)
 (declare analyze-defprotocol)
 
+(defn store-function-schema-info!
+  "Store schema type information for integration with clj-kondo's type system"
+  [ctx fn-name schemas]
+  (when (and fn-name (seq schemas))
+    (let [ns-name (-> ctx :ns :name)
+          type-spec (when-let [converted (schema-types/convert-schema-to-type-spec schemas)]
+                      converted)]
+      (when type-spec
+        (swap! (:namespaces ctx) 
+               update-in [(:base-lang ctx) (:lang ctx) ns-name :vars fn-name] 
+               #(assoc % :arities (:arities type-spec)))))))
+
 (defn analyze-schema [ctx fn-sym expr defined-by defined-by->lint-as]
   (let [{:keys [:expr :schemas]}
         (schema/expand-schema ctx
                               fn-sym
-                              expr)]
+                              expr)
+        ;; Extract function name for schema storage
+        fn-name (when (#{'defn 'defmethod 'def} fn-sym)
+                  (some-> expr :children second :value))
+        ;; Convert schema info to clj-kondo type spec format
+        schema-type-info (when (and fn-name (seq schemas))
+                           (let [schema-types (mapv schema-types/extract-schema-type schemas)
+                                 type-spec (schema-types/convert-schema-to-type-spec schema-types)]
+                             (when type-spec
+                               {fn-name (:arities type-spec)})))
+        ;; Add schema type info to context for analyze-defn
+        ctx (if schema-type-info
+              (assoc ctx :schema-arities schema-type-info)
+              ctx)]
     (concat
      (case fn-sym
        fn (analyze-fn ctx expr)

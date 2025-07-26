@@ -3,6 +3,7 @@
   (:require
    [clj-kondo.hooks-api :as hooks]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.schema-types :as schema-types]
    [clj-kondo.impl.utils :as utils]))
 
 (defn remove-schemas-from-children [expr]
@@ -40,11 +41,27 @@
 (defn reg-misplaced-return-schema!
   [ctx expr msg]
   (findings/reg-finding!
-    ctx
-    (utils/node->line (:filename ctx)
-                      expr
-                      :schema-misplaced-return
-                      msg)))
+   ctx
+   (utils/node->line (:filename ctx)
+                     expr
+                     :schema-misplaced-return
+                     msg)))
+
+(defn store-function-schema-info!
+  "Store schema type information in context for integration with clj-kondo's type system"
+  [ctx fn-name schemas]
+  (when (and fn-name (seq schemas))
+    (let [schema-types (mapv schema-types/extract-schema-type schemas)
+          type-spec (schema-types/convert-schema-to-type-spec schema-types)]
+      (when type-spec
+        ;; Store in context so analyze-defn can access it
+        (swap! (:schema-arities ctx (atom {})) 
+               assoc fn-name (:arities type-spec))))))
+
+(defn get-schema-type-info
+  "Retrieve stored schema type information"
+  [ctx ns-name fn-name]
+  (get-in @(:schema-type-info ctx (atom {})) [ns-name fn-name]))
 
 (defn expand-schema
   [ctx fn-sym expr]
@@ -135,6 +152,11 @@
                            (inc index)
                            (update res :new-children conj fst-child)
                            past-arg-schemas))))]
+    (when (and (seq schemas)
+               (#{'defn 'defn-} fn-sym))
+      (let [fn-name (some-> expr :children second :value)]
+        (when fn-name
+          (store-function-schema-info! ctx fn-name schemas))))
     {:expr (assoc expr :children new-children)
      :schemas schemas}))
 

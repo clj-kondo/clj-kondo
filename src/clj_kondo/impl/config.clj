@@ -176,6 +176,7 @@
                                       }
               :redundant-ignore {:level :info}
               :schema-misplaced-return {:level :warning}
+              :schema-type-mismatch {:level :warning}
               :do-template {:level :warning}
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
