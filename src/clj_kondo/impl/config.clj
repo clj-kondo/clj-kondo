@@ -282,11 +282,14 @@
   (some-> (get-in config [:lint-as v])
           fq-sym->vec))
 
+(defn unused-namespace-excluded-config [config]
+  (let [excluded (get-in config [:linters :unused-namespace :exclude])
+        syms (set (filter symbol? excluded))
+        regexes (map re-pattern (filter string? excluded))]
+    {:syms syms :regexes regexes}))
+
 (defn unused-namespace-excluded [config ns-sym]
-  (let [{:keys [:syms :regexes]} (let [excluded (get-in config [:linters :unused-namespace :exclude])
-                                       syms (set (filter symbol? excluded))
-                                       regexes (map re-pattern (filter string? excluded))]
-                                   {:syms syms :regexes regexes})]
+  (let [{:keys [syms regexes]} config]
     (or (contains? syms ns-sym)
         (let [ns-str (str ns-sym)]
           (boolean (some #(re-find % ns-str) regexes))))))

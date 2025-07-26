@@ -619,6 +619,7 @@
                   refer-all-nss (set (keys refer-alls))
                   ns-config (:config ns)
                   config (or ns-config config)
+                  ns-excluded-config (config/unused-namespace-excluded-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
       (doseq [required required]
@@ -635,7 +636,7 @@
                                      ""))))))))
       (doseq [ns-sym unused]
         (let [ns-meta (meta ns-sym)]
-          (when-not (or (config/unused-namespace-excluded config ns-sym)
+          (when-not (or (config/unused-namespace-excluded ns-excluded-config ns-sym)
                         (some-> ns-meta :alias meta :as-alias))
             (let [m (meta ns-sym)
                   filename (:filename m)]
