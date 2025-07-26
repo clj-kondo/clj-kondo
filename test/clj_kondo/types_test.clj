@@ -1108,6 +1108,21 @@
        (lint! "@inc (let [x nil] @x)"
               config))))
 
+(deftest issue-2575-test
+  (is (empty?
+       (lint! "(require '[clojure.string :as str])
+
+(defn foo []
+  (let [res (str)]
+    {:b {:a res}}))
+
+(str/split-lines
+ (:a
+  (:b
+   (foo))))
+"
+              config))))
+
 ;;;; Scratch
 
 (comment
