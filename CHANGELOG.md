@@ -27,7 +27,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2571](https://github.com/clj-kondo/clj-kondo/issues/2571): false positive unresolved symbol when ignoring expression that goes through macroexpansion hook
 - [#2575](https://github.com/clj-kondo/clj-kondo/issues/2575): false positive type mismatch with nested keyword call and `str`
 - Bump SCI to `0.10.47`
-- Drop caching for hook fns, solves memory issue with Cursive + big projects like metabase
+- Drop caching for hook fns and configuration, solves memory issue with Cursive + big projects like metabase
+- Optimizations to compensate for dropping caching, performance should be similar (or better depending on the size of your project)
 - [#2568](https://github.com/clj-kondo/clj-kondo/issues/2568): support `:deprecated-namespace` for `.cljc` namespaces
 
 ## 2025.06.05
