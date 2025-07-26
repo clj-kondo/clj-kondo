@@ -620,6 +620,7 @@
                   ns-config (:config ns)
                   config (or ns-config config)
                   ns-excluded-config (config/unused-namespace-excluded-config config)
+                  refer-all-excluded-config (config/refer-all-excluded-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
       (doseq [required required]
@@ -663,7 +664,7 @@
                           :referred-ns referred-ns
                           :refer (:name v))))))))
       (doseq [[referred-all-ns {:keys [:referred :node] :as refer-all}] refer-alls
-              :when (not (config/refer-all-excluded? config referred-all-ns))]
+              :when (not (config/refer-all-excluded? refer-all-excluded-config referred-all-ns))]
         (let [{:keys [:k :value]} node
               use? (or (= :use k)
                        (= 'use value))

@@ -268,7 +268,8 @@
 
 (defn skip-args
   ([config linter]
-   (fq-syms->vecs (get-in config [:linters linter :skip-args]))))
+   (some-> (get-in config [:linters linter :skip-args])
+           (fq-syms->vecs))))
 
 (defn skip?
   "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
@@ -306,9 +307,11 @@
     (when-let [vars (get excluded ns-sym)]
       (contains? vars var-sym))))
 
-(defn unresolved-namespace-excluded [config ns-sym]
-  (let [excluded (set (get-in config [:linters :unresolved-namespace :exclude]))]
-    (contains? excluded ns-sym)))
+(defn unresolved-namespace-excluded-config [config]
+  (set (get-in config [:linters :unresolved-namespace :exclude])))
+
+(defn unresolved-namespace-excluded [excluded ns-sym]
+  (contains? excluded ns-sym))
 
 (defn unresolved-symbol-excluded [config callstack sym]
   (let [{:keys [excluded excluded-in exclude-patterns]}
@@ -385,19 +388,20 @@
   (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
 
 (defn unused-private-var-excluded [config ns-nm var-name]
-  (contains? (let [syms (get-in config [:linters :unused-private-var :exclude])
-                   vecs (fq-syms->vecs syms)]
-               (set vecs)) [ns-nm var-name]))
+  (contains? (let [syms (get-in config [:linters :unused-private-var :exclude])]
+               (set syms)) (symbol (str ns-nm) (str var-name))))
 
 (defn refer-excluded? [config referred-ns]
   (let [excluded (let [syms (get-in config [:linters :refer :exclude])]
                    (set syms))]
     (contains? excluded referred-ns)))
 
-(defn refer-all-excluded? [config referred-all-ns]
-  (let [excluded (let [syms (get-in config [:linters :refer-all :exclude])]
-                   (set syms))]
-    (contains? excluded referred-all-ns)))
+(defn refer-all-excluded-config [config]
+  (let [syms (get-in config [:linters :refer-all :exclude])]
+    (set syms)))
+
+(defn refer-all-excluded? [excluded referred-all-ns]
+  (contains? excluded referred-all-ns))
 
 (defn shadowed-var-excluded? [config sym]
   (when-let [cfg (let [cfg (get-in config [:linters :shadowed-var])
