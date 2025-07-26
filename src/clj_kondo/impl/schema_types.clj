@@ -215,8 +215,8 @@
   (let [expected-label (cond
                          (keyword? expected-schema)
                          (cond
-                           (str/starts-with? (name expected-schema) "nilable/")
-                           (str (subs (name expected-schema) 8) " or nil")
+                           (str/starts-with? (str expected-schema) ":nilable/")
+                           (str (subs (str expected-schema) 9) " or nil")
                            
                            :else
                            (case expected-schema
@@ -298,8 +298,8 @@
     (and (= :number expected) (= :int actual)) true
     
     ;; Nilable types compatibility
-    (and (keyword? expected) (str/starts-with? (name expected) "nilable/"))
-    (let [base-type (keyword (subs (name expected) 8))]
+    (and (keyword? expected) (str/starts-with? (str expected) ":nilable/"))
+    (let [base-type (keyword (subs (str expected) 9))]
       (or (= base-type actual) (= :nil actual)))
     
     ;; Handle complex types (maps with structure)
