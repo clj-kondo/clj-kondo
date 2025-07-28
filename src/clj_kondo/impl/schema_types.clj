@@ -7,10 +7,13 @@
 ;;;; Schema Type System Integration
 ;;;; Converts Prismatic Schema types to clj-kondo's type system
 
+(defonce ^:dynamic *schema-registry* (atom {}))
+
 (defn extract-schema-type
   "Extract a clj-kondo type representation from a schema AST node"
-  [schema-node]
-  (when schema-node
+  ([schema-node] (extract-schema-type schema-node nil))
+  ([schema-node _ctx]
+   (when schema-node
     (let [value (if (and (contains? schema-node :children)
                          (seq (:children schema-node)))
                   ;; For SeqNodes, convert to sexpr to get the actual form
@@ -21,6 +24,48 @@
                   (:value schema-node))]
       
       (cond
+        ;; AST Map nodes (parsed map literals in schema definitions)
+        (= :map (:tag schema-node))
+        (let [children (:children schema-node)
+              extract-key-info (fn [node]
+                                 (cond
+                                   (:k node) (:k node)  ; keyword key like :name
+                                   (:value node) (:value node)  ; other values
+                                   (= :list (:tag node)) (utils/sexpr node)  ; list forms like (s/optional-key :nickname)
+                                   :else nil))
+              ;; Pair up keys and values from the children list
+              pairs (partition 2 children)
+              process-pair (fn [[key-node value-node]]
+                             (let [key-info (extract-key-info key-node)
+                                   value-type (extract-schema-type value-node)]
+                               [key-info value-type]))
+              processed-pairs (map process-pair pairs)
+              ;; Separate required and optional keys
+              req-pairs (filter (fn [[k _]] (not (and (list? k) 
+                                                       (or (= 'optional-key (first k))
+                                                           (= 's/optional-key (first k)))))) processed-pairs)
+              opt-pairs (filter (fn [[k _]] (and (list? k) 
+                                                  (or (= 'optional-key (first k))
+                                                      (= 's/optional-key (first k))))) processed-pairs)
+              ;; Extract the actual keys from optional-key forms
+              req-keys (map first req-pairs)
+              opt-keys (map (fn [[k _]] (if (and (list? k) 
+                                                 (or (= 'optional-key (first k))
+                                                     (= 's/optional-key (first k))))
+                                          (second k)
+                                          k)) opt-pairs)
+              keys-map (into {} (concat
+                                 (map (fn [[k v]] [k v]) req-pairs)
+                                 (map (fn [[k v]] [(if (and (list? k) 
+                                                            (or (= 'optional-key (first k))
+                                                                (= 's/optional-key (first k))))
+                                                     (second k)
+                                                     k) v]) opt-pairs)))]
+          {:type :map 
+           :keys keys-map
+           :req-keys req-keys
+           :opt-keys opt-keys})
+
         ;; Basic Schema types
         (= 's/Str value) :string
         (= 's/Int value) :int  
@@ -154,12 +199,21 @@
         
         ;; Map schemas with key/value types
         (map? value)
-        (let [req-keys (keys (filter (fn [[k _]] (not (keyword? k))) value))
-              opt-keys (keys (filter (fn [[k _]] (keyword? k)) value))]
+        (let [entries (seq value)
+              extract-key-info (fn [node] 
+                                (if (:k node) 
+                                  (:k node) 
+                                  (:value node)))
+              pairs (partition 2 entries)
+              req-entries (filter (fn [[k _]] (not (keyword? (extract-key-info k)))) pairs)
+              opt-entries (filter (fn [[k _]] (keyword? (extract-key-info k))) pairs)
+              req-keys (map (comp extract-key-info first) req-entries)
+              opt-keys (map (comp extract-key-info first) opt-entries)
+              keys-map (into {} (map (fn [[k v]] [(extract-key-info k) (extract-schema-type v)]) pairs))]
           (if (and (empty? req-keys) (empty? opt-keys))
             :map
             {:type :map 
-             :keys (merge req-keys opt-keys)
+             :keys keys-map
              :req-keys req-keys
              :opt-keys opt-keys}))
         
@@ -198,9 +252,26 @@
         
         ;; Unknown symbols - could be custom schemas
         (symbol? value)
-        :any
+        (let [schema-name (symbol value)]
+          (or (get @*schema-registry* schema-name)
+              :any))  ; fallback if not found
         
-        :else :any))))
+        :else :any)))))
+
+(defn store-schema-definition!
+  "Store a schema definition in the registry for later lookup"
+  [_ctx var-name schema-node]
+  (when (and var-name schema-node)
+    (let [schema-type (extract-schema-type schema-node)]
+      (when (= "true" (System/getenv "CLJ_KONDO_DEBUG_SCHEMA"))
+        (println "DEBUG: Storing schema definition:" var-name "=>" schema-type))
+      (swap! *schema-registry* assoc var-name schema-type)
+      schema-type)))
+
+(defn lookup-schema-definition
+  "Look up a schema definition from the registry"
+  [var-name]
+  (get @*schema-registry* var-name))
 
 (defn schema-type->type-spec
   "Convert a schema type to clj-kondo type spec format"
@@ -275,14 +346,10 @@
     (when expr
       (require 'clj-kondo.impl.findings)
       ((resolve 'clj-kondo.impl.findings/reg-finding!) ctx
-       {:filename (:filename ctx)
-        :row (:row expr)
-        :col (:col expr)
-        :end-row (:end-row expr)
-        :end-col (:end-col expr)
-        :type :schema-type-mismatch
-        :message (str "Schema type mismatch. Expected: " expected-label
-                      ", actual: " actual-label ".")}))))
+       (utils/node->line (:filename ctx)
+                         expr :schema-type-mismatch
+                         (str "Schema type mismatch. Expected: " expected-label
+                              ", actual: " actual-label "."))))))
 
 (defn schema-type-compatible?
   "Check if two schema types are compatible"

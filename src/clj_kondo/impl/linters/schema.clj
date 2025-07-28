@@ -21,7 +21,7 @@
       (doseq [[expected-schema actual-type idx] 
               (map vector arg-schemas actual-arg-types (range))]
         (when expected-schema
-          (let [normalized-schema (schema-types/extract-schema-type expected-schema)]
+          (let [normalized-schema (schema-types/extract-schema-type expected-schema ctx)]
             (when-not (schema-types/schema-type-compatible? 
                        normalized-schema 
                        (:tag actual-type))
@@ -32,7 +32,7 @@
                (nth (:args call) idx nil))))))
       
       (when return-schema
-        (let [return-type (schema-types/extract-schema-type return-schema)]
+        (let [return-type (schema-types/extract-schema-type return-schema ctx)]
           return-type)))))
 
 (defn lint-schema-var-definition!

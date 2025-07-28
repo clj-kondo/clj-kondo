@@ -51,7 +51,7 @@
   "Store schema type information in context for integration with clj-kondo's type system"
   [ctx fn-name schemas]
   (when (and fn-name (seq schemas))
-    (let [schema-types (mapv schema-types/extract-schema-type schemas)
+    (let [schema-types (mapv #(schema-types/extract-schema-type % ctx) schemas)
           type-spec (schema-types/convert-schema-to-type-spec schema-types)]
       (when type-spec
         ;; Store in context so analyze-defn can access it

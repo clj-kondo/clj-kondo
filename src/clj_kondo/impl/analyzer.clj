@@ -1262,6 +1262,12 @@
                     (string-from-token (first children)))
         defmulti? (or (= 'clojure.core/defmulti defined-by->lint-as)
                       (= 'cljs.core/defmulti defined-by->lint-as))
+        _ (when (= "true" (System/getenv "CLJ_KONDO_DEBUG_SCHEMA"))
+            (println "DEBUG: analyze-def called with defined-by:" defined-by 
+                     "defined-by->lint-as:" defined-by->lint-as
+                     "var-name:" var-name))
+        defschema? (or (= 'schema.core/defschema defined-by)
+                       (= 's/defschema defined-by))
         doc-node (when docstring
                    (first children))
         [child & children] (if docstring (next children) children)
@@ -1294,6 +1300,13 @@
                    (or (analyze-expression** ctx (first children))
                        ;; prevent analysis of only child more than once
                        []))
+        ;; Store schema definition if this is a defschema
+        _ (when (and defschema? var-name (first children))
+            (when (= "true" (System/getenv "CLJ_KONDO_DEBUG_SCHEMA"))
+              (println "DEBUG: Detected defschema for" var-name "with defined-by" defined-by->lint-as))
+            (require 'clj-kondo.impl.schema-types)
+            ((resolve 'clj-kondo.impl.schema-types/store-schema-definition!) 
+             ctx var-name (first children)))
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!
@@ -1374,7 +1387,12 @@
         ;; Add schema type info to context for analyze-defn
         ctx (if schema-type-info
               (assoc ctx :schema-arities schema-type-info)
-              ctx)]
+              ctx)
+        ;; Store schema definition if this is a defschema
+        _ (when (and (= 'schema.core/defschema defined-by) fn-name (seq schemas))
+            (require 'clj-kondo.impl.schema-types)
+            ((resolve 'clj-kondo.impl.schema-types/store-schema-definition!) 
+             ctx fn-name (first schemas)))]
     (concat
      (case fn-sym
        fn (analyze-fn ctx expr)
@@ -2661,6 +2679,8 @@
                             (analyze-schema ctx 'defn expr 'schema.core/defn defined-by->lint-as)
                             [schema.core defmethod]
                             (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
+                            [schema.core defschema]
+                            (analyze-schema ctx 'def expr 'schema.core/defschema defined-by->lint-as)
                             [schema.core defrecord]
                             (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
                             [schema.core defprotocol]
