@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2580](https://github.com/clj-kondo/clj-kondo/issues/2580): false positive type mismatch with quoted value
+
 ## 2025.07.26
 
 - [#2560](https://github.com/clj-kondo/clj-kondo/issues/2560): NEW linter: `:locking-suspicious-lock`: report when locking is used on a single arg, interned value or local object
