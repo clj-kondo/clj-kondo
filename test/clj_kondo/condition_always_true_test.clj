@@ -134,6 +134,10 @@
    (lint! "(cond-> {} true (assoc :hello :goodbye))"
           config))
   (assert-submaps2
+   []
+   (lint! "(cond-> {} :always (assoc :hello :goodbye))"
+          config))
+  (assert-submaps2
    [{:file "<stdin>"
      :row 1
      :col 12
@@ -213,3 +217,12 @@
      :message "Condition always true"}]
    (lint! "(when-let [[a b] [(foo) (bar)]] a 2)"
           config)))
+
+(deftest are-test
+  (assert-submaps2 []
+                   (lint! "(require '[clojure.test :refer [are]])
+(are [exp time-style]
+    (= exp (when time-style true))
+  :dude :dude
+  true nil)"
+                          config)))
