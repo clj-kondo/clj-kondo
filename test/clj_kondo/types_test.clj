@@ -1130,7 +1130,8 @@
 
 (deftest var-test
   (is (empty? (lint! "(map #'inc [1 2 3])" config)))
-  (is (empty? (lint! "((partial #'+ 1) 2)" config))))
+  (is (empty? (lint! "((partial #'+ 1) 2)" config)))
+  (is (empty? (lint! "(symbol #'inc)" config))))
 
 ;;;; Scratch
 
