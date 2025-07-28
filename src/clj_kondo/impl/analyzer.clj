@@ -2275,8 +2275,10 @@
         t (:tag (some-> args deref first))
         obj (first children)]
     (let [only-object? (= 1 (count children))
-          no-symbol? (not (utils/symbol-from-token obj))
+          no-symbol? (and (not (utils/symbol-from-token obj))
+                          (= :list (utils/tag obj)))
           interned-object? (and t
+                                (not= :any t)
                                 (or (one-of t [:keyword :string :boolean])
                                     (types/match? t :number)))]
       (when (or
