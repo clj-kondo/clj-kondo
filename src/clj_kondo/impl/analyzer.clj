@@ -3005,6 +3005,7 @@
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
+  ;; (prn :expr expr)
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
@@ -3019,13 +3020,13 @@
       ;; list and quote are handled specially because of return types
       ;; deref is handled via expansion
       (when-not (one-of t [:namespaced-map :map :list :quote :token :deref])
-        ;; TODO: add types for all token cases!
         (types/add-arg-type-from-expr ctx expr))
       (case t
         :quote (do
                  (lint-unused-value ctx expr)
                  (let [ctx (assoc ctx :quoted true)]
-                   (types/add-arg-type-from-expr ctx (first (:children expr)))
+                   ;; we don't add a new arg types vector but just let the
+                   ;; single argument add its tag to the exising vector
                    (analyze-children ctx children false)))
         :syntax-quote (do
                         (lint-unused-value ctx expr)
@@ -3102,25 +3103,26 @@
         (let [edn? (= :edn lang)]
           (if (or edn?
                   (:quoted ctx))
-            (if (:k expr)
-              (do (usages/analyze-keyword ctx expr)
-                  (types/add-arg-type-from-expr ctx expr))
-              (when-let [sym (utils/symbol-from-token expr)]
-                (when (and (:analyze-symbols? ctx)
-                           (qualified-symbol? sym))
-                  (let [resolved-extra (or (when-not edn?
-                                             (let [the-ns-name (-> ctx :ns :name)
-                                                   resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
-                                               (when-not (or (:unresolved? resolved)
-                                                             (:interop? resolved))
-                                                 {:to (:ns resolved)
-                                                  :name (:name resolved)})))
-                                           {:name (symbol (name sym))})]
-                    (analysis/reg-symbol!
-                     ctx
-                     (:filename ctx) (-> ctx :ns :name)
-                     sym
-                     lang (merge (meta expr) resolved-extra))))))
+            (do (types/add-arg-type-from-expr ctx expr)
+                (if (:k expr)
+                  (do (usages/analyze-keyword ctx expr)
+                      (types/add-arg-type-from-expr ctx expr))
+                  (when-let [sym (utils/symbol-from-token expr)]
+                    (when (and (:analyze-symbols? ctx)
+                               (qualified-symbol? sym))
+                      (let [resolved-extra (or (when-not edn?
+                                                 (let [the-ns-name (-> ctx :ns :name)
+                                                       resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
+                                                   (when-not (or (:unresolved? resolved)
+                                                                 (:interop? resolved))
+                                                     {:to (:ns resolved)
+                                                      :name (:name resolved)})))
+                                               {:name (symbol (name sym))})]
+                        (analysis/reg-symbol!
+                         ctx
+                         (:filename ctx) (-> ctx :ns :name)
+                         sym
+                         lang (merge (meta expr) resolved-extra)))))))
             (let [id (gensym)
                   expr (assoc expr :id id)
                   _ (analyze-usages2 ctx expr)
@@ -3134,8 +3136,9 @@
                            (first children)
                            (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
           (if (or (:quoted ctx) (= :edn lang))
-            (analyze-children (update ctx :callstack (fn [cs]
-                                                       (cons [:list nil] cs))) children)
+            (do (types/add-arg-type-from-expr ctx expr)
+                (analyze-children (update ctx :callstack (fn [cs]
+                                                           (cons [:list nil] cs))) children))
             (let [_ (utils/handle-ignore ctx function)
                   t (tag function)]
               (case t

@@ -1123,6 +1123,11 @@
 "
               config))))
 
+(deftest issue-2580-test
+  (is (empty?
+       (lint! "(assoc {} :foo '[bar] :id #{})"
+              config))))
+
 ;;;; Scratch
 
 (comment
