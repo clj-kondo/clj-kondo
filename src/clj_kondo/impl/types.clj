@@ -82,7 +82,7 @@
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn}
    :atom #{:ideref}
-   :var #{:ideref}})
+   :var #{:ideref :ifn}})
 
 (def could-be-relations
   {:char-sequence #{:string}
@@ -94,14 +94,14 @@
               :list :seq :sequential :ifn :stack :sorted-map}
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential :stack :sorted-map}
+          :sequential :stack :sorted-map :var :ideref :ifn}
    :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
    :sequential #{:seq :list :vector :ifn :associative :stack}
    :map #{:sorted-map}
-   :ideref #{:atom :var}})
+   :ideref #{:atom :var :ifn}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
