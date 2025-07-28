@@ -49,7 +49,8 @@
     :seqable-or-transducer
     :throwable
     :any
-    :float})
+    :float
+    :var})
 
 (def built-in-specs
   {'clojure.core clojure-core
@@ -80,7 +81,8 @@
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn}
-   :atom #{:ideref}})
+   :atom #{:ideref}
+   :var #{:ideref}})
 
 (def could-be-relations
   {:char-sequence #{:string}
@@ -99,7 +101,7 @@
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
    :sequential #{:seq :list :vector :ifn :associative :stack}
    :map #{:sorted-map}
-   :ideref #{:atom}})
+   :ideref #{:atom :var}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -146,7 +148,8 @@
    :char-sequence "char sequence"
    :sequential "sequential collection"
    :throwable "throwable"
-   :sorted-map "sorted map"})
+   :sorted-map "sorted map"
+   :var "var"})
 
 (defn label [k]
   (cond
@@ -372,6 +375,7 @@
                          (char? v) :char))
               :regex :regex
               :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
+              :var :var
               nil)]
     ;; (prn (sexpr expr) '-> ret)
     ret))
