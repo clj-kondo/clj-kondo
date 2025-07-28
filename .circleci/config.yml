@@ -274,7 +274,7 @@ jobs:
       - store_artifacts:
           path: /tmp/release
           destination: release
-  mac:
+  mac-amd64:
     macos:
       xcode: "13.4.1"
     environment:
@@ -282,6 +282,8 @@ jobs:
       GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
+      CLJ_KONDO_ARCH: amd64 # used in release script
+
     steps:
       - checkout
       - run:
@@ -345,6 +347,75 @@ jobs:
       - store_artifacts:
           path: /tmp/release
           destination: release
+  mac-arm64:
+    macos:
+      xcode: "13.4.1"
+    environment:
+      GRAALVM_VERSION: "24"
+      GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
+      CLJ_KONDO_PLATFORM: macos # used in release script
+      CLJ_KONDO_TEST_ENV: native
+      CLJ_KONDO_ARCH: aarch64 # used in release script
+    steps:
+      - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
+      - run:
+          name: Short circuit on non-master branches
+          command: |
+            if [ -z "$CIRCLE_PULL_REQUEST" ] && [ "$CIRCLE_BRANCH" = "master" ]
+              then
+                exit 0
+              else
+               circleci task halt
+            fi
+      - restore_cache:
+          keys:
+            - mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - run:
+          name: Install Clojure
+          command: |
+            .circleci/script/install-clojure /usr/local
+      - run:
+          name: Install bb
+          command: |
+            sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
+      - run:
+          name: Install Leiningen
+          command: |
+            .circleci/script/install-leiningen
+
+      - run:
+          name: Download GraalVM
+          command: |
+            script/install-graalvm
+      - run:
+          name: Build binary
+          command: |
+            script/compile
+          no_output_timeout: 30m
+      - run:
+          name: Run tests
+          command: |
+            script/test
+      - run:
+          name: Performance report
+          command: |
+            .circleci/script/performance
+      - run:
+          name: Release
+          command: |
+            .circleci/script/release
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: mac-{{ checksum "deps.edn" }}-{{ checksum ".circleci/config.yml" }}
+      - store_artifacts:
+          path: /tmp/release
+          destination: release
+
   deploy:
     docker:
       - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
@@ -400,7 +471,8 @@ workflows:
       - linux
       - linux-aarch64
       - linux-static
-      - mac
+      - mac-amd64
+      - mac-arm64
       - deploy:
           filters:
             branches:
