@@ -957,7 +957,9 @@
         pos (-> ctx :arg-types deref count)
         condition (assoc condition :condition true)
         analyzed (doall (analyze-expression** ctx condition))]
-    (when (not (linter-disabled? ctx :condition-always-true))
+    (when (and (not (linter-disabled? ctx :condition-always-true))
+               (not= :always (:k condition))
+               (not (:clj-kondo.impl/generated condition)))
       (when-let [arg-type (some-> @arg-types
                                   (nth pos)
                                   :tag
@@ -2211,8 +2213,10 @@
         ;; need to analyze children, to pick up on ignores in arguments
         res (analyze-children ctx children false)]
     (when (= 2 (count children))
-      (when (or (true? (:value lhs))
-                (true? (:value rhs)))
+      (when (and (or (true? (:value lhs))
+                     (true? (:value rhs)))
+                 (not (or (:clj-kondo.impl/generated lhs)
+                          (:clj-kondo.impl/generated rhs))))
         (findings/reg-finding! ctx (assoc (meta expr)
                                           :type :equals-true
                                           :message "Prefer (true? x) over (= true x)"
