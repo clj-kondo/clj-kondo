@@ -1128,6 +1128,10 @@
        (lint! "(assoc {} :foo '[bar] :id #{})"
               config))))
 
+(deftest var-test
+  (is (empty? (lint! "(map #'inc [1 2 3])" config)))
+  (is (empty? (lint! "((partial #'+ 1) 2)" config))))
+
 ;;;; Scratch
 
 (comment
