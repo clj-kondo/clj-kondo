@@ -79,15 +79,15 @@
       (is (>= (count findings) 3) "Should detect real type mismatches")
       
       ;; Verify specific error messages
-      (is (some #(and (= (:level %) :warning)
+      (is (some #(and (= :warning (:level %))
                       (clojure.string/includes? (:message %) "Expected: integer, actual: string"))
                 findings)
           "Should detect string returned instead of int")
       
-      (is (some #(and (= (:level %) :warning)
+      (is (some #(and (= :warning (:level %))
                       (clojure.string/includes? (:message %) "int or nil"))
                 findings)
-                    "Should detect wrong type for nilable")))
+                                        "Should detect wrong type for nilable")))
 
   (testing "Complex nested scenarios - comprehensive tests"
     ;; Test various combinations

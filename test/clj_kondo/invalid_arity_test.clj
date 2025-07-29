@@ -139,7 +139,7 @@
 
 (deftest invalid-arity-schema-test
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 67, :level :error, :message "foo/foo is called with 2 args but expects 1"})
+   '({:file "<stdin>", :row 1, :col 67, :level :error, :message "foo/foo is called with 2 args but expects 0 or 1"})
    (lint! "(ns foo (:require [schema.core :as s])) (s/defn foo [a :- s/Int]) (foo 1 2)")))
 
 (deftest invalid-arity-hof-test

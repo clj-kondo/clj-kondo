@@ -1261,6 +1261,16 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "schema.defprotocol/->RecordSchema is called with 0 args but expects 1"}
      {:file "corpus/schema/defs.clj",
+      :row 9,
+      :col 19,
+      :level :warning,
+      :message "Expected: string, received: positive integer."}
+     {:file "corpus/schema/defs.clj",
+      :row 9,
+      :col 21,
+      :level :warning,
+      :message "Expected: string, received: vector."}
+     {:file "corpus/schema/defs.clj",
       :row 10,
       :col 1,
       :level :error,
@@ -1296,9 +1306,30 @@ foo/foo ;; this does use the private var
       :row 58,
       :col 3,
       :level :error,
-      :message "Invalid function body."})
+      :message "Invalid function body."}
+     {:file "corpus/schema/type_compatibility.clj",
+      :row 86,
+      :col 1,
+      :level :warning,
+      :message "Schema type mismatch. Expected: integer, actual: string."}
+     {:file "corpus/schema/type_compatibility.clj",
+      :row 90,
+      :col 1,
+      :level :warning,
+      :message "Schema type mismatch. Expected: int or nil, actual: string."}
+     {:file "corpus/schema/type_compatibility.clj",
+      :row 95,
+      :col 1,
+      :level :warning,
+      :message "Schema type mismatch. Expected: {name: string, age: integer}, actual: map."}
+     {:file "corpus/schema/type_compatibility.clj",
+      :row 109,
+      :col 1,
+      :level :warning,
+      :message "Schema type mismatch. Expected: vector of string, actual: vector or nil."})
    (lint! (io/file "corpus" "schema")
-          '{:linters {:unresolved-symbol {:level :error}}}))
+          '{:linters {:unresolved-symbol {:level :error}
+                     :unused-binding {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns yyyy (:require [schema.core :as s]))

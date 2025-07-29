@@ -247,19 +247,21 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {})]
-      (is (= 8 (:files (:summary res))))
+      (is (= 10 (:files (:summary res))))
       (assert-submaps
-        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 8}
-          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 8}
-          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 8}
-          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 8}
-          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 8}
-          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 8}
-          {:filename "corpus/schema/defprotocol.clj" :uri #"file:/.*/corpus/schema/defprotocol.clj" :total-files 8}
-          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 8}}
+        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 10}
+          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 10}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 10}
+          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 10}
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 10}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 10}
+          {:filename "corpus/schema/defprotocol.clj" :uri #"file:/.*/corpus/schema/defprotocol.clj" :total-files 10}
+          {:filename "corpus/schema/type_compatibility.clj" :uri #"file:/.*/corpus/schema/type_compatibility.clj" :total-files 10}
+          {:filename "corpus/schema/advanced_type_compatibility.clj" :uri #"file:/.*/corpus/schema/advanced_type_compatibility.clj" :total-files 10}
+          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 10}}
         (set @calls))
       (is (every? #(and (int? (:total-files %))
-                        (<= (:total-files %) 8)) @calls))))
+                        (<= (:total-files %) 10)) @calls))))
 
   (testing "when lint is classpath"
     (let [calls (atom [])
@@ -293,19 +295,21 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {:parallel true})]
-      (is (= 8 (:files (:summary res))))
+      (is (= 10 (:files (:summary res))))
       (assert-submaps
-        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 8}
-          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 8}
-          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 8}
-          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 8}
-          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 8}
-          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 8}
-          {:filename "corpus/schema/defprotocol.clj" :uri #"file:/.*/corpus/schema/defprotocol.clj" :total-files 8}
-          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 8}}
+        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 10}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 10}
+          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 10}
+          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 10}
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 10}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 10}
+          {:filename "corpus/schema/defprotocol.clj" :uri #"file:/.*/corpus/schema/defprotocol.clj" :total-files 10}
+          {:filename "corpus/schema/type_compatibility.clj" :uri #"file:/.*/corpus/schema/type_compatibility.clj" :total-files 10}
+          {:filename "corpus/schema/advanced_type_compatibility.clj" :uri #"file:/.*/corpus/schema/advanced_type_compatibility.clj" :total-files 10}
+          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 10}}
         (set @calls))
       (is (every? #(and (int? (:total-files %))
-                        (<= (:total-files %) 8)) @calls)))))
+                        (<= (:total-files %) 10)) @calls)))))
 
 ;;;; Scratch
 
