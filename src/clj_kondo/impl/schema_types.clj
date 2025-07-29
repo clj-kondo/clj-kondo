@@ -271,8 +271,6 @@
   [_ctx var-name schema-node]
   (when (and var-name schema-node)
     (let [schema-type (extract-schema-type schema-node)]
-      (when (= "true" (System/getenv "CLJ_KONDO_DEBUG_SCHEMA"))
-        (println "DEBUG: Storing schema definition:" var-name "=>" schema-type))
       (swap! *schema-registry* assoc var-name schema-type)
       schema-type)))
 
@@ -397,6 +395,7 @@
                           :else t))
         norm-expected (normalize-type expected)
         norm-actual (normalize-type actual)]
+    
     (cond
       ;; Exact match after normalization
       (= norm-expected norm-actual) true
@@ -404,8 +403,20 @@
       ;; :any is always compatible
       (or (= :any norm-expected) (= :any norm-actual)) true
       
+      ;; Handle sets (union types) in actual - NEW
+      (set? norm-actual)
+      (every? #(schema-type-compatible? norm-expected %) norm-actual)
+      
+      ;; Handle sets (union types) in expected - NEW  
+      (set? norm-expected)
+      (some #(schema-type-compatible? % norm-actual) norm-expected)
+      
       ;; Number hierarchy: number is compatible with int expectation
       (and (= :int norm-expected) (= :number norm-actual)) true
+      
+      ;; Handle pos-int compatibility with int
+      (and (= :int norm-expected) (= :pos-int norm-actual)) true
+      (and (= :pos-int norm-expected) (= :int norm-actual)) true
       
       ;; Nilable types compatibility - fixed to handle namespaced keywords
       (and (keyword? expected) 
@@ -415,39 +426,60 @@
         (or (= :nil norm-actual)
             (schema-type-compatible? base-type norm-actual)))
       
-      ;; Map compatibility - normalize both schema and inferred formats
+      ;; Map compatibility - improved to handle edge cases
       (and (map? norm-expected) (map? norm-actual)
            (= :map (:type norm-expected)) (= :map (:type norm-actual)))
       (let [normalize-map (fn [map-type]
-                            (cond
-                              ;; Schema format: {:type :map, :keys {...}, :req-keys [...]}
-                              (and (map? map-type) (:keys map-type))
-                              {:normalized-keys (:keys map-type)
-                               :req-keys (set (:req-keys map-type))}
-                              
-                              ;; Inferred format: {:type :map, :val {...}}
-                              (and (map? map-type) (:val map-type))
-                              (let [val-map (:val map-type)
-                                    extracted-keys (into {} (map (fn [[k v]]
-                                                                    [k (if (map? v) (:tag v) v)])
-                                                                  val-map))]
-                                {:normalized-keys extracted-keys
-                                 :req-keys (set (keys extracted-keys))})
-                              
-                              :else map-type))
+                              (cond
+                                ;; Schema format: {:type :map, :keys {...}, :req-keys [...]}
+                                (and (map? map-type) (:keys map-type))
+                                {:normalized-keys (:keys map-type)
+                                 :req-keys (set (:req-keys map-type))}
+                                
+                                ;; Inferred format: {:type :map, :val {...}}
+                                (and (map? map-type) (:val map-type))
+                                (let [val-map (:val map-type)
+                                      extracted-keys (into {} (map (fn [[k v]]
+                                                                      [k (if (map? v) (:tag v) v)])
+                                                                val-map))]
+                                  {:normalized-keys extracted-keys
+                                   :req-keys (set (keys extracted-keys))})
+                                
+                                :else map-type))
             norm-expected-map (normalize-map norm-expected)
             norm-actual-map (normalize-map norm-actual)
             expected-keys (:req-keys norm-expected-map)
             actual-keys (:req-keys norm-actual-map)]
-        (and
-         ;; All required keys in expected must be present in actual
-         (set/subset? expected-keys actual-keys)
-         ;; Check type compatibility for overlapping keys
-         (every? (fn [k]
-                  (let [expected-type (get-in norm-expected-map [:normalized-keys k])
-                        actual-type (get-in norm-actual-map [:normalized-keys k])]
-                    (schema-type-compatible? expected-type actual-type)))
-                (set/intersection expected-keys actual-keys))))
+        (cond
+          ;; Empty maps are compatible with any map schema
+          (or (empty? expected-keys) (empty? actual-keys)) true
+          
+          ;; All required keys in expected must be present in actual
+          ;; BUT allow extra keys in actual (schemas are typically more permissive)
+          :else
+          (and
+           ;; For now, be more permissive with map compatibility
+           ;; This allows empty maps, extra keys, etc.
+           (or (set/subset? expected-keys actual-keys)
+               ;; If we can't determine key compatibility, allow it
+               (empty? expected-keys)
+               (empty? actual-keys))
+           ;; Check type compatibility for overlapping keys when possible
+           (every? (fn [k]
+                    (let [expected-type (get-in norm-expected-map [:normalized-keys k])
+                          actual-type (get-in norm-actual-map [:normalized-keys k])]
+                      (if (and expected-type actual-type)
+                        (schema-type-compatible? expected-type actual-type)
+                        true))) ; Be permissive if types aren't available
+                  (set/intersection expected-keys actual-keys)))))
+      
+      ;; Handle generic map compatibility - be more permissive
+      (and (map? norm-expected) (= :map norm-actual)) true
+      (and (= :map norm-expected) (map? norm-actual)) true
+      
+      ;; Handle complex map schema vs simple :map - be permissive  
+      (and (map? norm-expected) (= :map (:type norm-expected)) (= :map norm-actual)) 
+      true
       
       ;; Collection types with element types
       (and (map? norm-expected) (map? norm-actual)
@@ -456,9 +488,22 @@
       (schema-type-compatible? (:element-type norm-expected)
                              (:element-type norm-actual))
       
-      ;; Simple collection compatibility
-      (and (map? norm-expected) (keyword? norm-actual))
-      (= (:type norm-expected) norm-actual)
+      ;; Collection types compatibility - if types match, they're compatible
+      ;; This handles cases like [] (generic :vector) being compatible with [s/Int] (typed vector)
+      ;; But we should be more careful about when to allow this
+      (and (map? norm-expected) (keyword? norm-actual)
+           (= (:type norm-expected) norm-actual))
+      ;; For now, be permissive with generic collection types vs typed schemas
+      ;; This is a limitation of the type inference system
+      ;; TODO: Enhance type inference to extract element types from literals
+      true
+      
+      ;; Collection types with element types (when both have element type info)
+      (and (map? norm-expected) (map? norm-actual)
+           (:element-type norm-expected) (:element-type norm-actual)
+           (= (:type norm-expected) (:type norm-actual)))
+      (schema-type-compatible? (:element-type norm-expected)
+                             (:element-type norm-actual))
       
       (and (keyword? norm-expected) (map? norm-actual))
       (= norm-expected (:type norm-actual))

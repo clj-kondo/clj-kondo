@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.schema-types-test
   (:require
    [clj-kondo.impl.schema-types :as schema-types]
+   [clojure.string]
    [clojure.test :refer [deftest is testing are]]))
 
 (deftest extract-schema-type-test

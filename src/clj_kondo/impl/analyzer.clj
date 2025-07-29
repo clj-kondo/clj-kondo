@@ -739,6 +739,7 @@
                           schema-ret (:ret schema-arity)
                           inferred-ret (:ret inferred-arity)]
                     :when (and schema-ret inferred-ret)]
+
               ;; Skip validation if inferred return type is a delayed call structure
               ;; This happens when external function calls can't be resolved at analysis time
               (when-not (or (and (map? inferred-ret) (:call inferred-ret))

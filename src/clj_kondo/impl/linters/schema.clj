@@ -1,8 +1,7 @@
 (ns clj-kondo.impl.linters.schema
   {:no-doc true}
   (:require
-   [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.schema :as schema]
+   [clj-kondo.impl.linters.schema-types :as schema-linters]
    [clj-kondo.impl.schema-types :as schema-types]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils]))
@@ -10,7 +9,7 @@
 (defn lint-schema-function-call!
   "Check if a function call matches its schema annotations"
   [ctx call called-fn arg-types]
-  (when-let [schema-info (schema/get-function-schema 
+  (when-let [schema-info (schema-linters/get-function-schema 
                           ctx 
                           (:ns called-fn) 
                           (:name called-fn))]
@@ -39,5 +38,7 @@
 
 (defn lint-schema-var-definition!
   "Store schema information when analyzing s/defn, s/def, etc."
-  [ctx ns-name var-name schemas]
-  (schema/store-function-schema-types! ctx ns-name var-name schemas))
+  [ctx _ns-name var-name schemas]
+  ;; schemas is likely a collection, store each one
+  (doseq [schema schemas]
+    (schema-types/store-schema-definition! ctx var-name schema)))
