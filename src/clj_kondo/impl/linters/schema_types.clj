@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.linters.schema-types
   {:no-doc true}
   (:require
-   [clj-kondo.impl.schema-types :as schema-types]
    [clj-kondo.impl.types :as types]
    [clojure.string :as str]))
 
@@ -41,16 +40,16 @@
               :else :any)))
         ;; Regular type processing
         (cond
-          (= tag :string) :string
-          (= tag :int) :int
-          (= tag :number) :number
-          (= tag :boolean) :boolean
-          (= tag :keyword) :keyword
-          (= tag :symbol) :symbol
-          (= tag :vector) :vector
-          (= tag :map) :map
-          (= tag :set) :set
-          (= tag :nil) :nil
+          (= :string tag) :string
+          (= :int tag) :int
+          (= :number tag) :number
+          (= :boolean tag) :boolean
+          (= :keyword tag) :keyword
+          (= :symbol tag) :symbol
+          (= :vector tag) :vector
+          (= :map tag) :map
+          (= :set tag) :set
+          (= :nil tag) :nil
           ;; Fallback
           :else nil)))))
 
