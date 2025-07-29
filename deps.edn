@@ -17,14 +17,14 @@
            {:extra-paths ["extract" "classes"]
             :extra-deps {clj-commons/conch {:mvn/version "0.9.2"}
                          jonase/eastwood {:mvn/version "1.4.3"}
-                         org.clojure/tools.deps.alpha {:mvn/version "0.15.1254"}}}
+                         org.clojure/tools.deps {:mvn/version "0.24.1523"
+                                                 :neil/pinned true}}}
            :built-in-cache
            {:extra-deps
             {org.clojure/data.json {:mvn/version "2.5.0"}}}
            :test
            {:extra-deps
-            {org.clojure/clojure {:mvn/version "1.11.3"}
-             org.clojure/clojurescript {:mvn/version "1.11.132"} ;; for extraction
+            {org.clojure/clojurescript {:mvn/version "1.11.132"} ;; for extraction
              cognitect/test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :git/sha "9d36f36ff541dac680a05010e4348c744333f191"}
