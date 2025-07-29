@@ -15,7 +15,9 @@
                           (:ns called-fn) 
                           (:name called-fn))]
     (let [{:keys [arg-schemas return-schema]} schema-info
-          actual-arg-types (map #(type-utils/resolve-arg-type {} %) arg-types)]
+          ;; CRITICAL FIX: Pass actual idacs from context instead of empty map
+          idacs (or (:idacs ctx) {})
+          actual-arg-types (map #(type-utils/resolve-arg-type idacs %) arg-types)]
       
       ;; Check argument types
       (doseq [[expected-schema actual-type idx] 

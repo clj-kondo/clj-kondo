@@ -739,9 +739,14 @@
                           schema-ret (:ret schema-arity)
                           inferred-ret (:ret inferred-arity)]
                     :when (and schema-ret inferred-ret)]
-              (when-not ((requiring-resolve 'clj-kondo.impl.schema-types/schema-type-compatible?) schema-ret inferred-ret)
-                ((requiring-resolve 'clj-kondo.impl.schema-types/emit-schema-type-mismatch!)
-                 ctx schema-ret inferred-ret expr))))
+              ;; Skip validation if inferred return type is a delayed call structure
+              ;; This happens when external function calls can't be resolved at analysis time
+              (when-not (or (and (map? inferred-ret) (:call inferred-ret))
+                            (and (map? inferred-ret) (:tag inferred-ret) 
+                                 (map? (:tag inferred-ret)) (:call (:tag inferred-ret))))
+                (when-not ((requiring-resolve 'clj-kondo.impl.schema-types/schema-type-compatible?) schema-ret inferred-ret)
+                  ((requiring-resolve 'clj-kondo.impl.schema-types/emit-schema-type-mismatch!)
+                   ctx schema-ret inferred-ret expr)))))
         arities (if schema-arities
                   (merge arities schema-arities)
                   arities)
