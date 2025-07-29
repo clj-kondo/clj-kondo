@@ -2,7 +2,8 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.utils :as utils]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.set :as set]))
 
 ;;;; Schema Type System Integration
 ;;;; Converts Prismatic Schema types to clj-kondo's type system
@@ -14,14 +15,17 @@
   ([schema-node] (extract-schema-type schema-node nil))
   ([schema-node _ctx]
    (when schema-node
-    (let [value (if (and (contains? schema-node :children)
+    (let [value (if (and (map? schema-node)
+                         (contains? schema-node :children)
                          (seq (:children schema-node)))
                   ;; For SeqNodes, convert to sexpr to get the actual form
                   (try 
                     (utils/sexpr schema-node)
                     (catch Exception _
                       (:value schema-node)))
-                  (:value schema-node))]
+                  (if (and (map? schema-node) (contains? schema-node :value))
+                    (:value schema-node)
+                    schema-node))]
       
       (cond
         ;; AST Map nodes (parsed map literals in schema definitions)
@@ -199,23 +203,28 @@
         
         ;; Map schemas with key/value types
         (map? value)
-        (let [entries (seq value)
-              extract-key-info (fn [node] 
-                                (if (:k node) 
-                                  (:k node) 
-                                  (:value node)))
-              pairs (partition 2 entries)
-              req-entries (filter (fn [[k _]] (not (keyword? (extract-key-info k)))) pairs)
-              opt-entries (filter (fn [[k _]] (keyword? (extract-key-info k))) pairs)
-              req-keys (map (comp extract-key-info first) req-entries)
-              opt-keys (map (comp extract-key-info first) opt-entries)
-              keys-map (into {} (map (fn [[k v]] [(extract-key-info k) (extract-schema-type v)]) pairs))]
-          (if (and (empty? req-keys) (empty? opt-keys))
-            :map
+        (let [key-value-pairs (seq value)
+              process-entry (fn [[k v]]
+                              [k (extract-schema-type v)])
+              processed-pairs (map process-entry key-value-pairs)
+              ;; Check for optional keys (list forms like (s/optional-key :nickname))
+              separate-keys (fn [[k _]]
+                              (and (list? k) 
+                                   (or (= 'optional-key (first k))
+                                       (= 's/optional-key (first k)))))
+              req-pairs (remove separate-keys processed-pairs)
+              opt-pairs (filter separate-keys processed-pairs)
+              req-keys (map first req-pairs)
+              opt-keys (map (fn [[k _]] (if (list? k) (second k) k)) opt-pairs)
+              keys-map (into {} (concat
+                                 req-pairs
+                                 (map (fn [[k v]] [(if (list? k) (second k) k) v]) opt-pairs)))]
+          (if (seq keys-map)
             {:type :map 
              :keys keys-map
              :req-keys req-keys
-             :opt-keys opt-keys}))
+             :opt-keys opt-keys}
+            :map))
         
         ;; Function schemas (=> [args...] ret)
         (and (list? value) (= '=> (first value)))
@@ -248,7 +257,6 @@
         (integer? value) :int
         (boolean? value) :boolean
         (keyword? value) :keyword
-        (symbol? value) :symbol
         
         ;; Unknown symbols - could be custom schemas
         (symbol? value)
@@ -280,119 +288,165 @@
     schema-type
     schema-type))
 
+(defn schema-type-to-string
+  "Convert a schema type to a human-readable string"
+  [schema-type]
+  (cond
+    ;; Handle AST objects with :tag field
+    (and (map? schema-type) (:tag schema-type))
+    (case (:tag schema-type)
+      :string "string"
+      :int "integer"
+      :number "number"  
+      :boolean "boolean"
+      :keyword "keyword"
+      :symbol "symbol"
+      :vector "vector"
+      :map "map"
+      :set "set"
+      :nil "nil"
+      :any "any"
+      :regex "regex"
+      (str (:tag schema-type)))
+    
+    ;; Handle call objects  
+    (and (map? schema-type) (:call schema-type))
+    (let [call-info (:call schema-type)]
+      (case (:type call-info)
+        :call (str "function call (" (:name call-info) ")")
+        (str "expression")))
+    
+    ;; Handle type objects with :type field
+    (and (map? schema-type) (:type schema-type))
+    (case (:type schema-type)
+      :vector (if (:element-type schema-type)
+                (str "vector of " (schema-type-to-string (:element-type schema-type)))
+                "vector")
+      :set (if (:element-type schema-type)
+             (str "set of " (schema-type-to-string (:element-type schema-type)))
+             "set")
+      :map (if (and (:keys schema-type) (seq (:keys schema-type)))
+             (let [key-strs (map (fn [[k v]] (str (name k) ": " (schema-type-to-string v))) 
+                                (take 3 (:keys schema-type)))
+                   more? (> (count (:keys schema-type)) 3)]
+               (str "{" (str/join ", " key-strs) (when more? ", ...") "}"))
+             "map")
+      "complex type")
+    
+    (keyword? schema-type)
+    (case schema-type
+      :string "string"
+      :int "integer" 
+      :number "number"
+      :boolean "boolean"
+      :keyword "keyword"
+      :symbol "symbol"
+      :vector "vector"
+      :map "map"
+      :set "set"
+      :nil "nil"
+      :any "any"
+      :regex "regex"
+      (name schema-type))
+    
+    (map? schema-type)
+    "complex type"
+    
+    :else (str schema-type)))
+
+(defn schema-type-compatible?
+  "Enhanced type compatibility checking"
+  [expected actual]
+  (let [normalize-type (fn [t]
+                        (cond
+                          ;; Handle AST objects with :tag
+                          (and (map? t) (:tag t)) (:tag t)
+                          ;; Handle structured types
+                          (and (map? t) (:type t)) t  ; Return full map for structured types
+                          ;; Already normalized
+                          :else t))
+        norm-expected (normalize-type expected)
+        norm-actual (normalize-type actual)]
+    (cond
+      ;; Exact match after normalization
+      (= norm-expected norm-actual) true
+      
+      ;; :any is always compatible
+      (or (= :any norm-expected) (= :any norm-actual)) true
+      
+      ;; Number hierarchy: number is compatible with int expectation
+      (and (= :int norm-expected) (= :number norm-actual)) true
+      
+      ;; Nilable types compatibility - fixed to handle namespaced keywords
+      (and (keyword? expected) 
+           (str/includes? (str expected) "nilable/"))
+      (let [parts (str/split (str expected) #"/")
+            base-type (keyword (last parts))]
+        (or (= :nil norm-actual)
+            (schema-type-compatible? base-type norm-actual)))
+      
+      ;; Map compatibility - check required keys and their types
+      (and (map? norm-expected) (map? norm-actual)
+           (= :map (:type norm-expected)) (= :map (:type norm-actual)))
+      (let [expected-keys (set (:req-keys norm-expected))
+            actual-keys (set (:req-keys norm-actual))]
+        (and
+         ;; All required keys in expected must be present in actual
+         (every? actual-keys expected-keys)
+         ;; For each common key, types must be compatible
+         (every? (fn [k]
+                  (let [expected-type (get-in norm-expected [:keys k])
+                        actual-type (get-in norm-actual [:keys k])]
+                    (schema-type-compatible? expected-type actual-type)))
+                (set/intersection expected-keys actual-keys))))
+      
+      ;; Collection types with element types
+      (and (map? norm-expected) (map? norm-actual)
+           (= (:type norm-expected) (:type norm-actual))
+           (:element-type norm-expected))
+      (schema-type-compatible? (:element-type norm-expected)
+                             (:element-type norm-actual))
+      
+      ;; Simple collection compatibility
+      (and (map? norm-expected) (keyword? norm-actual))
+      (= (:type norm-expected) norm-actual)
+      
+      (and (keyword? norm-expected) (map? norm-actual))
+      (= norm-expected (:type norm-actual))
+      
+      ;; Default
+      :else false)))
+
 (defn emit-schema-type-mismatch!
   "Emit a schema type mismatch warning"
   [ctx expected-schema actual-type expr]
-  (let [expected-label (cond
-                         (keyword? expected-schema)
-                         (cond
-                           (str/starts-with? (str expected-schema) ":nilable/")
-                           (str (subs (str expected-schema) 9) " or nil")
+  (when (and expected-schema actual-type 
+             (not (schema-type-compatible? expected-schema actual-type)))
+    (let [expected-label (cond
+                           (keyword? expected-schema)
+                           (cond
+                             (str/starts-with? (str expected-schema) ":nilable/")
+                             (str (subs (str expected-schema) 9) " or nil")
+                             
+                             :else
+                             (schema-type-to-string expected-schema))
                            
-                           :else
-                           (case expected-schema
-                             :string "string"
-                             :int "integer" 
-                             :number "number"
-                             :boolean "boolean"
-                             :keyword "keyword"
-                             :symbol "symbol"
-                             :vector "vector"
-                             :map "map"
-                             :set "set"
-                             :nil "nil"
-                             :any "any"
-                             :regex "regex"
-                             (name expected-schema)))
-                         
-                         (map? expected-schema)
-                         (case (:type expected-schema)
-                           :vector (if (:element-type expected-schema)
-                                     (str "vector of " (name (:element-type expected-schema)))
-                                     "vector")
-                           :set (if (:element-type expected-schema)
-                                  (str "set of " (name (:element-type expected-schema)))
-                                  "set")
-                           :map "structured map"
-                           "complex type")
-                         
-                         :else (str expected-schema))
-        
-        actual-label (cond
-                       (keyword? actual-type)
-                       (case actual-type
-                         :string "string"
-                         :int "integer"
-                         :number "number"
-                         :boolean "boolean"
-                         :keyword "keyword"
-                         :symbol "symbol"
-                         :vector "vector"
-                         :map "map"
-                         :set "set"
-                         :nil "nil"
-                         :any "any"
-                         :regex "regex"
-                         (name actual-type))
-                       
-                       (map? actual-type)
-                       (case (:type actual-type)
-                         :vector "vector"
-                         :set "set"
-                         :map "map"
-                         "complex type")
-                       
-                       :else (str actual-type))]
-    (when expr
-      (require 'clj-kondo.impl.findings)
-      ((resolve 'clj-kondo.impl.findings/reg-finding!) ctx
-       (utils/node->line (:filename ctx)
-                         expr :schema-type-mismatch
-                         (str "Schema type mismatch. Expected: " expected-label
-                              ", actual: " actual-label "."))))))
-
-(defn schema-type-compatible?
-  "Check if two schema types are compatible"
-  [expected actual]
-  (cond
-    ;; Exact match
-    (= expected actual) true
-    
-    ;; :any is always compatible
-    (or (= :any expected) (= :any actual)) true
-    
-    ;; Number hierarchy: :int is compatible with :number
-    (and (= :number expected) (= :int actual)) true
-    
-    ;; Nilable types compatibility
-    (and (keyword? expected) (str/starts-with? (str expected) ":nilable/"))
-    (let [base-type (keyword (subs (str expected) 9))]
-      (or (= base-type actual) (= :nil actual)))
-    
-    ;; Handle complex types (maps with structure)
-    (and (map? expected) (map? actual))
-    (cond
-      ;; Both are structured maps
-      (and (= :map (:type expected)) (= :map (:type actual))) true
-      ;; One structured, one simple
-      (or (= :map (:type expected)) (= :map (:type actual))) true
-      ;; Default for other map types
-      :else true)
-    
-    ;; Collection types with element types
-    (and (map? expected) (map? actual)
-         (= (:type expected) (:type actual)))
-    true  ; For now, just check container type
-    
-    ;; Simple collection compatibility
-    (and (map? expected) (keyword? actual))
-    (= (:type expected) actual)
-    
-    (and (keyword? expected) (map? actual))
-    (= expected (:type actual))
-    
-    ;; Default
-    :else false))
+                           (map? expected-schema)
+                           (schema-type-to-string expected-schema)
+                           
+                           :else (str expected-schema))
+          
+          actual-label (schema-type-to-string actual-type)]
+      (when expr
+        (when (= "true" (System/getenv "CLJ_KONDO_DEBUG_SCHEMA"))
+          (println "DEBUG: Schema mismatch - expected:" expected-schema "actual:" actual-type)
+          (println "DEBUG: Expected label:" expected-label "Actual label:" actual-label))
+        (require 'clj-kondo.impl.findings)
+        ((resolve 'clj-kondo.impl.findings/reg-finding!) ctx
+         (utils/node->line (:filename ctx)
+                           expr :schema-type-mismatch
+                           (str "Schema type mismatch. Expected: " expected-label
+                                ", actual: " actual-label ".")))))))
 
 (defn convert-schema-to-type-spec
   "Convert extracted schema type information to clj-kondo type spec format"
