@@ -15,3 +15,6 @@ fi
 
 echo "Pod test"
 clojure -M:test:pod-test -d pod-test
+
+echo "Regression tests"
+clojure -X:test:test-regression
