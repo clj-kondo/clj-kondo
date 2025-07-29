@@ -8,7 +8,7 @@
    [clojure.edn :as edn]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [clojure.tools.deps.alpha :as deps]))
+   [clojure.tools.deps :as deps]))
 
 (defn analyze [lint]
   (let [config {:output {:canonical-paths true
