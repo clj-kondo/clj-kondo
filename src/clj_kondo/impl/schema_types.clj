@@ -385,18 +385,37 @@
         (or (= :nil norm-actual)
             (schema-type-compatible? base-type norm-actual)))
       
-      ;; Map compatibility - check required keys and their types
+      ;; Map compatibility - normalize both schema and inferred formats
       (and (map? norm-expected) (map? norm-actual)
            (= :map (:type norm-expected)) (= :map (:type norm-actual)))
-      (let [expected-keys (set (:req-keys norm-expected))
-            actual-keys (set (:req-keys norm-actual))]
+      (let [normalize-map (fn [map-type]
+                            (cond
+                              ;; Schema format: {:type :map, :keys {...}, :req-keys [...]}
+                              (and (map? map-type) (:keys map-type))
+                              {:normalized-keys (:keys map-type)
+                               :req-keys (set (:req-keys map-type))}
+                              
+                              ;; Inferred format: {:type :map, :val {...}}
+                              (and (map? map-type) (:val map-type))
+                              (let [val-map (:val map-type)
+                                    extracted-keys (into {} (map (fn [[k v]]
+                                                                    [k (if (map? v) (:tag v) v)])
+                                                                  val-map))]
+                                {:normalized-keys extracted-keys
+                                 :req-keys (set (keys extracted-keys))})
+                              
+                              :else map-type))
+            norm-expected-map (normalize-map norm-expected)
+            norm-actual-map (normalize-map norm-actual)
+            expected-keys (:req-keys norm-expected-map)
+            actual-keys (:req-keys norm-actual-map)]
         (and
          ;; All required keys in expected must be present in actual
-         (every? actual-keys expected-keys)
-         ;; For each common key, types must be compatible
+         (set/subset? expected-keys actual-keys)
+         ;; Check type compatibility for overlapping keys
          (every? (fn [k]
-                  (let [expected-type (get-in norm-expected [:keys k])
-                        actual-type (get-in norm-actual [:keys k])]
+                  (let [expected-type (get-in norm-expected-map [:normalized-keys k])
+                        actual-type (get-in norm-actual-map [:normalized-keys k])]
                     (schema-type-compatible? expected-type actual-type)))
                 (set/intersection expected-keys actual-keys))))
       
@@ -452,7 +471,7 @@
   "Convert extracted schema type information to clj-kondo type spec format"
   [schema-types]
   (when (seq schema-types)
-    (let [args (butlast schema-types)
-          ret (last schema-types)]
+    (let [ret (first schema-types)    ; Return type is first
+          args (rest schema-types)]   ; Parameters follow
       {:arities {(count args) {:args (vec args)
                                :ret ret}}})))

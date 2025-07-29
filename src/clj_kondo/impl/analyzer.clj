@@ -203,7 +203,27 @@
                    (let [s (symbol (name sym))
                          m (meta expr)
                          t (or (types/tag-from-meta (:tag m))
-                               (:tag opts))
+                               (:tag opts)
+                               ;; Get schema type for this parameter
+                               (when-let [schema-types (:schema-types opts)]
+                                                                  (let [schema-type (get schema-types sym)
+                                       ;; Convert schema type to clj-kondo type tag
+                                       converted-type
+                                       (case schema-type
+                                         :string :string
+                                         :int :int
+                                         :number :number
+                                         :boolean :boolean
+                                         :keyword :keyword
+                                         :symbol :symbol
+                                         :vector :vector
+                                         :map :map
+                                         :set :set
+                                         :nil :nil
+                                         :any :any
+                                                                                  ;; For complex schema types (maps, etc.), use :map
+                                          (when (map? schema-type) :map))]
+                                   converted-type)))
                          v (cond-> (assoc m
                                           :name s
                                           :filename (:filename ctx)
@@ -399,6 +419,25 @@
                (inc arity)))
       {:fixed-arity arity})))
 
+(defn extract-arg-symbols
+  "Extract parameter symbols from argument vector for schema type mapping"
+  [arg-vec]
+  (when arg-vec
+    (let [children (:children arg-vec)]
+      (loop [symbols []
+             [child & rest] children]
+        (if child
+          (case (tag child)
+            :token (if-let [sym (:value child)]
+                     (if (= '& sym)
+                       (recur symbols rest) ; Skip & symbol
+                       (recur (conj symbols sym) rest))
+                     (recur symbols rest))
+            :vector (recur symbols rest) ; Skip destructuring for now
+            :map (recur symbols rest)    ; Skip destructuring for now  
+            (recur symbols rest))
+          symbols)))))
+
 (defn analyze-fn-arity [ctx body]
   (if-let [a (:analyzed-arity body)]
     a
@@ -413,10 +452,24 @@
                                                  :syntax
                                                  "Function arguments should be wrapped in vector."))
               (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
-                    arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
+                    ;; Get schema parameter types if available
+                    fn-name (:in-def ctx)
+                    schema-arities (when fn-name (get (:schema-arities ctx) fn-name))
+                    arity (analyze-arity ctx arg-vec)
+                    arity-num (:fixed-arity arity) ; Extract the actual arity number
+                    schema-args (when schema-arities 
+                                  (get-in schema-arities [arity-num :args]))
+                    ;; Create schema type map for parameter binding
+                    schema-type-map (when schema-args
+                                      (let [arg-symbols (extract-arg-symbols arg-vec)]
+                                        (zipmap arg-symbols schema-args)))
+                    ;; Enhanced opts with schema types
+                    binding-opts (cond-> {:fn-args? true}
+                                   schema-type-map (assoc :schema-types schema-type-map))
+
+                    arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body binding-opts)
                     {return-tag :tag
                      arg-tags :tags} (meta arg-bindings)
-                    arity (analyze-arity ctx arg-vec)
                     ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
                                  :arity arity
                                  :analyzed-arg-vec (:analyzed arg-bindings)
