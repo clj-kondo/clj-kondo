@@ -2283,8 +2283,8 @@
                           (= :list (utils/tag obj)))
           interned-object? (and t
                                 (not= :any t)
-                                (or (one-of t [:keyword :string :boolean])
-                                    (types/match? t :number)))]
+                                (or (one-of t [:keyword :string :boolean :number])
+                                    (contains? (types/is-a-relations t) :number)))]
       (when (or
              only-object?
              no-symbol?
