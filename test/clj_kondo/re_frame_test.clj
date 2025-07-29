@@ -5,7 +5,7 @@
    [clj-kondo.test-utils :refer [lint!]]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [clojure.tools.deps.alpha :as deps]))
+   [clojure.tools.deps :as deps]))
 
 (def config
   '{:linters {:unresolved-namespace {:exclude [clojure.string]}

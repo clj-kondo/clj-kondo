@@ -1108,6 +1108,31 @@
        (lint! "@inc (let [x nil] @x)"
               config))))
 
+(deftest issue-2575-test
+  (is (empty?
+       (lint! "(require '[clojure.string :as str])
+
+(defn foo []
+  (let [res (str)]
+    {:b {:a res}}))
+
+(str/split-lines
+ (:a
+  (:b
+   (foo))))
+"
+              config))))
+
+(deftest issue-2580-test
+  (is (empty?
+       (lint! "(assoc {} :foo '[bar] :id #{})"
+              config))))
+
+(deftest var-test
+  (is (empty? (lint! "(map #'inc [1 2 3])" config)))
+  (is (empty? (lint! "((partial #'+ 1) 2)" config)))
+  (is (empty? (lint! "(symbol #'inc)" config))))
+
 ;;;; Scratch
 
 (comment

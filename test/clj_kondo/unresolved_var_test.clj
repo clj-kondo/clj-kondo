@@ -4,7 +4,7 @@
    [clj-kondo.core :as core]
    [clj-kondo.test-utils :refer [lint! assert-submaps2] :rename {assert-submaps2 assert-submaps}]
    [clojure.test :refer [deftest is testing]]
-   [clojure.tools.deps.alpha :as deps]))
+   [clojure.tools.deps :as deps]))
 
 (deftest unresolved-var-test
   (assert-submaps

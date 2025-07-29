@@ -615,14 +615,18 @@
                                 :arities :type :class :methods])))
             vars))
 
+(defn deprecated-val [deprecated]
+  (when deprecated
+    (cond (boolean? deprecated) (true? deprecated)
+          (string? deprecated) deprecated
+          (some? deprecated) true)))
+
 (defn namespaces->indexed [namespaces]
   (when namespaces
     (map-vals (fn [{:keys [filename vars proxied-namespaces deprecated]}]
                 (some-> (assoc-some (format-vars vars)
                                     :proxied-namespaces proxied-namespaces
-                                    :deprecated (cond (boolean? deprecated) (true? deprecated)
-                                                      (string? deprecated) deprecated
-                                                      (some? deprecated) true))
+                                    :deprecated (deprecated-val deprecated))
                         (assoc :filename filename)))
               namespaces)))
 
@@ -630,9 +634,12 @@
   (when namespaces
     (map-vals (fn [v]
                 (let [vars (:vars v)
-                      filename (:filename v)]
-                  {:filename filename
-                   lang (format-vars vars)}))
+                      filename (:filename v)
+                      deprecated (:deprecated v)
+                      deprecated (deprecated-val deprecated)]
+                  (cond-> {:filename filename
+                          lang (format-vars vars)}
+                    deprecated (assoc :deprecated deprecated))))
               namespaces)))
 
 (defn namespaces->indexed-defs [ctx]

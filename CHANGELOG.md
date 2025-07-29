@@ -19,14 +19,28 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Fix [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
+- Require clojure `1.10.3` is the minumum clojure version
+
+## 2025.07.28
+
+- [#2580](https://github.com/clj-kondo/clj-kondo/issues/2580): false positive type mismatch with quoted value
+- Fix some `:locking-suspicious-lock` false positives
+- [#2582](https://github.com/clj-kondo/clj-kondo/issues/2582): `:condition-always-true` false positives
+
+## 2025.07.26
+
 - [#2560](https://github.com/clj-kondo/clj-kondo/issues/2560): NEW linter: `:locking-suspicious-lock`: report when locking is used on a single arg, interned value or local object
 - [#2519](https://github.com/clj-kondo/clj-kondo/issues/2519): NEW linter: `:unresolved-protocol-method`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md) ([@emerson-matos](https://github.com/emerson-matos))
 - [#2555](https://github.com/clj-kondo/clj-kondo/issues/2555): false positive with `clojure.string/replace` and `partial` as replacement fn
 - [#2566](https://github.com/clj-kondo/clj-kondo/issues/2566): Expand `:condition-always-true` check. ([@NoahTheDuke](https://github.com/NoahTheDuke))
 - [#2350](https://github.com/clj-kondo/clj-kondo/issues/2350): support `schema.core/defprotocol` ([@emerson-matos](https://github.com/emerson-matos))
 - [#2571](https://github.com/clj-kondo/clj-kondo/issues/2571): false positive unresolved symbol when ignoring expression that goes through macroexpansion hook
+- [#2575](https://github.com/clj-kondo/clj-kondo/issues/2575): false positive type mismatch with nested keyword call and `str`
 - Bump SCI to `0.10.47`
-- Drop caching for hook fns, solves memory issue with Cursive + big projects like metabase
+- Drop memoization for hook fns and configuration, solves memory issue with Cursive + big projects like metabase
+- Optimizations to compensate for dropping caching, performance should be similar (or better depending on the size of your project)
+- [#2568](https://github.com/clj-kondo/clj-kondo/issues/2568): support `:deprecated-namespace` for `.cljc` namespaces
 
 ## 2025.06.05
 

@@ -4,7 +4,7 @@
     [clj-kondo.core :as clj-kondo]
     [clj-kondo.test-utils :refer [lint! #_assert-submaps]]
     [clojure.test :refer [deftest is testing]]
-    [clojure.tools.deps.alpha :as deps]))
+    [clojure.tools.deps :as deps]))
 
 (deftest alias-uri-test
   (is (empty? (lint! "

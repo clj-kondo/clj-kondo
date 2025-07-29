@@ -2455,7 +2455,11 @@ foo"))))
                   (lint! "(ns foo {:deprecated true}) (def x 1) (ns bar (:require [foo]))"))
   (is (empty?
        (lint! "(ns foo {:deprecated true}) (def x 1) (ns bar (:require [foo]))"
-              '{:linters {:deprecated-namespace {:exclude [foo]}}}))))
+              '{:linters {:deprecated-namespace {:exclude [foo]}}})))
+  (assert-submaps
+   [{:file "corpus/deprecated_namespace/bar.clj", :row 2, :col 13, :level :warning, :message "Namespace deprecated-namespace.foo is deprecated."}]
+   (lint! (io/file "corpus/deprecated_namespace")
+          '{:linters {:deprecated-namespace {:exclude [foo]}}})))
 
 (deftest unused-referred-var-test
   (assert-submaps

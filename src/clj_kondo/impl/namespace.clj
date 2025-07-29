@@ -377,8 +377,8 @@
             (pos? i))))))
 
 (defn reg-unresolved-symbol!
-  [ctx ns-sym sym {:keys [:base-lang :lang :config
-                          :callstack] :as sym-info}]
+  [ctx ns-sym sym {:keys [base-lang lang config
+                          callstack] :as sym-info}]
   (when-not (or (:unresolved-symbol-disabled? sym-info)
                 (config/unresolved-symbol-excluded config
                                                    callstack sym)
@@ -393,7 +393,7 @@
   nil)
 
 (defn reg-unresolved-var!
-  [ctx ns-sym resolved-ns sym {:keys [:base-lang :lang :config] :as sym-info}]
+  [ctx ns-sym resolved-ns sym {:keys [base-lang lang config] :as sym-info}]
   (when-not (or
              ;; this is set because of linting macro bodies
              ;; before removing this, check script/diff
@@ -451,10 +451,11 @@
 (defn reg-unresolved-namespace!
   [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
-    (let [ns-groups (cons unresolved-ns (config/ns-groups config unresolved-ns filename))]
+    (let [ns-groups (cons unresolved-ns (config/ns-groups config unresolved-ns filename))
+          excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
           (or
-           (some #(config/unresolved-namespace-excluded config %)
+           (some #(config/unresolved-namespace-excluded excluded %)
                  ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
            (config/unresolved-symbol-excluded config callstack :dummy))
@@ -674,7 +675,8 @@
                         ns*)
                 ns-sym (symbol ns*)]
             (or (when-let [ns* (or (get (:qualify-ns ns) ns-sym)
-                                   (when (or (config/unresolved-namespace-excluded (:config ctx) ns-sym)
+                                   (when (or (config/unresolved-namespace-excluded
+                                              (config/unresolved-namespace-excluded-config (:config ctx)) ns-sym)
                                              (and (:data-readers ctx)
                                                   (identical? :val (:clj-kondo.internal/map-position expr))))
                                      ns-sym)

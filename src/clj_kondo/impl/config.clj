@@ -249,7 +249,7 @@
                                 :col 0
                                 :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
                                 :filename (:filename utils/*ctx*)})
-        'clj-kondo/unknown-var)))
+        nil)))
 
 (defn fq-syms->vecs
   [fq-syms]
@@ -269,7 +269,8 @@
 
 (defn skip-args
   ([config linter]
-   (fq-syms->vecs (get-in config [:linters linter :skip-args]))))
+   (some-> (get-in config [:linters linter :skip-args])
+           (fq-syms->vecs))))
 
 (defn skip?
   "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
@@ -279,19 +280,18 @@
              (some #(= disabled-sym %) callstack))
            disabled))))
 
-(defn lint-as-config [config]
-  (let [m (get config :lint-as)]
-    (zipmap (fq-syms->vecs (keys m))
-            (fq-syms->vecs (vals m)))))
-
 (defn lint-as [config v]
-  (get (lint-as-config config) v))
+  (some-> (get-in config [:lint-as v])
+          fq-sym->vec))
+
+(defn unused-namespace-excluded-config [config]
+  (let [excluded (get-in config [:linters :unused-namespace :exclude])
+        syms (set (filter symbol? excluded))
+        regexes (map re-pattern (filter string? excluded))]
+    {:syms syms :regexes regexes}))
 
 (defn unused-namespace-excluded [config ns-sym]
-  (let [{:keys [:syms :regexes]} (let [excluded (get-in config [:linters :unused-namespace :exclude])
-                                       syms (set (filter symbol? excluded))
-                                       regexes (map re-pattern (filter string? excluded))]
-                                   {:syms syms :regexes regexes})]
+  (let [{:keys [syms regexes]} config]
     (or (contains? syms ns-sym)
         (let [ns-str (str ns-sym)]
           (boolean (some #(re-find % ns-str) regexes))))))
@@ -308,9 +308,11 @@
     (when-let [vars (get excluded ns-sym)]
       (contains? vars var-sym))))
 
-(defn unresolved-namespace-excluded [config ns-sym]
-  (let [excluded (set (get-in config [:linters :unresolved-namespace :exclude]))]
-    (contains? excluded ns-sym)))
+(defn unresolved-namespace-excluded-config [config]
+  (set (get-in config [:linters :unresolved-namespace :exclude])))
+
+(defn unresolved-namespace-excluded [excluded ns-sym]
+  (contains? excluded ns-sym))
 
 (defn unresolved-symbol-excluded [config callstack sym]
   (let [{:keys [excluded excluded-in exclude-patterns]}
@@ -387,19 +389,20 @@
   (get-in config [:linters :type-mismatch :namespaces var-ns var-name]))
 
 (defn unused-private-var-excluded [config ns-nm var-name]
-  (contains? (let [syms (get-in config [:linters :unused-private-var :exclude])
-                   vecs (fq-syms->vecs syms)]
-               (set vecs)) [ns-nm var-name]))
+  (contains? (let [syms (get-in config [:linters :unused-private-var :exclude])]
+               (set syms)) (symbol (str ns-nm) (str var-name))))
 
 (defn refer-excluded? [config referred-ns]
   (let [excluded (let [syms (get-in config [:linters :refer :exclude])]
                    (set syms))]
     (contains? excluded referred-ns)))
 
-(defn refer-all-excluded? [config referred-all-ns]
-  (let [excluded (let [syms (get-in config [:linters :refer-all :exclude])]
-                   (set syms))]
-    (contains? excluded referred-all-ns)))
+(defn refer-all-excluded-config [config]
+  (let [syms (get-in config [:linters :refer-all :exclude])]
+    (set syms)))
+
+(defn refer-all-excluded? [excluded referred-all-ns]
+  (contains? excluded referred-all-ns))
 
 (defn shadowed-var-excluded? [config sym]
   (when-let [cfg (let [cfg (get-in config [:linters :shadowed-var])
@@ -446,19 +449,25 @@
                    (set syms))]
     (contains? excluded sym-ns)))
 
+(defn unused-binding-excluded-config [config]
+  (let [excluded (get-in config [:linters :unused-binding :exclude-patterns])
+        regexes (map re-pattern (filter string? excluded))]
+    {:regexes regexes}))
+
 (defn unused-binding-excluded? [config binding-sym]
-  (let [{:keys [:regexes]} (let [excluded (get-in config [:linters :unused-binding :exclude-patterns])
-                                 regexes (map re-pattern (filter string? excluded))]
-                             {:regexes regexes})
+  (let [{:keys [:regexes]} config
         binding-str (str binding-sym)]
     (boolean (some (fn [regex]
                      (re-find regex binding-str)) regexes))))
 
+(defn used-underscored-binding-excluded-config [config]
+  (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
+        syms (set (filter symbol? excluded))
+        regexes (map re-pattern (filter string? excluded))]
+    {:syms syms :regexes regexes}))
+
 (defn used-underscored-binding-excluded? [config binding-sym]
-  (let [{:keys [syms regexes]} (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
-                                     syms (set (filter symbol? excluded))
-                                     regexes (map re-pattern (filter string? excluded))]
-                                 {:syms syms :regexes regexes})]
+  (let [{:keys [syms regexes]} config]
     (or (contains? syms binding-sym)
         (let [binding-str (str binding-sym)]
           (boolean (some #(re-find % binding-str) regexes))))))
@@ -483,10 +492,12 @@
        x))
    coll))
 
+(defn deprecated-namespace-excluded-config [config ]
+  (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
+    (set excluded)))
+
 (defn deprecated-namespace-excluded? [config required]
-  (let [cfg (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
-              (set excluded))]
-    (contains? cfg required)))
+  (contains? config required))
 
 ;;;; Scratch
 

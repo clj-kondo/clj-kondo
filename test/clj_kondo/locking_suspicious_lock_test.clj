@@ -26,4 +26,6 @@
                       :col 10,
                       :level :warning,
                       :message "Suspicious lock object: object is local to locking scope"})
-                   (lint! "(locking (Object.) (+ 1 2 3))")))
+                   (lint! "(locking (Object.) (+ 1 2 3))"))
+  (is (empty? (lint! "(locking #'+ (+ 1 2 3))")))
+  (is (empty? (lint! "(locking @#'+ (+ 1 2 3))"))))

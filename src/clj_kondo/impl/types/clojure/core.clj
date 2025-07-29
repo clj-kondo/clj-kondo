@@ -182,7 +182,7 @@
                       (reduce tu/union-type #{} rets)
                       (reduce tu/union-type :nil rets)))))}
    ;; 589
-   'symbol {:arities {1 {:args [#{:symbol :string :keyword}]
+   'symbol {:arities {1 {:args [#{:symbol :string :keyword :var}]
                          :ret :symbol}
                       2 {:args [:nilable/string :string]
                          :ret :symbol}}}
