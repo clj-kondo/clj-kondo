@@ -40,6 +40,10 @@
             :main-opts ["-m" "cognitect.test-runner"]}
            :clojure-1.10.3 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"
                                                               :neil/pinned true}}}
+           :test-regression {:extra-deps {io.github.nextjournal/clerk {:git/sha "b0fd4458a1af7f3ecd95e0cde41761ac297e24f5"}}
+                             :extra-paths ["test-regression"]
+                             :exec-args {:dirs ["test-regression"]}
+                             :exec-fn cognitect.test-runner.api/test}
            :profiler
            {:extra-deps
             {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.2.2"}}
