@@ -292,6 +292,36 @@
   "Convert a schema type to a human-readable string"
   [schema-type]
   (cond
+    ;; Handle sets (union types) - IMPROVED
+    (set? schema-type)
+    (let [normalize-item (fn [item]
+                          (cond
+                            ;; Handle AST objects with :tag
+                            (and (map? item) (:tag item)) (:tag item)
+                            ;; Handle other types
+                            :else item))
+          normalized-types (map normalize-item schema-type)
+          unique-types (distinct normalized-types)  ; Remove duplicates
+          type-strings (map schema-type-to-string (sort unique-types))
+          filtered-strings (remove #(= % "nil") type-strings)
+          has-nil? (some #(= % "nil") type-strings)]
+      (cond
+        (and (= 1 (count filtered-strings)) has-nil?)
+        (str (first filtered-strings) " or nil")
+        
+        (and (> (count filtered-strings) 1) has-nil?)
+        (str (str/join " or " filtered-strings) " or nil")
+        
+        (> (count type-strings) 1)
+        (str/join " or " type-strings)
+        
+        :else
+        (first type-strings)))
+    
+    ;; Handle AST objects with :tag field that contains a set (union type)
+    (and (map? schema-type) (:tag schema-type) (set? (:tag schema-type)))
+    (schema-type-to-string (:tag schema-type))
+    
     ;; Handle AST objects with :tag field
     (and (map? schema-type) (:tag schema-type))
     (case (:tag schema-type)
@@ -457,9 +487,6 @@
           
           actual-label (schema-type-to-string actual-type)]
       (when expr
-        (when (= "true" (System/getenv "CLJ_KONDO_DEBUG_SCHEMA"))
-          (println "DEBUG: Schema mismatch - expected:" expected-schema "actual:" actual-type)
-          (println "DEBUG: Expected label:" expected-label "Actual label:" actual-label))
         (require 'clj-kondo.impl.findings)
         ((resolve 'clj-kondo.impl.findings/reg-finding!) ctx
          (utils/node->line (:filename ctx)
