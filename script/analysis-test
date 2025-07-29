@@ -6,6 +6,6 @@ echo "Analysis test (emit readable EDN)"
 rm -rf /tmp/kondo-test-analysis
 mkdir -p /tmp/kondo-test-analysis
 
-clojure -M -m clj-kondo.main --config '{:output {:format :edn} :analysis {:locals true :keywords true :arglists true}}' --lint "$(clojure -Spath -A:cljs)" > /tmp/kondo-test-analysis/out.edn
+clojure -M -m clj-kondo.main --config '{:output {:format :edn} :analysis {:locals true :keywords true :arglists true}}' --lint "$(clojure -Spath -A:cljs)" > /tmp/kondo-test-analysis/out.edn || true
 
 clojure -M -e '(do (require (quote [clojure.edn :as edn])) (edn/read-string (slurp "/tmp/kondo-test-analysis/out.edn")) nil)'
