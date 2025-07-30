@@ -10,5 +10,4 @@ IF "%CLJ_KONDO_TEST_ENV%"=="native" (
   echo "Testing with Clojure 1.10.3"
   rem clojure -A:clojure-1.10.1:test
   call lein with-profiles +clojure-1.10.3 do clean, test
-  call clojure -X:test:test-regression
 )

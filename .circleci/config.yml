@@ -48,6 +48,45 @@ jobs:
             script/test
             script/analysis-test
             clojure -M:test:eastwood
+      - save_cache:
+          paths:
+            - ~/.m2
+            - ~/.gitlibs
+            - ~/repo/test-regression/checkouts
+          key: v1-dependencies-{{ checksum "deps.edn" }}
+
+test-regression:
+    docker:
+      # specify the version you desire here
+      - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
+    working_directory: ~/repo
+    environment:
+      LEIN_ROOT: "true"
+    steps:
+      - checkout
+      - run:
+          name: Get rid of erroneous git config
+          command: |
+              rm -rf /home/circleci/.gitconfig
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "deps.edn" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies
+      - run:
+          name: Install Clojure
+          command: |
+            wget -nc https://download.clojure.org/install/linux-install-1.11.1.1165.sh
+            chmod +x linux-install-1.11.1.1165.sh
+            sudo ./linux-install-1.11.1.1165.sh
+      - run:
+          name: Install bb
+          command: |
+            sudo bash < <(curl -s https://raw.githubusercontent.com/babashka/babashka/master/install)
+      - run:
+          name: Run regression tests
+          command: |
+            bb test:regression
       - run:
           name: Run as tools.deps dependency
           command: |
@@ -59,6 +98,8 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2
+            - ~/.gitlibs
+            - ~/repo/test-regression/checkouts
           key: v1-dependencies-{{ checksum "deps.edn" }}
 
   linux:
