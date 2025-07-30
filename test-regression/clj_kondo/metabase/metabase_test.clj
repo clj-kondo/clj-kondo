@@ -29,6 +29,7 @@
                                        ;; enable extra linters here that we want to test
                                        :config {}})
           findings (:findings lint-result)
+          ;; Uncomment this to reset expected findings:
+          ;; _ (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
-      #_(spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
       (assert-submaps2 expected findings))))
