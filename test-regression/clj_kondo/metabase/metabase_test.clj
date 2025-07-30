@@ -5,8 +5,10 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [assert-submaps2]]
    [clojure.edn :as edn]
+   [clojure.pprint :as pp]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]))
+   [clojure.test :as t :refer [deftest is testing]]
+   ))
 
 (deftest metabase-test
   (let [test-regression-checkouts (fs/file "test-regression" "checkouts")
@@ -33,4 +35,7 @@
           ;; Uncomment this to reset expected findings:
           ;; _ (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
+      (println "FINDINGS")
+      (pp/pprint findings)
+      (println "---------")
       (assert-submaps2 expected findings))))
