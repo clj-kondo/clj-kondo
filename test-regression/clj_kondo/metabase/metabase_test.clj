@@ -20,6 +20,7 @@
     (p/shell {:dir dir} "git fetch --depth 1 origin" "aa0cdb546d7c9e4ef5c52ad23c656272b7599e23")
     (p/shell {:dir dir} "git fetch  --depth 1 origin" "aa0cdb546d7c9e4ef5c52ad23c656272b7599e23")
     (p/shell {:dir dir} "git checkout aa0cdb546d7c9e4ef5c52ad23c656272b7599e23 src test .clj-kondo deps.edn")
+    (fs/delete-tree (fs/file config-dir ".cache"))
     (let [cp (-> (p/shell {:dir dir :out :string} "clojure -Spath") :out str/trim)]
       (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
                        :copy-configs true
@@ -35,7 +36,8 @@
           ;; Uncomment this to reset expected findings:
           ;; _ (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
-      (println "FINDINGS")
-      (pp/pprint findings)
-      (println "---------")
+      (when false
+        (println "FINDINGS")
+        (pp/pprint findings)
+        (println "---------"))
       (assert-submaps2 expected findings))))

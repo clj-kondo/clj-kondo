@@ -533,16 +533,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 99}
- {:end-row 83,
-  :type :unresolved-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/api/common_test.clj",
-  :col 23,
-  :end-col 42,
-  :langs (),
-  :message "Unresolved var: hawk.approx/=?-diff",
-  :row 83}
  {:end-row 64,
   :type :unresolved-symbol,
   :level :error,
@@ -793,18 +783,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 45}
- {:end-row 5,
-  :type :unresolved-var,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/test_util/notebook_helpers.cljc",
-  :col 65,
-  :end-col 72,
-  :cljc true,
-  :langs (:clj),
-  :message "Unresolved var: =?-diff",
-  :row 5}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,
@@ -1090,16 +1068,6 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
- {:end-row 1565,
-  :type :unresolved-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/test/util.clj",
-  :col 23,
-  :end-col 33,
-  :langs (),
-  :message "Unresolved var: =?/=?-diff",
-  :row 1565}
  {:end-row 1018,
   :type :unresolved-symbol,
   :level :error,
