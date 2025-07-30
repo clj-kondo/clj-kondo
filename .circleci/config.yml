@@ -55,7 +55,7 @@ jobs:
             - ~/repo/test-regression/checkouts
           key: v1-dependencies-{{ checksum "deps.edn" }}
 
-test-regression:
+  test-regression:
     docker:
       # specify the version you desire here
       - image: cimg/clojure@sha256:8298383d7753a2305663403871c31f238c3c5f0200e13f2394e32d4598a9fdf2
@@ -509,6 +509,7 @@ workflows:
   ci:
     jobs:
       - jvm
+      - test-regression
       - linux
       - linux-aarch64
       - linux-static
@@ -527,6 +528,7 @@ workflows:
               only: master
           requires:
             - jvm
+            - test-regression
             - linux
             - linux-static
             - linux-aarch64
