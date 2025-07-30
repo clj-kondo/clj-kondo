@@ -21,7 +21,8 @@
     (let [cp (-> (p/shell {:dir dir :out :string} "clojure -Spath") :out str/trim)]
       (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
                        :copy-configs true
-                       :lint [cp]}))
+                       :lint [cp]
+                       :dependencies true}))
     (let [paths (mapv #(str (fs/file dir %)) ["src" "test"])
           lint-result (clj-kondo/run! {:config-dir config-dir
                                        :lint paths
@@ -32,4 +33,4 @@
           ;; Uncomment this to reset expected findings:
           ;; _ (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
-      (assert-submaps2 (set expected) (set findings)))))
+      (assert-submaps2 expected findings))))
