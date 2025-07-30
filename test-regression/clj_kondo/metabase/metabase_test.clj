@@ -32,4 +32,4 @@
           ;; Uncomment this to reset expected findings:
           ;; _ (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
-      (assert-submaps2 expected findings))))
+      (assert-submaps2 (set expected) (set findings)))))
