@@ -95,3 +95,5 @@ src/scratch.clj
 .portal
 src/scratch.cljc
 src/scratch2.clj
+
+test-regression/checkouts
