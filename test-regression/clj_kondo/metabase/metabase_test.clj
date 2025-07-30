@@ -25,7 +25,9 @@
     (let [paths (mapv #(str (fs/file dir %)) ["src" "test"])
           lint-result (clj-kondo/run! {:config-dir config-dir
                                        :lint paths
-                                       :repro true})
+                                       :repro true
+                                       ;; enable extra linters here that we want to test
+                                       :config {}})
           findings (:findings lint-result)
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
       #_(spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
