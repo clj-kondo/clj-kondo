@@ -25,7 +25,8 @@
       (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
                        :copy-configs true
                        :lint [cp]
-                       :dependencies true}))
+                       :dependencies true
+                       :parallel true}))
     (let [paths (mapv #(str (fs/file dir %)) ["src" "test"])
           lint-result (clj-kondo/run! {:config-dir config-dir
                                        :lint paths
