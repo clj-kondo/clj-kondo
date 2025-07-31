@@ -3,6 +3,7 @@
    [babashka.fs :as fs]
    [babashka.process :as p]
    [clj-kondo.core :as clj-kondo]
+   [clj-kondo.test-utils :refer [assert-submaps2]]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -22,10 +23,22 @@
       (p/shell {:dir dir} "git fetch --depth 1 origin" sha)
       (p/shell {:dir dir} "git fetch  --depth 1 origin" sha)
       (p/shell {:dir dir} "git checkout" sha "src" "resources" "dev" "test" "bb" ".clj-kondo" "deps.edn")
+      (fs/delete-tree (fs/file config-dir ".cache"))
+      (let [cp (-> (p/shell {:dir dir :out :string} "clojure -Spath") :out str/trim)]
+        (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
+                         :copy-configs true
+                         :lint [cp]
+                         :dependencies true
+                         :parallel true}))
       (let [paths (mapv #(str (fs/file dir %)) ["src" "test" "bb" "dev"])
+            _ (clj-kondo/run! {:config-dir config-dir
+                               :lint paths
+                               :repro true})
             lint-result (clj-kondo/run! {:config-dir config-dir
                                          :lint paths
-                                         :repro true})]
-        (prn (:summary lint-result))
-        (is (empty? (:findings lint-result)))))
+                                         :repro true})
+            findings (:findings lint-result)]
+        (assert-submaps2
+         []
+         findings)))
     (println "GITHUB_DUCTILE_PAT not set, skipping ductile test")))

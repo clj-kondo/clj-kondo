@@ -3,6 +3,7 @@
    [babashka.fs :as fs]
    [babashka.process :as p]
    [clj-kondo.core :as clj-kondo]
+   [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest clerk-test
@@ -17,6 +18,12 @@
     (p/shell {:dir dir} "git fetch --depth 1 origin" sha)
     (p/shell {:dir dir} "git fetch  --depth 1 origin" sha)
     (p/shell {:dir dir} "git checkout" sha "src" "resources" "test" "bb" ".clj-kondo" "deps.edn")
+    (let [cp (-> (p/shell {:dir dir :out :string} "clojure -Spath") :out str/trim)]
+      (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
+                       :copy-configs true
+                       :lint [cp]
+                       :dependencies true
+                       :parallel true}))
     (let [paths (mapv #(str (fs/file dir %)) ["src" "test" "bb"])
           lint-result (clj-kondo/run! {:config-dir config-dir
                                        :lint paths
