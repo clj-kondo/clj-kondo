@@ -66,32 +66,7 @@
   :col 1,
   :end-col 17,
   :cljc true,
-  :langs
-  (:cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs
-   :cljs),
+  :langs (:cljs :cljs :cljs :cljs :cljs :cljs),
   :message "exists? already refers to #'cljs.core/exists?",
   :row 135}
  {:end-row 199,
@@ -14253,7 +14228,7 @@
   :col 1,
   :end-col 43,
   :cljc true,
-  :langs (:cljs :cljs :cljs :cljs :cljs :cljs),
+  :langs (:cljs :cljs :cljs :cljs :cljs :cljs :cljs :cljs),
   :message "demunge already refers to #'cljs.core/demunge",
   :row 814}
  {:end-row 818,

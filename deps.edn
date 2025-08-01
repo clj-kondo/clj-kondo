@@ -41,7 +41,7 @@
            :clojure-1.10.3 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"
                                                               :neil/pinned true}}}
            :test-regression {:extra-paths ["test-regression"]
-                             :exec-args {:dirs ["test-regression"]}
+                             :exec-args {:dirs ["test-regression/clj_kondo"]}
                              :exec-fn cognitect.test-runner.api/test}
            :profiler
            {:extra-deps
