@@ -26,6 +26,6 @@
                                               :output {:langs false}}})
         findings (:findings lint-result)
         expected-findings-file (fs/file "." "test-regression" "clj_kondo" "clj_kondo" "findings.edn")
-        _ (when true (spit expected-findings-file (with-out-str (pp/pprint findings))))
+        _ (when false (spit expected-findings-file (with-out-str (pp/pprint findings))))
         expected (edn/read-string (slurp expected-findings-file))]
     (assert-submaps2 expected findings)))
