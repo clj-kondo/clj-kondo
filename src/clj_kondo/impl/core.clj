@@ -697,7 +697,7 @@
 
 (defn collapse-cljc-findings [findings]
   (reduce (fn [acc [_ findings]]
-            (let [langs (keep :lang findings)]
+            (let [langs (distinct (keep :lang findings))]
               (conj acc (assoc (first findings) :langs langs))))
           []
           (group-by :message findings)))

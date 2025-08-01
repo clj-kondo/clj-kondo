@@ -11,7 +11,11 @@
 
 (deftest clj-kondo-diff-test
   (let [cp (-> (p/shell {:out :string} "clojure -Spath -A:cljs") :out str/trim)
-        lint-result (clj-kondo/run! {:parallel true
+        config-dir (fs/file "test-regression" "clj_kondo" "clj_kondo" ".clj-kondo")
+        _ (fs/delete-tree (fs/file config-dir ".cache"))
+        lint-result (clj-kondo/run! {:config-dir config-dir
+                                     :cache false
+                                     :parallel true
                                      :lint [cp]
                                      :repro true
                                      :config {:linters
@@ -25,7 +29,7 @@
                                                :redundant-str-call {:level :warning}}
                                               :output {:langs false}}})
         findings (:findings lint-result)
-        expected-findings-file (fs/file "." "test-regression" "clj_kondo" "clj_kondo" "findings.edn")
+        expected-findings-file (fs/file "test-regression" "clj_kondo" "clj_kondo" "findings.edn")
         _ (when false (spit expected-findings-file (with-out-str (pp/pprint findings))))
         expected (edn/read-string (slurp expected-findings-file))]
     (assert-submaps2 expected findings)))
