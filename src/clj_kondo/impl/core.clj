@@ -696,6 +696,10 @@
 ;;;; filter/remove output
 
 (defn collapse-cljc-findings [findings]
+  ;; #_:clj-kondo/ignore
+  #_(when (= (:redefined-var (first findings)))
+    (when (> (count findings) 2)
+      (pr (count findings)) (clojure.pprint/pprint findings)))
   (reduce (fn [acc [_ findings]]
             (let [langs (distinct (keep :lang findings))]
               (conj acc (assoc (first findings) :langs langs))))
