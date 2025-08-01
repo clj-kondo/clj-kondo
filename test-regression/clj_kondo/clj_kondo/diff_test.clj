@@ -10,7 +10,7 @@
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest clj-kondo-diff-test
-  (let [cp (-> (p/shell {:out :string} "clojure -Spath -A:cljs") :out str/trim)
+  (let [cp (-> (p/shell {:out :string} "clojure -Spath -A:cljs:clojure-1.12.1") :out str/trim)
         config-dir (fs/file "test-regression" "clj_kondo" "clj_kondo" ".clj-kondo")
         _ (fs/delete-tree (fs/file config-dir ".cache"))
         lint-result (clj-kondo/run! {:config-dir config-dir
