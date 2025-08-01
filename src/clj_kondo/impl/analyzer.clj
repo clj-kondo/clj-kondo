@@ -2138,7 +2138,8 @@
                        (fn [ns]
                          (-> ns
                              (update :clojure-excluded (fnil conj #{}) sym)
-                             (update :vars dissoc sym))))))))))
+                             (update :vars dissoc sym)
+                             (update :var-counts dissoc sym))))))))))
     (analyze-children ctx children)))
 
 (defn analyze-gen-class [ctx _expr base-lang lang current-ns]

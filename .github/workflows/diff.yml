@@ -1,4 +1,4 @@
-name: Linting diff
+name: Regression tests
 
 on: [push, pull_request]
 
@@ -20,7 +20,7 @@ jobs:
     - name: Setup Clojure
       uses: DeLaGuardo/setup-clojure@master
       with:
-        tools-deps: '1.10.1.727'
+        cli: latest
 
     - name: Cache
       uses: actions/cache@v4.2.0
@@ -29,4 +29,4 @@ jobs:
         key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
 
     - name: Diff
-      run: ./script/diff || true
+      run: clojure -X:test:test-regression
