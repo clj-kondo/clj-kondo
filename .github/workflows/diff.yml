@@ -20,7 +20,7 @@ jobs:
     - name: Setup Clojure
       uses: DeLaGuardo/setup-clojure@master
       with:
-        tools-deps: '1.10.1.727'
+        cli: latest
 
     - name: Cache
       uses: actions/cache@v4.2.0
