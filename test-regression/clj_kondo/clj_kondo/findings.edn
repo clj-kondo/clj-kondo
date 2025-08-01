@@ -1,4 +1,4 @@
-[{:end-row 22,
+({:end-row 22,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -31635,15 +31635,4 @@
   :end-col 16,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 37}
- {:end-row 3,
-  :type :condition-always-true,
-  :level :warning,
-  :lang :clj,
-  :filename "src/scratch.cljc",
-  :col 7,
-  :end-col 17,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Condition always true",
-  :row 3}]
+  :row 37})
