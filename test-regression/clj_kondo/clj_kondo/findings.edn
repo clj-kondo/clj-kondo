@@ -31584,7 +31584,7 @@
   :langs (),
   :message "Unresolved symbol: cljs.core",
   :row 172}
- {:end-row 265,
+ {:end-row 266,
   :ns clojure.test,
   :name deftest,
   :type :unresolved-namespace,
@@ -31595,8 +31595,8 @@
   :langs (),
   :message
   "Unresolved namespace clojure.test. Are you missing a require?",
-  :row 265}
- {:end-row 271,
+  :row 266}
+ {:end-row 272,
   :ns cljs.core,
   :name deftype,
   :type :unresolved-namespace,
@@ -31607,7 +31607,7 @@
   :langs (),
   :message
   "Unresolved namespace cljs.core. Are you missing a require?",
-  :row 271}
+  :row 272}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,
