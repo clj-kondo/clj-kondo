@@ -395,8 +395,6 @@
 (defn reg-unresolved-var!
   [ctx ns-sym resolved-ns sym {:keys [base-lang lang config] :as sym-info}]
   (when-not (or
-             ;; this is set because of linting macro bodies
-             ;; before removing this, check script/diff
              (:unresolved-symbol-disabled? sym-info)
              (config/unresolved-var-excluded config resolved-ns sym)
              (let [symbol-name (name sym)]

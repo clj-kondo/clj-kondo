@@ -1,4 +1,4 @@
-name: Linting diff
+name: Regression tests
 
 on: [push, pull_request]
 
@@ -29,4 +29,4 @@ jobs:
         key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
 
     - name: Diff
-      run: ./script/diff || true
+      run: clojure -X:test:test-regression
