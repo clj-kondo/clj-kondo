@@ -205,14 +205,15 @@
                                          (if hard-def? (inc curr-var-count) curr-var-count))))))
              ns (get-in old-namespaces path)
              vars (:vars ns)
-             curr-var-count (or (get (:var-counts ns) var-sym) 0)
-             prev-var (get vars var-sym)
-             prev-declared? (:declared prev-var)
-             classfiles (:classfiles ns)
-             classfile (var-classfile metadata)
-             hard-def? (and (not (:declared metadata))
-                            (not (:in-comment ctx)))]
-         (when (identical? :clj lang)
+             prev-var (get vars var-sym)]
+         (when-not (and temp? (not prev-var))
+           (let [curr-var-count (or (get (:var-counts ns) var-sym) 0)
+                 prev-declared? (:declared prev-var)
+                 classfiles (:classfiles ns)
+                 classfile (var-classfile metadata)
+                 hard-def? (and (not (:declared metadata))
+                                (not (:in-comment ctx)))]
+             (when (identical? :clj lang)
                (when-let [clashing-vars (->> (get classfiles classfile)
                                              (remove #{var-sym})
                                              (seq))]
@@ -286,9 +287,8 @@
                         (node->line filename
                                     expr
                                     :main-without-gen-class
-                                    "Main function without gen-class.")))))))
-         )
-       nil))))
+                                    "Main function without gen-class."))))))))
+           nil))))))
 
 (defn reg-var-usage!
   [{:keys [:base-lang :lang :namespaces] :as ctx}

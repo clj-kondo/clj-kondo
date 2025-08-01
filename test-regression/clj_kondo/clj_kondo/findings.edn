@@ -31428,7 +31428,7 @@
   :langs (),
   :message "Unresolved symbol: fn*",
   :row 1367}
- {:end-row 2234,
+ {:end-row 2235,
   :type :unresolved-symbol,
   :level :error,
   :filename "src/clj_kondo/impl/analyzer.clj",
@@ -31436,8 +31436,8 @@
   :end-col 82,
   :langs (),
   :message "Unresolved symbol: cljs.test",
-  :row 2234}
- {:end-row 2234,
+  :row 2235}
+ {:end-row 2235,
   :type :unresolved-symbol,
   :level :error,
   :filename "src/clj_kondo/impl/analyzer.clj",
@@ -31445,8 +31445,8 @@
   :end-col 85,
   :langs (),
   :message "Unresolved symbol: is",
-  :row 2234}
- {:end-row 2234,
+  :row 2235}
+ {:end-row 2235,
   :type :unresolved-symbol,
   :level :error,
   :filename "src/clj_kondo/impl/analyzer.clj",
@@ -31454,8 +31454,8 @@
   :end-col 100,
   :langs (),
   :message "Unresolved symbol: clojure.test",
-  :row 2234}
- {:end-row 2742,
+  :row 2235}
+ {:end-row 2743,
   :type :unresolved-symbol,
   :level :error,
   :filename "src/clj_kondo/impl/analyzer.clj",
@@ -31463,8 +31463,8 @@
   :end-col 74,
   :langs (),
   :message "Unresolved symbol: clojure.core.async",
-  :row 2742}
- {:end-row 2742,
+  :row 2743}
+ {:end-row 2743,
   :type :unresolved-symbol,
   :level :error,
   :filename "src/clj_kondo/impl/analyzer.clj",
@@ -31472,7 +31472,7 @@
   :end-col 81,
   :langs (),
   :message "Unresolved symbol: thread",
-  :row 2742}
+  :row 2743}
  {:end-row 274,
   :type :unresolved-symbol,
   :level :error,
@@ -31584,30 +31584,30 @@
   :langs (),
   :message "Unresolved symbol: cljs.core",
   :row 172}
- {:end-row 239,
+ {:end-row 265,
   :ns clojure.test,
   :name deftest,
   :type :unresolved-namespace,
   :level :warning,
   :filename "src/clj_kondo/impl/namespace.clj",
-  :col 58,
-  :end-col 78,
+  :col 53,
+  :end-col 73,
   :langs (),
   :message
   "Unresolved namespace clojure.test. Are you missing a require?",
-  :row 239}
- {:end-row 245,
+  :row 265}
+ {:end-row 271,
   :ns cljs.core,
   :name deftype,
   :type :unresolved-namespace,
   :level :warning,
   :filename "src/clj_kondo/impl/namespace.clj",
-  :col 60,
-  :end-col 77,
+  :col 55,
+  :end-col 72,
   :langs (),
   :message
   "Unresolved namespace cljs.core. Are you missing a require?",
-  :row 245}
+  :row 271}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,
