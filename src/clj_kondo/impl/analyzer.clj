@@ -2915,7 +2915,7 @@
                      (format "map is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
-(defn lint-vector-call! [ctx _the-map arg-count expr]
+(defn lint-vector-or-set-call! [ctx coll arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
     (when (not= 1 arg-count)
@@ -2923,7 +2923,9 @@
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :invalid-arity
-                     (str "Vector can only be called with 1 arg but was called with: "
+                     (str (if (= :vector (utils/tag coll))
+                            "Vector"
+                            "Set") " can only be called with 1 arg but was called with: "
                           arg-count)))))))
 
 (defn lint-symbol-call! [ctx _the-symbol arg-count expr]
@@ -3162,8 +3164,8 @@
                                           children))
                     (analyze-children (update ctx :callstack conj [nil t])
                                       children)))
-                :vector
-                (do (lint-vector-call! ctx function arg-count expr)
+                (:vector :set)
+                (do (lint-vector-or-set-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
