@@ -360,7 +360,7 @@ foo/foo ;; this does use the private var
           :row 1,
           :col 1,
           :level :error,
-          :message "clojure.core/select-keys is called with 1 arg but expects 2"}
+          :message "cljs.core/select-keys is called with 1 arg but expects 2"}
          (first (lint! "(select-keys 1)" "--lang" "cljc"))))
   (assert-submap {:file "<stdin>",
                   :row 2,
@@ -1239,12 +1239,12 @@ foo/foo ;; this does use the private var
       :row 4,
       :col 1,
       :level :error,
-      :message "schema.defs/verify-signature is called with 0 args but expects 3"}
+      :message "#'schema.defs/verify-signature is private"}
      {:file "corpus/schema/calls.clj",
       :row 4,
       :col 1,
       :level :error,
-      :message "#'schema.defs/verify-signature is private"}
+      :message "schema.defs/verify-signature is called with 0 args but expects 3"}
      {:file "corpus/schema/defprotocol.clj",
       :row 36,
       :col 1,
@@ -3770,8 +3770,8 @@ foo/"))
      {:file "corpus/invalid_literals.clj", :row 4, :col 1, :level :error, :message "A single colon is not a valid keyword."}
      {:file "corpus/invalid_literals.clj", :row 5, :col 1, :level :error, :message "Invalid keyword: foo:."}
      {:file "corpus/invalid_literals.clj", :row 6, :col 1, :level :error, :message "Invalid symbol: foo:."}
-     {:file "corpus/invalid_literals.clj", :row 7, :col 1, :level :warning, :message "Unresolved namespace foo. Are you missing a require?"}
      {:file "corpus/invalid_literals.clj", :row 7, :col 1, :level :error, :message "Invalid symbol: foo/."}
+     {:file "corpus/invalid_literals.clj", :row 7, :col 1, :level :warning, :message "Unresolved namespace foo. Are you missing a require?"}
      {:file "corpus/invalid_literals.clj", :row 8, :col 1, :level :error, :message "Invalid keyword: foo/."}
      {:file "corpus/invalid_literals.clj", :row 9, :col 1, :level :error, :message "EOF while reading."}
      {:file "corpus/invalid_literals.clj", :row 10, :col 1, :level :error, :message "Invalid token: ##NAN"})

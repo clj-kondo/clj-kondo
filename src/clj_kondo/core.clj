@@ -272,7 +272,7 @@
             all-findings @findings
             grouped-findings (group-by (juxt :filename :row :col :type :cljc) all-findings)
             all-findings (core-impl/filter-findings config grouped-findings)
-            all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col) all-findings))
+            all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col :message) all-findings))
             summary (core-impl/summarize all-findings)
             duration (- (System/currentTimeMillis) start-time)
             summary (assoc summary :duration duration :files @files)]

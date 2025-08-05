@@ -23,6 +23,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Require clojure `1.10.3` is the minimum clojure version
 - [#2564](https://github.com/clj-kondo/clj-kondo/issues/2564): detect calling set with wrong number of arguments
 - [#2257](https://github.com/clj-kondo/clj-kondo/issues/2257): support ignore hint on invalid symbol
+- Sort findings on filename, row, column and now additionally on message too
 
 ## 2025.07.28
 
