@@ -37,4 +37,6 @@
           expected (edn/read-string (slurp expected-findings-file))]
       (when-not (assert-submaps2 expected actual)
         (spit "/tmp/actual.edn" (with-out-str (pp/pprint actual)))
-        (p/shell "difft" (str expected-findings-file) "/tmp/actual.edn")))))
+        (if (fs/which "difft")
+          (p/shell "difft" (str expected-findings-file) "/tmp/actual.edn")
+          (println "Install difftastic for a better diff report"))))))

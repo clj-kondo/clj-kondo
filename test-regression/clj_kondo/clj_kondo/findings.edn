@@ -27862,7 +27862,7 @@
   :langs (),
   :message "Unresolved var: node/tag",
   :row 163}
- {:end-row 211,
+ {:end-row 210,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27870,8 +27870,8 @@
   :end-col 22,
   :langs (),
   :message "Unresolved var: node/set-node",
-  :row 211}
- {:end-row 212,
+  :row 210}
+ {:end-row 211,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27879,8 +27879,8 @@
   :end-col 21,
   :langs (),
   :message "Unresolved var: node/fn-node",
-  :row 212}
- {:end-row 213,
+  :row 211}
+ {:end-row 212,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27888,8 +27888,8 @@
   :end-col 24,
   :langs (),
   :message "Unresolved var: node/regex-node",
-  :row 213}
- {:end-row 215,
+  :row 212}
+ {:end-row 214,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27897,8 +27897,8 @@
   :end-col 22,
   :langs (),
   :message "Unresolved var: node/var-node",
-  :row 215}
- {:end-row 216,
+  :row 214}
+ {:end-row 215,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27906,8 +27906,8 @@
   :end-col 23,
   :langs (),
   :message "Unresolved var: node/eval-node",
-  :row 216}
- {:end-row 225,
+  :row 215}
+ {:end-row 224,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27915,8 +27915,8 @@
   :end-col 33,
   :langs (),
   :message "Unresolved var: node/reader-macro-node",
-  :row 225}
- {:end-row 229,
+  :row 224}
+ {:end-row 228,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27924,8 +27924,8 @@
   :end-col 40,
   :langs (),
   :message "Unresolved var: node/token-node",
-  :row 229}
- {:end-row 243,
+  :row 228}
+ {:end-row 242,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27933,8 +27933,8 @@
   :end-col 19,
   :langs (),
   :message "Unresolved var: node/deref-node",
-  :row 243}
- {:end-row 249,
+  :row 242}
+ {:end-row 248,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27942,8 +27942,8 @@
   :end-col 19,
   :langs (),
   :message "Unresolved var: node/quote-node",
-  :row 249}
- {:end-row 253,
+  :row 248}
+ {:end-row 252,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27951,8 +27951,8 @@
   :end-col 26,
   :langs (),
   :message "Unresolved var: node/syntax-quote-node",
-  :row 253}
- {:end-row 260,
+  :row 252}
+ {:end-row 259,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27960,8 +27960,8 @@
   :end-col 34,
   :langs (),
   :message "Unresolved var: node/unquote-splicing-node",
-  :row 260}
- {:end-row 262,
+  :row 259}
+ {:end-row 261,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27969,8 +27969,8 @@
   :end-col 25,
   :langs (),
   :message "Unresolved var: node/unquote-node",
-  :row 262}
- {:end-row 269,
+  :row 261}
+ {:end-row 268,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27978,8 +27978,8 @@
   :end-col 18,
   :langs (),
   :message "Unresolved var: node/list-node",
-  :row 269}
- {:end-row 273,
+  :row 268}
+ {:end-row 272,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27987,8 +27987,8 @@
   :end-col 20,
   :langs (),
   :message "Unresolved var: node/vector-node",
-  :row 273}
- {:end-row 277,
+  :row 272}
+ {:end-row 276,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -27996,7 +27996,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/map-node",
-  :row 277}
+  :row 276}
  {:end-row 43,
   :type :unresolved-var,
   :level :warning,
