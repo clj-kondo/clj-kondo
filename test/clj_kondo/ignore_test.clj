@@ -1,5 +1,6 @@
 (ns clj-kondo.ignore-test
-  (:require [clj-kondo.test-utils :refer [lint!]]
+  (:require [clj-kondo.test-utils :refer [lint! assert-submaps2]]
+            [clojure.java.io :as io]
             [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest ignore-test
@@ -124,3 +125,11 @@ x)"
   ([p1] (foo p1 \"p2\"))
   #_{:clj-kondo/ignore [:unused-binding]}
   ([p1 p2] (println p1 \"not using p2\")))"))))
+
+(deftest ignore-invalid-symbol
+  (assert-submaps2
+   [{:file "corpus/invalid_symbols/foo.clj", :row 1, :col 2, :level :error, :message "Invalid symbol: foo/bar/baz."}
+    {:file "corpus/invalid_symbols/foo.cljc", :row 1, :col 2, :level :error, :message "Invalid symbol: foo/bar/baz."}
+    {:file "corpus/invalid_symbols/foo.cljs", :row 1, :col 2, :level :error, :message "Invalid symbol: foo/bar/baz."}
+    {:file "corpus/invalid_symbols/foo.edn", :row 1, :col 3, :level :error, :message "Invalid symbol: foo/bar/baz."}]
+   (lint! (io/file "corpus/invalid_symbols"))))

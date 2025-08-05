@@ -174,8 +174,7 @@
 
 (defn- read-with-ignore-hint [reader]
   (let [[node] (parse-printables reader :uneval 1 true)
-        im (ignore-meta [node])
-        ]
+        im (ignore-meta [node])]
     (cond im
           (vary-meta (parse-next reader)
                      into im)

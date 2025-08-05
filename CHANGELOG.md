@@ -19,9 +19,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- Fix [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
+- [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
 - Require clojure `1.10.3` is the minumum clojure version
 - [#2564](https://github.com/clj-kondo/clj-kondo/issues/2564): detect calling set with wrong number of arguments
+- [#2257](https://github.com/clj-kondo/clj-kondo/issues/2257): support ignore hint on invalid symbol
 
 ## 2025.07.28
 

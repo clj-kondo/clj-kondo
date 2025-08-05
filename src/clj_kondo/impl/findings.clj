@@ -21,11 +21,16 @@
     (when row
       (when-let [[ignores lang] (or (some-> (get-in ignores [filename base-lang])
                                             (vector base-lang))
-                                    (when (identical? :cljc base-lang)
+                                    (when (or (identical? :cljc base-lang)
+                                              (nil? base-lang))
                                       (or (some-> (get-in ignores [filename :clj])
                                                   (vector :clj))
                                           (some-> (get-in ignores [filename :cljs])
-                                                  (vector :cljs)))))]
+                                                  (vector :cljs))))
+                                    (when (or (identical? :edn base-lang)
+                                              (nil? base-lang))
+                                      (some-> (get-in ignores [filename :edn])
+                                              (vector :edn))))]
         (loop [ignores ignores
                idx 0]
           (when ignores
