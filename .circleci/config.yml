@@ -87,7 +87,7 @@ jobs:
       - run:
           name: Install difftastic
           command: |
-            curl --fail -sLO https://github.com/Wilfred/difftastic/releases/download/0.64.0/difft-x86_64-unknown-linux-gnu.tar.gz
+            curl --fail -sLO https://github.com/Wilfred/difftastic/releases/download/0.64.0/difft-x86_64-unknown-linux-musl.tar.gz
             tar xzvf difft-x86_64-unknown-linux-gnu.tar.gz
             sudo cp difft /usr/local/bin
       - run:
