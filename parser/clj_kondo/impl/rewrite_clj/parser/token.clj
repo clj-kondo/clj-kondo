@@ -33,7 +33,7 @@
       (node/token-node value value-string)
       (let [s (str value-string suffix)]
         (node/token-node
-          (r/string->edn s)
+         (r/string->edn s)
           s)))))
 
 (defn parse-token
@@ -54,11 +54,15 @@
       (catch Exception e
         (if (and r/*reader-exceptions*
                  (= :reader-exception (:type (ex-data e))))
-          (let [f {:row token-row
+          (let [msg (ex-message e)
+                invalid-symbol (when msg (second (re-matches #"Invalid symbol: (.*)\." msg)))
+                f {:row token-row
                    :col token-col
                    :end-row (rt/get-line-number reader)
                    :end-col (rt/get-column-number reader)
-                   :message (.getMessage e)}]
+                   :message (ex-message e)}]
             (swap! r/*reader-exceptions* conj (ex-info "Syntax error" {:findings [f]}))
-            reader)
+            (if invalid-symbol
+              (node/token-node (symbol invalid-symbol) invalid-symbol)
+              reader))
           (throw e))))))

@@ -360,7 +360,7 @@ foo/foo ;; this does use the private var
           :row 1,
           :col 1,
           :level :error,
-          :message "clojure.core/select-keys is called with 1 arg but expects 2"}
+          :message "cljs.core/select-keys is called with 1 arg but expects 2"}
          (first (lint! "(select-keys 1)" "--lang" "cljc"))))
   (assert-submap {:file "<stdin>",
                   :row 2,
@@ -1239,12 +1239,12 @@ foo/foo ;; this does use the private var
       :row 4,
       :col 1,
       :level :error,
-      :message "schema.defs/verify-signature is called with 0 args but expects 3"}
+      :message "#'schema.defs/verify-signature is private"}
      {:file "corpus/schema/calls.clj",
       :row 4,
       :col 1,
       :level :error,
-      :message "#'schema.defs/verify-signature is private"}
+      :message "schema.defs/verify-signature is called with 0 args but expects 3"}
      {:file "corpus/schema/defprotocol.clj",
       :row 36,
       :col 1,
@@ -3379,19 +3379,23 @@ foo/baz
 (deftest continue-on-invalid-token-code-test
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 1, :level :error, :message "Invalid symbol: foo/."}
+     {:file "<stdin>", :row 2, :col 1, :level :warning, :message "Unresolved namespace foo. Are you missing a require?"}
      {:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"})
    (lint! "
 foo/
 (inc)"))
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 1, :level :error, :message "clojure.core/inc is called with 0 args but expects 1"}
-     {:file "<stdin>", :row 3, :col 1, :level :error, :message "Invalid symbol: foo/."})
+     {:file "<stdin>", :row 3, :col 1, :level :error, :message "Invalid symbol: foo/."}
+     {:file "<stdin>", :row 3, :col 1, :level :warning, :message "Unresolved namespace foo. Are you missing a require?"})
    (lint! "
 (inc)
 foo/"))
   (testing "end-col"
     (assert-submaps
-     [{:type :syntax, :filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6, :message "Invalid symbol: dude/.", :level :error}]
+     [{:type :syntax, :filename "<stdin>", :row 1, :col 1, :end-row 1, :end-col 6, :message "Invalid symbol: dude/.", :level :error}
+      {:end-row 1, :type :unresolved-namespace, :level :warning,
+       :filename "<stdin>", :col 1, :end-col 6, :message "Unresolved namespace dude. Are you missing a require?", :row 1}]
      (-> (with-in-str "dude/" (clj-kondo/run! {:lint ["-"]}))
          :findings))))
 
@@ -3754,22 +3758,23 @@ foo/"))
   (Class/forName \"[B\"))"))))
 
 (deftest issue-2322-test
-  (assert-submaps
+  (assert-submaps2
    '({:row 3, :col 1, :level :error, :message "Invalid unicode literal: \\u12345."}
      {:row 4, :col 1, :level :error, :message "Invalid unicode literal: \\uxyz."}
      {:row 5, :col 1, :level :error, :message "Invalid octal escape sequence in a character literal:o12345. Octal escape sequences must be 3 or fewer digits."}
      {:row 6, :col 1, :level :error, :message "Octal escape sequence must be in range [0, 377]."}
      {:row 7, :col 1, :level :error, :message "Unsupported character: spcae."})
    (lint! (io/file "corpus/invalid_characters.clj")))
-  (assert-submaps
-   '({:row 3, :col 1, :level :error, :message "A single colon is not a valid keyword."}
-     {:row 4, :col 1, :level :error, :message "A single colon is not a valid keyword."}
-     {:row 5, :col 1, :level :error, :message "Invalid keyword: foo:."}
-     {:row 6, :col 1, :level :error, :message "Invalid symbol: foo:."}
-     {:row 7, :col 1, :level :error, :message "Invalid symbol: foo/."}
-     {:row 8, :col 1, :level :error, :message "Invalid keyword: foo/."}
-     {:row 9, :col 1, :level :error, :message "EOF while reading."}
-     {:row 10, :col 1, :level :error, :message "Invalid token: ##NAN"})
+  (assert-submaps2
+   '({:file "corpus/invalid_literals.clj", :row 3, :col 1, :level :error, :message "A single colon is not a valid keyword."}
+     {:file "corpus/invalid_literals.clj", :row 4, :col 1, :level :error, :message "A single colon is not a valid keyword."}
+     {:file "corpus/invalid_literals.clj", :row 5, :col 1, :level :error, :message "Invalid keyword: foo:."}
+     {:file "corpus/invalid_literals.clj", :row 6, :col 1, :level :error, :message "Invalid symbol: foo:."}
+     {:file "corpus/invalid_literals.clj", :row 7, :col 1, :level :error, :message "Invalid symbol: foo/."}
+     {:file "corpus/invalid_literals.clj", :row 7, :col 1, :level :warning, :message "Unresolved namespace foo. Are you missing a require?"}
+     {:file "corpus/invalid_literals.clj", :row 8, :col 1, :level :error, :message "Invalid keyword: foo/."}
+     {:file "corpus/invalid_literals.clj", :row 9, :col 1, :level :error, :message "EOF while reading."}
+     {:file "corpus/invalid_literals.clj", :row 10, :col 1, :level :error, :message "Invalid token: ##NAN"})
    (lint! (io/file "corpus/invalid_literals.clj"))))
 
 (deftest issue-2400-test
