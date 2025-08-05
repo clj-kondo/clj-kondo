@@ -89,7 +89,7 @@ jobs:
           command: |
             curl --fail -sLO https://github.com/Wilfred/difftastic/releases/download/0.64.0/difft-x86_64-unknown-linux-gnu.tar.gz
             tar xzvf difft-x86_64-unknown-linux-gnu.tar.gz
-            cp difft /usr/local/bin
+            sudo cp difft /usr/local/bin
       - run:
           name: Run regression tests
           command: |
