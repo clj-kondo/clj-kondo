@@ -8,31 +8,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: "Prepare Java"
-      uses: "actions/setup-java@v2.4.0"
-      with:
-        distribution: "adopt"
-        java-version: "8"
+      - name: "Prepare Java"
+        uses: "actions/setup-java@v2.4.0"
+        with:
+          distribution: "adopt"
+          java-version: "8"
 
-    - name: Setup Clojure
-      uses: DeLaGuardo/setup-clojure@master
-      with:
-        cli: latest
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@master
+        with:
+          cli: latest
 
-    - name: Cache
-      uses: actions/cache@v4.2.0
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
+      - name: Cache
+        uses: actions/cache@v4.2.0
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
 
-    - name: Install difftastic
-    - run: |
-        curl --fail -sLO https://github.com/Wilfred/difftastic/releases/download/0.64.0/difft-x86_64-unknown-linux-gnu.tar.gz
-        tar xzvf difft-x86_64-unknown-linux-gnu.tar.gz
-        cp difft /usr/local/bin
+      - name: Install difftastic
+      - run: |
+          curl --fail -sLO https://github.com/Wilfred/difftastic/releases/download/0.64.0/difft-x86_64-unknown-linux-gnu.tar.gz
+          tar xzvf difft-x86_64-unknown-linux-gnu.tar.gz
+          cp difft /usr/local/bin
 
-    - name: Diff
-      run: clojure -X:test:test-regression
+      - name: Diff
+        run: clojure -X:test:test-regression
