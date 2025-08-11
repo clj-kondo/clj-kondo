@@ -156,8 +156,9 @@
         import-dir-exists (fs/exists? (fs/file cfg-dir "imports"))
         root-imports (seq (auto-configs cfg-dir local-config-paths-set "**/**/config.edn"))
         discovered (when auto-load-configs?
-                     (concat root-imports
-                             (auto-configs cfg-dir local-config-paths-set "imports/**/**/config.edn")))
+                     (-> (concat root-imports
+                                 (auto-configs cfg-dir local-config-paths-set "imports/**/**/config.edn"))
+                         sort))
         _ (when (and debug
                      auto-load-configs?
                      (seq discovered))
