@@ -15,6 +15,8 @@
     (let [cp (-> (p/shell {:out :string} "clojure -Spath -A:cljs:clojure-1.12.1") :out str/trim)
           config-dir (fs/file "test-regression" "clj_kondo" "clj_kondo" ".clj-kondo")
           _ (fs/delete-tree (fs/file config-dir ".cache"))
+          _ (fs/create-dirs config-dir)
+          _ (spit (fs/file config-dir "config.edn") '{:linters {:unresolved-symbol {:exclude [(clj-kondo.impl.utils/one-of)]}}})
           lint-result (clj-kondo/run! {:config-dir config-dir
                                        :cache false
                                        :parallel true

@@ -36,7 +36,10 @@
     (is (= #{"inline def"} (set (map :message linted)))))
   (doseq [lang [:clj :cljs]]
     (is (empty? (lint! "(defmacro foo [] `(def x 1))" "--lang" (name lang))))
-    (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang))))))
+    (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang)))))
+  (assert-submaps2
+   [{:file "<stdin>", :row 1, :col 48, :level :warning, :message "inline def"}]
+   (lint! "(require '[clojure.test :as t]) (t/deftest foo (t/deftest bar))")))
 
 (deftest def-fn-test
   (let [config {:linters {:def-fn {:level :warning}}

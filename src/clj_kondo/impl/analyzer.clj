@@ -2631,7 +2631,9 @@
                             ([clojure.test deftest]
                              [clojure.test deftest-]
                              [cljs.test deftest])
-                            (test/analyze-deftest ctx expr defined-by defined-by->lint-as)
+                            (do
+                              (lint-inline-def! ctx expr)
+                              (test/analyze-deftest ctx expr defined-by defined-by->lint-as))
                             ([clojure.core.match match] [cljs.core.match match])
                             (match/analyze-match ctx expr)
                             [clojure.string replace]
