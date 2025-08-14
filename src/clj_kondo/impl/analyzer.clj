@@ -2185,6 +2185,19 @@
           %)
         (next (:children expr))))
 
+(defn lint-munged-property-or-method-call [ctx meth]
+  (let [meth* meth
+        meth (str meth)
+        meth (if (str/starts-with? meth "-")
+               (subs meth 1)
+               meth)
+        diff? (not= meth (munge meth))]
+    (when diff?
+      (findings/reg-finding! ctx (assoc (meta meth*)
+                                        :filename (:filename ctx)
+                                        :type :munged-property-or-method-call
+                                        :message "Munged property or method call")))))
+
 (defn- analyze-instance-invocation [ctx expr children]
   ;; see https://clojure.org/reference/java_interop#dot
   (findings/warn-reflection ctx expr)
@@ -2194,9 +2207,12 @@
     (when meth
       (if (and (identical? :list (utils/tag meth)) (not args))
         (let [[meth & children] (:children meth)]
+          (lint-munged-property-or-method-call ctx meth)
           (analysis/reg-instance-invocation! ctx meth)
           (analyze-children ctx children))
-        (analysis/reg-instance-invocation! ctx meth)))
+        (do
+          (lint-munged-property-or-method-call ctx meth)
+          (analysis/reg-instance-invocation! ctx meth))))
     (when args
       (analyze-children ctx args))))
 
