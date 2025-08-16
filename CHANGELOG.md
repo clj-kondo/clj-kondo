@@ -26,6 +26,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Sort findings on filename, row, column and now additionally on message too
 - [#2602](https://github.com/clj-kondo/clj-kondo/issues/2602): Sort auto-imported configs to avoid differences based on OS or file system
 - [#2603](https://github.com/clj-kondo/clj-kondo/issues/2603): warn on `:inline-def` with nested `deftest`
+- [#2606](https://github.com/clj-kondo/clj-kondo/issues/2606): make it easy for users to know how inline-config files should be version controlled ([@lread](https://github.com/lread))
 
 ## 2025.07.28
 

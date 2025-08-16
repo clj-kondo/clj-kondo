@@ -270,6 +270,11 @@ If you want to use a different directory to read and write the cache, use the
 `--cache-dir` option. To disable the cache even if you have a `.clj-kondo`
 directory, use `--cache false`.
 
+For your project's version control, we recommend that you commit everything
+under the `./.clj-kondo/` dir, except for the cache dir. Add `.cache` to
+your `.gitignore` to ignore all `.cache` dirs, including the one under
+`./.clj-kondo`. Adjust accordingly if you are using a different `--cache-dir`.
+
 ## [Configuration](doc/config.md)
 
 ## [Editor integration](doc/editor-integration.md)
