@@ -3491,7 +3491,7 @@
                                                   (when-let [ext (fs/extension (:filename ctx))]
                                                     (str "." ext))) "config.edn")]
                     (if (and configs (not (false? (:auto-load-configs config))))
-                      (binding [cache/*lock-file-name* ".lock"]
+                      (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
                         (cache/with-thread-lock
                           (cache/with-cache ;; lock config dir for concurrent writes
                             cfg-dir
