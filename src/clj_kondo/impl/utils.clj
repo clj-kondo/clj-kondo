@@ -177,7 +177,7 @@
   [s]
   (p/parse-string-all s))
 
-(def vconj (fnil conj []))
+(def ignore-conj (fnil conj (sorted-set-by (comparator (juxt :row :col :end-row :end-col)))))
 
 (defn deep-merge
   "deep merge that also mashes together sequentials"
@@ -407,12 +407,13 @@
             ignore (cond-> (assoc m :ignore linters)
                      cljc? (assoc :cljc true)
                      node (assoc-in [:clj-kondo/ignore :linters] nil))]
-        (swap! (:ignores ctx) update-in [(:filename ctx) lang]
+        (swap! (:ignores ctx) update-in [(:filename ctx) lang :ignores]
                (fn [ignores]
                  (let [id (:clj-kondo/ignore-id ignore)]
                    (if (and id (some #(= id (:clj-kondo/ignore-id %)) ignores))
                      ignores
-                     (vconj ignores ignore)))))))))
+                     (let [res (ignore-conj ignores ignore)]
+                       res)))))))))
 
 (defn err [& xs]
   (binding [*out* *err*]

@@ -19,17 +19,17 @@
         base-lang (:lang ctx)
         row (:row m)]
     (when row
-      (when-let [[ignores lang] (or (some-> (get-in ignores [filename base-lang])
+      (when-let [[ignores lang] (or (some-> (get-in ignores [filename base-lang :ignores])
                                             (vector base-lang))
                                     (when (or (identical? :cljc base-lang)
                                               (nil? base-lang))
-                                      (or (some-> (get-in ignores [filename :clj])
+                                      (or (some-> (get-in ignores [filename :clj :ignores])
                                                   (vector :clj))
-                                          (some-> (get-in ignores [filename :cljs])
+                                          (some-> (get-in ignores [filename :cljs :ignores])
                                                   (vector :cljs))))
                                     (when (or (identical? :edn base-lang)
                                               (nil? base-lang))
-                                      (some-> (get-in ignores [filename :edn])
+                                      (some-> (get-in ignores [filename :edn :ignores])
                                               (vector :edn))))]
         (loop [ignores ignores
                idx 0]
@@ -52,7 +52,8 @@
                                  (and (= row ignore-end-row)
                                       (<= (:end-col m) (:end-col ignore)))))
                       (if (ignore-match? (:ignore ignore) tp)
-                        (do (swap! !ignores assoc-in [filename lang idx :used] true)
+                        (do (swap! !ignores update-in [filename lang :used]
+                                   (fnil conj #{})  ignore)
                             true)
                         (recur (next ignores) (inc idx)))
                       (recur (next ignores) (inc idx))))

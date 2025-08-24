@@ -946,7 +946,7 @@
     (when-not (identical? :off (-> cfg :level))
       (let [ignores @(:ignores ctx)]
         (doseq [[filename m] ignores
-                [lang ignores] m
+                [lang ignores] (:ignores m)
                 ignore ignores]
           (let [linters (:ignore ignore)
                 m (:clj-kondo/ignore ignore)]
@@ -954,7 +954,7 @@
               (when-not (and excludes
                              (seqable? linters)
                              (some excludes linters))
-                (when-not (or (:used ignore)
+                (when-not (or (contains? (:used m) ignore)
                               ;; #2433
                               (:derived-location ignore))
                   (findings/reg-finding! ctx (assoc m
