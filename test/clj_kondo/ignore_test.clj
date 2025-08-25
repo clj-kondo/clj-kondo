@@ -126,10 +126,19 @@ x)"
   #_{:clj-kondo/ignore [:unused-binding]}
   ([p1 p2] (println p1 \"not using p2\")))"))))
 
-(deftest ignore-invalid-symbol
+(deftest ignore-invalid-symbol-test
   (assert-submaps2
    [{:file "corpus/invalid_symbols/foo.clj", :row 1, :col 2, :level :error, :message "Invalid symbol: foo/bar/baz."}
     {:file "corpus/invalid_symbols/foo.cljc", :row 1, :col 2, :level :error, :message "Invalid symbol: foo/bar/baz."}
     {:file "corpus/invalid_symbols/foo.cljs", :row 1, :col 2, :level :error, :message "Invalid symbol: foo/bar/baz."}
     {:file "corpus/invalid_symbols/foo.edn", :row 1, :col 3, :level :error, :message "Invalid symbol: foo/bar/baz."}]
    (lint! (io/file "corpus/invalid_symbols"))))
+
+(deftest threading-macro-ignore-order-test
+  (assert-submaps2
+   []
+   (lint! "(def ^:deprecated v1 nil)
+
+(-> nil
+    #_{:clj-kondo/ignore [:deprecated-var]} v1 ;; false positive
+    #_{:clj-kondo/ignore [:deprecated-var]} v1)")))

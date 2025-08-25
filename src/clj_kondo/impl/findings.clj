@@ -38,7 +38,7 @@
                   ignore-row (:row ignore)]
               (if (> ignore-row row)
                 ;; since ignores are sorted on row (and col) we can skip the rest of the checking here
-                false
+                (recur (next ignores) (inc idx))
                 ;; (>= row ignore row) is true from here
                 (if (or
                      (> row ignore-row)
@@ -52,6 +52,7 @@
                                  (and (= row ignore-end-row)
                                       (<= (:end-col m) (:end-col ignore)))))
                       (if (ignore-match? (:ignore ignore) tp)
+                        ;; TODO: this is a race condition, or maybe not since the same file isn't analyzed by multiple threads
                         (do (swap! !ignores assoc-in [filename lang idx :used] true)
                             true)
                         (recur (next ignores) (inc idx)))
