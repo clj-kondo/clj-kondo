@@ -52,7 +52,8 @@
                                  (and (= row ignore-end-row)
                                       (<= (:end-col m) (:end-col ignore)))))
                       (if (ignore-match? (:ignore ignore) tp)
-                        ;; TODO: this is a race condition, or maybe not since the same file isn't analyzed by multiple threads
+                        ;; TODO: this might bea race condition, but not today
+                        ;; since same file isn't analyzed by multiple threads
                         (do (swap! !ignores assoc-in [filename lang idx :used] true)
                             true)
                         (recur (next ignores) (inc idx)))
