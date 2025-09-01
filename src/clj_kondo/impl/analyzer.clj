@@ -3496,8 +3496,9 @@
                           (cache/with-cache ;; lock config dir for concurrent writes
                             cfg-dir
                             10
-                            (spit (doto inline-file
-                                    (io/make-parents)) (apply config/merge-config! configs)))))
+                            (binding [*print-namespace-maps* false]
+                              (spit (doto inline-file
+                                      (io/make-parents)) (apply config/merge-config! configs))))))
                       (when (fs/exists? inline-file)
                         (fs/delete-tree (fs/parent inline-file)))))))
               (doseq [f line-length-findings]
