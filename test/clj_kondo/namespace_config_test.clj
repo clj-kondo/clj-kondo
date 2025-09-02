@@ -27,8 +27,9 @@
           "--config-dir" (str (fs/file "corpus" "namespace_config" ".clj-kondo"))
           "--cache" "true"))
   (let [inline-config (fs/file "corpus" "namespace_config" ".clj-kondo" "inline-configs" "macros.clj" "config.edn")]
+    (is (fs/exists? inline-config))
     (is (not (str/includes? (slurp inline-config) "#:" ))
-        "inline-config exists and is written without namespaced maps shorthand"))
+        "inline-config is written without namespaced maps shorthand"))
   (testing "Now the warnings are gone due to copied online config"
     (assert-submaps2
      []
