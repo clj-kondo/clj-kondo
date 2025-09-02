@@ -19,7 +19,7 @@ echo Building clj-kondo %CLJ_KONDO_VERSION%
 
 set CLJ_KONDO_NATIVE=true
 
-call lein with-profiles +clojure-1.10.2 do clean, uberjar
+call lein with-profiles +clojure-1.10.3 do clean, uberjar
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 call %GRAALVM_HOME%\bin\gu.cmd install native-image
