@@ -3,6 +3,7 @@
    [babashka.fs :as fs]
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.java.io :as io]
+   [clojure.string :as str]
    [clojure.test :refer [deftest is testing]]))
 
 (deftest namespace-config-test
@@ -25,7 +26,9 @@
                      :type-mismatch {:level :error}}}
           "--config-dir" (str (fs/file "corpus" "namespace_config" ".clj-kondo"))
           "--cache" "true"))
-  (is (fs/exists? (fs/file "corpus" "namespace_config" ".clj-kondo" "inline-configs" "macros.clj" "config.edn")))
+  (let [inline-config (fs/file "corpus" "namespace_config" ".clj-kondo" "inline-configs" "macros.clj" "config.edn")]
+    (is (not (str/includes? (slurp inline-config) "#:" ))
+        "inline-config exists and is written without namespaced maps shorthand"))
   (testing "Now the warnings are gone due to copied online config"
     (assert-submaps2
      []
