@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1894](https://github.com/clj-kondo/clj-kondo/issues/1894): support `destruct` syntax
 - [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
 - Require clojure `1.10.3` is the minimum clojure version
 - [#2564](https://github.com/clj-kondo/clj-kondo/issues/2564): detect calling set with wrong number of arguments

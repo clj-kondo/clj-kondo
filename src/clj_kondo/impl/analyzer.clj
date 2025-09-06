@@ -2302,6 +2302,13 @@
                                                               "object is local to locking scope"))))))
     ret))
 
+(defn- analyze-defstruct [ctx expr _defined-by _defined-by->lint-as]
+  (let [[_ struct-name & fields] (:children expr)
+        ns-name (-> ctx :ns :name)]
+    (when-let [sym (utils/symbol-from-token struct-name)]
+      (namespace/reg-var! ctx ns-name sym expr))
+    (analyze-children ctx fields false)))
+
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
    {:keys [:arg-count
@@ -2529,6 +2536,7 @@
                           defmethod (analyze-defmethod ctx expr)
                           (definterface defprotocol) (analyze-defprotocol ctx expr defined-by defined-by->lint-as)
                           (defrecord deftype) (analyze-defrecord ctx expr defined-by defined-by->lint-as)
+                          (defstruct) (analyze-defstruct ctx expr defined-by defined-by->lint-as)
                           comment
                           (let [cfg (:config-in-comment config)
                                 ctx (if cfg
