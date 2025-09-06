@@ -3830,6 +3830,12 @@ foo/"))
 x"
               {:linters {:unresolved-symbol {:level :warning}}})))
 
+
+(deftest issue-1894-defstruct-test
+  (assert-submaps2
+   '[{:file "<stdin>", :row 1, :col 27, :level :error, :message "Unresolved symbol: x"}]
+   (lint! "(defstruct Dude :foo :bar x) Dude" {:linters {:unresolved-symbol {:level :error}}})))
+
 ;;;; Scratch
 
 (comment
