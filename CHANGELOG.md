@@ -30,6 +30,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2606](https://github.com/clj-kondo/clj-kondo/issues/2606): make it easy for users to know how inline-config files should be version controlled ([@lread](https://github.com/lread))
 - [#2610](https://github.com/clj-kondo/clj-kondo/issues/2610): ignores may show up unordered due to macros
 - [#2615](https://github.com/clj-kondo/clj-kondo/issues/2615): emit `inline-configs` `config.edn` in a git-diff-friendly way ([@lread](https://github.com/lread))
+- [#2621](https://github.com/clj-kondo/clj-kondo/issues/2621): load imports from symlinked config dir ([@walterl](https://github.com/walterl))
 
 ## 2025.07.28
 

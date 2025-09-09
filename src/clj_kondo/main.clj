@@ -36,17 +36,19 @@ Options:
     directory. If --cache is false, this option will be ignored.
 
   --cache: if false, won't use cache. Otherwise, will try to resolve cache
-  using `--cache-dir`. If `--cache-dir` is not set, cache is resolved using the
-  nearest `.clj-kondo` directory in the current and parent directories.
+    using `--cache-dir`. If `--cache-dir` is not set, cache is resolved using the
+    nearest `.clj-kondo` directory in the current and parent directories.
 
-  --config <config>: extra config that is merged. May be a file or an EDN expression. See https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md.
+  --config <config>: extra config that is merged. May be a file or an EDN expression.
+    See https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md.
 
   --config-dir <config-dir>: use this config directory instead of auto-detected
     .clj-kondo dir.
 
   --parallel: lint sources in parallel.
 
-  --dependencies: don't report any findings. Useful for populating cache while linting dependencies.
+  --dependencies: don't report any findings. Useful for populating cache while linting
+    dependencies.
 
   --copy-configs: copy configs from dependencies while linting.
 
