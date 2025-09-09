@@ -140,7 +140,8 @@
                 (map str)
                 (filter #(not (contains? local-config-paths-set %))))
           (fs/glob cfg-dir glob
-                   {:max-depth (if (str/starts-with? glob "imports")
+                   {:follow-links true
+                    :max-depth (if (str/starts-with? glob "imports")
                                  4
                                  3)}))))
 
