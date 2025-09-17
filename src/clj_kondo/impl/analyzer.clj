@@ -1994,6 +1994,17 @@
             (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
+(defn analyze-get [ctx expr]
+  (let [[_ k :as children] (:children expr)]
+    (when (or (utils/keyword-node? k)
+              (utils/number-token? k))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) expr
+                   :get-on-key
+                   "Get called on a key.")))
+    (analyze-children ctx children)))
+
 (defn analyze-hof [ctx expr resolved-as-name hof-ns-name hof-resolved-name]
   (let [children (next (:children expr))
         core-ns? (or (= 'clojure.core hof-ns-name)
@@ -2614,6 +2625,7 @@
                                keep keep-indexed update update-in swap! swap-vals!
                                send send-off send-via)
                           (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
+                          (get) (analyze-get ctx expr)
                           (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
                           (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
                           (gen-interface) (analyze-gen-interface ctx expr)

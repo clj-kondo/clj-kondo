@@ -9,4 +9,4 @@
 
 (ns corpus.exclude-clojure2)
 
-(get 1 2 3 4)
+(get {} 2 3 4)

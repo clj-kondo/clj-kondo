@@ -136,6 +136,7 @@
               :namespace-name-mismatch {:level :error}
               :non-arg-vec-return-type-hint {:level :warning}
               :keyword-binding {:level :off}
+              :get-on-key {:level :warning}
               :discouraged-var {:level :warning}
               :discouraged-namespace {:level :warning}
               :discouraged-tag {:level :warning}
