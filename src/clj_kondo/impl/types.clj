@@ -50,7 +50,8 @@
     :throwable
     :any
     :float
-    :var})
+    :var
+    :ilookup})
 
 (def built-in-specs
   {'clojure.core clojure-core
@@ -68,10 +69,10 @@
    :double #{:number}
    :byte #{:number}
    :vector #{:seqable :sequential :associative :coll :ifn :stack}
-   :map #{:seqable :associative :coll :ifn}
+   :map #{:seqable :associative :coll :ifn :ilookup}
    :nil #{:seqable}
    :coll #{:seqable}
-   :set #{:seqable :coll :ifn}
+   :set #{:seqable :coll :ifn :ilookup}
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
@@ -80,7 +81,7 @@
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
-   :sorted-map #{:map :seqable :associative :coll :ifn}
+   :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
    :var #{:ideref :ifn}})
 
@@ -94,14 +95,15 @@
               :list :seq :sequential :ifn :stack :sorted-map}
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential :stack :sorted-map :var :ideref :ifn}
+          :sequential :stack :sorted-map :var :ideref :ilookup}
    :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
    :sequential #{:seq :list :vector :ifn :associative :stack}
    :map #{:sorted-map}
-   :ideref #{:atom :var :ifn}})
+   :ideref #{:atom :var :ifn}
+   :ilookup #{:map :set :sorted-map :coll}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -149,7 +151,8 @@
    :sequential "sequential collection"
    :throwable "throwable"
    :sorted-map "sorted map"
-   :var "var"})
+   :var "var"
+   :ilookup "ILookup"})
 
 (defn label [k]
   (cond
