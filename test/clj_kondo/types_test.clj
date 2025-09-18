@@ -1134,18 +1134,21 @@
   (is (empty? (lint! "(symbol #'inc)" config))))
 
 (deftest get-test
+  (is (empty? (lint! "(get nil :x)" config)))
+  (is (empty? (lint! "(get \"foo\" 0)" config)))
   (is (empty? (lint! "(get {:x 10} :x)" config)))
+  (is (empty? (lint! "(get \"foo\" 1)" config)))
   (is (empty? (lint! "(-> {:x 10} (get :x))" config)))
   (is (empty? (lint! "(get [1 2 3] 1)" config)))
   (is (empty? (lint! "(-> [1 2 3] (get 1))" config)))
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: ILookup, received: keyword."})
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message #"ILookup.*received: keyword."})
    (lint! "(get :x {:x 10})" config))
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: ILookup, received: positive integer."})
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message #"ILookup.*received: positive integer."})
    (lint! "(get 1 [1 2 3])" config))
   (assert-submaps2
-   '({:file "<stdin>", :row 2, :col 19, :level :error, :message "Expected: ILookup, received: atom."})
+   '({:file "<stdin>", :row 2, :col 19, :level :error, :message #"ILookup.*received: atom."})
    (lint! "(let [x (atom {:a 1})]
              (get x :a))" config)))
 

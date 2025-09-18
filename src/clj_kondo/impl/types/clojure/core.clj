@@ -392,8 +392,8 @@
                             :ret :boolean}}}
    ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
-   'get {:arities {2 {:args [:ilookup :any]}
-                   3 {:args [:ilookup :any :any]}}}
+   'get {:arities {2 {:args [#{:ilookup :nil :set :map :string :array} :any]}
+                   3 {:args [#{:ilookup :nil :set :map :string :array} :any :any]}}}
    ;; 1504
    'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
                                 :ret :nilable/map}}}
