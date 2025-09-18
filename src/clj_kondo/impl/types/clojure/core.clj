@@ -54,11 +54,27 @@
                                  :ret :int}}})
 
 (def clojure-core
-  {'do {:fn last}
-   'doto {:fn first}
+  {;;; Special forms (https://clojure.org/reference/special_forms)
+   ;; 'def
    'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
+   'do {:fn last}
+   ;; 'let*
    'let {:fn last}
+   ;; 'quote
+   ;; 'var
+   ;; 'fn*
+   ;; 'loop*
+   ;; 'recur
+   'throw {:arities {1 {:args [:throwable]}}}
+   ;; 'try
+   ;; 'catch
+   ;; 'finally
+   ;; 'monitor-enter
+   ;; 'monitor-exit
+
+   ;;; Public vars as of 1.10.0
+   ;;; defined in src/clj/clojure/core.clj
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
@@ -161,7 +177,7 @@
    'any? any->boolean
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
-                                         :spec :any}]
+                                     :spec :any}]
                              :ret :string}}}
    ;; 562
    'symbol? any->boolean
@@ -398,7 +414,7 @@
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                       :req :seq}}}
+                       :ret :nilable/seq}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret #{:nil :string}}}}
@@ -699,7 +715,8 @@
                       3 {:args [:vector :nat-int :nat-int]
                          :ret :vector}}}
    ;; 3831 'with-open
-   ;; 3852 'doto
+   ;; 3852
+   'doto {:fn first}
    ;; 3871 'memfn
    ;; 3884 'time
    ;; 3898 'alength
@@ -1083,7 +1100,90 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
-   'throw {:arities {1 {:args [:throwable]}}}
+
+   ;;; defined in src/clj/clojure/core_deftype.clj
+   ;; 13 'namespace-munge
+   ;; 20 'definterface
+   ;; 70 'reify
+   ;; 128 'hash-combine
+   ;; 131 'munge
+   ;; 314 'defrecord
+   ;; 407 'record?
+   ;; 424 'deftype
+   ;; 537 'find-protocol-impl
+   ;; 548 'find-protocol-method
+   ;; 558 'extends?
+   ;; 565 'extenders
+   ;; 571 'satisfies?
+   ;; 577 '-cache-protocol-fn
+   ;; 630 '-reset-methods
+   ;; 716 'defprotocol
+   ;; 780 'extend
+   ;; 848 'extend-type
+   ;; 880 'extend-protocol
+
+   ;;; defined in src/clj/clojure/core_print.clj
+   ;; 16 '*print-length*
+   ;; 27 '*print-level*
+   ;; 39 '*verbose-defrecords*
+   ;; 41 '*print-namespace-maps*
+   ;; 83 'print-simple
+   ;; 97 'print-ctor
+   ;; 200 'char-escape-string
+   ;; 342 'char-name-string
+   ;; 372 'primitives-classnames
+   ;; 465 'StackTraceElement->vec
+   ;; 471 'Throwable->map
+   ;; 559 'PrintWriter-on
+
+   ;;; defined in src/clj/clojure/core_proxy.clj
+   ;; 20 'method-sig
+   ;; 37 'proxy-name
+   ;; 281 'get-proxy-class
+   ;; 295 'construct-proxy
+   ;; 302 'init-proxy
+   ;; 313 'update-proxy
+   ;; 328 'proxy-mappings
+   ;; 334 'proxy
+   ;; 389 'proxy-call-with-super
+   ;; 396 'proxy-super
+   ;; 403 'bean
+
+   ;;; defined in src/clj/clojure/genclass.clj
+   ;; 507 'gen-class
+   ;; 688 'gen-interface
+
+   ;;; defined in src/clj/clojure/gvec.clj
+   ;; 18 '->VecNode
+   ;; 20 'EMPTY-NODE
+   ;; 37 '->ArrayChunk
+   ;; 59 '->VecSeq
+   ;; 170 '->Vec
+   ;; 523 'vector-of
+
+   ;;; Added in 1.11.0
+   ;; 1137 'abs
+   ;; 4392 'seq-to-map-for-destructuring
+   ;; 6861 'random-uuid
+   ;; 7786 'iteration
+   ;; 8008 'update-vals
+   ;; 8024 'update-keys
+   ;; 8044 'parse-long
+   ;; 8055 'parse-double
+   ;; 8068 'parse-uuid
+   ;; 8079 'parse-boolean
+   ;; 8090 'NaN?
+   ;; 8099 'infinite?
+
+   ;;; Added in 1.12.0
+   ;; 6357 '*repl*
+   ;; 6853 'stream-reduce!
+   ;; 6862 'stream-seq!
+   ;; 6869 'stream-transduce!
+   ;; 6879 'stream-into!
+   ;; 7414 'splitv-at
+   ;; 7420 'partitionv
+   ;; 7443 'partitionv-all
    })
 
 (def cljs-core
