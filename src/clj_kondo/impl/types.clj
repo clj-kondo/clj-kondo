@@ -68,7 +68,7 @@
    :neg-int #{:int :number}
    :double #{:number}
    :byte #{:number}
-   :vector #{:seqable :sequential :associative :coll :ifn :stack}
+   :vector #{:seqable :sequential :associative :coll :ifn :stack :ilookup}
    :map #{:seqable :associative :coll :ifn :ilookup}
    :nil #{:seqable}
    :coll #{:seqable}
@@ -76,7 +76,7 @@
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
-   :associative #{:seqable :coll :ifn}
+   :associative #{:seqable :coll :ifn :ilookup}
    :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
@@ -89,21 +89,22 @@
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double :byte}
-   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack}
+   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack
+           :ilookup}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil
-              :list :seq :sequential :ifn :stack :sorted-map}
+              :list :seq :sequential :ifn :stack :sorted-map :ilookup}
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
           :sequential :stack :sorted-map :var :ideref :ilookup}
    :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
-   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
-   :sequential #{:seq :list :vector :ifn :associative :stack}
+   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
+   :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :ideref #{:atom :var :ifn}
-   :ilookup #{:map :set :sorted-map :coll}})
+   :ilookup #{:map :set :sorted-map :coll :seqable :ifn :associative}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
