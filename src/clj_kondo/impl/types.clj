@@ -50,7 +50,8 @@
     :throwable
     :any
     :float
-    :var})
+    :var
+    :ilookup})
 
 (def built-in-specs
   {'clojure.core clojure-core
@@ -67,20 +68,20 @@
    :neg-int #{:int :number}
    :double #{:number}
    :byte #{:number}
-   :vector #{:seqable :sequential :associative :coll :ifn :stack}
-   :map #{:seqable :associative :coll :ifn}
+   :vector #{:seqable :sequential :associative :coll :ifn :stack :ilookup}
+   :map #{:seqable :associative :coll :ifn :ilookup}
    :nil #{:seqable}
    :coll #{:seqable}
-   :set #{:seqable :coll :ifn}
+   :set #{:seqable :coll :ifn :ilookup}
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
-   :associative #{:seqable :coll :ifn}
+   :associative #{:seqable :coll :ifn :ilookup}
    :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
-   :sorted-map #{:map :seqable :associative :coll :ifn}
+   :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
    :var #{:ideref :ifn}})
 
@@ -88,20 +89,23 @@
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double :byte}
-   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack}
+   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack
+           :ilookup}
    :seqable #{:coll :vector :set :map :associative
               :char-sequence :string :nil
-              :list :seq :sequential :ifn :stack :sorted-map}
+              :list :seq :sequential :ifn :stack :sorted-map :ilookup}
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential :stack :sorted-map :var :ideref :ifn}
+          :sequential :stack :sorted-map :var :ideref :ilookup}
    :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
-   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
-   :sequential #{:seq :list :vector :ifn :associative :stack}
+   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
+   :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
-   :ideref #{:atom :var :ifn}})
+   :ideref #{:atom :var :ifn}
+   :ilookup #{:map :set :sorted-map :coll :seqable :ifn :associative :vector
+              :sequential :stack}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -149,7 +153,8 @@
    :sequential "sequential collection"
    :throwable "throwable"
    :sorted-map "sorted map"
-   :var "var"})
+   :var "var"
+   :ilookup "ILookup"})
 
 (defn label [k]
   (cond
