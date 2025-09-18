@@ -16,7 +16,7 @@
                  [cheshire/cheshire "5.13.0"]
                  [nrepl/bencode "1.2.0"]
                  [org.babashka/sci "0.10.47"]
-                 [babashka/fs "0.5.21"]
+                 [babashka/fs "0.5.27"]
                  [org.ow2.asm/asm "9.7"]
                  [com.github.javaparser/javaparser-core "3.26.1"]]
   ;; :global-vars {*print-namespace-maps* false}

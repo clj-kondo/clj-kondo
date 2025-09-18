@@ -4,7 +4,7 @@
         cheshire/cheshire {:mvn/version "5.13.0"}
         nrepl/bencode {:mvn/version "1.2.0"}
         org.babashka/sci {:mvn/version "0.10.47"}
-        babashka/fs {:mvn/version "0.5.21"}
+        babashka/fs {:mvn/version "0.5.27"}
         org.ow2.asm/asm {:mvn/version "9.7"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
  :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
