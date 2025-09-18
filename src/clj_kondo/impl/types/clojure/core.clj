@@ -64,7 +64,6 @@
    ;; 'quote
    ;; 'var
    ;; 'fn*
-   'fn {:arities {:varargs {:ret :fn}}}
    ;; 'loop*
    ;; 'recur
    'throw {:arities {1 {:args [:throwable]}}}
@@ -768,6 +767,7 @@
    ;; 4389 'destructure
    ;; 4481 'let
    ;; 4513 'fn
+   'fn {:arities {:varargs {:ret :fn}}}
    ;; 4575 'loop
    ;; 4600 'when-first
    ;; 4614 'lazy-cat
