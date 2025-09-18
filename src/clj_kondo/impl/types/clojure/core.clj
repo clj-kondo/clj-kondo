@@ -413,7 +413,7 @@
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                       :ret :seq}}}
+                       :ret :nilable/seq}}}
    ;; 1589 'name
    ;; 1597
    'namespace {:arities {1 {:ret #{:nil :string}}}}
