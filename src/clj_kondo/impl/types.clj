@@ -104,7 +104,7 @@
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :ideref #{:atom :var :ifn}
-   :ilookup #{:map :set :sorted-map :coll :seqable :ifn :associative}})
+   :ilookup #{:map :set :sorted-map :coll :seqable :ifn :associative :vector}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
