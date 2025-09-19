@@ -33,7 +33,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2610](https://github.com/clj-kondo/clj-kondo/issues/2610): ignores may show up unordered due to macros
 - [#2614](https://github.com/clj-kondo/clj-kondo/issues/2614): aliased-namespace-symbol doesn't work for CLJS call
 - Regressions tests for specific open source codebases such as metabase, clerk, ...
-- Require Clojure `1.10.3` as the minimal Clojure version
 
 ## 2025.07.28
 
