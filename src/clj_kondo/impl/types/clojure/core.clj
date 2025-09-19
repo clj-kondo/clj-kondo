@@ -53,6 +53,8 @@
 (def int->int->int {:arities {2 {:args [:int :int]
                                  :ret :int}}})
 
+(def gettable #{:ilookup :nil :set :map :string :array})
+
 (def clojure-core
   {;;; Special forms (https://clojure.org/reference/special_forms)
    ;; 'def
@@ -392,8 +394,8 @@
                             :ret :boolean}}}
    ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
-   'get {:arities {2 {:args [#{:ilookup :nil :set :map :string :array} :any]}
-                   3 {:args [#{:ilookup :nil :set :map :string :array} :any :any]}}}
+   'get {:arities {2 {:args [gettable :any]}
+                   3 {:args [gettable :any :any]}}}
    ;; 1504
    'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
                                 :ret :nilable/map}}}
@@ -912,9 +914,9 @@
    ;; 6109 'load
    ;; 6128 'compile
    ;; 6142
-   'get-in {:arities {2 {:args [:nilable/associative :seqable]
+   'get-in {:arities {2 {:args [gettable :seqable]
                          :ret :any}
-                      3 {:args [:nilable/associative :seqable :any]
+                      3 {:args [gettable :seqable :any]
                          :ret :any}}}
    ;; 6152
    'assoc-in {:arities {3 {:args [:nilable/associative :seqable :any]
