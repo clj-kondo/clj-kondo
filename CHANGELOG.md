@@ -17,20 +17,21 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2025.09.19
 
 - [#1894](https://github.com/clj-kondo/clj-kondo/issues/1894): support `destruct` syntax
-- [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
-- Require clojure `1.10.3` is the minimum clojure version
+- [#2624](https://github.com/clj-kondo/clj-kondo/issues/2624): lint argument types passed to `get` and `get-in` (especially to catch swapped arguments to get in threading macros) ([@borkdude](https://github.com/borkdude), [@Uthar](https://github.com/Uthar))
 - [#2564](https://github.com/clj-kondo/clj-kondo/issues/2564): detect calling set with wrong number of arguments
+- [#2603](https://github.com/clj-kondo/clj-kondo/issues/2603): warn on `:inline-def` with nested `deftest`
+
+- [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
+- [#2615](https://github.com/clj-kondo/clj-kondo/issues/2615): emit `inline-configs` `config.edn` in a git-diff-friendly way ([@lread](https://github.com/lread))
+- Require clojure `1.10.3` is the minimum clojure version
 - [#2257](https://github.com/clj-kondo/clj-kondo/issues/2257): support ignore hint on invalid symbol
 - Sort findings on filename, row, column and now additionally on message too
 - [#2602](https://github.com/clj-kondo/clj-kondo/issues/2602): Sort auto-imported configs to avoid differences based on OS or file system
-- [#2603](https://github.com/clj-kondo/clj-kondo/issues/2603): warn on `:inline-def` with nested `deftest`
 - [#2606](https://github.com/clj-kondo/clj-kondo/issues/2606): make it easy for users to know how inline-config files should be version controlled ([@lread](https://github.com/lread))
 - [#2610](https://github.com/clj-kondo/clj-kondo/issues/2610): ignores may show up unordered due to macros
-- [#2615](https://github.com/clj-kondo/clj-kondo/issues/2615): emit `inline-configs` `config.edn` in a git-diff-friendly way ([@lread](https://github.com/lread))
-- [#2624](https://github.com/clj-kondo/clj-kondo/issues/2624): lint argument types passed to `get` (especially to catch swapped arguments to get in threading macros) ([@borkdude](https://github.com/borkdude), [@Uthar](https://github.com/Uthar))
 - [#2614](https://github.com/clj-kondo/clj-kondo/issues/2614): aliased-namespace-symbol doesn't work for CLJS call
 
 ## 2025.07.28
