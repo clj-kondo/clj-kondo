@@ -66,3 +66,13 @@ baz.qux/some-fn
                         '[:where [(clojure.string/join \",\" [1 2 3])]]"
                      {:linters {:aliased-namespace-symbol {:level :warning}}
                       :analysis {:symbols true}}))))
+
+(deftest cljs-test
+  (assert-submaps2
+   '({:file "corpus/aliased_namespaces/issue_2614.cljs",
+      :row 4,
+      :col 2,
+      :level :warning,
+      :message "An alias is defined for clojure.string: str"})
+   (lint! (io/file "corpus" "aliased_namespaces" "issue_2614.cljs")
+          {:linters {:aliased-namespace-symbol {:level :warning}}})))

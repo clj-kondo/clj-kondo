@@ -31,6 +31,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2610](https://github.com/clj-kondo/clj-kondo/issues/2610): ignores may show up unordered due to macros
 - [#2615](https://github.com/clj-kondo/clj-kondo/issues/2615): emit `inline-configs` `config.edn` in a git-diff-friendly way ([@lread](https://github.com/lread))
 - [#2624](https://github.com/clj-kondo/clj-kondo/issues/2624): lint argument types passed to `get` (especially to catch swapped arguments to get in threading macros) ([@borkdude](https://github.com/borkdude), [@Uthar](https://github.com/Uthar))
+- [#2614](https://github.com/clj-kondo/clj-kondo/issues/2614): aliased-namespace-symbol doesn't work for CLJS call
 
 ## 2025.07.28
 
