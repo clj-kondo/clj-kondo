@@ -356,6 +356,7 @@ pod](https://github.com/babashka/babashka.pods).
 
 - [How to catch derived Vars with a clj-kondo hook](https://www.mikkokoski.com/blog/derived-vars/index.html) by Mikko Koski
 - [Taking your linting to the next level](https://blog.tvaisanen.com/take-your-linting-game-to-the-next-level?showSharer=true#heading-benefits-of-types-in-the-editor) by Toni Vaisanen
+- [Replacing clojure-lsp with clj-kondo and Refactor-nREPL](https://andreyor.st/posts/2025-09-21-replacing-clojure-lsp-with-clj-kondo-and-refactor-nrepl/)
 
 ## Thanks to:
 
