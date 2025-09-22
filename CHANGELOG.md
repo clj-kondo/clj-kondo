@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## 2025.09.22
+
+- Remove `dbg` from `data_readers.clj` since this breaks when using together with CIDER
+
 ## 2025.09.19
 
 - [#1894](https://github.com/clj-kondo/clj-kondo/issues/1894): support `destruct` syntax
