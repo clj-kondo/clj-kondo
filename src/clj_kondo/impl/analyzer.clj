@@ -2678,7 +2678,7 @@
                                     :analyze-expression** analyze-expression**
                                     :extract-bindings extract-bindings)
                              expr)
-                            ([clojure.core.async defblockingop])
+                            ([clojure.core.async defblockingop] [clojure.core.async defparkingop])
                             (analyze-defn ctx expr defined-by defined-by->lint-as)
                             ([clojure.core.reducers defcurried])
                             (analyze-defn ctx expr defined-by defined-by->lint-as)
