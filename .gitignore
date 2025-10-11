@@ -75,6 +75,7 @@ clj-kondo*.snap
 .DS_Store
 !corpus/**/*.jar
 !corpus/java/classes/foo/bar/AwesomeClass.class
+!corpus/java/classes/foo/bar/SampleInterface.class
 corpus/config_dir/.cache
 /.clj-kondo/clj-kondo
 /.lsp/.cache
