@@ -7,7 +7,8 @@
    [clj-kondo.impl.utils :as utils :refer [*ctx*]]
    [clojure.java.io :as io]
    [clojure.pprint]
-   [sci.core :as sci])
+   [sci.core :as sci]
+   [sci.ctx-store :as store])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -90,12 +91,10 @@
                             (binding [*out* *err*]
                               (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
-
-(def sci-ctx
-  (initial-ctx))
-
 (defn reset-ctx! []
-  (alter-var-root #'sci-ctx (constantly (initial-ctx))))
+  (store/reset-ctx! (initial-ctx)))
+
+(reset-ctx!)
 
 (defn walk
   [inner outer form]
@@ -172,7 +171,7 @@
                                       x)))]
                  (binding [*ctx* ctx]
                    ;; require isn't thread safe in SCI
-                   (sci/eval-string* sci-ctx code))))
+                   (sci/eval-string* (store/get-ctx) code))))
              (when-let [x (or (get-in hook-cfg [:macroexpand sym])
                               (some (fn [group-sym]
                                       (get-in hook-cfg [:macroexpand (symbol (str group-sym)
@@ -190,7 +189,7 @@
                                         (if api/*reload* :reload "")
                                         x)))
                        macro (binding [*ctx* ctx]
-                               (sci/eval-string* sci-ctx code))]
+                               (sci/eval-string* (store/get-ctx) code))]
                    (fn [{:keys [node]}]
                      {:node (macroexpand macro node (:bindings *ctx*))})))))))
        (catch Exception e
