@@ -14,6 +14,7 @@
     Modifier$Keyword
     Node]
    [com.github.javaparser.ast.body
+    ClassOrInterfaceDeclaration
     EnumConstantDeclaration
     ConstructorDeclaration
     FieldDeclaration
@@ -40,10 +41,10 @@
     (.toByteArray xout)))
 
 #_(defn ^:private opcode->flags []
-  {Opcodes/ACC_PUBLIC #{:public}
-   Opcodes/ALOAD #{:public :field :static}
-   Opcodes/SIPUSH #{:public :field :final}
-   Opcodes/LCONST_0 #{:public :method :static}})
+    {Opcodes/ACC_PUBLIC #{:public}
+     Opcodes/ALOAD #{:public :field :static}
+     Opcodes/SIPUSH #{:public :field :final}
+     Opcodes/LCONST_0 #{:public :method :static}})
 
 (defn- opcode->flags
   "Thanks @hiredman for https://downey.family/p/2024-02-22/modifiers.clj.html. Generated with:"
@@ -51,19 +52,19 @@
 
   [x]
   (clojure.core/cond->
-      #{}
+   #{}
     (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_PUBLIC)
      Opcodes/ACC_PUBLIC)
     (clojure.core/conj :public)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
-     Opcodes/ACC_PRIVATE)
-    (clojure.core/conj :private)
+         (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
+         Opcodes/ACC_PRIVATE)
+      (clojure.core/conj :private)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
-     Opcodes/ACC_PROTECTED)
-    (clojure.core/conj :protected)
+         (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
+         Opcodes/ACC_PROTECTED)
+      (clojure.core/conj :protected)
     (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_STATIC)
      Opcodes/ACC_STATIC)
@@ -73,81 +74,81 @@
      Opcodes/ACC_FINAL)
     (clojure.core/conj :final)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_SUPER)
-     Opcodes/ACC_SUPER)
+       (clojure.core/bit-and x Opcodes/ACC_SUPER)
+       Opcodes/ACC_SUPER)
     #_(clojure.core/conj :super)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
-     Opcodes/ACC_SYNCHRONIZED)
+       (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
+       Opcodes/ACC_SYNCHRONIZED)
     #_(clojure.core/conj :synchronized)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_OPEN)
-     Opcodes/ACC_OPEN)
+       (clojure.core/bit-and x Opcodes/ACC_OPEN)
+       Opcodes/ACC_OPEN)
     #_(clojure.core/conj :open)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
-     Opcodes/ACC_TRANSITIVE)
+       (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
+       Opcodes/ACC_TRANSITIVE)
     #_(clojure.core/conj :transitive)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
-     Opcodes/ACC_VOLATILE)
+       (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
+       Opcodes/ACC_VOLATILE)
     #_(clojure.core/conj :volatile)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
-     Opcodes/ACC_BRIDGE)
-    (clojure.core/conj :bridge)
+         (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
+         Opcodes/ACC_BRIDGE)
+      (clojure.core/conj :bridge)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
-     Opcodes/ACC_STATIC_PHASE)
-    (clojure.core/conj :static_phase)
+         (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
+         Opcodes/ACC_STATIC_PHASE)
+      (clojure.core/conj :static_phase)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_VARARGS)
-     Opcodes/ACC_VARARGS)
-    (clojure.core/conj :varargs)
+         (clojure.core/bit-and x Opcodes/ACC_VARARGS)
+         Opcodes/ACC_VARARGS)
+      (clojure.core/conj :varargs)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
-     Opcodes/ACC_TRANSIENT)
-    (clojure.core/conj :transient)
+         (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
+         Opcodes/ACC_TRANSIENT)
+      (clojure.core/conj :transient)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_NATIVE)
-     Opcodes/ACC_NATIVE)
-    (clojure.core/conj :native)
-    #_#_(clojure.core/=
+         (clojure.core/bit-and x Opcodes/ACC_NATIVE)
+         Opcodes/ACC_NATIVE)
+      (clojure.core/conj :native)
+    (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_INTERFACE)
      Opcodes/ACC_INTERFACE)
     (clojure.core/conj :interface)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
-     Opcodes/ACC_ABSTRACT)
-    (clojure.core/conj :abstract)
+         (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
+         Opcodes/ACC_ABSTRACT)
+      (clojure.core/conj :abstract)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_STRICT)
-     Opcodes/ACC_STRICT)
-    (clojure.core/conj :strict)
+         (clojure.core/bit-and x Opcodes/ACC_STRICT)
+         Opcodes/ACC_STRICT)
+      (clojure.core/conj :strict)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
-     Opcodes/ACC_SYNTHETIC)
-    (clojure.core/conj :synthetic)
+         (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
+         Opcodes/ACC_SYNTHETIC)
+      (clojure.core/conj :synthetic)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
-     Opcodes/ACC_ANNOTATION)
-    (clojure.core/conj :annotation)
+         (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
+         Opcodes/ACC_ANNOTATION)
+      (clojure.core/conj :annotation)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_ENUM)
-     Opcodes/ACC_ENUM)
-    (clojure.core/conj :enum)
+         (clojure.core/bit-and x Opcodes/ACC_ENUM)
+         Opcodes/ACC_ENUM)
+      (clojure.core/conj :enum)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_MANDATED)
-     Opcodes/ACC_MANDATED)
-    (clojure.core/conj :mandated)
+         (clojure.core/bit-and x Opcodes/ACC_MANDATED)
+         Opcodes/ACC_MANDATED)
+      (clojure.core/conj :mandated)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_MODULE)
-     Opcodes/ACC_MODULE)
-    (clojure.core/conj :module)
+         (clojure.core/bit-and x Opcodes/ACC_MODULE)
+         Opcodes/ACC_MODULE)
+      (clojure.core/conj :module)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
-     Opcodes/ACC_DEPRECATED)
-    (clojure.core/conj :deprecated)))
+         (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
+         Opcodes/ACC_DEPRECATED)
+      (clojure.core/conj :deprecated)))
 
 (defn ^:private modifier-keyword->flag []
   (reduce #(assoc %1 %2 (keyword (str/lower-case (.asString ^Modifier$Keyword %2))))
@@ -159,10 +160,13 @@
   [^InputStream class-is]
   (let [class-reader (ClassReader. (input-stream->bytes class-is))
         class-name (str/replace (.getClassName class-reader) "/" ".")
-        result* (atom {class-name {:members []}})]
+        result* (atom {class-name {:members [] :flags nil}})]
     (.accept
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
+       (visit [version access name signature superName interfaces]
+         (swap! result* assoc-in [class-name :flags] (opcode->flags access))
+         nil)
        (visitField [access ^String name ^String desc signature value]
          (let [flags (opcode->flags access)]
            (when (:public flags)
@@ -228,11 +232,16 @@
                                  (.findAll class-or-interface ConstructorDeclaration)
                                  (.findAll class-or-interface MethodDeclaration)
                                  (.findAll class-or-interface EnumConstantDeclaration))
-                                (keep #(node->member % modifier-keyword->flag)))]
+                                (keep #(node->member % modifier-keyword->flag)))
+                   flags (set (map #(modifier-keyword->flag
+                                     (.getKeyword ^Modifier %))
+                                   (.getModifiers class-or-interface)))
+                   flags (if (and (instance? ClassOrInterfaceDeclaration class-or-interface)
+                                  (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
+                           (conj flags :interface)
+                           flags)]
                (assoc classes class-name {:members (vec members)
-                                          :flags (set (map #(modifier-keyword->flag
-                                                             (.getKeyword ^Modifier %))
-                                                           (.getModifiers class-or-interface))) }))
+                                          :flags flags}))
              classes))
          {}
          (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
@@ -255,12 +264,16 @@
                             (class-is->class-info is)
                             (source-is->java-member-definitions is filename)))]
       (doseq [[class-name class-info] class-by-info]
-        (swap! (:analysis ctx)
-               update :java-class-definitions conj
-               {:class class-name
-                :uri uri
-                :filename filename
-                :flags (:flags class-info)})
+        (let [flags (:flags class-info)
+              class-def (cond-> {:class class-name
+                                 :uri uri
+                                 :filename filename
+                                 :flags flags}
+                          (contains? flags :interface)
+                          (assoc :interface? true))]
+          (swap! (:analysis ctx)
+                 update :java-class-definitions conj
+                 class-def))
         (when (:analyze-java-member-defs? ctx)
           (doseq [member (:members class-info)]
             (swap! (:analysis ctx)
@@ -331,7 +344,4 @@
                                        (select-keys [:flags]))))))
   (ana->cached "java.lang.System" sys)
   (def clazz (io/resource "java/time/temporal/ChronoField.class"))
-  (class-is->class-info (io/input-stream clazz))
-
-
-  )
+  (class-is->class-info (io/input-stream clazz)))

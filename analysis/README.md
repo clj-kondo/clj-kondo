@@ -202,6 +202,8 @@ The analysis output consists of a map with:
   - `:class`: full qualified class name.
   - `:uri`: file URI of this class.
   - `filename`
+  - `:interface?`: `true` if the class is an interface, absent otherwise.
+  - `:flags`: a set of keywords that classify this class, like `:public`, `:final`, `:interface`.
 - `:java-member-definitions`, a list of maps with:
   - `:class`: full qualified class name of this member.
   - `:uri`: file URI of the class.
