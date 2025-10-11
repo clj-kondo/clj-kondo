@@ -227,20 +227,25 @@
         (reduce
          (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
            (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
-             (let [members (->> (concat
+             (let [is-interface? (and (instance? ClassOrInterfaceDeclaration class-or-interface)
+                                      (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
+                   members (->> (concat
                                  (.findAll class-or-interface FieldDeclaration)
                                  (.findAll class-or-interface ConstructorDeclaration)
                                  (.findAll class-or-interface MethodDeclaration)
                                  (.findAll class-or-interface EnumConstantDeclaration))
-                                (keep #(node->member % modifier-keyword->flag)))
+                                (keep #(node->member % modifier-keyword->flag))
+                                (mapv (fn [member]
+                                        (if (and is-interface? (contains? (:flags member) :method))
+                                          (update member :flags conj :public)
+                                          member))))
                    flags (set (map #(modifier-keyword->flag
                                      (.getKeyword ^Modifier %))
                                    (.getModifiers class-or-interface)))
-                   flags (if (and (instance? ClassOrInterfaceDeclaration class-or-interface)
-                                  (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
+                   flags (if is-interface?
                            (conj flags :interface)
                            flags)]
-               (assoc classes class-name {:members (vec members)
+               (assoc classes class-name {:members members
                                           :flags flags}))
              classes))
          {}

@@ -286,7 +286,13 @@
   (testing "Interface has :interface flag in flags set"
     (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])
           interface-def (first java-class-definitions)]
-      (is (contains? (:flags interface-def) :interface) "Interface flags should contain :interface"))))
+      (is (contains? (:flags interface-def) :interface) "Interface flags should contain :interface")))
+
+  (testing "Interface methods are marked as public"
+    (let [{:keys [java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])
+          interface-methods (filter #(= "foo.bar.SampleInterface" (:class %)) java-member-definitions)]
+      (is (every? #(contains? (:flags %) :public) interface-methods)
+          "All interface methods should have :public flag"))))
 
 (comment
 
