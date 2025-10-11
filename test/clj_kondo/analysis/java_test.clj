@@ -297,7 +297,7 @@
 (deftest issue-2637-private-interface-methods-test
   ;; Test for issue #2637: Java 9+ interfaces can have private helper methods
   ;; Private methods should be filtered out and not appear in analysis
-  (testing "Private methods in interfaces are not included in analysis"
+  (testing "Private methods in interfaces (.java source) are not included in analysis"
     (let [{:keys [java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])
           interface-methods (filter #(= "foo.bar.SampleInterface" (:class %)) java-member-definitions)
           method-names (set (map :name interface-methods))]
@@ -312,7 +312,24 @@
           "Default method doStuff should be in analysis output")
       (let [do-stuff-method (some #(when (= "doStuff" (:name %)) %) interface-methods)]
         (is (contains? (:flags do-stuff-method) :public)
-            "Default method should be marked as public")))))
+            "Default method should be marked as public"))))
+
+  (testing "Private methods in interfaces (.class bytecode) are not included in analysis"
+    (let [{:keys [java-member-definitions]} (analyze ["corpus/java/classes/foo/bar/SampleInterface.class"])
+          interface-methods (filter #(= "foo.bar.SampleInterface" (:class %)) java-member-definitions)
+          method-names (set (map :name interface-methods))]
+      ;; The private helper() method should not appear in the analysis
+      (is (not (contains? method-names "helper"))
+          "Private helper method should not be in bytecode analysis output")
+      ;; Public methods should still be present
+      (is (contains? method-names "doSomething")
+          "Public method doSomething should be in bytecode analysis output")
+      ;; Default method should be present (and marked as public)
+      (is (contains? method-names "doStuff")
+          "Default method doStuff should be in bytecode analysis output")
+      (let [do-stuff-method (some #(when (= "doStuff" (:name %)) %) interface-methods)]
+        (is (contains? (:flags do-stuff-method) :public)
+            "Default method in bytecode should be marked as public")))))
 
 (comment
 
