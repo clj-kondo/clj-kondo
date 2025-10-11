@@ -126,52 +126,52 @@
        java-class-definitions)
       (assert-submaps2
        (cond->>
-           '[{:class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:public :field}
-              :name "bar1"
-              :type "Double"
-              :row 15 :col 5 :end-row 15 :end-col 23}
-             {:class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:public :field :final}
-              :name "bar2"
-              :type "Double"
-              :row 16 :col 5 :end-row 16 :end-col 35}
-             {:class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:public :static :field :final}
-              :name "bar3"
-              :type "Double"
-              :row 17 :col 5 :end-row 17 :end-col 42}
-             {:class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:method :public}
-              :name "AwesomeClass"
-              :parameters ["double a"]
-              :row 19 :col 5 :end-row 21 :end-col 5}
-             {:return-type "int"
-              :name "coolSum1"
-              :class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:method :public}
-              :parameters ["double a" "double b"]
-              :row 23 :col 5 :end-row 29 :end-col 5}
-             {:return-type "File[]"
-              :name "coolParse"
-              :class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:method :public :static}
-              :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
-              :parameters ["List<String> filenames"]
-              :row 36 :end-row 38 :col 5 :end-col 5}
-             {:return-type "Foo"
-              :name "foo"
-              :class "foo.bar.AwesomeClass"
-              :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-              :flags #{:method :public}
-              :parameters []
-              :row 40 :end-row 45 :col 5 :end-col 5}]
+        '[{:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:public :field}
+           :name "bar1"
+           :type "Double"
+           :row 15 :col 5 :end-row 15 :end-col 23}
+          {:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:public :field :final}
+           :name "bar2"
+           :type "Double"
+           :row 16 :col 5 :end-row 16 :end-col 35}
+          {:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:public :static :field :final}
+           :name "bar3"
+           :type "Double"
+           :row 17 :col 5 :end-row 17 :end-col 42}
+          {:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public}
+           :name "AwesomeClass"
+           :parameters ["double a"]
+           :row 19 :col 5 :end-row 21 :end-col 5}
+          {:return-type "int"
+           :name "coolSum1"
+           :class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public}
+           :parameters ["double a" "double b"]
+           :row 23 :col 5 :end-row 29 :end-col 5}
+          {:return-type "File[]"
+           :name "coolParse"
+           :class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public :static}
+           :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
+           :parameters ["List<String> filenames"]
+           :row 36 :end-row 38 :col 5 :end-col 5}
+          {:return-type "Foo"
+           :name "foo"
+           :class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public}
+           :parameters []
+           :row 40 :end-row 45 :col 5 :end-col 5}]
          tu/windows? (mapv (fn [m]
                              (if (:doc m)
                                (update m :doc #(str/replace % "\n" "\r\n"))
@@ -273,15 +273,15 @@
     (let [{:keys [java-class-definitions]} (analyze ["corpus/java/classes"])
           interface-def (some #(when (= "foo.bar.SampleInterface" (:class %)) %) java-class-definitions)
           class-def (some #(when (= "foo.bar.AwesomeClass" (:class %)) %) java-class-definitions)]
-      (is (= true (:interface? interface-def)) "SampleInterface should have :interface? true")
-      (is (nil? (:interface? class-def)) "AwesomeClass should not have :interface? key")))
+      (is (contains? (:flags interface-def) :interface) "SampleInterface flags should contain :interface")
+      (is (not (contains? (:flags class-def) :interface)) "AwesomeClass flags should not contain :interface")))
 
   (testing "Interface detection for .java source files"
     (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources"])
           interface-def (some #(when (= "foo.bar.SampleInterface" (:class %)) %) java-class-definitions)
           class-def (some #(when (= "foo.bar.AwesomeClass" (:class %)) %) java-class-definitions)]
-      (is (= true (:interface? interface-def)) "SampleInterface should have :interface? true")
-      (is (nil? (:interface? class-def)) "AwesomeClass should not have :interface? key")))
+      (is (contains? (:flags interface-def) :interface) "SampleInterface flags should contain :interface")
+      (is (not (contains? (:flags class-def) :interface)) "AwesomeClass flags should not contain :interface")))
 
   (testing "Interface has :interface flag in flags set"
     (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])

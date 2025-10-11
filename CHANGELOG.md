@@ -20,7 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2633](https://github.com/clj-kondo/clj-kondo/issues/2633): support new `defparkingop` macro in core.async alpha
-- [#2635](https://github.com/clj-kondo/clj-kondo/pull/2635): Add `:interface?` field to `:java-class-definitions` analysis output to distinguish Java interfaces from classes
+- [#2635](https://github.com/clj-kondo/clj-kondo/pull/2635): Add `:interface` flag to `:flags` set in `:java-class-definitions` analysis output to distinguish Java interfaces from classes
 
 ## 2025.09.22
 
