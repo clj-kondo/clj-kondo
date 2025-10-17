@@ -158,6 +158,7 @@
               :uninitialized-var {:level :warning}
               :equals-false {:level :off}
               :equals-true {:level :off}
+              :equals-nil {:level :off}
               :equals-float {:level :off}
               :plus-one {:level :off}
               :minus-one {:level :off}
