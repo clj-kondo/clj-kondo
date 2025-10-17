@@ -2250,8 +2250,8 @@
                                             :type :equals-false
                                             :message "Prefer (false? x) over (= false x)"
                                             :filename (:filename ctx))))
-        (when (and (or (nil? (:value lhs))
-                       (nil? (:value rhs)))
+        (when (and (or (= "nil" (:string-value lhs))
+                       (= "nil" (:string-value rhs)))
                    (not (or (:clj-kondo.impl/generated lhs)
                             (:clj-kondo.impl/generated rhs))))
           (findings/reg-finding! ctx (assoc (meta expr)

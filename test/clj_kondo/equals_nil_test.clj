@@ -10,6 +10,7 @@
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Prefer (nil? x) over (= nil x)"})
    (lint! "(= x nil)" {:linters {:equals-nil {:level :warning}}}))
+  (is (empty? (lint! "(= :foo :bar)" {:linters {:equals-nil {:level :warning}}})))
   (is (empty? (lint! "(= nil x y)" {:linters {:equals-nil {:level :warning}}})))
   (is (empty? (lint! "(nil? x)" {:linters {:equals-nil {:level :warning}}}))))
 
