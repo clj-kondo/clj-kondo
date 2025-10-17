@@ -858,6 +858,18 @@ e.g. `(= 0.1 x)`. In many cases this can lead to issues due to rounding errors.
 
 *Example message:* `Prefer (false? x) over (= false x)`.
 
+### Equals nil
+
+*Keyword:* `:equals-nil`
+
+*Description:* warn on usage of `(= nil x)` or `(= x nil)` rather than `(nil? x)`
+
+*Default level:* `:off`
+
+*Example trigger:* `(fn [x] (= nil x))`
+
+*Example message:* `Prefer (nil? x) over (= nil x)`.
+
 ### Equals true
 
 *Keyword:* `:equals-true`
