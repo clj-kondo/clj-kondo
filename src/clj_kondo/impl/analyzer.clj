@@ -1326,8 +1326,7 @@
     (docstring/lint-docstring! ctx doc-node docstring)
     (or def-init
       ;; this was something else than core/def
-        (analyze-children ctx
-                          children))))
+        (analyze-children ctx children))))
 
 (declare analyze-defrecord)
 (declare analyze-defprotocol)
