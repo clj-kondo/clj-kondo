@@ -713,7 +713,7 @@
                   m (meta ns-sym)
                   filename (:filename m)
                   config (or ns-config config)
-                  ns-groups (config/ns-groups config ns-sym filename)
+                  ns-groups (config/ns-groups ctx config ns-sym filename)
                   linter-configs (keep #(get-in config [:linters :discouraged-namespace %]) (concat ns-groups [ns-sym]))]
             :when (seq linter-configs)
             :let [linter-config (apply config/merge-config! linter-configs)

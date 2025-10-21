@@ -461,9 +461,9 @@
                                   :name-end-col (or (:end-col name-meta) (:end-col loc))))))
 
 (defn reg-unresolved-namespace!
-  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
+  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as ctx} ns-sym unresolved-ns]
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
-    (let [ns-groups (cons unresolved-ns (config/ns-groups config unresolved-ns filename))
+    (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
           (or
@@ -643,7 +643,7 @@
                   (empty? (dissoc discouraged-var-config :level)))
       (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
                              (map #(symbol (str %) (str fn-name))
-                                  (config/ns-groups call-config resolved-ns filename)))]
+                                  (config/ns-groups ctx call-config resolved-ns filename)))]
         (doseq [fn-lookup-sym candidates]
           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
             (when-not (or (identical? :off (:level cfg))

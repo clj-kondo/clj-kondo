@@ -221,7 +221,11 @@
                  ;; config, for e.g. the clj-kondo playground
                  ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
                  :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
-                 :debug debug}
+                 :debug debug
+                 :ns-groups-matcher
+                 #_{:clj-kondo/ignore [:discouraged-var]}
+                 (memoize (fn [pattern-str file-str]
+                            (re-find (re-pattern pattern-str) file-str)))}
             lang (or lang :clj)
             ;; primary file analysis and initial lint
             _ (core-impl/process-files (if parallel
