@@ -530,6 +530,7 @@
              recursive?
              (utils/linter-disabled? call :deprecated-var)
              (config/deprecated-var-excluded
+              ctx
               (:config call)
               fn-sym
               caller-ns-sym in-def))
@@ -746,7 +747,7 @@
                                (remove :clj-kondo.impl/generated)
                                (filter #(str/starts-with? (str (:name %)) "_")))
                               (:used-bindings ns))
-                :when (not (config/used-underscored-binding-excluded? used-underscored-binding-excluded-config
+                :when (not (config/used-underscored-binding-excluded? ctx used-underscored-binding-excluded-config
                                                                       (:name binding)))]
           (findings/reg-finding!
            ctx

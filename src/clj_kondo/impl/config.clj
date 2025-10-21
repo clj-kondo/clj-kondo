@@ -364,11 +364,11 @@
     (or (contains? (:excluded-nss cfg) ns-sym)
         (contains? (:excluded-vars cfg) [ns-sym fn-sym]))))
 
-(defn deprecated-var-excluded [config var-sym excluded-ns excluded-in-def]
+(defn deprecated-var-excluded [ctx config var-sym excluded-ns excluded-in-def]
   (let [{:keys [:namespace-regexes :namespace-syms
                 :def-regexes :def-syms]} (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
                                                namespaces (:namespaces excluded)
-                                               namespace-regexes (map re-pattern (filter string? namespaces))
+                                               namespace-regexes (filter string? namespaces)
                                                namespace-syms (set (filter symbol? namespaces))
                                                defs (:defs excluded)
                                                def-regexes (map re-pattern (filter string? defs))
@@ -383,7 +383,8 @@
                 (let [excluded-in-def-str (str excluded-in-def)]
                   (boolean (some #(re-find % excluded-in-def-str) def-regexes))))))
         (contains? namespace-syms excluded-ns)
-        (let [ns-str (str excluded-ns)]
+        (let [ns-str (str excluded-ns)
+              re-find (:re-find-memo ctx)]
           (boolean (some #(re-find % ns-str) namespace-regexes))))))
 
 (defn type-mismatch-config [config var-ns var-name]
@@ -453,7 +454,7 @@
 
 (defn unused-binding-excluded-config [config]
   (let [excluded (get-in config [:linters :unused-binding :exclude-patterns])
-        regexes (map re-pattern (filter string? excluded))]
+        regexes (filter string? excluded)]
     {:regexes regexes}))
 
 (defn unused-binding-excluded? [config binding-sym]
@@ -465,11 +466,12 @@
 (defn used-underscored-binding-excluded-config [config]
   (let [excluded (get-in config [:linters :used-underscored-binding :exclude])
         syms (set (filter symbol? excluded))
-        regexes (map re-pattern (filter string? excluded))]
+        regexes (filter string? excluded)]
     {:syms syms :regexes regexes}))
 
-(defn used-underscored-binding-excluded? [config binding-sym]
-  (let [{:keys [syms regexes]} config]
+(defn used-underscored-binding-excluded? [ctx config binding-sym]
+  (let [re-find (:re-find-memo ctx)
+        {:keys [syms regexes]} config]
     (or (contains? syms binding-sym)
         (let [binding-str (str binding-sym)]
           (boolean (some #(re-find % binding-str) regexes))))))
