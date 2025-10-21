@@ -147,17 +147,14 @@
              [nil args]))
          config (str (deep-merge conf/default-config base-config config))
          res (with-out-str
-               (try
-                 (cond
-                   (instance? java.io.File input)
-                   (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
-                   (vector? input)
-                   (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
-                                                                  ["--config" config] args))
-                   :else (with-in-str input
-                           (apply main "--cache" "false" "--lint" "-"  "--config" config args)))
-                 (catch Throwable e
-                   (.printStackTrace e))))]
+               (cond
+                 (instance? java.io.File input)
+                 (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
+                 (vector? input)
+                 (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
+                                                                ["--config" config] args))
+                 :else (with-in-str input
+                         (apply main "--cache" "false" "--lint" "-"  "--config" config args))))]
      ;; (println input)
      ;; (println res)
      (parse-output res))))

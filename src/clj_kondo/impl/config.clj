@@ -371,20 +371,20 @@
                                                namespace-regexes (filter string? namespaces)
                                                namespace-syms (set (filter symbol? namespaces))
                                                defs (:defs excluded)
-                                               def-regexes (map re-pattern (filter string? defs))
+                                               def-regexes (filter string? defs)
                                                def-syms (set (filter symbol? defs))]
                                            {:namespace-regexes namespace-regexes
                                             :namespace-syms namespace-syms
                                             :def-regexes def-regexes
-                                            :def-syms def-syms})]
+                                            :def-syms def-syms})
+        re-find (:re-find-memo ctx)]
     (or (when excluded-in-def
           (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
             (or (contains? def-syms excluded-in-def)
                 (let [excluded-in-def-str (str excluded-in-def)]
                   (boolean (some #(re-find % excluded-in-def-str) def-regexes))))))
         (contains? namespace-syms excluded-ns)
-        (let [ns-str (str excluded-ns)
-              re-find (:re-find-memo ctx)]
+        (let [ns-str (str excluded-ns)]
           (boolean (some #(re-find % ns-str) namespace-regexes))))))
 
 (defn type-mismatch-config [config var-ns var-name]
@@ -457,8 +457,9 @@
         regexes (filter string? excluded)]
     {:regexes regexes}))
 
-(defn unused-binding-excluded? [config binding-sym]
-  (let [{:keys [:regexes]} config
+(defn unused-binding-excluded? [ctx config binding-sym]
+  (let [{:keys [regexes]} config
+        re-find (:re-find-memo ctx)
         binding-str (str binding-sym)]
     (boolean (some (fn [regex]
                      (re-find regex binding-str)) regexes))))

@@ -767,7 +767,7 @@
           (doseq [binding diff]
             (let [nm (:name binding)]
               (when-not (or (str/starts-with? (str nm) "_")
-                            (config/unused-binding-excluded? unused-binding-excluded-config nm))
+                            (config/unused-binding-excluded? ctx unused-binding-excluded-config nm))
                 (findings/reg-finding!
                  ctx
                  {:type :unused-binding
