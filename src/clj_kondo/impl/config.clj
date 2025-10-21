@@ -315,7 +315,7 @@
 (defn unresolved-namespace-excluded [excluded ns-sym]
   (contains? excluded ns-sym))
 
-(defn unresolved-symbol-excluded [config callstack sym]
+(defn unresolved-symbol-excluded [ctx config callstack sym]
   (let [{:keys [excluded excluded-in exclude-patterns]}
         (let [unresolved-symbol-config (get-in config [:linters :unresolved-symbol])
               excluded (get unresolved-symbol-config :exclude)
@@ -341,14 +341,15 @@
                                          :else identity))))
                        acc))
                    {} calls)
-           :exclude-patterns (map #(re-pattern (str %)) exclude-patterns)})]
+           :exclude-patterns exclude-patterns})]
     (or (contains? excluded sym)
         (some #(when-let [check-fn (get excluded-in %)]
                  ;; e.g. for user/defproject, check-fn is identity, so any
                  ;; truthy value will be excluded inside of that
                  (check-fn sym))
               callstack)
-        (let [sym-str (str sym)]
+        (let [sym-str (str sym)
+              re-find (:re-find-memo ctx)]
           (some #(re-find % sym-str) exclude-patterns)))))
 
 (defn unresolved-var-excluded [config ns-sym fn-sym]

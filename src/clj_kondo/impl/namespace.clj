@@ -394,7 +394,7 @@
   [ctx ns-sym sym {:keys [base-lang lang config
                           callstack] :as sym-info}]
   (when-not (or (:unresolved-symbol-disabled? sym-info)
-                (config/unresolved-symbol-excluded config
+                (config/unresolved-symbol-excluded ctx config
                                                    callstack sym)
                 (let [symbol-name (name sym)]
                   (or (and
@@ -470,7 +470,7 @@
            (some #(config/unresolved-namespace-excluded excluded %)
                  ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-           (config/unresolved-symbol-excluded config callstack :dummy))
+           (config/unresolved-symbol-excluded ctx config callstack :dummy))
         (let [unresolved-ns (vary-meta unresolved-ns
                                        ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
                                        ;; we must include the filename here
