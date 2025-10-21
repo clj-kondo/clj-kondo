@@ -35,7 +35,7 @@
           findings (:findings lint-result)
           actual (remove #(str/includes? (:filename %) "src/scratch") findings)
           expected-findings-file (fs/file "test-regression" "clj_kondo" "clj_kondo" "findings.edn")
-          _ (when false (spit expected-findings-file (with-out-str (pp/pprint actual))))
+          _ (when (System/getenv "CLJ_KONDO_REGRESSION_UPDATE") (spit expected-findings-file (with-out-str (pp/pprint actual))))
           expected (edn/read-string (slurp expected-findings-file))]
       (when-not (assert-submaps2 expected actual)
         (spit "/tmp/actual.edn" (with-out-str (pp/pprint actual)))
