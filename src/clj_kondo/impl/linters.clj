@@ -204,7 +204,17 @@
         (findings/reg-finding! ctx
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :equals-float
-                                      :message "Equality comparison of floating point numbers"))))))
+                                      :message "Equality comparison of floating point numbers")))
+      (when (and
+             (= 'empty? (:name called-fn))
+             (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+             (utils/one-of (second (:callstack call)) [[cljs.core not] [clojure.core not]])
+             (contains? (get types/is-a-relations (first tags)) :seq)
+             (not (identical? :off (-> call :config :linters :not-empty? :level))))
+        (findings/reg-finding! ctx
+                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                      :type :not-empty?
+                                      :message "use the idiom (seq x) rather than (not (empty? x))"))))))
 
 (defn show-arities [fixed-arities varargs-min-arity]
   (let [fas (vec (sort fixed-arities))

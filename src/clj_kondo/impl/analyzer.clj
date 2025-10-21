@@ -1777,7 +1777,7 @@
   (analyze-children (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
                     (next (:children expr))))
 
-(defn analyze-empty?
+#_(defn analyze-empty?
   [ctx expr]
   (let [cs (:callstack ctx)
         not-expr (one-of (second cs) [[clojure.core not] [cljs.core not]])]
@@ -2599,7 +2599,7 @@
                           areduce (analyze-areduce ctx expr)
                           this-as (analyze-this-as ctx expr)
                           memfn (analyze-memfn ctx expr)
-                          empty? (analyze-empty? ctx expr)
+                          ;; empty? (analyze-empty? ctx expr)
                           (format printf) (analyze-format ctx expr)
                           (use require)
                           (if top-level? (namespace-analyzer/analyze-require ctx expr)

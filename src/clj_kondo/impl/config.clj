@@ -472,6 +472,10 @@
         (let [binding-str (str binding-sym)]
           (boolean (some #(re-find % binding-str) regexes))))))
 
+(def re-find-memo
+  (memoize (fn [pat filename]
+             (re-find (re-pattern pat) filename))))
+
 (defn ns-groups [config ns-name filename]
   (keep (fn [{:keys [pattern
                      filename-pattern
@@ -479,8 +483,7 @@
           (when (or (and (string? pattern) (symbol? name)
                          (re-find (re-pattern pattern) (str ns-name)))
                     (and (string? filename-pattern) (symbol? name)
-                         (re-find (re-pattern filename-pattern) filename)))
-            name))
+                         (re-find (re-pattern filename-pattern) filename)))))
         (:ns-groups config)))
 
 (defn unquote [coll]
