@@ -222,10 +222,14 @@
                  ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
                  :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
                  :debug debug
-                 :ns-groups-matcher
+                 :re-find-memo
+                 ;; memoized version of re-find that takes a pattern string and a match string
+                 ;; regex creation is cached
+                 ;; matches on regex are cached
                  #_{:clj-kondo/ignore [:discouraged-var]}
-                 (memoize (fn [pattern-str file-str]
-                            (re-find (re-pattern pattern-str) file-str)))}
+                 (let [re-pattern-memo (memoize re-pattern)]
+                   (memoize (fn [pattern-str file-str]
+                              (re-find (re-pattern-memo pattern-str) file-str))))}
             lang (or lang :clj)
             ;; primary file analysis and initial lint
             _ (core-impl/process-files (if parallel

@@ -287,14 +287,15 @@
 (defn unused-namespace-excluded-config [config]
   (let [excluded (get-in config [:linters :unused-namespace :exclude])
         syms (set (filter symbol? excluded))
-        regexes (map re-pattern (filter string? excluded))]
+        regexes (filter string? excluded)]
     {:syms syms :regexes regexes}))
 
-(defn unused-namespace-excluded [config ns-sym]
-  (let [{:keys [syms regexes]} config]
+(defn unused-namespace-excluded [ctx config ns-sym]
+  (let [re-find-memo (:re-find-memo ctx)
+        {:keys [syms regexes]} config]
     (or (contains? syms ns-sym)
         (let [ns-str (str ns-sym)]
-          (boolean (some #(re-find % ns-str) regexes))))))
+          (boolean (some #(re-find-memo % ns-str) regexes))))))
 
 (defn unused-referred-var-excluded [config ns-sym var-sym]
   (let [excluded (let [excluded (get-in config [:linters :unused-referred-var :exclude])]
@@ -473,7 +474,7 @@
           (boolean (some #(re-find % binding-str) regexes))))))
 
 (defn ns-groups [ctx config ns-name filename]
-  (let [ns-groups-matcher (:ns-groups-matcher ctx)]
+  (let [ns-groups-matcher (:re-find-memo ctx)]
     (keep (fn [{:keys [pattern
                        filename-pattern
                        name]}]

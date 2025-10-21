@@ -650,7 +650,7 @@
                                      ""))))))))
       (doseq [ns-sym unused]
         (let [ns-meta (meta ns-sym)]
-          (when-not (or (config/unused-namespace-excluded ns-excluded-config ns-sym)
+          (when-not (or (config/unused-namespace-excluded ctx ns-excluded-config ns-sym)
                         (some-> ns-meta :alias meta :as-alias))
             (let [m (meta ns-sym)
                   filename (:filename m)]
