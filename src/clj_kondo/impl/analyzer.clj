@@ -1777,18 +1777,6 @@
   (analyze-children (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
                     (next (:children expr))))
 
-(defn analyze-empty?
-  [ctx expr]
-  (let [cs (:callstack ctx)
-        not-expr (one-of (second cs) [[clojure.core not] [cljs.core not]])]
-    (when not-expr
-      (findings/reg-finding!
-       ctx
-       (node->line (:filename ctx) not-expr
-                   :not-empty?
-                   "use the idiom (seq x) rather than (not (empty? x))")))
-    (analyze-children ctx (rest (:children expr)) false)))
-
 (defn analyze-import-libspec [ctx ns-name expr]
   (let [libspec-expr (if (= :quote (tag expr))
                        (first (:children expr))
@@ -2599,7 +2587,6 @@
                           areduce (analyze-areduce ctx expr)
                           this-as (analyze-this-as ctx expr)
                           memfn (analyze-memfn ctx expr)
-                          empty? (analyze-empty? ctx expr)
                           (format printf) (analyze-format ctx expr)
                           (use require)
                           (if top-level? (namespace-analyzer/analyze-require ctx expr)

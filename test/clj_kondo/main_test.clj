@@ -2343,13 +2343,14 @@ foo/foo ;; this does use the private var
      (lint! "(defn foo [x y & xs ys] [x y xs ys])"))))
 
 (deftest not-empty?-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "use the idiom (seq x) rather than (not (empty? x))"})
-   (lint! "(not (empty? [1]))")))
+  (let [config {:linters {:not-empty? {:level :warning}
+                          :type-mismatch {:level :warning}}}]
+    (assert-submaps
+     []
+     (lint! "(not (empty? [1]))" config))
+    (assert-submaps
+     [{:file "<stdin>", :row 1, :col 6, :level :warning, :message "Use (seq x) instead of (not (empty? x)) when x is a seq"}]
+     (lint! "(not (empty? (map inc [])))" config))))
 
 (deftest deprecated-var-test
   (assert-submaps

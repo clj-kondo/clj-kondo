@@ -35,7 +35,8 @@
                                        :config {}})
           findings (:findings lint-result)
           ;; Uncomment this to reset expected findings:
-          ;; _ (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings)))
+          _ (when (System/getenv "CLJ_KONDO_REGRESSION_UPDATE")
+              (spit "test-regression/clj_kondo/metabase/findings.edn" (with-out-str (clojure.pprint/pprint findings))))
           expected (edn/read-string (slurp "test-regression/clj_kondo/metabase/findings.edn"))]
       (when false
         (println "FINDINGS")
