@@ -158,7 +158,7 @@
                           (some (fn [group-sym]
                                   (get-in hook-cfg [:analyze-call (symbol (str group-sym)
                                                                           (str var-sym))]))
-                                (config/ns-groups config ns-sym filename)))]
+                                (config/ns-groups ctx config ns-sym filename)))]
              (sci/binding [sci/out *out*
                            sci/err *err*]
                (let [code (if (string? x)
@@ -176,7 +176,7 @@
                               (some (fn [group-sym]
                                       (get-in hook-cfg [:macroexpand (symbol (str group-sym)
                                                                              (str var-sym))]))
-                                    (config/ns-groups config ns-sym filename)))]
+                                    (config/ns-groups ctx config ns-sym filename)))]
                (sci/binding [sci/out *out*
                              sci/err *err*]
                  (let [code (if (string? x)
