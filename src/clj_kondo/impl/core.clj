@@ -318,8 +318,9 @@
     seen?))
 
 (defn excluded? [ctx filename]
-  (when-let [pat (some-> ctx :config :exclude-files re-pattern)]
-    (re-find pat (fs/unixify filename))))
+  (let [re-find (:re-find-memo ctx)]
+    (when-let [pat (-> ctx :config :exclude-files)]
+      (re-find pat (fs/unixify filename)))))
 
 (defn sources-from-dir
   [ctx dir canonical? use-import-dir?]
@@ -703,10 +704,11 @@
           []
           (group-by :message findings)))
 
-(defn filter-findings [config findings]
+(defn filter-findings [ctx config findings]
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
-        remove-output (not-empty (-> config :output :exclude-files))]
+        remove-output (not-empty (-> config :output :exclude-files))
+        re-find (:re-find-memo ctx)]
     (for [[[_filename _row _col type cljc] findings] findings
           :when (or
                  ;; always pass when not .cljc
@@ -731,11 +733,11 @@
                   true)
           :when (if filter-output
                   (some (fn [pattern]
-                          (re-find (re-pattern pattern) filename))
+                          (re-find pattern filename))
                         filter-output)
                   true)
           :when (not-any? (fn [pattern]
-                            (re-find (re-pattern pattern) filename))
+                            (re-find pattern filename))
                           remove-output)]
       f)))
 
