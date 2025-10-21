@@ -31078,7 +31078,7 @@
   :langs (),
   :message "Use defn instead of def + fn",
   :row 4}
- {:end-row 226,
+ {:end-row 229,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -31089,7 +31089,7 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 226}
+  :row 229}
  {:end-row 91,
   :type :unresolved-var,
   :level :warning,
