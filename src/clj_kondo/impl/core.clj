@@ -183,7 +183,16 @@
                     (process-cfg-dir extra-config-dir))]
                  ;; command line config
                  (map read-config configs)))
-        config (config/expand-ignore config)]
+        config (config/expand-ignore config)
+        config (update config :ns-groups (fn [ns-groups]
+                                           (mapv
+                                            (fn [{:keys [filename-pattern pattern] :as ns-group}]
+                                              (cond-> ns-group
+                                                filename-pattern
+                                                (update :filename-pattern re-pattern)
+                                                pattern
+                                                (update :pattern re-pattern)))
+                                            ns-groups)))]
     (cond-> config
       cfg-dir (assoc :cfg-dir (.getCanonicalPath cfg-dir)
                      :use-import-dir (or import-dir-exists

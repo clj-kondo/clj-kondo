@@ -278,7 +278,14 @@
             summary (assoc summary :duration duration :files @files)]
         (cond->
             {:findings all-findings
-             :config config
+             :config (-> config
+                         (update :ns-groups
+                                 #(mapv
+                                   (fn [{:keys [filename-pattern pattern] :as ns-group}]
+                                     (cond-> ns-group
+                                       filename-pattern (update :filename-pattern str)
+                                       pattern (update :pattern str)))
+                                   %)))
              :summary summary}
           analysis
           (assoc :analysis @analysis))))))
