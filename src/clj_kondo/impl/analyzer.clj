@@ -3388,15 +3388,14 @@
                       filename ", "
                       (or (.getMessage ex) (str ex)))}])))
 
-(defn- lint-line-length [_ctx config filename input]
-  (let [findings (atom [])
+(defn- lint-line-length [ctx config filename input]
+  (let [re-find (:re-find-memo ctx)
+        findings (atom [])
         line-length-conf (-> config :linters :line-length)]
     (when (not (identical? :off (:level line-length-conf)))
       (when-let [max-line-length (:max-line-length line-length-conf)]
         (let [exclude-urls (:exclude-urls line-length-conf)
-              exclude-pattern (:exclude-pattern line-length-conf)
-              exclude-pattern (when exclude-pattern
-                                (re-pattern exclude-pattern))]
+              exclude-pattern (:exclude-pattern line-length-conf)]
           (with-open [rdr (io/reader (java.io.StringReader. input))]
             (run! (fn [[row line]]
                     (let [line-length (count line)]
