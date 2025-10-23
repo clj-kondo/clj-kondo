@@ -34,6 +34,9 @@
               :conflicting-alias {:level :error}
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
+              :duplicate-require {:level :warning}
+              :duplicate-field {:level :error}
+              :duplicate-key-in-assoc {:level :warning}
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
               :var-same-name-except-case {:level :warning}
@@ -87,7 +90,6 @@
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :unused-private-var {:level :warning}
-              :duplicate-require {:level :warning}
               :refer {:level :off
                       #_:exclude
                       #_[clojure.test]}
@@ -153,7 +155,6 @@
               :unused-value {:level :warning}
               :dynamic-var-not-earmuffed {:level :off}
               :earmuffed-var-not-dynamic {:level :warning}
-              :duplicate-field {:level :error}
               :aliased-namespace-var-usage {:level :warning}
               :uninitialized-var {:level :warning}
               :equals-false {:level :off}

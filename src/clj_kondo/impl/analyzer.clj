@@ -2110,6 +2110,21 @@
     (concat fana
             (analyze-children ctx f-args false))))
 
+(defn analyze-assoc [ctx expr]
+  (let [children (rest (:children expr))
+        [_obj & ks+vs] children
+        ks (take-nth 2 ks+vs)
+        constant-ks (filter (fn [node]
+                              (or (utils/constant? node)
+                                  (utils/symbol-token? node))) ks)]
+    (doseq [[k n] (frequencies constant-ks)]
+      (when (> n 1)
+        (findings/reg-finding! ctx (assoc (meta k)
+                                          :filename (:filename ctx)
+                                          :type :duplicate-key-in-assoc
+                                          :message (str "Duplicate key in assoc: " k)))))
+    (analyze-children ctx children false)))
+
 (defn analyze-ns-unmap [ctx base-lang lang ns-name expr]
   (let [[ns-expr sym-expr :as children] (rest (:children expr))]
     (when (= '*ns* (:value ns-expr))
@@ -2514,6 +2529,7 @@
                                                           (name resolved-as-name))))
                         analyzed
                         (case resolved-as-clojure-var-name
+                          assoc (analyze-assoc ctx expr)
                           ns
                           (when top-level?
                             [(analyze-ns-decl ctx expr)])

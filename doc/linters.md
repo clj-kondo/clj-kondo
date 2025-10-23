@@ -39,6 +39,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
+    - [Duplicate key in assoc](#duplicate-key-in-assoc)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
@@ -46,6 +47,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Equals expected position](#equals-expected-position)
     - [Equals float](#equals-float)
     - [Equals false](#equals-false)
+    - [Equals nil](#equals-nil)
     - [Equals true](#equals-true)
     - [File](#file)
     - [Format](#format)
@@ -67,6 +69,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing docstring](#missing-docstring)
     - [Missing else branch](#missing-else-branch)
     - [Missing map value](#missing-map-value)
+    - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
     - [Missing test assertion](#missing-test-assertion)
     - [Namespace name mismatch](#namespace-name-mismatch)
@@ -769,6 +772,18 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(deftype T [x y z y])`
 
 *Example message:* `Duplicate field name: y`.
+
+### Duplicate key in assoc
+
+*Keyword:* `:duplicate-key-in-assoc`.
+
+*Description:* identify duplicate keys in calls to `assoc`.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(assoc {} :a 1 :a 2)`
+
+*Example message:* `Duplicate key in assoc: :a`.
 
 ### Dynamic vars
 
