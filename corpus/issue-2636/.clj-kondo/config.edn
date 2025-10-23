@@ -1,0 +1,2 @@
+{:hooks {:macroexpand {utils/if-bb hooks/if-bb}}
+ :linters {:unresolved-symbol {:level :error}}}
