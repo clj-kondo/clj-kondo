@@ -1622,7 +1622,7 @@ Example warning: `require with :refer`.
 
 *Description:* warn on a namespace that requires itself
 
-*Default level:* `:off`
+*Default level:* `:warning`
 
 *Example trigger:* `(ns foo (:require [foo]))`
 

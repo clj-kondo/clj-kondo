@@ -3452,6 +3452,17 @@
   :langs (:clj :cljs),
   :message "unused binding name",
   :row 1847}
+ {:end-row 57,
+  :type :self-requiring-namespace,
+  :level :warning,
+  :lang :cljs,
+  :filename "cljs/core.cljc",
+  :col 22,
+  :end-col 42,
+  :cljc true,
+  :langs (:cljs),
+  :message "Namespace is requiring itself: cljs.core",
+  :row 57}
  {:end-row 94,
   :type :unresolved-symbol,
   :level :error,
