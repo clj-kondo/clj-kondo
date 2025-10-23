@@ -3,7 +3,6 @@
   (:refer-clojure :exclude [ns-name])
   (:require
    [babashka.fs :as fs]
-   [clj-kondo.hooks-api :as hooks-api]
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analyzer.babashka :as babashka]
    [clj-kondo.impl.analyzer.clojure-data-xml :as xml]

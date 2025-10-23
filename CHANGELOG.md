@@ -19,10 +19,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): NEW linter: `duplicate-key-in-assoc`, defaults to `:warning`
+- [#2639](https://github.com/clj-kondo/clj-kondo/issues/2639): NEW `:equals-nil` linter to detect `(= nil x)` or `(= x nil)` patterns and suggest `(nil? x)` instead ([@conao3](https://github.com/conao3))
 - [#2633](https://github.com/clj-kondo/clj-kondo/issues/2633): support new `defparkingop` macro in core.async alpha
-- [#2635](https://github.com/clj-kondo/clj-kondo/pull/2635): Add `:interface` flag to `:flags` set in `:java-class-definitions` analysis output to distinguish Java interfaces from classes
+- [#2635](https://github.com/clj-kondo/clj-kondo/pull/2635): Add `:interface` flag to `:flags` set in `:java-class-definitions` analysis output to distinguish Java interfaces from classes ([@hugoduncan](https://github.com/hugoduncan))
 - [#2636](https://github.com/clj-kondo/clj-kondo/issues/2636): set global SCI context so hooks can use `requiring-resolve` etc.
-- [#2639](https://github.com/clj-kondo/clj-kondo/issues/2639): Add `:equals-nil` linter to detect `(= nil x)` or `(= x nil)` patterns and suggest `(nil? x)` instead
 - [#2641](https://github.com/clj-kondo/clj-kondo/issues/2641): fix linting of `def` body, no results due to laziness bug
 - [#1743](https://github.com/clj-kondo/clj-kondo/issues/1743): change `:not-empty?` to only warn on objects that are already seqs
 - Performance optimization for `:ns-groups` (thanks [@severeoverfl0w](https://github.com/severeoverfl0w))
