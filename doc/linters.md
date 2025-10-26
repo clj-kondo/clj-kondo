@@ -777,7 +777,7 @@ Explanation by Bozhidar Batsov:
 
 *Keyword:* `:duplicate-key-in-assoc`.
 
-*Description:* identify duplicate keys in calls to `assoc`.
+*Description:* identify duplicate keys in calls to `assoc` and `assoc!`.
 
 *Default level:* `:warning`.
 

@@ -2529,7 +2529,7 @@
                                                           (name resolved-as-name))))
                         analyzed
                         (case resolved-as-clojure-var-name
-                          assoc (analyze-assoc ctx expr)
+                          (assoc assoc!) (analyze-assoc ctx expr)
                           ns
                           (when top-level?
                             [(analyze-ns-decl ctx expr)])
