@@ -19,6 +19,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): `duplicate-key-in-assoc` now lints `assoc!` too ([@tomdl89](https://github.com/tomdl89))
+- [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): NEW linter: `duplicate-key-in-dissoc`, defaults to `:warning` ([@tomdl89](https://github.com/tomdl89))
+
 
 ## 2025.10.23
 

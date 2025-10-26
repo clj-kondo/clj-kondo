@@ -40,6 +40,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
     - [Duplicate key in assoc](#duplicate-key-in-assoc)
+    - [Duplicate key in dissoc](#duplicate-key-in-dissoc)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
@@ -784,6 +785,18 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(assoc {} :a 1 :a 2)`
 
 *Example message:* `Duplicate key in assoc: :a`.
+
+### Duplicate key in dissoc
+
+*Keyword:* `:duplicate-key-in-dissoc`.
+
+*Description:* identify duplicate keys in calls to `dissoc` and `dissoc!`.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(dissoc {} :a :a)`
+
+*Example message:* `Duplicate key in dissoc: :a`.
 
 ### Dynamic vars
 
