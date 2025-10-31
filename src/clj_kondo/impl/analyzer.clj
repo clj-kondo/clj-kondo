@@ -2118,7 +2118,7 @@
       (when (> n 1)
         (findings/reg-finding! ctx (assoc (meta k)
                                           :filename (:filename ctx)
-                                          :type :duplicate-key-in-associative
+                                          :type :duplicate-args
                                           :message (str "Duplicate key in " fn-name ": " k))))))
   (analyze-children ctx children false))
 

@@ -39,7 +39,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
-    - [Duplicate key in associative](#duplicate-key-in-associative)
+    - [Duplicate args](#duplicate-args)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
@@ -775,7 +775,7 @@ Explanation by Bozhidar Batsov:
 
 ### Duplicate key in associative
 
-*Keyword:* `:duplicate-key-in-associative`.
+*Keyword:* `:duplicate-args`.
 
 *Description:* identify duplicate keys in calls to `assoc`, `assoc!`, `dissoc` and `dissoc!`.
 
