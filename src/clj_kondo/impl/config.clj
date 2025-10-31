@@ -36,8 +36,7 @@
               :duplicate-set-key {:level :error}
               :duplicate-require {:level :warning}
               :duplicate-field {:level :error}
-              :duplicate-key-in-assoc {:level :warning}
-              :duplicate-key-in-dissoc {:level :warning}
+              :duplicate-key-in-associative {:level :warning}
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
               :var-same-name-except-case {:level :warning}

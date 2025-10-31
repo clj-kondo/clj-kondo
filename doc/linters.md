@@ -39,8 +39,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
-    - [Duplicate key in assoc](#duplicate-key-in-assoc)
-    - [Duplicate key in dissoc](#duplicate-key-in-dissoc)
+    - [Duplicate key in associative](#duplicate-key-in-associative)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
@@ -774,29 +773,17 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Duplicate field name: y`.
 
-### Duplicate key in assoc
+### Duplicate key in associative
 
-*Keyword:* `:duplicate-key-in-assoc`.
+*Keyword:* `:duplicate-key-in-associative`.
 
-*Description:* identify duplicate keys in calls to `assoc` and `assoc!`.
+*Description:* identify duplicate keys in calls to `assoc`, `assoc!`, `dissoc` and `dissoc!`.
 
 *Default level:* `:warning`.
 
 *Example trigger:* `(assoc {} :a 1 :a 2)`
 
 *Example message:* `Duplicate key in assoc: :a`.
-
-### Duplicate key in dissoc
-
-*Keyword:* `:duplicate-key-in-dissoc`.
-
-*Description:* identify duplicate keys in calls to `dissoc` and `dissoc!`.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(dissoc {} :a :a)`
-
-*Example message:* `Duplicate key in dissoc: :a`.
 
 ### Dynamic vars
 

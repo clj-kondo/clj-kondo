@@ -916,7 +916,7 @@
   :message "Unresolved symbol: partial=",
   :row 1472}
  {:end-row 2857,
-  :type :duplicate-key-in-assoc,
+  :type :duplicate-key-in-associative,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
