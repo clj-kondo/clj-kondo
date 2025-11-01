@@ -14,8 +14,8 @@
 ;; ## Decisions
 
 (defn boundary?
-  [c]
   "Check whether a given char is a token boundary."
+  [c]
   (contains?
     #{\" \: \; \' \@ \^ \` \~
       \( \) \[ \] \{ \} \\ nil}
@@ -23,7 +23,7 @@
 
 (defn comma?
   [^java.lang.Character c]
-  (= c \,))
+  (= \, c))
 
 (defn whitespace?
   [^java.lang.Character c]
@@ -154,7 +154,7 @@
           "%s node expects %d value%s."
           node-tag
           n
-          (if (= n 1) "" "s")))
+          (if (= 1 n) "" "s")))
       vs)))
 
 ;; ## Reader Types

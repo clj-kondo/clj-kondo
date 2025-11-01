@@ -3,10 +3,11 @@
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser.keyword :refer [parse-keyword]]
    [clj-kondo.impl.rewrite-clj.parser.namespaced-map :as nm]
-   [clj-kondo.impl.rewrite-clj.parser.string :refer [parse-string parse-regex]]
+   [clj-kondo.impl.rewrite-clj.parser.string :refer [parse-regex parse-string]]
    [clj-kondo.impl.rewrite-clj.parser.token :refer [parse-token]]
    [clj-kondo.impl.rewrite-clj.parser.utils :as u]
    [clj-kondo.impl.rewrite-clj.reader :as reader]
+   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]
    [clojure.string :as str]))
 
 ;; ## Base Parser
@@ -74,10 +75,14 @@
   [reader]
   (reader/ignore reader))
 
+(def open->close
+  {\( \)
+   \[ \]
+   \{ \}})
 
 (defn- mismatched-paren [[open _ row col] reader]
   (let [{:keys [close-row close-col]} (reader/position reader :close-row :close-col)
-        closer (reader/peek reader)
+        closer (r/read-char reader)
         open-message (format "Mismatched bracket: found an opening %s and a closing %s on line %d" open closer close-row)
         close-message (format "Mismatched bracket: found an opening %s on line %d and a closing %s" open row closer)
         opening {:row row
@@ -86,14 +91,17 @@
         closing  {:row close-row
                   :col close-col
                   :message close-message}]
-    (throw (ex-info "Syntax error" {:findings [opening closing]}))))
+    (swap! reader/*reader-exceptions* conj (ex-info "Syntax error" {:findings [opening closing]}))
+    (r/unread reader (get open->close open))
+    reader))
 
 (defn- trailing-paren [reader]
   (let [{:keys [row col]} (reader/position reader :row :col)
-        message (format "Unmatched bracket: unexpected %c" (reader/peek reader))]
-    (throw (ex-info "Syntax error" {:findings [{:row row
-                                                :col col
-                                                :message message}]}))))
+        message (format "Unmatched bracket: unexpected %c" (r/read-char reader))]
+    (swap! reader/*reader-exceptions* conj (ex-info "Syntax error" {:findings [{:row row
+                                                                                :col col
+                                                                                :message message}]}))
+    reader))
 
 (defmethod parse-next* :unmatched
   [reader]
@@ -255,7 +263,7 @@
   [reader]
   (reader/ignore reader)
   (let [c (reader/peek reader)]
-    (if (= c \@)
+    (if (= \@ c)
       (node/unquote-splicing-node
        (parse-printables reader :unquote 1 true))
       (node/unquote-node
