@@ -117,8 +117,10 @@
                    :message (format "Found an opening %s with no matching %s" open close)}
           closing (assoc (reader/position reader :row :col)
                          :message (format "Expected a %s to match %s from line %d" close open row))]
-    (throw (ex-info "Syntax error"
-                    {:findings [opening closing]})))))
+      (swap! reader/*reader-exceptions* conj (ex-info "Syntax error"
+                                                      {:findings [opening closing]}))
+      (r/unread reader close)
+      reader)))
 
 ;; ### Whitespace
 
