@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## 2025.11.01
+## Unreleased
 
 - [#2651](https://github.com/clj-kondo/clj-kondo/issues/2651): resume linting after paren mismatches
 
