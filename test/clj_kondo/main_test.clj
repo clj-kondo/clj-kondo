@@ -3413,6 +3413,13 @@ foo/"))
 :
 (inc)")))
 
+(deftest continue-after-delimiter-mismatch-trailing-delimiters-or-eof
+  (doseq [s ["(]  x",  "()) x", "(   x" ]]
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Unresolved symbol: x"})
+     (lint! s {:linters {:unresolved-symbol {:level :error}
+                         :syntax {:level :off}}}))))
+
 (deftest nested-fn-literal-test
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 7, :level :error, :message "Nested #()s are not allowed"})
