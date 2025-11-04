@@ -916,14 +916,14 @@
   :message "Unresolved symbol: partial=",
   :row 1472}
  {:end-row 2857,
-  :type :duplicate-args,
+  :type :duplicate-key-args,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
   :col 49,
   :end-col 54,
   :langs (),
-  :message "Duplicate key in assoc: :type",
+  :message "Duplicate key args for assoc: :type",
   :row 2857}
  {:end-row 821,
   :type :unresolved-symbol,

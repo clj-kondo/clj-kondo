@@ -39,7 +39,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate require](#duplicate-require)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
-    - [Duplicate args](#duplicate-args)
+    - [Duplicate key args](#duplicate-key-args)
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
@@ -773,17 +773,17 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Duplicate field name: y`.
 
-### Duplicate key in associative
+### Duplicate key args
 
-*Keyword:* `:duplicate-args`.
+*Keyword:* `:duplicate-key-args`.
 
-*Description:* identify duplicate keys in calls to `assoc`, `assoc!`, `dissoc` and `dissoc!`.
+*Description:* identify duplicate key args in calls to `assoc`, `assoc!`, `dissoc` and `dissoc!`.
 
 *Default level:* `:warning`.
 
 *Example trigger:* `(assoc {} :a 1 :a 2)`
 
-*Example message:* `Duplicate key in assoc: :a`.
+*Example message:* `Duplicate key args for assoc: :a`.
 
 ### Dynamic vars
 

@@ -1,15 +1,15 @@
-(ns clj-kondo.duplicate-args-test
+(ns clj-kondo.duplicate-key-args-test
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
 
-(deftest duplicate-args-test
+(deftest duplicate-key-args-test
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
      :col 11,
      :level :warning,
-     :message "Duplicate key in assoc: :x"}]
+     :message "Duplicate key args for assoc: :x"}]
    (lint! "(assoc {} :x 1 :x 2)"))
   (assert-submaps2
    []
@@ -19,7 +19,7 @@
      :row 3,
      :col 13,
      :level :warning,
-     :message "Duplicate key in assoc: x"}]
+     :message "Duplicate key args for assoc: x"}]
    (lint! "(defn side-effecting! [])
 (let [x (side-effecting!)]
   (assoc {} x 1 x 2))"))
@@ -28,19 +28,19 @@
      :row 1,
      :col 24,
      :level :warning,
-     :message "Duplicate key in assoc!: :x"}]
+     :message "Duplicate key args for assoc!: :x"}]
    (lint! "(assoc! (transient {}) :x 1 :x 2)"))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
      :col 12,
      :level :warning,
-     :message "Duplicate key in dissoc: :x"}]
+     :message "Duplicate key args for dissoc: :x"}]
    (lint! "(dissoc {} :x :x)"))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
      :col 25,
      :level :warning,
-     :message "Duplicate key in dissoc!: :y"}]
+     :message "Duplicate key args for dissoc!: :y"}]
    (lint! "(dissoc! (transient {}) :y :y)")))
