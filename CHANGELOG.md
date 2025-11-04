@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): `duplicate-key-in-assoc` changed to `duplicate-key-args`, and now lints `dissoc`, `assoc!` and `dissoc!` too ([@tomdl89](https://github.com/tomdl89))
-
+- [#2651](https://github.com/clj-kondo/clj-kondo/issues/2651): resume linting after paren mismatches
 
 ## 2025.10.23
 
