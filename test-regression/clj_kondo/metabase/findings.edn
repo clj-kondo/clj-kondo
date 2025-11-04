@@ -920,8 +920,8 @@
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
-  :col 49,
-  :end-col 54,
+  :col 62,
+  :end-col 67,
   :langs (),
   :message "Duplicate key args for assoc: :type",
   :row 2857}

@@ -7,7 +7,7 @@
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
-     :col 11,
+     :col 16,
      :level :warning,
      :message "Duplicate key args for assoc: :x"}]
    (lint! "(assoc {} :x 1 :x 2)"))
@@ -17,7 +17,7 @@
   (assert-submaps2
    [{:file "<stdin>",
      :row 3,
-     :col 13,
+     :col 17,
      :level :warning,
      :message "Duplicate key args for assoc: x"}]
    (lint! "(defn side-effecting! [])
@@ -26,21 +26,21 @@
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
-     :col 24,
+     :col 29,
      :level :warning,
      :message "Duplicate key args for assoc!: :x"}]
-   (lint! "(assoc! (transient {}) :x 1 :x 2)"))
+   (lint! "(assoc! (transient {}) :x 1 :x 2 :x 3)"))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
-     :col 12,
+     :col 15,
      :level :warning,
      :message "Duplicate key args for dissoc: :x"}]
    (lint! "(dissoc {} :x :x)"))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
-     :col 25,
+     :col 28,
      :level :warning,
      :message "Duplicate key args for dissoc!: :y"}]
    (lint! "(dissoc! (transient {}) :y :y)")))

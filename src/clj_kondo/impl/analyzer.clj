@@ -2111,16 +2111,18 @@
             (analyze-children ctx f-args false))))
 
 (defn- analyze-associative [ctx children fn-name ks]
-  (let [constant-ks (filter (fn [node]
-                              (or (utils/constant? node)
-                                  (utils/symbol-token? node))) ks)]
-    (doseq [[k n] (frequencies constant-ks)]
-      (when (> n 1)
-        (findings/reg-finding! ctx (assoc (meta k)
-                                          :filename (:filename ctx)
-                                          :type :duplicate-key-args
-                                          :message (str "Duplicate key args for " fn-name ": " k))))))
-  (analyze-children ctx children false))
+  (loop [[k & ks] (filter (fn [node]
+                            (or (utils/constant? node)
+                                (utils/symbol-token? node))) ks)
+         k-count {}]
+    (when (= 1 (k-count k)) ;; Only register finding on first duplicate
+      (findings/reg-finding! ctx (assoc (meta k)
+                                        :filename (:filename ctx)
+                                        :type :duplicate-key-args
+                                        :message (str "Duplicate key args for " fn-name ": " k))))
+    (if (seq ks)
+      (recur ks (update k-count k (fnil inc 0)))
+      (analyze-children ctx children false))))
 
 (defn analyze-assoc [ctx expr]
   (let [[fn-name & children] (:children expr)
