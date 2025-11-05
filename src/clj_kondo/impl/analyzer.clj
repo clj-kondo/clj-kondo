@@ -2135,6 +2135,15 @@
         [_obj & ks] children]
     (analyze-associative ctx children fn-name ks)))
 
+(defn analyze-map [ctx expr]
+  (let [[fn-name & children] (:children expr)
+        ks (take-nth 2 children)]
+    (analyze-associative ctx children fn-name ks)))
+
+(defn analyze-hash-set [ctx expr]
+  (let [[fn-name & children] (:children expr)]
+    (analyze-associative ctx children fn-name children)))
+
 (defn analyze-ns-unmap [ctx base-lang lang ns-name expr]
   (let [[ns-expr sym-expr :as children] (rest (:children expr))]
     (when (= '*ns* (:value ns-expr))
@@ -2323,11 +2332,11 @@
     ret))
 
 (defn- analyze-defstruct [ctx expr _defined-by _defined-by->lint-as]
-  (let [[_ struct-name & fields] (:children expr)
+  (let [[fn-name struct-name & fields] (:children expr)
         ns-name (-> ctx :ns :name)]
     (when-let [sym (utils/symbol-from-token struct-name)]
       (namespace/reg-var! ctx ns-name sym expr))
-    (analyze-children ctx fields false)))
+    (analyze-associative ctx fields fn-name fields)))
 
 (defn analyze-call
   [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
@@ -2539,8 +2548,10 @@
                                                           (name resolved-as-name))))
                         analyzed
                         (case resolved-as-clojure-var-name
-                          (assoc assoc!) (analyze-assoc ctx expr)
-                          (dissoc dissoc!) (analyze-dissoc ctx expr)
+                          (assoc assoc! sorted-map-by struct-map) (analyze-assoc ctx expr)
+                          (dissoc dissoc! disj disj! sorted-set-by) (analyze-dissoc ctx expr)
+                          (array-map hash-map sorted-map) (analyze-map ctx expr)
+                          (hash-set sorted-set create-struct) (analyze-hash-set ctx expr)
                           ns
                           (when top-level?
                             [(analyze-ns-decl ctx expr)])

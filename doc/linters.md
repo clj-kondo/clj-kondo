@@ -777,7 +777,7 @@ Explanation by Bozhidar Batsov:
 
 *Keyword:* `:duplicate-key-args`.
 
-*Description:* identify duplicate key args in calls to `assoc`, `assoc!`, `dissoc` and `dissoc!`.
+*Description:* identify duplicate key args in calls to `assoc`, `dissoc`, `hash-map` etc.
 
 *Default level:* `:warning`.
 
