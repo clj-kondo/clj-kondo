@@ -783,7 +783,7 @@ Explanation by Bozhidar Batsov:
 
 *Example trigger:* `(assoc {} :a 1 :a 2)`
 
-*Example message:* `Duplicate key args for assoc: :a`.
+*Example message:* `Duplicate key arg supplied to assoc: :a`.
 
 ### Dynamic vars
 

@@ -2119,7 +2119,7 @@
       (findings/reg-finding! ctx (assoc (meta k)
                                         :filename (:filename ctx)
                                         :type :duplicate-key-args
-                                        :message (str "Duplicate key args for " fn-name ": " k))))
+                                        :message (str "Duplicate key arg supplied to " fn-name ": " k))))
     (if (seq ks)
       (recur ks (update k-count k (fnil inc 0)))
       (analyze-children ctx children false))))

@@ -923,7 +923,7 @@
   :col 62,
   :end-col 67,
   :langs (),
-  :message "Duplicate key args for assoc: :type",
+  :message "Duplicate key arg supplied to assoc: :type",
   :row 2857}
  {:end-row 821,
   :type :unresolved-symbol,
