@@ -13,7 +13,7 @@
           _ (fs/create-dirs test-regression-checkouts)
           dir (fs/file test-regression-checkouts "ductile")
           config-dir (fs/file dir ".clj-kondo")
-          sha "c18ac77863704b045fefeb84e67b18dc37f56e18"]
+          sha "e84f600598ab161647754f915292eb717ef8821d"]
       (when-not (fs/exists? dir)
         (p/shell {:dir test-regression-checkouts}
                  (str/replace "git clone --no-checkout --depth 1 https://x-access-token:$GITHUB_DUCTILE_PAT@github.com/nextjournal/ductile"
