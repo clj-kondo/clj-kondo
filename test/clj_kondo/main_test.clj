@@ -3585,7 +3585,8 @@ foo/"))
      :message "unused binding x"}]
    (lint! "x (let [x x])"
           {:linters {:unresolved-symbol {:level :off}
-                     :unused-binding {:level :warning}}
+                     :unused-binding {:level :warning}
+                     :redundant-let-binding {:level :off}}
            :ignore [:unresolved-symbol]})))
 
 (deftest output-langs-test
