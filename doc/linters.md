@@ -87,6 +87,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant ignore](#redundant-ignore)
     - [Redundant nested call](#redundant-nested-call)
     - [Redundant let](#redundant-let)
+    - [Redundant let binding](#redundant-let-binding)
     - [Redundant str call](#redundant-str-call)
     - [Refer](#refer)
     - [Refer all](#refer-all)
@@ -1568,6 +1569,19 @@ because directly nested lets.
 *Example trigger:* `(let [x 1] (let [y 2] (+ x y)))`.
 
 *Example message:* `Redundant let expression.`
+
+### Redundant let binding
+
+*Keyword:* `:redundant-let-binding`.
+
+*Description:* warn on redundant binding of a symbol to itself. Excludes
+type-hinted symbols, which may be used for performance reasons.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(let [x x] x)`.
+
+*Example message:* `Redundant binding of x to x`.
 
 ### Redundant str call
 

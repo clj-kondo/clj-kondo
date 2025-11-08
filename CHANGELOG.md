@@ -18,6 +18,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update carve -->
 
 ## Unreleased
+- [#2654](https://github.com/clj-kondo/clj-kondo/issues/2654): NEW linter: `redundant-let-binding`, defaults to `:warning` ([@tomdl89](https://github.com/tomdl89))
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): `duplicate-key-in-assoc` changed to `duplicate-key-args`, and now lints `dissoc`, `assoc!` and `dissoc!` too ([@tomdl89](https://github.com/tomdl89))
 - [#2651](https://github.com/clj-kondo/clj-kondo/issues/2651): resume linting after paren mismatches
 

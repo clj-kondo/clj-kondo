@@ -904,6 +904,22 @@
                                false)))]
         analyzed))))
 
+(defn analyze-let [ctx expr]
+  (let [bv-node (-> expr :children second)]
+    (when (= :vector (tag bv-node))
+      (loop [[binding value & rest-bindings] (:children bv-node)]
+        (let [binding-val (:value binding)
+              value-val (:value value)]
+          (when (and (simple-symbol? binding-val)
+                     (= binding-val value-val)
+                     (not-any? :meta [binding value])) ; ignore type-hinted self-binding
+            (findings/reg-finding! ctx (assoc (meta binding)
+                                              :filename (:filename ctx)
+                                              :type :redundant-let-binding
+                                              :message (str "Redundant binding of " binding-val " to " value-val)))))
+        (when (seq rest-bindings) (recur rest-bindings)))))
+  (analyze-like-let ctx expr))
+
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
   (let [parent-call (second callstack)
         core? (one-of (first parent-call) [clojure.core cljs.core])
@@ -2603,7 +2619,9 @@
                           (analyze-expression** ctx (macroexpand/expand-cond->
                                                      ctx expr
                                                      resolved-as-name))
-                          (let let* for doseq dotimes with-open with-local-vars)
+                          (let let*)
+                          (analyze-let ctx expr)
+                          (for doseq dotimes with-open with-local-vars)
                           (analyze-like-let ctx expr)
                           letfn
                           (analyze-letfn ctx expr)

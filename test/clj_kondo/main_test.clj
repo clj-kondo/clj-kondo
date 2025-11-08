@@ -106,6 +106,12 @@
 ")))
   (is (empty? (lint! "(let [#?@(:clj [x 1])] #?(:clj x))" "--lang" "cljc"))))
 
+(deftest redundant-let-binding
+  (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
+                  (lint! "(let [x x] x)"))
+  (is (empty? (lint! "(let [x ^foo x] x)")))
+  (is (empty? (lint! "(let [^foo x x] x)"))))
+
 (deftest redundant-do-test
   (assert-submaps
    '({:row 3, :col 1, :file "corpus/redundant_do.clj" :message "redundant do"}

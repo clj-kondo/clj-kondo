@@ -27,6 +27,7 @@
               :def-fn {:level :off}
               :redundant-do {:level :warning}
               :redundant-let {:level :warning}
+              :redundant-let-binding {:level :warning}
               :cond-else {:level :warning}
               :syntax {:level :error}
               :file {:level :error}
