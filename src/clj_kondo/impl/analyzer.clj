@@ -771,6 +771,20 @@
          (map #(extract-bindings ctx % scoped-expr {}))
          (reduce deep-merge {}))))
 
+(defn analyze-redundant-bindings [ctx bv-node]
+  (when (= :vector (tag bv-node))
+    (loop [[binding value & rest-bindings] (:children bv-node)]
+      (let [binding-val (:value binding)
+            value-val (:value value)]
+        (when (and (simple-symbol? binding-val)
+                   (= binding-val value-val)
+                   (not-any? :meta [binding value])) ; ignore type-hinted self-binding
+          (findings/reg-finding! ctx (assoc (meta binding)
+                                            :filename (:filename ctx)
+                                            :type :redundant-let-binding
+                                            :message (str "Redundant binding of " binding-val " to " value-val)))))
+      (when (seq rest-bindings) (recur rest-bindings)))))
+
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
         for-like? (one-of resolved-as-clojure-var-name [for doseq])
@@ -796,11 +810,12 @@
               for-let? (and for-like?
                             (= :let binding-val))]
           (if for-let?
-            (let [{new-bindings :bindings
+            (let [ctx* (ctx-with-bindings ctx bindings)
+                  _ (analyze-redundant-bindings ctx* value)
+                  {new-bindings :bindings
                    new-analyzed :analyzed
                    new-arities :arities}
-                  (analyze-let-like-bindings
-                   (ctx-with-bindings ctx bindings) value scoped-expr)]
+                  (analyze-let-like-bindings ctx* value scoped-expr)]
               (recur rest-bindings
                      (merge bindings new-bindings)
                      (merge arities new-arities)
@@ -905,19 +920,7 @@
         analyzed))))
 
 (defn analyze-let [ctx expr]
-  (let [bv-node (-> expr :children second)]
-    (when (= :vector (tag bv-node))
-      (loop [[binding value & rest-bindings] (:children bv-node)]
-        (let [binding-val (:value binding)
-              value-val (:value value)]
-          (when (and (simple-symbol? binding-val)
-                     (= binding-val value-val)
-                     (not-any? :meta [binding value])) ; ignore type-hinted self-binding
-            (findings/reg-finding! ctx (assoc (meta binding)
-                                              :filename (:filename ctx)
-                                              :type :redundant-let-binding
-                                              :message (str "Redundant binding of " binding-val " to " value-val)))))
-        (when (seq rest-bindings) (recur rest-bindings)))))
+  (analyze-redundant-bindings ctx (-> expr :children second))
   (analyze-like-let ctx expr))
 
 (defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]

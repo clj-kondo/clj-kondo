@@ -109,6 +109,8 @@
 (deftest redundant-let-binding
   (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
                   (lint! "(let [x x] x)"))
+  (assert-submaps [{:row 1, :col 18 :message #"Redundant binding of y to y"}]
+                  (lint! "(for [x xs :let [y y]] x)"))
   (is (empty? (lint! "(let [x ^foo x] x)")))
   (is (empty? (lint! "(let [^foo x x] x)"))))
 
