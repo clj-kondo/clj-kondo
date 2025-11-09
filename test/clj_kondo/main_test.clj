@@ -112,7 +112,10 @@
   (assert-submaps [{:row 1, :col 18 :message #"Redundant binding of y to y"}]
                   (lint! "(for [x xs :let [y y]] x)"))
   (is (empty? (lint! "(let [x ^foo x] x)")))
-  (is (empty? (lint! "(let [^foo x x] x)"))))
+  (is (empty? (lint! "(let [^foo x x] x)")))
+  (is (empty? (lint! "(let [x #?(:cljs x :clj y)] x)" "--lang" "cljc")))
+  (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
+                  (lint! "(let [x #?(:cljs x :clj x)] x)" "--lang" "cljc")))
 
 (deftest redundant-do-test
   (assert-submaps
