@@ -772,7 +772,8 @@
          (reduce deep-merge {}))))
 
 (defn analyze-redundant-bindings [ctx bv-node]
-  (when (= :vector (tag bv-node))
+  (when (and (not (identical? :off (-> ctx :config :linters :redundant-let-binding :level)))
+             (= :vector (tag bv-node)))
     (loop [[binding value & rest-bindings] (:children bv-node)]
       (let [binding-val (:value binding)
             value-val (:value value)]

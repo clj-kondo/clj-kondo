@@ -28070,6 +28070,17 @@
   :langs (:cljs),
   :message "Use defn instead of def + fn",
   :row 147}
+ {:end-row 186,
+  :type :redundant-let-binding,
+  :level :warning,
+  :lang :clj,
+  :filename "sci/impl/opts.cljc",
+  :col 9,
+  :end-col 17,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Redundant binding of bindings to bindings",
+  :row 186}
  {:end-row 82,
   :type :private-call,
   :level :error,
