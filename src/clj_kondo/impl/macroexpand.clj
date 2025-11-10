@@ -15,8 +15,7 @@
     (with-meta x m)))
 
 (defn expand-> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
+  (let [children (:children expr)
         [c & cforms] (rest children)
         ret (loop [x c, forms cforms]
               (if forms
@@ -34,8 +33,7 @@
     ret))
 
 (defn expand->> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
+  (let [children (:children expr)
         [c & cforms] (rest children)]
     (loop [x c, forms cforms]
       (if forms
