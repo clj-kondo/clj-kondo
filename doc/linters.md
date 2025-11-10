@@ -1577,7 +1577,7 @@ because directly nested lets.
 *Description:* warn on redundant binding of a symbol to itself. Excludes
 type-hinted symbols, which may be used for performance reasons.
 
-*Default level:* `:warning`.
+*Default level:* `:off`.
 
 *Example trigger:* `(let [x x] x)`.
 
