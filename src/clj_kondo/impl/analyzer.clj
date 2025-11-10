@@ -956,6 +956,7 @@
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr]
   (let [num-children (count (:children expr))]
+    (analyze-redundant-bindings ctx expr)
     (when (not= 2 num-children)
       (findings/reg-finding!
        ctx
