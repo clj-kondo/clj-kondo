@@ -43,4 +43,8 @@ public class AwesomeClass {
         }
         return Foo();
     }
+
+    class MyInner {
+        private int foo;
+    }
 }

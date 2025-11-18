@@ -122,6 +122,9 @@
       (assert-submaps2
        '[{:class "foo.bar.AwesomeClass",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
+          :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}
+         {:class "foo.bar.AwesomeClass$MyInner",
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
        java-class-definitions)
       (assert-submaps2

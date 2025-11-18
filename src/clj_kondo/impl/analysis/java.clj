@@ -220,14 +220,30 @@
           (merge (some-> node node->location))
           (update :flags set/union #{(node->flag-member-type node)})))))
 
+(defn ^:private normalize-inner-class-names [class-name]
+  (if-let [idx (some->> class-name
+                        (keep-indexed (fn [i ch]
+                                        (when (Character/isUpperCase ^char ch) i)))
+                        first)]
+    (let [dot-idx (.lastIndexOf ^String class-name "." (int idx))]
+      (if (neg? dot-idx)
+        (str/replace class-name "." "$")
+        (let [prefix (subs class-name 0 (inc dot-idx))
+              remainder (subs class-name (inc dot-idx))]
+          (str prefix (str/replace remainder "." "$")))))
+    class-name))
+
 (defn ^:private source-is->java-member-definitions [^InputStream source-input-stream filename]
   (let [modifier-keyword->flag (modifier-keyword->flag)]
     (try
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
         (reduce
          (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
-           (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
-             (let [is-interface? (and (instance? ClassOrInterfaceDeclaration class-or-interface)
+           (if-let [class-name (some-> (.orElse (.getFullyQualifiedName class-or-interface) nil))]
+             (let [class-name (if (.isNestedType class-or-interface)
+                                (normalize-inner-class-names class-name)
+                                class-name)
+                   is-interface? (and (instance? ClassOrInterfaceDeclaration class-or-interface)
                                       (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
                    members (->> (concat
                                  (.findAll class-or-interface FieldDeclaration)
