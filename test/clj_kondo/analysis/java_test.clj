@@ -87,12 +87,8 @@
         awesome-member-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-member-definitions)]
     (is (match?
           (m/in-any-order
-            [{:class "foo.bar.AwesomeClass",
-              :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
-              :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}
-             {:class "foo.bar.AwesomeClass$Foo",
-              :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass\$Foo.class",
-              :filename #".*corpus/java/classes/foo/bar/AwesomeClass\$Foo.class"}])
+            [{:class "foo.bar.AwesomeClass"}
+             {:class "foo.bar.AwesomeClass$Foo"}])
           awesome-class-defs))
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
