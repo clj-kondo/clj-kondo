@@ -257,7 +257,8 @@
                                           (str/ends-with? nm ".java"))
                                   (when (and (java/analyze-class-defs? ctx)
                                              (or (not (str/includes? nm "$"))
-                                                 (not (Character/isLowerCase ^Character (nth nm (inc (.indexOf nm "$"))))))
+                                                 (when-let [^Character c (nth nm (inc (str/index-of nm "$")) nil)]
+                                                   (not (Character/isLowerCase c))))
                                              (not (str/ends-with? nm "__init.class")))
                                     (java/reg-class-def! ctx {:jar jar
                                                               :entry x
