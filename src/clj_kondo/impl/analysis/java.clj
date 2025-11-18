@@ -5,18 +5,20 @@
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.set :as set]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [clojure.string :as string])
   (:import
    [com.github.javaparser JavaParser Range]
    [com.github.javaparser.ast
     CompilationUnit
     Modifier
     Modifier$Keyword
-    Node]
+    Node
+    PackageDeclaration]
    [com.github.javaparser.ast.body
     ClassOrInterfaceDeclaration
-    EnumConstantDeclaration
     ConstructorDeclaration
+    EnumConstantDeclaration
     FieldDeclaration
     MethodDeclaration
     Parameter
@@ -220,52 +222,58 @@
           (merge (some-> node node->location))
           (update :flags set/union #{(node->flag-member-type node)})))))
 
-(defn ^:private normalize-inner-class-names [class-name]
-  (if-let [idx (some->> class-name
-                        (keep-indexed (fn [i ch]
-                                        (when (Character/isUpperCase ^char ch) i)))
-                        first)]
-    (let [dot-idx (.lastIndexOf ^String class-name "." (int idx))]
-      (if (neg? dot-idx)
-        (str/replace class-name "." "$")
-        (let [prefix (subs class-name 0 (inc dot-idx))
-              remainder (subs class-name (inc dot-idx))]
-          (str prefix (str/replace remainder "." "$")))))
-    class-name))
+(defn ^:private normalize-inner-class-names
+  "Replace the . of full-class-name after package-name with $
+   Example:
+     full-class-name: my.custom.package.Foo.Bar.Baz
+     packcage-name: my.custom.package
+  
+     -> my.custom.package.Foo$Bar$Baz"
+  [full-class-name package-name]
+  (let [prefix (if (string/blank? package-name)
+                 ""
+                 (str package-name "."))
+        class-name (subs full-class-name (count prefix) (count full-class-name))
+        class-name (str/replace class-name "." "$")]
+    (str prefix class-name)))
 
 (defn ^:private source-is->java-member-definitions [^InputStream source-input-stream filename]
   (let [modifier-keyword->flag (modifier-keyword->flag)]
     (try
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
         (reduce
-         (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
-           (if-let [class-name (some-> (.orElse (.getFullyQualifiedName class-or-interface) nil))]
-             (let [class-name (if (.isNestedType class-or-interface)
-                                (normalize-inner-class-names class-name)
-                                class-name)
-                   is-interface? (and (instance? ClassOrInterfaceDeclaration class-or-interface)
-                                      (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
-                   members (->> (concat
-                                 (.findAll class-or-interface FieldDeclaration)
-                                 (.findAll class-or-interface ConstructorDeclaration)
-                                 (.findAll class-or-interface MethodDeclaration)
-                                 (.findAll class-or-interface EnumConstantDeclaration))
-                                (keep #(node->member % modifier-keyword->flag))
-                                (mapv (fn [member]
-                                        (if (and is-interface? (contains? (:flags member) :method))
-                                          (update member :flags conj :public)
-                                          member))))
-                   flags (set (map #(modifier-keyword->flag
-                                     (.getKeyword ^Modifier %))
-                                   (.getModifiers class-or-interface)))
-                   flags (if is-interface?
-                           (conj flags :interface)
-                           flags)]
-               (assoc classes class-name {:members members
-                                          :flags flags}))
-             classes))
-         {}
-         (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
+          (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
+            (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
+              (let [package-name (or (some-> ^PackageDeclaration (.orElse (.getPackageDeclaration compilation) nil)
+                                             (.getName)
+                                             (.asString))
+                                     "")
+                    class-name (if (.isNestedType class-or-interface)
+                                 (normalize-inner-class-names class-name package-name)
+                                 class-name)
+                    is-interface? (and (instance? ClassOrInterfaceDeclaration class-or-interface)
+                                       (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
+                    members (->> (concat
+                                   (.findAll class-or-interface FieldDeclaration)
+                                   (.findAll class-or-interface ConstructorDeclaration)
+                                   (.findAll class-or-interface MethodDeclaration)
+                                   (.findAll class-or-interface EnumConstantDeclaration))
+                                 (keep #(node->member % modifier-keyword->flag))
+                                 (mapv (fn [member]
+                                         (if (and is-interface? (contains? (:flags member) :method))
+                                           (update member :flags conj :public)
+                                           member))))
+                    flags (set (map #(modifier-keyword->flag
+                                       (.getKeyword ^Modifier %))
+                                    (.getModifiers class-or-interface)))
+                    flags (if is-interface?
+                            (conj flags :interface)
+                            flags)]
+                (assoc classes class-name {:members members
+                                           :flags flags}))
+              classes))
+          {}
+          (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
       (catch Throwable e
         (binding [*out* *err*]
           (println "Error parsing java file" filename "with error" e))))))
