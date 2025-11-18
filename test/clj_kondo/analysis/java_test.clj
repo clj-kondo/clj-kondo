@@ -89,7 +89,7 @@
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
         :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}
        {:class "foo.bar.AwesomeClass$Foo",
-        :uri #"file:/home/greg/dev/clj-kondo/corpus/java/classes/foo/bar/AwesomeClass\$Foo.class",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass\$Foo.class",
         :filename #".*corpus/java/classes/foo/bar/AwesomeClass\$Foo.class"}]
      awesome-class-defs)
     (assert-submaps2
