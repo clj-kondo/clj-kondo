@@ -26,54 +26,71 @@
                         :config config})))))
 
 (deftest jar-classes-test
-  (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
-               :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
-                           "clojars" {:url "https://repo.clojars.org/"}}}
-        jar (-> (deps/resolve-deps deps nil)
-                (get-in ['org.clojure/clojure :paths 0]))
-        {:keys [java-class-definitions java-class-usages java-member-definitions]} (analyze [jar])
-        rt-def (some #(when (= "clojure.lang.RT" (:class %))
-                        %) java-class-definitions)
-        rt-usage (some #(when (= "clojure.lang.RT" (:class %))
-                          %) java-class-usages)
-        keys-rt-member-def (some #(when (and (= "clojure.lang.RT" (:class %))
-                                             (= "keys" (:name %)))
-                                    %) java-member-definitions)]
+  (testing "clojure"
+    (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
+                 :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                             "clojars" {:url "https://repo.clojars.org/"}}}
+          jar (-> (deps/resolve-deps deps nil)
+                  (get-in ['org.clojure/clojure :paths 0]))
+          {:keys [java-class-definitions java-class-usages java-member-definitions]} (analyze [jar])
+          _ (println (mapv :class java-class-definitions))
+          rt-def (some #(when (= "clojure.lang.RT" (:class %))
+                          %) java-class-definitions)
+          rt-usage (some #(when (= "clojure.lang.RT" (:class %))
+                            %) java-class-usages)
+          keys-rt-member-def (some #(when (and (= "clojure.lang.RT" (:class %))
+                                               (= "keys" (:name %)))
+                                      %) java-member-definitions)]
 
-    (assert-submap2
-     {:class "clojure.lang.RT",
-      :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
-      :filename #"\.class"}
-     rt-def)
-    (assert-submap2
-     {:class "clojure.lang.RT",
-      :uri #"jar:file:.*\.clj",
-      :filename #".*\.clj"}
-     rt-usage)
-    (assert-submap2
-     {:class "clojure.lang.RT"
-      :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class"
-      :name "keys"
-      :parameter-types ["java.lang.Object"]
-      :flags #{:method :public :static}
-      :return-type "clojure.lang.ISeq"}
-     keys-rt-member-def)
-    (is (every? number? ((juxt :row
-                               :col
-                               :end-row
-                               :end-col) rt-usage)))))
+      (assert-submap2
+        {:class "clojure.lang.RT",
+         :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
+         :filename #"\.class"}
+        rt-def)
+      (assert-submap2
+        {:class "clojure.lang.RT",
+         :uri #"jar:file:.*\.clj",
+         :filename #".*\.clj"}
+        rt-usage)
+      (assert-submap2
+        {:class "clojure.lang.RT"
+         :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class"
+         :name "keys"
+         :parameter-types ["java.lang.Object"]
+         :flags #{:method :public :static}
+         :return-type "clojure.lang.ISeq"}
+        keys-rt-member-def)
+      (is (every? number? ((juxt :row
+                                 :col
+                                 :end-row
+                                 :end-col) rt-usage)))))
+
+  (testing "local jar"
+    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/my-jar.jar"])
+          awesome-class-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-class-definitions)]
+      (assert-submaps2
+        '[{:class "foo.bar.AwesomeClass$Foo",
+           :uri #"jar:file:.*/corpus/java/my-jar.jar!/foo/bar/AwesomeClass\$Foo.class",
+           :filename #".*/corpus/java/my-jar.jar:foo/bar/AwesomeClass\$Foo.class"}
+          {:class "foo.bar.AwesomeClass",
+           :uri #"jar:file:.*/corpus/java/my-jar.jar!/foo/bar/AwesomeClass.class",
+           :filename #".*corpus/java/my-jar.jar:foo/bar/AwesomeClass.class"}]
+        awesome-class-defs))))
 
 #_(jar-classes-test)
 #_(analyze ["/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar"])
 
 (deftest local-classes-test
   (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/classes"])
-        awesome-class-defs (filter #(= "foo.bar.AwesomeClass" (:class %)) java-class-definitions)
-        awesome-member-defs (filter #(= "foo.bar.AwesomeClass" (:class %)) java-member-definitions)]
+        awesome-class-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-class-definitions)
+        awesome-member-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-member-definitions)]
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
-        :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}]
+        :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}
+       {:class "foo.bar.AwesomeClass$Foo",
+        :uri #"file:/home/greg/dev/clj-kondo/corpus/java/classes/foo/bar/AwesomeClass\$Foo.class",
+        :filename #".*corpus/java/classes/foo/bar/AwesomeClass\$Foo.class"}]
      awesome-class-defs)
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
@@ -108,7 +125,13 @@
         :name "coolParse"
         :flags #{:public :static :method}
         :parameter-types ["java.util.List"]
-        :return-type "java.io.File[]"}]
+        :return-type "java.io.File[]"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "foo"
+        :flags #{:public :method}
+        :parameter-types []
+        :return-type "foo.bar.AwesomeClass$Foo"}]
      awesome-member-defs))
   (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources"])
         awesome-class-defs (filter #(= "foo.bar.AwesomeClass" (:class %)) java-class-definitions)]
@@ -123,7 +146,7 @@
        '[{:class "foo.bar.AwesomeClass",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}
-         {:class "foo.bar.AwesomeClass$MyInner",
+         {:class "foo.bar.AwesomeClass$Foo",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
        java-class-definitions)
@@ -174,7 +197,7 @@
            :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
            :flags #{:method :public}
            :parameters []
-           :row 40 :end-row 45 :col 5 :end-col 5}]
+           :row 44 :end-row 46 :col 5 :end-col 5}]
          tu/windows? (mapv (fn [m]
                              (if (:doc m)
                                (update m :doc #(str/replace % "\n" "\r\n"))

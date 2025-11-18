@@ -256,7 +256,8 @@
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
                                   (when (and (java/analyze-class-defs? ctx)
-                                             (not (str/includes? nm "$"))
+                                             (or (not (str/includes? nm "$"))
+                                                 (not (Character/isLowerCase ^Character (nth nm (inc (.indexOf nm "$"))))))
                                              (not (str/ends-with? nm "__init.class")))
                                     (java/reg-class-def! ctx {:jar jar
                                                               :entry x
