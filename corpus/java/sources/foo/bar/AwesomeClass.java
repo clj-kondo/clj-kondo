@@ -23,7 +23,7 @@ public class AwesomeClass {
     public int coolSum1(double a, double b) {
         try {
             return (int) a + (int) b;
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (Exception e) {
             return -1;
         }
     }
@@ -37,14 +37,11 @@ public class AwesomeClass {
         return null;
     }
 
-    public Foo foo() {
-        class Foo {
-            private int a;
-        }
-        return Foo();
+    class Foo {
+        private int a;
     }
 
-    class MyInner {
-        private int foo;
+    public Foo foo() {
+        return new Foo();
     }
 }
