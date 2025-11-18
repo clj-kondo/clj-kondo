@@ -8,7 +8,9 @@
    [clojure.edn :as edn]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [clojure.tools.deps :as deps]))
+   [clojure.tools.deps :as deps]
+   [matcher-combinators.matchers :as m]
+   [matcher-combinators.test :refer [match?]]))
 
 (defn analyze [lint]
   (let [config {:output {:canonical-paths true
@@ -83,14 +85,15 @@
   (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/classes"])
         awesome-class-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-class-definitions)
         awesome-member-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-member-definitions)]
-    (assert-submaps2
-     '[{:class "foo.bar.AwesomeClass",
-        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
-        :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}
-       {:class "foo.bar.AwesomeClass$Foo",
-        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass\$Foo.class",
-        :filename #".*corpus/java/classes/foo/bar/AwesomeClass\$Foo.class"}]
-     awesome-class-defs)
+    (is (match?
+          (m/in-any-order
+            [{:class "foo.bar.AwesomeClass",
+              :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
+              :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}
+             {:class "foo.bar.AwesomeClass$Foo",
+              :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass\$Foo.class",
+              :filename #".*corpus/java/classes/foo/bar/AwesomeClass\$Foo.class"}])
+          awesome-class-defs))
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
