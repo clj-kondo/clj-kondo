@@ -5,8 +5,7 @@
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [clojure.string :as string])
+   [clojure.string :as str])
   (:import
    [com.github.javaparser JavaParser Range]
    [com.github.javaparser.ast
@@ -230,7 +229,7 @@
   
      -> my.custom.package.Foo$Bar$Baz"
   [full-class-name package-name]
-  (let [prefix (if (string/blank? package-name)
+  (let [prefix (if (str/blank? package-name)
                  ""
                  (str package-name "."))
         class-name (subs full-class-name (count prefix) (count full-class-name))
