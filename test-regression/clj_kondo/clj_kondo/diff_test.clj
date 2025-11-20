@@ -30,7 +30,8 @@
                                                                cljs.pprint/defdirectives
                                                                clojure.data.json/codepoint-case]}
                                                  :def-fn {:level :warning}
-                                                 :redundant-str-call {:level :warning}}
+                                                 :redundant-str-call {:level :warning}
+                                                 :redundant-let-binding {:level :warning}}
                                                 :output {:langs false}}})
           findings (:findings lint-result)
           actual (remove #(str/includes? (:filename %) "src/scratch") findings)

@@ -106,6 +106,24 @@
 ")))
   (is (empty? (lint! "(let [#?@(:clj [x 1])] #?(:clj x))" "--lang" "cljc"))))
 
+(deftest redundant-let-binding
+  (let [config {:linters {:redundant-let-binding {:level :warning}}}]
+    (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
+                    (lint! "(let [x x] x)" config))
+    (assert-submaps [{:row 1, :col 18 :message #"Redundant binding of y to y"}]
+                    (lint! "(for [x xs :let [y y]] x)" config))
+    (is (empty? (lint! "(let [x ^foo x] x)" config)))
+    (is (empty? (lint! "(let [^foo x x] x)" config)))
+    (is (empty? (lint! "(let [x #?(:cljs x :clj y)] x)" config "--lang" "cljc")))
+    (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
+                    (lint! "(let [x #?(:cljs x :clj x)] x)" config "--lang" "cljc"))
+    (assert-submaps [{:row 1, :col 10 :message #"Redundant binding of x to x"}]
+                    (lint! "(if-let [x x] x 42)" config))
+    (assert-submaps [{:row 1, :col 11 :message #"Redundant binding of x to x"}]
+                    (lint! "(if-some [x x] x 42)" config))
+    (assert-submaps [{:row 1, :col 12 :message #"Redundant binding of x to x"}]
+                    (lint! "(when-let [x x] x)" config))))
+
 (deftest redundant-do-test
   (assert-submaps
    '({:row 3, :col 1, :file "corpus/redundant_do.clj" :message "redundant do"}
@@ -3579,7 +3597,8 @@ foo/"))
      :message "unused binding x"}]
    (lint! "x (let [x x])"
           {:linters {:unresolved-symbol {:level :off}
-                     :unused-binding {:level :warning}}
+                     :unused-binding {:level :warning}
+                     :redundant-let-binding {:level :off}}
            :ignore [:unresolved-symbol]})))
 
 (deftest output-langs-test
