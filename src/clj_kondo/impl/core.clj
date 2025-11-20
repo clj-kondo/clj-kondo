@@ -259,7 +259,9 @@
                                              (let [idx (str/index-of nm "$")]
                                                (or (not idx)
                                                    (when-let [^Character c (nth nm (inc idx) nil)]
-                                                     (not (Character/isLowerCase c)))))
+                                                     (and (Character/isUpperCase c)
+                                                          (Character/isLetter c)
+                                                          (not (str/includes? (subs nm idx) "_"))))))
                                              (not (str/ends-with? nm "__init.class")))
                                     (java/reg-class-def! ctx {:jar jar
                                                               :entry x
