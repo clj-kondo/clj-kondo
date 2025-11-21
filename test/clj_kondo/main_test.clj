@@ -2334,6 +2334,7 @@ foo/foo ;; this does use the private var
                       (second-attr-map-private-defn)")))
     (is (empty? (lint! "(defn second-attr-map ([]) ([x] x) {:look :metadata!})")))
     (is (empty? (lint! "(defmacro ^{:leading :meta} second-attr-map-macro {:attr1 :meta} ([]) ([x] x) {:attr2 :metadata!})")))
+    (is (empty? (lint! "(let [[x y & xs :as ys] foo] [x y xs ys])")))
     (assert-submaps
      '({:file "<stdin>"
         :row 1
@@ -2361,7 +2362,21 @@ foo/foo ;; this does use the private var
         :col 21
         :level :error
         :message "Only one varargs binding allowed but got: xs, ys"})
-     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))))
+     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 17
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(let [[x y & xs ys] foo] [x y xs ys])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 16
+        :level :error
+        :message "Trailing & in binding form [a b &]"})
+     (lint! "(defn foo [a b &] (* a b))"))))
 
 (deftest not-empty?-test
   (let [config {:linters {:not-empty? {:level :warning}
