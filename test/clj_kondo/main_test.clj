@@ -2373,10 +2373,31 @@ foo/foo ;; this does use the private var
     (assert-submaps2
      '({:file "<stdin>"
         :row 1
+        :col 23
+        :level :error
+        :message "Only one varargs binding allowed but got: c, d"})
+     (lint! "(defn foo [a & [b & c d]] [a b c d])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
         :col 16
         :level :error
         :message "Trailing & in binding form [a b &]"})
-     (lint! "(defn foo [a b &] (* a b))"))))
+     (lint! "(defn foo [a b &] (* a b))"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 11
+        :level :error
+        :message "Invalid binding: &"})
+     (lint! "(let [a b & c] [a b c])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 22
+        :level :error
+        :message "Invalid binding: &"})
+     (lint! "(for [x xs :let [a b & c]] [x a b c])"))))
 
 (deftest not-empty?-test
   (let [config {:linters {:not-empty? {:level :warning}

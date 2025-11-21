@@ -816,6 +816,13 @@
               ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
                             (= :let binding-val))]
+          (when (= '& binding-val)
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx)
+                         binding
+                         :syntax
+                         "Invalid binding: &")))
           (if for-let?
             (let [ctx* (ctx-with-bindings ctx bindings)
                   _ (analyze-redundant-bindings ctx* value)
@@ -856,7 +863,8 @@
                                  arities)]
               (recur rest-bindings
                      (merge bindings new-bindings)
-                     next-arities (concat analyzed analyzed-binding analyzed-value)))))
+                     next-arities
+                     (concat analyzed analyzed-binding analyzed-value)))))
         {:arities arities
          :bindings bindings
          :analyzed analyzed}))))
