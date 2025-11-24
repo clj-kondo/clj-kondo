@@ -1,16 +1,4 @@
-({:end-row 18,
-  :type :unused-import,
-  :level :warning,
-  :lang :clj,
-  :filename "babashka/fs.cljc",
-  :col 23,
-  :class java.util.HashSet,
-  :end-col 30,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Unused import HashSet",
-  :row 18}
- {:end-row 22,
+({:end-row 21,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -20,8 +8,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: *warn-on-reflection*",
-  :row 22}
- {:end-row 34,
+  :row 21}
+ {:end-row 33,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -31,8 +19,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: Exception",
-  :row 34}
- {:end-row 40,
+  :row 33}
+ {:end-row 39,
   :ns java.nio.file.Paths,
   :name get,
   :type :unresolved-namespace,
@@ -45,8 +33,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.nio.file.Paths. Are you missing a require?",
-  :row 40}
- {:end-row 50,
+  :row 39}
+ {:end-row 49,
   :ns System,
   :name getenv,
   :type :unresolved-namespace,
@@ -58,8 +46,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved namespace System. Are you missing a require?",
-  :row 50}
- {:end-row 150,
+  :row 49}
+ {:end-row 152,
   :type :redefined-var,
   :level :warning,
   :lang :cljs,
@@ -69,8 +57,8 @@
   :cljc true,
   :langs (:cljs),
   :message "exists? already refers to #'cljs.core/exists?",
-  :row 141}
- {:end-row 205,
+  :row 143}
+ {:end-row 211,
   :ns Integer,
   :name MAX_VALUE,
   :type :unresolved-namespace,
@@ -82,8 +70,19 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved namespace Integer. Are you missing a require?",
-  :row 205}
- {:end-row 277,
+  :row 211}
+ {:end-row 265,
+  :type :redundant-fn-wrapper,
+  :level :warning,
+  :lang :clj,
+  :filename "babashka/fs.cljc",
+  :col 4,
+  :end-col 39,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Redundant fn wrapper",
+  :row 265}
+ {:end-row 294,
   :ns java.util.regex.Pattern,
   :name quote,
   :type :unresolved-namespace,
@@ -96,8 +95,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.util.regex.Pattern. Are you missing a require?",
-  :row 277}
- {:end-row 405,
+  :row 294}
+ {:end-row 423,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -107,8 +106,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: java",
-  :row 405}
- {:end-row 490,
+  :row 423}
+ {:end-row 511,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -118,8 +117,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: IllegalArgumentException",
-  :row 490}
- {:end-row 562,
+  :row 511}
+ {:end-row 583,
   :ns java.util.UUID,
   :name randomUUID,
   :type :unresolved-namespace,
@@ -132,8 +131,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.util.UUID. Are you missing a require?",
-  :row 562}
- {:end-row 637,
+  :row 583}
+ {:end-row 662,
   :ns java.nio.file.Files,
   :name readSymbolicLink,
   :type :unresolved-namespace,
@@ -146,8 +145,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.nio.file.Files. Are you missing a require?",
-  :row 637}
- {:end-row 771,
+  :row 662}
+ {:end-row 802,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -157,8 +156,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: String",
-  :row 771}
- {:end-row 785,
+  :row 802}
+ {:end-row 816,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -168,8 +167,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 785}
- {:end-row 828,
+  :row 816}
+ {:end-row 863,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -179,8 +178,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 828}
- {:end-row 835,
+  :row 863}
+ {:end-row 870,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -190,8 +189,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 835}
- {:end-row 842,
+  :row 870}
+ {:end-row 877,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -201,8 +200,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 842}
- {:end-row 849,
+  :row 877}
+ {:end-row 884,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -212,8 +211,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 849}
- {:end-row 876,
+  :row 884}
+ {:end-row 911,
   :type :redundant-let,
   :level :warning,
   :lang :clj,
@@ -223,8 +222,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant let expression.",
-  :row 866}
- {:end-row 882,
+  :row 901}
+ {:end-row 917,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -234,19 +233,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding ext",
-  :row 882}
- {:end-row 1007,
-  :type :unresolved-symbol,
-  :level :error,
-  :lang :cljs,
-  :filename "babashka/fs.cljc",
-  :col 42,
-  :end-col 50,
-  :cljc true,
-  :langs (:cljs),
-  :message "Unresolved symbol: file-seq",
-  :row 1007}
- {:end-row 1049,
+  :row 917}
+ {:end-row 1084,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -256,8 +244,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: with-open",
-  :row 1049}
- {:end-row 1050,
+  :row 1084}
+ {:end-row 1085,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -267,8 +255,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: fis",
-  :row 1050}
- {:end-row 1053,
+  :row 1085}
+ {:end-row 1088,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -278,8 +266,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: zis",
-  :row 1053}
- {:end-row 1124,
+  :row 1088}
+ {:end-row 1160,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -289,8 +277,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: zos",
-  :row 1124}
- {:end-row 1149,
+  :row 1160}
+ {:end-row 1185,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -300,8 +288,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: gzis",
-  :row 1149}
- {:end-row 1171,
+  :row 1185}
+ {:end-row 1207,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -311,8 +299,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: source-input-stream",
-  :row 1171}
- {:end-row 1172,
+  :row 1207}
+ {:end-row 1208,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -322,8 +310,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: gzos",
-  :row 1172}
- {:end-row 1287,
+  :row 1208}
+ {:end-row 1323,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -333,8 +321,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding append",
-  :row 1287}
- {:end-row 1289,
+  :row 1323}
+ {:end-row 1325,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -344,8 +332,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding create",
-  :row 1289}
- {:end-row 1290,
+  :row 1325}
+ {:end-row 1326,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -355,8 +343,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding truncate-existing",
-  :row 1290}
- {:end-row 1291,
+  :row 1326}
+ {:end-row 1327,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -366,8 +354,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding write",
-  :row 1291}
- {:end-row 1332,
+  :row 1327}
+ {:end-row 1368,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -377,8 +365,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: slurp",
-  :row 1332}
- {:end-row 1334,
+  :row 1368}
+ {:end-row 1370,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -388,7 +376,7 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: spit",
-  :row 1334}
+  :row 1370}
  {:end-row 121,
   :type :uninitialized-var,
   :level :warning,
