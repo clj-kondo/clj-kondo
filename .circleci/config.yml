@@ -324,7 +324,7 @@ jobs:
           destination: release
   mac-amd64:
     macos:
-      xcode: "14.0.1"
+      xcode: "14"
     environment:
       GRAALVM_VERSION: "24"
       GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
@@ -397,7 +397,7 @@ jobs:
           destination: release
   mac-arm64:
     macos:
-      xcode: "13.4.1"
+      xcode: "13"
     environment:
       GRAALVM_VERSION: "24"
       GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
