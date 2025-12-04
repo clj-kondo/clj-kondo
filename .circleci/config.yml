@@ -324,7 +324,7 @@ jobs:
           destination: release
   mac-amd64:
     macos:
-      xcode: "13.4.1"
+      xcode: "14.3.1"
       resource_class: m4pro.medium
     environment:
       GRAALVM_VERSION: "24"
@@ -398,7 +398,7 @@ jobs:
           destination: release
   mac-arm64:
     macos:
-      xcode: "13.4.1"
+      xcode: "14.3.1"
       resource_class: m4pro.medium
     environment:
       GRAALVM_VERSION: "24"
