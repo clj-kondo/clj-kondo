@@ -108,20 +108,20 @@
 
 (deftest redundant-let-binding
   (let [config {:linters {:redundant-let-binding {:level :warning}}}]
-    (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
+    (assert-submaps [{:row 1, :col 7 :message #"Redundant binding: x"}]
                     (lint! "(let [x x] x)" config))
-    (assert-submaps [{:row 1, :col 18 :message #"Redundant binding of y to y"}]
+    (assert-submaps [{:row 1, :col 18 :message #"Redundant binding: y"}]
                     (lint! "(for [x xs :let [y y]] x)" config))
     (is (empty? (lint! "(let [x ^foo x] x)" config)))
     (is (empty? (lint! "(let [^foo x x] x)" config)))
     (is (empty? (lint! "(let [x #?(:cljs x :clj y)] x)" config "--lang" "cljc")))
-    (assert-submaps [{:row 1, :col 7 :message #"Redundant binding of x to x"}]
+    (assert-submaps [{:row 1, :col 7 :message #"Redundant binding: x"}]
                     (lint! "(let [x #?(:cljs x :clj x)] x)" config "--lang" "cljc"))
-    (assert-submaps [{:row 1, :col 10 :message #"Redundant binding of x to x"}]
+    (assert-submaps [{:row 1, :col 10 :message #"Redundant binding: x"}]
                     (lint! "(if-let [x x] x 42)" config))
-    (assert-submaps [{:row 1, :col 11 :message #"Redundant binding of x to x"}]
+    (assert-submaps [{:row 1, :col 11 :message #"Redundant binding: x"}]
                     (lint! "(if-some [x x] x 42)" config))
-    (assert-submaps [{:row 1, :col 12 :message #"Redundant binding of x to x"}]
+    (assert-submaps [{:row 1, :col 12 :message #"Redundant binding: x"}]
                     (lint! "(when-let [x x] x)" config))))
 
 (deftest redundant-do-test
