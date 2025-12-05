@@ -2399,7 +2399,6 @@
             ctx (if cfg
                   (update ctx :config config/merge-config! cfg)
                   ctx)
-            prev-callstack (:callstack ctx)
             arg-types (when (and resolved-namespace resolved-name
                                  (not (linter-disabled? ctx :type-mismatch)))
                         (atom []))
