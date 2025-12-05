@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [clojure-lsp#2651](https://github.com/clojure-lsp/clojure-lsp/issues/2157): Fix inner class name for java-class-definitions.
 - [clojure-lsp#2651](https://github.com/clojure-lsp/clojure-lsp/issues/2157): Include inner class java-class-definition analysis.
 - Bump `babashka/fs`
+- [#2532](https://github.com/clj-kondo/clj-kondo/issues/2532): Disable `:duplicate-require` in `require` + `:reload` / `:reload-all`
 
 ## 2025.10.23
 
