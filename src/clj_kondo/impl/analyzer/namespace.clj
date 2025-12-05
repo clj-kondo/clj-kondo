@@ -686,7 +686,10 @@
                                                (= 'quote (some-> children first
                                                                  utils/symbol-from-token)))
                                       (second children)))))
-                           children)]
+                           children)
+        ctx (if (some #{:reload :reload-all} (map :k non-quoted-children))
+              (utils/ctx-with-linter-disabled ctx :duplicate-require)
+              ctx)]
     (when-not (seq children)
       (findings/reg-finding!
        ctx (node->line (:filename ctx) require-node :syntax

@@ -2493,6 +2493,9 @@ foo"))))
       :level :warning,
       :message "duplicate require of clojure.string"})
    (lint! "(ns foo (:require [clojure.string :as s])) (require 'clojure.string) s/join"))
+  (assert-submaps
+   []
+   (lint! "(ns foo (:require [clojure.string :as s])) (require 'clojure.string :reload) s/join"))
   (is (empty? (lint! "(ns foo (:require-macros [cljs.core :as core])
                               (:require [cljs.core :as core])) core/conj"
                      "--lang" "cljs"))))
