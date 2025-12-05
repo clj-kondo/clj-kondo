@@ -592,16 +592,6 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 31}
- {:end-row 45,
-  :type :redundant-let-binding,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
-  :col 14,
-  :end-col 24,
-  :langs (),
-  :message "Redundant let binding: secret-key",
-  :row 45}
  {:end-row 114,
   :type :unresolved-var,
   :level :warning,

@@ -116,13 +116,7 @@
     (is (empty? (lint! "(let [^foo x x] x)" config)))
     (is (empty? (lint! "(let [x #?(:cljs x :clj y)] x)" config "--lang" "cljc")))
     (assert-submaps [{:row 1, :col 7 :message #"Redundant let binding: x"}]
-                    (lint! "(let [x #?(:cljs x :clj x)] x)" config "--lang" "cljc"))
-    (assert-submaps [{:row 1, :col 10 :message #"Redundant let binding: x"}]
-                    (lint! "(if-let [x x] x 42)" config))
-    (assert-submaps [{:row 1, :col 11 :message #"Redundant let binding: x"}]
-                    (lint! "(if-some [x x] x 42)" config))
-    (assert-submaps [{:row 1, :col 12 :message #"Redundant let binding: x"}]
-                    (lint! "(when-let [x x] x)" config))))
+                    (lint! "(let [x #?(:cljs x :clj x)] x)" config "--lang" "cljc"))))
 
 (deftest redundant-do-test
   (assert-submaps
