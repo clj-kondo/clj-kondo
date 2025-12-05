@@ -28067,7 +28067,7 @@
   :end-col 17,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Redundant binding: bindings",
+  :message "Redundant let binding: bindings",
   :row 186}
  {:end-row 82,
   :type :private-call,

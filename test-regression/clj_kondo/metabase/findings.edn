@@ -338,7 +338,7 @@
   :end-col 19,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Redundant binding: home-cols",
+  :message "Redundant let binding: home-cols",
   :row 560}
  {:end-row 708,
   :type :condition-always-true,
@@ -360,7 +360,7 @@
   :col 30,
   :end-col 35,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 565}
  {:end-row 4,
   :type :deprecated-namespace,
@@ -410,7 +410,7 @@
   :col 9,
   :end-col 29,
   :langs (),
-  :message "Redundant binding: creator-or-recipient",
+  :message "Redundant let binding: creator-or-recipient",
   :row 97}
  {:end-row 331,
   :type :deprecated-var,
@@ -440,7 +440,7 @@
   :col 29,
   :end-col 34,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 79}
  {:end-row 30,
   :type :redundant-let-binding,
@@ -450,7 +450,7 @@
   :col 28,
   :end-col 46,
   :langs (),
-  :message "Redundant binding: preprocessed-query",
+  :message "Redundant let binding: preprocessed-query",
   :row 30}
  {:end-row 42,
   :type :redundant-let-binding,
@@ -460,7 +460,7 @@
   :col 28,
   :end-col 33,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 42}
  {:end-row 95,
   :type :redundant-let-binding,
@@ -470,7 +470,7 @@
   :col 28,
   :end-col 42,
   :langs (),
-  :message "Redundant binding: compiled-query",
+  :message "Redundant let binding: compiled-query",
   :row 95}
  {:end-row 104,
   :type :redundant-let-binding,
@@ -480,7 +480,7 @@
   :col 9,
   :end-col 24,
   :langs (),
-  :message "Redundant binding: source-metadata",
+  :message "Redundant let binding: source-metadata",
   :row 104}
  {:end-row 630,
   :type :redundant-let-binding,
@@ -490,7 +490,7 @@
   :col 31,
   :end-col 36,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 630}
  {:end-row 75,
   :type :redundant-let-binding,
@@ -500,7 +500,7 @@
   :col 28,
   :end-col 46,
   :langs (),
-  :message "Redundant binding: preprocessed-query",
+  :message "Redundant let binding: preprocessed-query",
   :row 75}
  {:end-row 174,
   :type :redundant-let-binding,
@@ -510,7 +510,7 @@
   :col 28,
   :end-col 33,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 174}
  {:end-row 211,
   :type :redundant-let-binding,
@@ -520,7 +520,7 @@
   :col 28,
   :end-col 33,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 211}
  {:end-row 45,
   :type :redundant-let-binding,
@@ -530,7 +530,7 @@
   :col 28,
   :end-col 33,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 45}
  {:end-row 137,
   :type :redundant-let-binding,
@@ -540,7 +540,7 @@
   :col 40,
   :end-col 43,
   :langs (),
-  :message "Redundant binding: dir",
+  :message "Redundant let binding: dir",
   :row 137}
  {:end-row 244,
   :type :redundant-let-binding,
@@ -550,7 +550,7 @@
   :col 9,
   :end-col 28,
   :langs (),
-  :message "Redundant binding: include_deactivated",
+  :message "Redundant let binding: include_deactivated",
   :row 244}
  {:end-row 4,
   :type :deprecated-namespace,
@@ -600,7 +600,7 @@
   :col 14,
   :end-col 24,
   :langs (),
-  :message "Redundant binding: secret-key",
+  :message "Redundant let binding: secret-key",
   :row 45}
  {:end-row 114,
   :type :unresolved-var,
@@ -633,7 +633,7 @@
   :col 41,
   :end-col 44,
   :langs (),
-  :message "Redundant binding: dir",
+  :message "Redundant let binding: dir",
   :row 76}
  {:end-row 131,
   :type :condition-always-true,
@@ -1125,7 +1125,7 @@
   :col 30,
   :end-col 35,
   :langs (),
-  :message "Redundant binding: query",
+  :message "Redundant let binding: query",
   :row 22}
  {:end-row 131,
   :type :unresolved-symbol,

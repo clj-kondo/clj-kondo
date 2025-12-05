@@ -783,7 +783,7 @@
           (findings/reg-finding! ctx (assoc (meta binding)
                                             :filename (:filename ctx)
                                             :type :redundant-let-binding
-                                            :message (str "Redundant binding: " binding-val)))))
+                                            :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
