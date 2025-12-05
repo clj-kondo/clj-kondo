@@ -1370,9 +1370,10 @@
                                        [cljs.core fn]
                                        [cljs.core fn*]])
            (let [[core-ns f] (first callstack)]
-             (and (or (= 'clojure.core core-ns)
-                      (= 'cljs.core core-ns))
-                  (not (contains? inlined-vars f))))
+             (or (not f)
+                 (and (or (= 'clojure.core core-ns)
+                          (= 'cljs.core core-ns))
+                      (not (contains? inlined-vars f)))))
            (not= '[cljs.core .] (nth callstack 2 nil))
            (= (map #(str/replace % #"^%$" "%1") children)
               (map str fn-args)))
