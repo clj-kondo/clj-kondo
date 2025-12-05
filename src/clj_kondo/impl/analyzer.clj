@@ -1352,6 +1352,9 @@
   (or (contains? fixed-arities arg-count)
       (and varargs-min-arity (>= arg-count varargs-min-arity))))
 
+(def inlined-vars
+  '#{+' unchecked-remainder-int unchecked-subtract-int dec' short-array bit-shift-right aget = boolean bit-shift-left aclone dec < char unchecked-long unchecked-negate unchecked-inc-int floats pos? boolean-array alength bit-xor unsigned-bit-shift-right neg? unchecked-float num reduced? booleans int-array inc' <= -' * min get long double bit-and-not unchecked-add-int short quot unchecked-double longs unchecked-multiply-int int > unchecked-int unchecked-multiply unchecked-dec double-array float - byte-array zero? unchecked-dec-int rem nth nil? bit-and *' unchecked-add identical? unchecked-divide-int unchecked-subtract / bit-or >= long-array object-array doubles unchecked-byte unchecked-short float-array inc + chars ints bit-not byte max == count char-array compare shorts unchecked-negate-int unchecked-inc unchecked-char bytes})
+
 (defn redundant-fn-wrapper [ctx callstack children interop?]
   (when-let [fn-args (:fn-args ctx)]
     (when (and
@@ -1362,11 +1365,15 @@
            (= 1 (:fn-body-count ctx))
            (= 1 (:body-children-count ctx))
            (= (count children) (count fn-args))
-           (one-of (first callstack) [[clojure.core fn]
-                                      [clojure.core fn*]
-                                      [cljs.core fn]
-                                      [cljs.core fn*]])
-           (not= '[cljs.core .] (second callstack))
+           (one-of (second callstack) [[clojure.core fn]
+                                       [clojure.core fn*]
+                                       [cljs.core fn]
+                                       [cljs.core fn*]])
+           (let [[core-ns f] (first callstack)]
+             (and (or (= 'clojure.core core-ns)
+                      (= 'cljs.core core-ns))
+                  (not (contains? inlined-vars f))))
+           (not= '[cljs.core .] (nth callstack 2 nil))
            (= (map #(str/replace % #"^%$" "%1") children)
               (map str fn-args)))
       (:fn-parent-loc ctx))))
@@ -1406,7 +1413,7 @@
                                        (node->line filename expr
                                                    :invalid-arity
                                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))))
-    (when-let [fn-parent-loc (redundant-fn-wrapper ctx callstack (rest children) false)]
+    (when-let [fn-parent-loc (redundant-fn-wrapper ctx (cons nil callstack) (rest children) false)]
       (findings/reg-finding!
        ctx
        (assoc fn-parent-loc
@@ -2803,7 +2810,7 @@
                                                      ctx-context
                                                      node-context)]
                                         context))
-                            fn-parent-loc (redundant-fn-wrapper ctx prev-callstack children interop?)
+                            fn-parent-loc (redundant-fn-wrapper ctx (:callstack ctx) children interop?)
                             proto-call {:type :call
                                         :context context
                                         :resolved-ns resolved-namespace
@@ -2937,7 +2944,7 @@
                                              (format "keyword :%s is called with %s args but expects 1 or 2"
                                                      kw-str
                                                      arg-count))))))
-    (when-let [fn-parent-loc (redundant-fn-wrapper ctx callstack (rest (:children expr)) false)]
+    (when-let [fn-parent-loc (redundant-fn-wrapper ctx (cons nil callstack) (rest (:children expr)) false)]
       (findings/reg-finding!
        ctx
        (assoc fn-parent-loc

@@ -43,4 +43,8 @@
   (is (empty?
        (lint! "(fn [x] #?(:cljs (identity x) :clj (identity (* x 2))))"
               {:linters {:redundant-fn-wrapper {:level :warning}}}
-              "--filename" "foo.cljc"))))
+              "--filename" "foo.cljc")))
+  (testing "inlined function"
+    (is (empty?
+         (lint! "(fn [x y] (+ x y))"
+                {:linters {:redundant-fn-wrapper {:level :warning}}})))))
