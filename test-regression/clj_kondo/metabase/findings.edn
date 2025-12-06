@@ -328,6 +328,18 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
+ {:end-row 560,
+  :type :redundant-let-binding,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/join.cljc",
+  :col 10,
+  :end-col 19,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Redundant let binding: home-cols",
+  :row 560}
  {:end-row 708,
   :type :condition-always-true,
   :level :warning,
@@ -340,6 +352,16 @@
   :langs (:clj :cljs),
   :message "Condition always true",
   :row 707}
+ {:end-row 565,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/parameters/chain_filter.clj",
+  :col 30,
+  :end-col 35,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 565}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -380,6 +402,16 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 8}
+ {:end-row 97,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pulse/api/pulse.clj",
+  :col 9,
+  :end-col 29,
+  :langs (),
+  :message "Redundant let binding: creator-or-recipient",
+  :row 97}
  {:end-row 331,
   :type :deprecated-var,
   :level :warning,
@@ -400,6 +432,126 @@
   :langs (),
   :message "Condition always true",
   :row 266}
+ {:end-row 79,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor.clj",
+  :col 29,
+  :end-col 34,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 79}
+ {:end-row 30,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/compile.clj",
+  :col 28,
+  :end-col 46,
+  :langs (),
+  :message "Redundant let binding: preprocessed-query",
+  :row 30}
+ {:end-row 42,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/compile.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 42}
+ {:end-row 95,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/execute.clj",
+  :col 28,
+  :end-col 42,
+  :langs (),
+  :message "Redundant let binding: compiled-query",
+  :row 95}
+ {:end-row 104,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_source_metadata.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message "Redundant let binding: source-metadata",
+  :row 104}
+ {:end-row 630,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/pivot.clj",
+  :col 31,
+  :end-col 36,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 630}
+ {:end-row 75,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/postprocess.clj",
+  :col 28,
+  :end-col 46,
+  :langs (),
+  :message "Redundant let binding: preprocessed-query",
+  :row 75}
+ {:end-row 174,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 174}
+ {:end-row 211,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 211}
+ {:end-row 45,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/writeback.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 45}
+ {:end-row 137,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/user_key_value/models/user_key_value/types.clj",
+  :col 40,
+  :end-col 43,
+  :langs (),
+  :message "Redundant let binding: dir",
+  :row 137}
+ {:end-row 244,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/users/api.clj",
+  :col 9,
+  :end-col 28,
+  :langs (),
+  :message "Redundant let binding: include_deactivated",
+  :row 244}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -463,6 +615,16 @@
   :langs (),
   :message "Missing protocol method(s): decode",
   :row 32}
+ {:end-row 76,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/yaml.clj",
+  :col 41,
+  :end-col 44,
+  :langs (),
+  :message "Redundant let binding: dir",
+  :row 76}
  {:end-row 131,
   :type :condition-always-true,
   :level :warning,
@@ -945,6 +1107,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 160}
+ {:end-row 22,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/permissions_test.clj",
+  :col 30,
+  :end-col 35,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 22}
  {:end-row 131,
   :type :unresolved-symbol,
   :level :error,

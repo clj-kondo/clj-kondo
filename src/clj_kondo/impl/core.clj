@@ -722,6 +722,7 @@
                  (and (not= :redundant-do type)
                       (not= :redundant-call type)
                       (not= :redundant-let type)
+                      (not= :redundant-let-binding type)
                       (not= :single-logical-operand type)
                       (not= :redundant-nested-call type)
                       (not= :redundant-ignore type)

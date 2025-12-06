@@ -3,6 +3,9 @@
    [babashka.fs :as fs]
    [babashka.process :as p]
    [clj-kondo.core :as clj-kondo]
+   [clj-kondo.test-utils :refer [assert-submaps2]]
+   [clojure.edn :as edn]
+   [clojure.pprint :as pp]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -26,7 +29,13 @@
                        :parallel true}))
     (let [paths (mapv #(str (fs/file dir %)) ["src" "test" "bb"])
           lint-result (clj-kondo/run! {:config-dir config-dir
+                                       ;; enable extra linters here that we want to test
+                                       :config {:linters {:redundant-let-binding {:level :warning}
+                                                          :redundant-fn-wrapper {:level :warning}}}
                                        :lint paths
-                                       :repro true})]
-      (prn (:summary lint-result))
-      (is (empty? (:findings lint-result))))))
+                                       :repro true})
+          findings (:findings lint-result)
+          _ (when (System/getenv "CLJ_KONDO_REGRESSION_UPDATE")
+              (spit "test-regression/clj_kondo/nextjournal/clerk-findings.edn" (with-out-str (pp/pprint findings))))
+          expected (edn/read-string (slurp "test-regression/clj_kondo/nextjournal/clerk-findings.edn"))]
+      (assert-submaps2 expected findings))))
