@@ -23,6 +23,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.hiccup :as hiccup]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.linters.config :as lint-config]
@@ -34,7 +35,8 @@
    [clj-kondo.impl.parser :as p]
    [clj-kondo.impl.rewrite-clj.node.seq :as seq]
    [clj-kondo.impl.rewrite-clj.node.token :as token]
-   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions* *reader-features*]]
+   [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*
+                                              *reader-features*]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
@@ -3335,9 +3337,12 @@
         :vector
         (do
           (lint-unused-value ctx expr)
-          (analyze-children (update ctx
-                                    :callstack #(cons [nil t] %))
-                            children))
+          (if (or (:k (first children))
+                  (:hiccup ctx))
+            (hiccup/lint-hiccup ctx children)
+            (analyze-children (update ctx
+                                      :callstack #(cons [nil t] %))
+                              children)))
         :deref
         (recur ctx (with-meta
                      (seq/list-node [(token/token-node (case lang
