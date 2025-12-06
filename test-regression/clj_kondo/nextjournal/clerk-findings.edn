@@ -1,26 +1,4 @@
-[{:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 509,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk.clj",
-  :col 58,
-  :end-col 73,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 509}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 642,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk.clj",
-  :col 21,
-  :end-col 36,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 642}
- {:end-row 517,
+[{:end-row 517,
   :type :redundant-fn-wrapper,
   :level :warning,
   :filename
@@ -30,28 +8,6 @@
   :langs (),
   :message "Redundant fn wrapper",
   :row 517}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 443,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/render.cljs",
-  :col 61,
-  :end-col 77,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 443}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 91,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/webserver.clj",
-  :col 26,
-  :end-col 46,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 91}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,
