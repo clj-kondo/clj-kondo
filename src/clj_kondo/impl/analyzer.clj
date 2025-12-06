@@ -2032,6 +2032,7 @@
         ;; _ (prn :prepending prepending :f f :f-args f-args)
         _ (analyze-children ctx prepending false)
         fana (analyze-expression** ctx f)
+        t (utils/tag f)
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)
         arity (if binding
@@ -2118,7 +2119,17 @@
                        ctx
                        (node->line filename f
                                    :invalid-arity
-                                   (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity))))))))))
+                                   (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))))
+          (one-of t [:map :set :vector])
+          (let [expected (case t
+                           :map #{1 2}
+                           (:set :vector) #{1})]
+            (when-not (contains? expected arg-count)
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) f
+                           :invalid-arity
+                           (linters/arity-error nil (str/capitalize (name t)) arg-count expected nil))))))
     (when (and (not (utils/linter-disabled? ctx :reduce-without-init))
                (= 'reduce hof-resolved-name)
                (or (= 'clojure.core hof-ns-name)

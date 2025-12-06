@@ -1733,7 +1733,10 @@ foo/foo ;; this does use the private var
    (lint! "({:a 1} 1 2 3)"))
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
                      "{:linters {:invalid-arity {:skip-args [user/foo]}
-                                 :unresolved-symbol {:level :off}}}"))))
+                                 :unresolved-symbol {:level :off}}}")))
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Map is called with 3 args but expects 1 or 2"})
+   (lint! "(map {} [1 2 3] [1 2 3] [1 2 3])")))
 
 (deftest symbol-call-test
   (assert-submaps
@@ -1762,7 +1765,13 @@ foo/foo ;; this does use the private var
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Set can only be called with 1 arg but was called with: 0"}
      {:file "<stdin>", :row 1, :col 15, :level :error, :message "Set can only be called with 1 arg but was called with: 2"})
-   (lint! "(#{}) (#{} 1) (#{} 1 2)")))
+   (lint! "(#{}) (#{} 1) (#{} 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Set is called with 2 args but expects 1"})
+   (lint! "(map #{:a 1} [1 2 3] [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Vector is called with 2 args but expects 1"})
+   (lint! "(map [] [1 2 3] [1 2 3])")))
 
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
