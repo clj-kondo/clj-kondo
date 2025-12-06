@@ -47,7 +47,7 @@
   :langs (:cljs),
   :message "Unresolved namespace System. Are you missing a require?",
   :row 49}
- {:end-row 152,
+ {:end-row 167,
   :type :redefined-var,
   :level :warning,
   :lang :cljs,
@@ -57,8 +57,8 @@
   :cljc true,
   :langs (:cljs),
   :message "exists? already refers to #'cljs.core/exists?",
-  :row 143}
- {:end-row 211,
+  :row 155}
+ {:end-row 251,
   :ns Integer,
   :name MAX_VALUE,
   :type :unresolved-namespace,
@@ -70,19 +70,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved namespace Integer. Are you missing a require?",
-  :row 211}
- {:end-row 265,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename "babashka/fs.cljc",
-  :col 4,
-  :end-col 39,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 265}
- {:end-row 294,
+  :row 251}
+ {:end-row 334,
   :ns java.util.regex.Pattern,
   :name quote,
   :type :unresolved-namespace,
@@ -95,8 +84,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.util.regex.Pattern. Are you missing a require?",
-  :row 294}
- {:end-row 423,
+  :row 334}
+ {:end-row 464,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -106,8 +95,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: java",
-  :row 423}
- {:end-row 511,
+  :row 464}
+ {:end-row 571,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -117,8 +106,19 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: IllegalArgumentException",
-  :row 511}
- {:end-row 583,
+  :row 571}
+ {:end-row 581,
+  :type :unresolved-symbol,
+  :level :error,
+  :lang :cljs,
+  :filename "babashka/fs.cljc",
+  :col 28,
+  :end-col 34,
+  :cljc true,
+  :langs (:cljs),
+  :message "Unresolved symbol: format",
+  :row 581}
+ {:end-row 647,
   :ns java.util.UUID,
   :name randomUUID,
   :type :unresolved-namespace,
@@ -131,8 +131,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.util.UUID. Are you missing a require?",
-  :row 583}
- {:end-row 662,
+  :row 647}
+ {:end-row 726,
   :ns java.nio.file.Files,
   :name readSymbolicLink,
   :type :unresolved-namespace,
@@ -145,8 +145,8 @@
   :langs (:cljs),
   :message
   "Unresolved namespace java.nio.file.Files. Are you missing a require?",
-  :row 662}
- {:end-row 802,
+  :row 726}
+ {:end-row 877,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -156,8 +156,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: String",
-  :row 802}
- {:end-row 816,
+  :row 877}
+ {:end-row 891,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -167,8 +167,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 816}
- {:end-row 863,
+  :row 891}
+ {:end-row 938,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -178,8 +178,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 863}
- {:end-row 870,
+  :row 938}
+ {:end-row 945,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -189,8 +189,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 870}
- {:end-row 877,
+  :row 945}
+ {:end-row 954,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -200,8 +200,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 877}
- {:end-row 884,
+  :row 954}
+ {:end-row 966,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -211,8 +211,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding nofollow-links",
-  :row 884}
- {:end-row 911,
+  :row 966}
+ {:end-row 993,
   :type :redundant-let,
   :level :warning,
   :lang :clj,
@@ -222,8 +222,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant let expression.",
-  :row 901}
- {:end-row 917,
+  :row 983}
+ {:end-row 999,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -233,8 +233,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding ext",
-  :row 917}
- {:end-row 1084,
+  :row 999}
+ {:end-row 1156,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -244,8 +244,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: with-open",
-  :row 1084}
- {:end-row 1085,
+  :row 1156}
+ {:end-row 1157,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -255,8 +255,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: fis",
-  :row 1085}
- {:end-row 1088,
+  :row 1157}
+ {:end-row 1160,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -266,8 +266,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: zis",
-  :row 1088}
- {:end-row 1160,
+  :row 1160}
+ {:end-row 1232,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -277,8 +277,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: zos",
-  :row 1160}
- {:end-row 1185,
+  :row 1232}
+ {:end-row 1258,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -288,8 +288,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: gzis",
-  :row 1185}
- {:end-row 1207,
+  :row 1258}
+ {:end-row 1283,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -299,8 +299,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: source-input-stream",
-  :row 1207}
- {:end-row 1208,
+  :row 1283}
+ {:end-row 1284,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -310,8 +310,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: gzos",
-  :row 1208}
- {:end-row 1323,
+  :row 1284}
+ {:end-row 1400,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -321,8 +321,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding append",
-  :row 1323}
- {:end-row 1325,
+  :row 1400}
+ {:end-row 1402,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -332,8 +332,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding create",
-  :row 1325}
- {:end-row 1326,
+  :row 1402}
+ {:end-row 1403,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -343,8 +343,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding truncate-existing",
-  :row 1326}
- {:end-row 1327,
+  :row 1403}
+ {:end-row 1404,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -354,8 +354,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding write",
-  :row 1327}
- {:end-row 1368,
+  :row 1404}
+ {:end-row 1444,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -365,8 +365,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: slurp",
-  :row 1368}
- {:end-row 1370,
+  :row 1444}
+ {:end-row 1446,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -376,7 +376,7 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: spit",
-  :row 1370}
+  :row 1446}
  {:end-row 121,
   :type :uninitialized-var,
   :level :warning,
@@ -1964,18 +1964,6 @@
   :langs (:clj :cljs),
   :message "use :else as the catch-all test expression in cond",
   :row 3467}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 3469,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename "cljs/analyzer.cljc",
-  :col 26,
-  :end-col 48,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 3469}
  {:end-row 3480,
   :type :unused-binding,
   :level :warning,
@@ -2786,16 +2774,6 @@
   :langs (),
   :message "Prefer placing return type hint on arg vector: String",
   :row 1581}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1588,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/closure.clj",
-  :col 50,
-  :end-col 60,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 1588}
  {:end-row 1611,
   :type :missing-else-branch,
   :level :warning,
@@ -11017,36 +10995,6 @@
   :langs (),
   :message "Unresolved symbol: params",
   :row 2208}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 2209,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 46,
-  :end-col 74,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 2209}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 2210,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 36,
-  :end-col 64,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 2210}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 2211,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 36,
-  :end-col 70,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 2211}
  {:end-row 2212,
   :type :cond-else,
   :level :warning,
@@ -11055,16 +11003,6 @@
   :end-col 13,
   :langs (),
   :message "use :else as the catch-all test expression in cond",
-  :row 2212}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 2212,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 36,
-  :end-col 71,
-  :langs (),
-  :message "Redundant fn wrapper",
   :row 2212}
  {:end-row 2217,
   :type :unused-binding,
@@ -11165,26 +11103,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 2295}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 2303,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 7,
-  :end-col 38,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 2303}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 2304,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 7,
-  :end-col 38,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 2304}
  {:end-row 2309,
   :type :unused-binding,
   :level :warning,
@@ -19997,36 +19915,6 @@
   :langs (),
   :message "Unresolved symbol: params",
   :row 1375}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1376,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "clojure/pprint/cl_format.clj",
-  :col 45,
-  :end-col 73,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 1376}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1377,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "clojure/pprint/cl_format.clj",
-  :col 35,
-  :end-col 63,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 1377}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1378,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "clojure/pprint/cl_format.clj",
-  :col 35,
-  :end-col 69,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 1378}
  {:end-row 1379,
   :type :cond-else,
   :level :warning,
@@ -20035,16 +19923,6 @@
   :end-col 12,
   :langs (),
   :message "use :else as the catch-all test expression in cond",
-  :row 1379}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1379,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "clojure/pprint/cl_format.clj",
-  :col 35,
-  :end-col 70,
-  :langs (),
-  :message "Redundant fn wrapper",
   :row 1379}
  {:end-row 1384,
   :type :unused-binding,
@@ -20145,26 +20023,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 1462}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1470,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "clojure/pprint/cl_format.clj",
-  :col 6,
-  :end-col 37,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 1470}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1471,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :filename "clojure/pprint/cl_format.clj",
-  :col 6,
-  :end-col 37,
-  :langs (),
-  :message "Redundant fn wrapper",
-  :row 1471}
  {:end-row 1477,
   :type :unused-binding,
   :level :warning,
@@ -27989,42 +27847,6 @@
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
   :row 353}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 729,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/namespaces.cljc",
-  :col 11,
-  :end-col 48,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 729}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 737,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/namespaces.cljc",
-  :col 31,
-  :end-col 60,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 737}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 1197,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/namespaces.cljc",
-  :col 51,
-  :end-col 72,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 1197}
  {:end-row 1746,
   :type :deprecated-var,
   :level :warning,
