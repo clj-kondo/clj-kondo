@@ -3225,104 +3225,105 @@
                 (types/add-arg-type-from-expr ctx expr))
               nil)))
         :list
-        (if-let [function (some->>
-                           (first children)
-                           (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
-          (if (or (:quoted ctx) (= :edn lang))
-            (do (types/add-arg-type-from-expr ctx expr)
-                (analyze-children (update ctx :callstack (fn [cs]
-                                                           (cons [:list nil] cs))) children))
-            (let [_ (utils/handle-ignore ctx function)
-                  t (tag function)]
-              (case t
-                :map
-                (do (lint-map-call! ctx function arg-count expr)
+        (let [ctx (assoc ctx :hiccup false)]
+          (if-let [function (some->>
+                             (first children)
+                             (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
+            (if (or (:quoted ctx) (= :edn lang))
+              (do (types/add-arg-type-from-expr ctx expr)
+                  (analyze-children (update ctx :callstack (fn [cs]
+                                                             (cons [:list nil] cs))) children))
+              (let [_ (utils/handle-ignore ctx function)
+                    t (tag function)]
+                (case t
+                  :map
+                  (do (lint-map-call! ctx function arg-count expr)
+                      (types/add-arg-type-from-expr ctx expr)
+                      (analyze-children (update ctx :callstack conj [nil t]) children))
+                  :quote
+                  (let [quoted-child (-> function :children first)]
                     (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children (update ctx :callstack conj [nil t]) children))
-                :quote
-                (let [quoted-child (-> function :children first)]
-                  (types/add-arg-type-from-expr ctx expr)
-                  (if (utils/symbol-token? quoted-child)
-                    (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children (update ctx :callstack conj [nil t])
-                                          children))
-                    (analyze-children (update ctx :callstack conj [nil t])
-                                      children)))
-                (:vector :set)
-                (do (lint-vector-or-set-call! ctx function arg-count expr)
-                    (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children (update ctx :callstack conj [nil t]) children))
-                :token
-                (if-let [k (:k function)]
-                  (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
-                      (let [[id expr] (if-let [id (:id expr)]
-                                        [id expr]
-                                        (let [id (gensym)]
-                                          [id (assoc expr :id id)]))
-                            ret (analyze-keyword-call ctx {:arg-count arg-count
-                                                           :full-fn-name (resolve-keyword ctx k (:namespaced? function))
-                                                           :row row
-                                                           :col col
-                                                           :expr expr})
-                            maybe-call (some #(when (= id (:id %))
-                                                %) ret)]
-                        (if maybe-call
-                          (types/add-arg-type-from-call ctx maybe-call expr)
-                          (types/add-arg-type-from-expr ctx expr))
-                        ret))
-                  (if-let [full-fn-name (utils/symbol-from-token function)]
-                    (let [simple? (simple-symbol? full-fn-name)
-                          full-fn-name (if simple?
-                                         (namespace/normalize-sym-name ctx full-fn-name)
-                                         full-fn-name)
-                          full-fn-name (with-meta full-fn-name (meta function))
-                          binding (and simple?
-                                       (get bindings full-fn-name))]
-                      (if binding
-                        (if-let [ret-tag (:ret (analyze-binding-call ctx full-fn-name binding expr))]
-                          (types/add-arg-type-from-expr ctx expr ret-tag)
-                          (types/add-arg-type-from-expr ctx expr))
-                        (let [id (or (:id expr) (gensym))
-                              expr (assoc expr :id id)
-                              ret (analyze-call ctx {:arg-count arg-count
-                                                     :full-fn-name full-fn-name
-                                                     :row row
-                                                     :col col
-                                                     :expr expr})
-                              _ (dorun ret) ;; realize all returned expressions
-                              ;; to not be bitten by laziness
-                              maybe-call (some #(when (= id (:id %)) %) ret)]
-                          (if (identical? :call (:type maybe-call))
+                    (if (utils/symbol-token? quoted-child)
+                      (do (lint-symbol-call! ctx quoted-child arg-count expr)
+                          (analyze-children (update ctx :callstack conj [nil t])
+                                            children))
+                      (analyze-children (update ctx :callstack conj [nil t])
+                                        children)))
+                  (:vector :set)
+                  (do (lint-vector-or-set-call! ctx function arg-count expr)
+                      (types/add-arg-type-from-expr ctx expr)
+                      (analyze-children (update ctx :callstack conj [nil t]) children))
+                  :token
+                  (if-let [k (:k function)]
+                    (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)
+                        (let [[id expr] (if-let [id (:id expr)]
+                                          [id expr]
+                                          (let [id (gensym)]
+                                            [id (assoc expr :id id)]))
+                              ret (analyze-keyword-call ctx {:arg-count arg-count
+                                                             :full-fn-name (resolve-keyword ctx k (:namespaced? function))
+                                                             :row row
+                                                             :col col
+                                                             :expr expr})
+                              maybe-call (some #(when (= id (:id %))
+                                                  %) ret)]
+                          (if maybe-call
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
-                          ret)))
-                    (cond
-                      (utils/boolean-token? function)
-                      (do (reg-not-a-function! ctx expr "boolean")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      (utils/string-from-token function)
-                      (do (reg-not-a-function! ctx expr "string")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      (utils/char-token? function)
-                      (do (reg-not-a-function! ctx expr "character")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      (utils/number-token? function)
-                      (do (reg-not-a-function! ctx expr "number")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      :else
-                      (do
-                        (types/add-arg-type-from-expr (update ctx :callstack conj [nil t]) expr)
-                        (analyze-children ctx children)))))
-                ;; catch-all
-                (do
-                  (types/add-arg-type-from-expr ctx expr)
-                  (let [ctx (update ctx :callstack conj [nil t])]
-                    (analyze-children ctx children))))))
-          (types/add-arg-type-from-expr ctx expr :list))
+                          ret))
+                    (if-let [full-fn-name (utils/symbol-from-token function)]
+                      (let [simple? (simple-symbol? full-fn-name)
+                            full-fn-name (if simple?
+                                           (namespace/normalize-sym-name ctx full-fn-name)
+                                           full-fn-name)
+                            full-fn-name (with-meta full-fn-name (meta function))
+                            binding (and simple?
+                                         (get bindings full-fn-name))]
+                        (if binding
+                          (if-let [ret-tag (:ret (analyze-binding-call ctx full-fn-name binding expr))]
+                            (types/add-arg-type-from-expr ctx expr ret-tag)
+                            (types/add-arg-type-from-expr ctx expr))
+                          (let [id (or (:id expr) (gensym))
+                                expr (assoc expr :id id)
+                                ret (analyze-call ctx {:arg-count arg-count
+                                                       :full-fn-name full-fn-name
+                                                       :row row
+                                                       :col col
+                                                       :expr expr})
+                                _ (dorun ret) ;; realize all returned expressions
+                                ;; to not be bitten by laziness
+                                maybe-call (some #(when (= id (:id %)) %) ret)]
+                            (if (identical? :call (:type maybe-call))
+                              (types/add-arg-type-from-call ctx maybe-call expr)
+                              (types/add-arg-type-from-expr ctx expr))
+                            ret)))
+                      (cond
+                        (utils/boolean-token? function)
+                        (do (reg-not-a-function! ctx expr "boolean")
+                            (analyze-children (update ctx :callstack conj [nil t])
+                                              (rest children)))
+                        (utils/string-from-token function)
+                        (do (reg-not-a-function! ctx expr "string")
+                            (analyze-children (update ctx :callstack conj [nil t])
+                                              (rest children)))
+                        (utils/char-token? function)
+                        (do (reg-not-a-function! ctx expr "character")
+                            (analyze-children (update ctx :callstack conj [nil t])
+                                              (rest children)))
+                        (utils/number-token? function)
+                        (do (reg-not-a-function! ctx expr "number")
+                            (analyze-children (update ctx :callstack conj [nil t])
+                                              (rest children)))
+                        :else
+                        (do
+                          (types/add-arg-type-from-expr (update ctx :callstack conj [nil t]) expr)
+                          (analyze-children ctx children)))))
+                  ;; catch-all
+                  (do
+                    (types/add-arg-type-from-expr ctx expr)
+                    (let [ctx (update ctx :callstack conj [nil t])]
+                      (analyze-children ctx children))))))
+            (types/add-arg-type-from-expr ctx expr :list)))
         :regex (do
                  (lint-unused-value ctx expr)
                  (when (identical? :edn lang)
@@ -3337,7 +3338,7 @@
         :vector
         (do
           (lint-unused-value ctx expr)
-          (if (or (:k (first children))
+          (if (or (hiccup/hiccup? children)
                   (:hiccup ctx))
             (hiccup/lint-hiccup ctx children)
             (analyze-children (update ctx
