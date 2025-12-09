@@ -746,7 +746,7 @@
                                (remove (comp :clj-kondo.impl/generated meta))
                                (remove :clj-kondo.impl/generated)
                                (filter #(str/starts-with? (str (:name %)) "_")))
-                              (:used-bindings ns))
+                              (keys (:used-bindings ns)))
                 :when (not (config/used-underscored-binding-excluded? ctx used-underscored-binding-excluded-config
                                                                       (:name binding)))]
           (findings/reg-finding!
@@ -758,9 +758,20 @@
             :col (:col binding)
             :end-row (:end-row binding)
             :end-col (:end-col binding)})))
+      (doseq [[binding {:keys [usages]}] (:used-bindings ns)]
+        (when (= 1 usages)
+          (findings/reg-finding!
+           ctx
+           {:type :let-binding-single-usage
+            :filename (:filename binding)
+            :message (str "Binding only used once: " (:name binding))
+            :row (:row binding)
+            :col (:col binding)
+            :end-row (:end-row binding)
+            :end-col (:end-col binding)})))
       (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
         (let [bindings (:bindings ns)
-              used-bindings (:used-bindings ns)
+              used-bindings (set (keys (:used-bindings ns)))
               diff (set/difference bindings used-bindings)
               diff (remove :clj-kondo/mark-used diff)
               defaults (:destructuring-defaults ns)]
@@ -779,7 +790,7 @@
                   :end-col (:end-col binding)}))))
           (doseq [default defaults
                   :let [binding (:binding default)]
-                  :when (not (contains? (:used-bindings ns) binding))]
+                  :when (not (contains? (set (keys (:used-bindings ns))) binding))]
             (findings/reg-finding!
              ctx
              {:type :unused-binding

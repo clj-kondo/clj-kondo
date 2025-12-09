@@ -355,7 +355,10 @@
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
-         conj binding)
+         update binding (fn [m]
+                          (if (nil? m)
+                            {:usages 1}
+                            (update m :usages inc))))
   nil)
 
 (defn reg-required-namespaces!

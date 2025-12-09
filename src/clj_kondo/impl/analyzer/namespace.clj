@@ -452,7 +452,7 @@
    :lang lang
    :name ns-name
    :bindings #{}
-   :used-bindings #{}
+   :used-bindings {}
    :destructuring-defaults #{}
    :used-referred-vars #{}
    :used-imports #{}

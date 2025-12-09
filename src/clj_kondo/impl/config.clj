@@ -182,7 +182,8 @@
               :do-template {:level :warning}
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
-              :locking-suspicious-lock {:level :warning}}
+              :locking-suspicious-lock {:level :warning}
+              :let-binding-single-usage {:level :info}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

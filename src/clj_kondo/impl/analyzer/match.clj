@@ -6,9 +6,10 @@
 (defn reg-used-binding!
   [{:keys [:base-lang :lang :namespaces :ns]} binding]
   (swap! namespaces update-in [base-lang lang (:name ns) :used-bindings]
-         conj
+         assoc
          ;; don't report this binding as unused nor used
-         (vary-meta binding assoc :clj-kondo.impl/generated true))
+         (vary-meta binding assoc :clj-kondo.impl/generated true)
+         {:usages 1})
   nil)
 
 (defn into* [ctx existing-bindings new-bindings]
