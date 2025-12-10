@@ -1581,7 +1581,7 @@ type-hinted symbols, which may be used for performance reasons.
 
 *Example trigger:* `(let [x x] x)`.
 
-*Example message:* `Redundant binding of x to x`.
+*Example message:* `Redundant let binding: x`.
 
 ### Redundant str call
 
