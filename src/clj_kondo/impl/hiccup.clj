@@ -31,25 +31,43 @@
   (when-let [k (:k (first children))]
     (contains? element-names k)))
 
-;; TODO:
-
+;; TODO, create test:
 [:div (map (fn [{:keys [x]}]
              [:ul x])
            [{:x 1}])]
 
+;; TODO: create test
+[:div {:x [{}]}]
+
+;; TODO: create test
+(concat [:body] [1 2 3])
+
+;; TODO: create test
+(defn Animate [])
+[:div [:> Animate {}]]
+
+;; TODO: create test
+[:div
+ [Animate "dude"
+  {:class "w-full"}]]
+
 (defn lint-hiccup [ctx children]
-  (let [ctx (assoc ctx :hiccup true)]
+  (let [ctx (assoc ctx :hiccup true :arg-types (atom []))
+        ctx (update ctx
+                    :callstack #(cons [nil :vector] %))
+        hiccup-tag (:k (first children))
+        expected-attr-idx (if (= :> hiccup-tag) 2 1)]
     (loop [children (seq children)
            i 0]
       (when children
-        (let [fst (first children)]
-          (when (and (= :map (utils/tag fst))
-                     (not= 1 i))
+        (let [fst (first children)
+              map-node? (= :map (utils/tag fst))]
+          (when (and map-node?
+                     hiccup-tag
+                     (not= expected-attr-idx i))
             (findings/reg-finding! ctx (merge {:type :hiccup
                                                :message "Hiccup attribute map in wrong location"
                                                :filename (:filename ctx)}
-                                              (meta fst)))))
-        (recur (next children) (inc i))))
-    (common/analyze-children (update ctx
-                                     :callstack #(cons [nil :vector] %))
-                             children)))
+                                              (meta fst))))
+          (common/analyze-expression** (assoc ctx :hiccup (not map-node?)) fst))
+        (recur (next children) (inc i))))))
