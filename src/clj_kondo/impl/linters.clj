@@ -554,7 +554,7 @@
                                               :type :redundant-fn-wrapper
                                               :message "Redundant fn wrapper")))))
       (when (and called-fn
-                 (not (identical? :off (-> call-config :linters :redundant-call)))
+                 (not (identical? :off (-> call-config :linters :redundant-call :level)))
                  (= 1 (:arity call))
                  ;; handled based on argument type
                  (not (utils/one-of fn-sym [clojure.core/str cljs.core/str]))
