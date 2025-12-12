@@ -264,7 +264,7 @@
                        exclude-as? (-> ctx :config :linters :unused-binding
                                        :exclude-destructured-as)
                        as-sym (when exclude-as?
-                                (let [[as as-sym] (take-last 2 children)]
+                                (let [[as as-sym] (drop (- (count children) 2) children)]
                                   (when (identical? :as (:k as))
                                     as-sym)))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
