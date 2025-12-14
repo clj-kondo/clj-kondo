@@ -51,6 +51,13 @@
  [Animate "dude"
   {:class "w-full"}]]
 
+;; TODO: false positive:
+[:map [:success-handler {:optional true} [:=> [:cat :any :double :string] :any]
+       :err-handler {:optional true} [:=> [:cat [:fn ::whatever]] :any]
+       :pool-size {:optional true} number?
+       :max-batch-messages {:optional true} number?
+       :max-next-ms {:optional true} number?]]
+
 (defn lint-hiccup [ctx children]
   (let [ctx (assoc ctx :hiccup true :arg-types (atom []))
         ctx (update ctx

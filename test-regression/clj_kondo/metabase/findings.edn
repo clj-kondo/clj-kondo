@@ -602,6 +602,46 @@
   :langs (),
   :message "Unresolved var: insta/transform",
   :row 114}
+ {:end-row 109,
+  :type :hiccup,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
+  :col 48,
+  :end-col 64,
+  :langs (),
+  :message "Hiccup attribute map in wrong location",
+  :row 109}
+ {:end-row 110,
+  :type :hiccup,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
+  :col 46,
+  :end-col 62,
+  :langs (),
+  :message "Hiccup attribute map in wrong location",
+  :row 110}
+ {:end-row 111,
+  :type :hiccup,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
+  :col 55,
+  :end-col 71,
+  :langs (),
+  :message "Hiccup attribute map in wrong location",
+  :row 111}
+ {:end-row 112,
+  :type :hiccup,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
+  :col 48,
+  :end-col 64,
+  :langs (),
+  :message "Hiccup attribute map in wrong location",
+  :row 112}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
   :protocol-name YAMLCodec,
@@ -1177,6 +1217,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 1015}
+ {:end-row 30,
+  :type :hiccup,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/failure_test.clj",
+  :col 64,
+  :end-col 87,
+  :langs (),
+  :message "Hiccup attribute map in wrong location",
+  :row 30}
  {:end-row 212,
   :type :unresolved-symbol,
   :level :error,
