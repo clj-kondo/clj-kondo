@@ -155,6 +155,44 @@
           (select-keys [:end-row :end-col])
           (set/rename-keys {:end-row :scope-end-row :end-col :scope-end-col})))
 
+(defn analyze-binding-vector [ctx children]
+  (let [rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
+        varargs     (into [] (take-while #(not= :as (:k %))) rest-param+)
+        as-args     (into [] (drop-while #(not= :as (:k %))) children)]
+    (cond (< 2 (count varargs))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (nth varargs 2)
+                       :syntax
+                       (str "Only one varargs binding allowed but got: "
+                            (str/join ", " (rest varargs)))))
+
+          (= 1 (count varargs))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (first varargs)
+                       :syntax
+                       (str "Trailing & in binding form")))
+
+          (< 2 (count as-args))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (nth as-args 2)
+                       :syntax
+                       (str "Only one :as binding allowed but got: "
+                            (str/join ", " (rest as-args)))))
+
+          (= 1 (count as-args))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (first as-args)
+                       :syntax
+                       (str "Trailing :as in binding form"))))))
+
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
   ([ctx expr scoped-expr opts]
@@ -284,25 +322,8 @@
                        tags (map :tag (map meta v))
                        expr-meta (meta expr)
                        t (:tag expr-meta)
-                       t (when t (types/tag-from-meta t))
-                       rest-param+ (into [] (drop-while #(not= '& (:value %))) children)]
-                   (case (count rest-param+)
-                     (0 2) nil
-                     1 (findings/reg-finding!
-                        ctx
-                        (node->line (:filename ctx)
-                                    (first rest-param+)
-                                    :syntax
-                                    (str "Trailing & in binding form " expr)))
-                     (let [p2 (nth rest-param+ 2)]
-                       (when-not (identical? :as (:k p2))
-                         (findings/reg-finding!
-                          ctx
-                          (node->line (:filename ctx)
-                                      p2
-                                      :syntax
-                                      (str "Only one varargs binding allowed but got: "
-                                           (str/join ", " (rest rest-param+))))))))
+                       t (when t (types/tag-from-meta t))]
+                   (analyze-binding-vector ctx children)
                    (with-meta (into {} v)
                      ;; this is used for checking the return tag of a function body
                      (assoc expr-meta

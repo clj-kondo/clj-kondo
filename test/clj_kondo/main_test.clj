@@ -2397,7 +2397,36 @@ foo/foo ;; this does use the private var
         :col 22
         :level :error
         :message "Invalid binding: &"})
-     (lint! "(for [x xs :let [a b & c]] [x a b c])"))))
+     (lint! "(for [x xs :let [a b & c]] [x a b c])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 25
+        :level :error
+        :message "Only one :as binding allowed but got: x, y"})
+     (lint! "(defn foo [a & xs :as x y] [a xs x y])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(defn foo [a & xs ys :as x y] [a xs ys x y])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Trailing :as in binding form [a & xs :as]"})
+     (lint! "(defn foo [a & xs :as] [a xs])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 21
+        :level :error
+        :message "Only one :as binding allowed but got: bs, &, xs"})
+     (lint! "(defn foo [a :as bs & xs] [a bs xs])"))
+    (is (empty? (lint! "(let [[:as xs] ys] [xs])")))))
 
 (deftest not-empty?-test
   (let [config {:linters {:not-empty? {:level :warning}
