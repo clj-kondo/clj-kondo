@@ -174,7 +174,7 @@
            (node->line (:filename ctx)
                        (first varargs)
                        :syntax
-                       (str "Trailing & in binding form")))
+                       "Trailing & in binding form"))
 
           (< 2 (count as-args))
           (findings/reg-finding!
@@ -191,7 +191,7 @@
            (node->line (:filename ctx)
                        (first as-args)
                        :syntax
-                       (str "Trailing :as in binding form"))))))
+                       "Trailing :as in binding form")))))
 
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
