@@ -26,4 +26,4 @@
    (lint! "'~@x" {:linters {:unquote-outside-syntax-quote {:level :warning}}})))
 (testing "linter can be disabled"
   (is (empty? (lint! "~x" {:linters {:unquote-outside-syntax-quote {:level :off}}})))
-  (is (empty? (lint! "'~x" {:linters {:unquote-outside-syntax-quote {:level :off}}})))) 
+  (is (empty? (lint! "'~x" {:linters {:unquote-outside-syntax-quote {:level :off}}}))))
