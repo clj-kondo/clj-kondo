@@ -30,23 +30,12 @@
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map]))"
                        "--lang" "cljc"))))
   (testing "cljc valid in cljs"
-    (assert-submaps
-     '({:file "<stdin>"
-        :row 1
-        :col 35
-        :level :warning
-        :message "The var js-obj does not exist in clojure.core"})
-     (lint! "(ns foo (:refer-clojure :exclude [js-obj]))"
-            "--lang" "cljc")))
+    (is (empty?
+         (lint! "(ns foo (:refer-clojure :exclude [js-obj]))"
+                "--lang" "cljc"))))
   (testing "cljc valid in clj"
-    (assert-submaps
-     '({:file "<stdin>"
-        :row 1
-        :col 35
-        :level :warning
-        :message "The var future does not exist in cljs.core"})
-     (lint! "(ns foo (:refer-clojure :exclude [future map]))"
-            "--lang" "cljc")))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [future map]))"
+                       "--lang" "cljc"))))
   (testing "cljc invalid in clj and cljs"
     (assert-submaps
      '({:file "<stdin>"
@@ -58,12 +47,7 @@
         :row 1
         :col 35
         :level :warning
-        :message "The var bad-cljs-var does not exist in cljs.core"}
-       {:file "<stdin>"
-        :row 1
-        :col 48
-        :level :warning
-        :message "The var js-obj does not exist in clojure.core"})
+        :message "The var bad-cljs-var does not exist in cljs.core"})
      (lint! "(ns foo (:refer-clojure :exclude [bad-cljs-var js-obj]))"
             "--lang" "cljc"))))
 

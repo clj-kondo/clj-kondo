@@ -487,7 +487,7 @@
                       :cljs "cljs.core"
                       :cljc (str/join "and"
                                       (cond-> []
-                                        (not (core-sym? :clj excluded-var)) 
+                                        (not (core-sym? :clj excluded-var))
                                         (conj "clojure.core")
                                         ;;
                                         (not (core-sym? :cljs excluded-var))
