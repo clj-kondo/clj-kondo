@@ -13,9 +13,9 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
-    :refer [node->line one-of tag sexpr vector-node
-            token-node string-from-token symbol-from-token
-            assoc-some]]
+    :refer [assoc-some node->line one-of sexpr string-from-token
+            symbol-from-token tag token-node vector-node]]
+   [clj-kondo.impl.var-info :refer [core-sym?]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -463,6 +463,27 @@
    :row row
    :col col})
 
+(defn- lint-refer-clojure-vars
+  [{:keys [filename lang config] :as ctx} excluded-vars]
+  (when-not (= :off (get-in config [:linters
+                                    :refer-clojure-exclude-non-existing-var
+                                    :level]))
+    (doseq [l (if (= :cljc lang)
+                [:clj :cljs]
+                [lang])
+            missing-var excluded-vars
+            :when (not (core-sym? l missing-var))]
+      (findings/reg-finding!
+       ctx
+       (node->line filename missing-var
+                   :refer-clojure-exclude-non-existing-var
+                   (format "The var %s does not exist in %s"
+                           missing-var
+                           (case l
+                             :clj "clojure.core"
+                             :cljs "cljs.core"
+                             "")))))))
+
 (defn analyze-ns-decl
   [ctx expr]
   (when (:analyze-keywords? ctx)
@@ -614,6 +635,8 @@
                                               :name original-name}])
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
+        _ (when (seq (:clojure-excluded refer-clj))
+            (lint-refer-clojure-vars ctx (:clojure-excluded refer-clj)))
         gen-class? (some #(= :gen-class (some-> % :children first :k)) clauses)
         leftovers (for [clause clauses
                         :let [valid-kw (-> clause :children first :k)
@@ -625,13 +648,13 @@
         _ (when (seq leftovers)
             (namespace/lint-unknown-clauses ctx leftovers))
         ns (cond->
-               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
-                             :imports imports
-                             :gen-class gen-class?
-                             :deprecated deprecated)
-                      (merge-with into
-                                  analyzed-require-clauses
-                                  refer-clj))
+            (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                          :imports imports
+                          :gen-class gen-class?
+                          :deprecated deprecated)
+                   (merge-with into
+                               analyzed-require-clauses
+                               refer-clj))
              (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))
