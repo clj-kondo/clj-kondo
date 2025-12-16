@@ -97,4 +97,6 @@
             ctx (if bindings
                   (utils/ctx-with-bindings ctx bindings)
                   ctx)]
-        (common/analyze-expression** ctx ret)))))
+        (common/analyze-expression**
+         (utils/ctx-with-linter-disabled ctx :unexpected-recur)
+         ret)))))
