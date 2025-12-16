@@ -5,8 +5,7 @@
 (declare clojure-core-syms cljs-core-syms)
 
 ;; in addition to what `special-form?` regards as special:
-(def special-forms '#{.. let fn loop def if recur var do quote throw try catch 
-                      finally monitor-enter monitor-exit new set!})
+(def special-forms '#{.. let fn loop})
 
 (defn core-sym? [lang sym]
   (case lang

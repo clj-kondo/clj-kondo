@@ -473,7 +473,8 @@
                                       :refer-clojure-exclude-non-existing-var
                                       :level]))
       (doseq [excluded-var excluded-vars]
-        (when-not (or (special-forms excluded-var)
+        (when-not (or (special-symbol? excluded-var)
+                      (contains? special-forms excluded-var)
                       (exists-in-core? excluded-var lang))
           (findings/reg-finding!
            ctx
