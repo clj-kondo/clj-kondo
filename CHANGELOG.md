@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2432](https://github.com/clj-kondo/clj-kondo/issues/2432): Don't warn for `:redundant-fn-wrapper` in case of inlined function
 - [#2599](https://github.com/clj-kondo/clj-kondo/issues/2599): detect invalid arity for invoking collection as higher order function
 - [#2661](https://github.com/clj-kondo/clj-kondo/issues/2661): Fix false positive `:unexpected-recur` when `recur` is used inside `clojure.core.match/match` ([@jramosg](https://github.com/jramosg))
+- [#2617](https://github.com/clj-kondo/clj-kondo/issues/2617): Add types for `repeatedly` ([@jramosg](https://github.com/jramosg))
 
 ## 2025.10.23
 

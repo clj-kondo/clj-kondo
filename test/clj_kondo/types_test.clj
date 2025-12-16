@@ -1152,6 +1152,20 @@
    (lint! "(let [x (atom {:a 1})]
              (get x :a))" config)))
 
+(deftest repeatedly-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "Valid usages of repeatedly"
+      (is (empty? (lint! "(repeatedly 10 #(println :foo))" config)) "Valid usage should not warn")
+      (is (empty? (lint! "(repeatedly #(println :foo))" config)) "Valid usage should not warn"))
+    (testing "Invalid usages of repeatedly"
+      (assert-submaps
+       '({:row 1 :col 13 :message "Expected: natural integer, received: function."}
+         {:row 1 :col 29 :message "Expected: function, received: positive integer."})
+       (lint! "(repeatedly #(println :foo) 10)" config))
+      (assert-submaps
+       '({:row 1 :col 13 :message "Expected: function, received: positive integer."})
+       (lint! "(repeatedly 10)" config)))))
+
 ;;;; Scratch
 
 (comment

@@ -843,7 +843,11 @@
    ;; 5086 'with-precision
    ;; 5109 'subseq
    ;; 5126 'rsubseq
-   ;; 5143 'repeatedly
+   ;; 5143
+   'repeatedly {:arities {1 {:args [:ifn]
+                             :ret :seq}
+                          2 {:args [:nat-int :ifn]
+                             :ret :seq}}}
    ;; 5152 'add-classpath
    ;; 5165 'hash
    ;; 5175 'mix-collection-hash
