@@ -2382,7 +2382,7 @@ foo/foo ;; this does use the private var
         :row 1
         :col 16
         :level :error
-        :message "Trailing & in binding form [a b &]"})
+        :message "Trailing & in binding form"})
      (lint! "(defn foo [a b &] (* a b))"))
     (assert-submaps2
      '({:file "<stdin>"
@@ -2417,7 +2417,7 @@ foo/foo ;; this does use the private var
         :row 1
         :col 19
         :level :error
-        :message "Trailing :as in binding form [a & xs :as]"})
+        :message "Trailing :as in binding form"})
      (lint! "(defn foo [a & xs :as] [a xs])"))
     (assert-submaps2
      '({:file "<stdin>"
