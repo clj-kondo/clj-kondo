@@ -328,6 +328,30 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
+ {:end-row 2,
+  :type :refer-clojure-exclude-non-existing-var,
+  :level :warning,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
+  :col 42,
+  :end-col 50,
+  :cljc true,
+  :langs (:cljs),
+  :message "The var coalesce does not exist in cljs.core",
+  :row 2}
+ {:end-row 2,
+  :type :refer-clojure-exclude-non-existing-var,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
+  :col 42,
+  :end-col 50,
+  :cljc true,
+  :langs (:clj),
+  :message "The var coalesce does not exist in clojure.core",
+  :row 2}
  {:end-row 560,
   :type :redundant-let-binding,
   :level :warning,
