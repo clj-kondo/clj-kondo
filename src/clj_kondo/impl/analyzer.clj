@@ -1176,7 +1176,8 @@
                          rest first-callstack-elt-ignoring-macros second)]
           (when (and len idx
                      (not= (dec len) idx)
-                     (not (one-of parent [if case cond if-let if-not if-some condp])))
+                     (not (one-of parent [if case cond if-let if-not if-some 
+                                          condp match])))
             (findings/reg-finding!
              ctx
              (node->line
