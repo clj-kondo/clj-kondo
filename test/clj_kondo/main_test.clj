@@ -173,13 +173,15 @@
      {:file "corpus/cljc/test_cljc_from_clj.clj", :row 5, :col 1}
      {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
      {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
-   (lint! (io/file "corpus" "cljc")))
+   (lint! (io/file "corpus" "cljc")
+          {:linters {:refer-clojure-exclude-non-existing-var {:level :off}}}))
   (assert-submaps '({:file "corpus/spec/alpha.cljs",
                      :row 6,
                      :col 1,
                      :level :error,
                      :message "spec.alpha/def is called with 2 args but expects 3"})
-                  (lint! (io/file "corpus" "spec")))
+                  (lint! (io/file "corpus" "spec")
+                         {:linters {:refer-clojure-exclude-non-existing-var {:level :off}}}))
   (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
                      "--lang" "cljc")))
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
@@ -600,7 +602,8 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "clojure.string/join is called with 0 args but expects 1 or 2"})
    (lint! (io/file "corpus" "rename.cljc")
-          '{:linters {:unresolved-symbol {:level :error}}})))
+          '{:linters {:unresolved-symbol {:level :error}
+                      :refer-clojure-exclude-non-existing-var {:level :off}}})))
 
 (deftest refer-all-rename-test
   (testing ":require with :refer :all and :rename"
