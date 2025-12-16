@@ -15,7 +15,7 @@
    [clj-kondo.impl.utils :as utils
     :refer [assoc-some node->line one-of sexpr string-from-token
             symbol-from-token tag token-node vector-node]]
-   [clj-kondo.impl.var-info :refer [core-sym?]]
+   [clj-kondo.impl.var-info :refer [core-sym? special-forms]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -465,24 +465,33 @@
 
 (defn- lint-refer-clojure-vars
   [{:keys [filename lang config] :as ctx} excluded-vars]
-  (when-not (= :off (get-in config [:linters
-                                    :refer-clojure-exclude-non-existing-var
-                                    :level]))
-    (doseq [l (if (= :cljc lang)
-                [:clj :cljs]
-                [lang])
-            missing-var excluded-vars
-            :when (not (core-sym? l missing-var))]
-      (findings/reg-finding!
-       ctx
-       (node->line filename missing-var
-                   :refer-clojure-exclude-non-existing-var
-                   (format "The var %s does not exist in %s"
-                           missing-var
-                           (case l
-                             :clj "clojure.core"
-                             :cljs "cljs.core"
-                             "")))))))
+  (letfn [(exists-in-core?  [excluded-var lang]
+            (if (= :cljc (:base-lang ctx))
+              (some #(core-sym? % excluded-var) [:clj :cljs])
+              (core-sym? lang excluded-var)))]
+    (when-not (= :off (get-in config [:linters
+                                      :refer-clojure-exclude-non-existing-var
+                                      :level]))
+      (doseq [excluded-var excluded-vars]
+        (when-not (or (special-forms excluded-var)
+                      (exists-in-core? excluded-var lang))
+          (findings/reg-finding!
+           ctx
+           (node->line
+            filename excluded-var
+            :refer-clojure-exclude-non-existing-var
+            (format "The var %s does not exist in %s"
+                    excluded-var
+                    (case lang
+                      :clj "clojure.core"
+                      :cljs "cljs.core"
+                      :cljc (str/join "and"
+                                      (cond-> []
+                                        (not (core-sym? :clj excluded-var)) 
+                                        (conj "clojure.core")
+                                        ;;
+                                        (not (core-sym? :cljs excluded-var))
+                                        (conj "cljs.core"))))))))))))
 
 (defn analyze-ns-decl
   [ctx expr]
