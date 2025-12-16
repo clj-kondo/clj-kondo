@@ -18,9 +18,15 @@ baz.qux/some-fn
 " {:linters {:aliased-namespace-symbol {:level :warning}}})))
 
 (deftest interop-alias-test
-  (is (empty? (lint! (io/file "corpus" "aliased_namespaces" "interop.cljc")
-                     {:linters {:aliased-namespace-symbol {:level :warning}
-                                :unused-namespace {:level :off}}}))))
+  (is (assert-submaps
+       [{:file "corpus/aliased_namespaces/interop.cljc"
+         :row 3
+         :col 34
+         :level :warning
+         :message "The var demunge does not exist in clojure.core"}]
+       (lint! (io/file "corpus" "aliased_namespaces" "interop.cljc")
+              {:linters {:aliased-namespace-symbol {:level :warning}
+                         :unused-namespace {:level :off}}}))))
 
 (deftest multiple-aliases-test
   (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
