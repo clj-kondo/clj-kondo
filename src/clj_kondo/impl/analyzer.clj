@@ -3137,7 +3137,6 @@
         (:unquote :unquote-splicing)
         (do
           (when (and (not (some #(= [:syntax-quote] %) (:callstack ctx)))
-                     (not (:quoted ctx))
                      (not (linter-disabled? ctx :unquote-outside-syntax-quote)))
             (findings/reg-finding!
              ctx
