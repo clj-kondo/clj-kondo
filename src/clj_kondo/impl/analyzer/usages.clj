@@ -107,7 +107,7 @@
         (namespace/reg-used-namespace! ctx
                                        ns-name
                                        resolved-ns)))
-    (when (and aliased? (not resolved-ns))
+    (when (and aliased? (not resolved-ns) (not= '__current-ns__ ns-sym))
       (namespace/reg-unresolved-namespace! ctx
                                            ns-name
                                            (with-meta ns-sym (meta expr))))
