@@ -10,7 +10,7 @@
    [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym
                                            linter-disabled? node->line sexpr
                                            tag]]
-   [clj-kondo.impl.var-info :as var-info :refer [core-sym?]]
+   [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -717,7 +717,7 @@
                   lang (:lang ns)]]
       (doseq [excluded (:clojure-excluded ns)
               :when (and (not (contains? used excluded))
-                         (core-sym? lang excluded))]
+                         (var-info/core-sym? lang excluded))]
         (findings/reg-finding!
          ctx
          (node->line (:filename ns) excluded :unused-excluded-var
