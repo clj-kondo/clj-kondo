@@ -707,21 +707,20 @@
 
 (defn lint-unused-excluded-vars! [ctx]
   (when-not (linter-disabled? ctx :unused-excluded-var)
-    (doseq [ns (namespace/list-namespaces ctx)
-            :when (and (seq (:clojure-excluded ns))
+    (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
+            :when (and (seq clojure-excluded)
                        (not (linter-disabled? ns :unused-excluded-var)))
             :let [used (->> (:bindings ns)
                             (map :name)
                             (concat (keys (:vars ns)))
                             set)
-                  lang (:lang ns)]]
-      (doseq [excluded (:clojure-excluded ns)
-              :when (and (not (contains? used excluded))
-                         (var-info/core-sym? lang excluded))]
-        (findings/reg-finding!
-         ctx
-         (node->line (:filename ns) excluded :unused-excluded-var
-                     (format "Unused excluded var: %s" excluded)))))))
+                  lang (:lang ns)]
+            :when (and (not (contains? used clojure-excluded))
+                       (var-info/core-sym? lang clojure-excluded))]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ns) clojure-excluded :unused-excluded-var
+                   (format "Unused excluded var: %s" clojure-excluded))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
