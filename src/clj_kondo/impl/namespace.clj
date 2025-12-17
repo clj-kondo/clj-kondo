@@ -1,6 +1,5 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
-  (:refer-clojure :exclude [ns-name])
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analysis.java :as java]

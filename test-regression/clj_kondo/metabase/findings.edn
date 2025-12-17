@@ -420,16 +420,6 @@
   :langs (),
   :message "Unused excluded var: ref",
   :row 9}
- {:end-row 2,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/schema/util.cljc",
-  :col 29,
-  :end-col 32,
-  :langs (),
-  :message "Unused excluded var: ref",
-  :row 2}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :warning,
@@ -602,16 +592,6 @@
   :langs (),
   :message "Redundant let binding: source-metadata",
   :row 104}
- {:end-row 4,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/resolve_joins.clj",
-  :col 29,
-  :end-col 34,
-  :langs (),
-  :message "Unused excluded var: alias",
-  :row 4}
  {:end-row 630,
   :type :redundant-let-binding,
   :level :warning,
@@ -801,16 +781,6 @@
   :end-col 36,
   :langs (),
   :message "Unused excluded var: declare",
-  :row 2}
- {:end-row 2,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
-  :col 37,
-  :end-col 40,
-  :langs (),
-  :message "Unused excluded var: def",
   :row 2}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
@@ -1175,16 +1145,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 45}
- {:end-row 2,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/formatter/impl_test.clj",
-  :col 29,
-  :end-col 35,
-  :langs (),
-  :message "Unused excluded var: format",
-  :row 2}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,

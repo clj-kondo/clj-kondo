@@ -8,9 +8,9 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym
-                                           linter-disabled? node->line
-                                           sexpr tag]]
-   [clj-kondo.impl.var-info :as var-info]
+                                           linter-disabled? node->line sexpr
+                                           tag]]
+   [clj-kondo.impl.var-info :as var-info :refer [core-sym?]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -708,16 +708,20 @@
 (defn lint-unused-excluded-vars! [ctx]
   (when-not (linter-disabled? ctx :unused-excluded-var)
     (doseq [ns (namespace/list-namespaces ctx)
-            :when (not (linter-disabled? ns :unused-excluded-var))
-            :let [clojure-excluded (:clojure-excluded ns)]
-            :when (seq clojure-excluded)
-            :let [used-vars (set (keys (:vars ns)))]]
-      (doseq [excluded clojure-excluded]
-        (when-not (contains? used-vars excluded)
-          (findings/reg-finding!
-           ctx
-           (node->line (:filename ns) excluded :unused-excluded-var
-                       (format "Unused excluded var: %s" excluded))))))))
+            :when (and (seq (:clojure-excluded ns))
+                       (not (linter-disabled? ns :unused-excluded-var)))
+            :let [used (->> (:bindings ns)
+                            (map :name)
+                            (concat (keys (:vars ns)))
+                            set)
+                  lang (:lang ns)]]
+      (doseq [excluded (:clojure-excluded ns)
+              :when (and (not (contains? used excluded))
+                         (core-sym? lang excluded))]
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ns) excluded :unused-excluded-var
+                     (format "Unused excluded var: %s" excluded)))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]

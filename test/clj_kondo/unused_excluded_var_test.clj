@@ -19,6 +19,11 @@
                  "(ns foo (:refer-clojure :exclude [read]))
              (defn read [])"))))
 
+  (testing "used excluded var in binding"
+    (is (empty? (lint!
+                 "(ns foo (:refer-clojure :exclude [read]))
+             (let [read 1] read)"))))
+
   (testing "multiple unused excluded vars"
     (assert-submaps2
      [{:row 1
@@ -47,8 +52,8 @@
 
   (testing "linter disabled"
     (is (empty?
-           (lint!
-            "(ns foo {:clj-kondo/config {:linters {:unused-excluded-var {:level :off}}}}
+         (lint!
+          "(ns foo {:clj-kondo/config {:linters {:unused-excluded-var {:level :off}}}}
                (:refer-clojure :exclude [read]))")))
     (is (empty?
          (lint! "(ns foo (:refer-clojure :exclude [read read-string]))"
