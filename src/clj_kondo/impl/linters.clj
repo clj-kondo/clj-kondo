@@ -715,12 +715,13 @@
                             (concat (keys (:vars ns)))
                             set)
                   lang (:lang ns)]
-            :when (and (not (contains? used clojure-excluded))
-                       (var-info/core-sym? lang clojure-excluded))]
+            excluded clojure-excluded
+            :when (and (not (contains? used excluded))
+                       (var-info/core-sym? lang excluded))]
       (findings/reg-finding!
        ctx
-       (node->line (:filename ns) clojure-excluded :unused-excluded-var
-                   (format "Unused excluded var: %s" clojure-excluded))))))
+       (node->line (:filename ns) excluded :unused-excluded-var
+                   (format "Unused excluded var: %s" excluded))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
