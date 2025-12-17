@@ -13,8 +13,8 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
-    :refer [assoc-some node->line one-of sexpr string-from-token
-            symbol-from-token tag token-node vector-node]]
+    :refer [assoc-some linter-disabled? node->line one-of sexpr
+            string-from-token symbol-from-token tag token-node vector-node]]
    [clj-kondo.impl.var-info :refer [core-sym? special-forms]]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -463,15 +463,12 @@
    :row row
    :col col})
 
-(defn- lint-refer-clojure-vars
-  [{:keys [filename lang config] :as ctx} excluded-vars]
+(defn- lint-refer-clojure-vars [{:keys [filename lang] :as ctx} excluded-vars]
   (letfn [(exists-in-core?  [excluded-var lang]
             (if (= :cljc (:base-lang ctx))
               (some #(core-sym? % excluded-var) [:clj :cljs])
               (core-sym? lang excluded-var)))]
-    (when-not (= :off (get-in config [:linters
-                                      :refer-clojure-exclude-non-existing-var
-                                      :level]))
+    (when-not (linter-disabled? ctx :refer-clojure-exclude-non-existing-var)
       (doseq [excluded-var excluded-vars
               :when (not (or (special-symbol? excluded-var)
                              (contains? special-forms excluded-var)
