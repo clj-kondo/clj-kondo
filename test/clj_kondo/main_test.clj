@@ -3457,7 +3457,7 @@ foo/"))
 (inc)")))
 
 (deftest continue-after-delimiter-mismatch-trailing-delimiters-or-eof
-  (doseq [s ["(]  x",  "()) x", "(   x"]]
+  (doseq [s ["(]  x",  "()) x", "(   x" ]]
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Unresolved symbol: x"})
      (lint! s {:linters {:unresolved-symbol {:level :error}
@@ -3844,9 +3844,9 @@ foo/"))
      {:file "<stdin>", :row 2, :col 36, :level :warning, :message "Unresolved namespace NoClazz. Are you missing a require?"})
    (lint! "(deftype Dude []) Dude/new (defrecord Foo []) Foo/new
           (import [dude TheClazz]) NoClazz/new"
-          {:linters {:unresolved-symbol {:level :warning}
-                     :unresolved-namespace {:level :warning}
-                     :unused-import {:level :warning}}})))
+             {:linters {:unresolved-symbol {:level :warning}
+                        :unresolved-namespace {:level :warning}
+                        :unused-import {:level :warning}}})))
 
 (deftest issue-2490-test
   (is (empty? (lint! "^{:clj-kondo/ignore [:unresolved-symbol]} x
@@ -3886,7 +3886,7 @@ foo/"))
 #_(ns)
 
 x"
-                          {:linters {:unresolved-symbol {:level :warning}}})))
+              {:linters {:unresolved-symbol {:level :warning}}})))
 
 
 (deftest issue-1894-defstruct-test
