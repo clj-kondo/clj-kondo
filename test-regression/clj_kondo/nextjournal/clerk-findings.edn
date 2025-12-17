@@ -1,4 +1,24 @@
-[{:end-row 517,
+[{:end-row 4,
+  :type :unused-excluded-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer/impl.clj",
+  :col 31,
+  :end-col 44,
+  :langs (),
+  :message "Unused excluded var: macroexpand-1",
+  :row 4}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer/impl.clj",
+  :col 45,
+  :end-col 56,
+  :langs (),
+  :message "Unused excluded var: macroexpand",
+  :row 4}
+ {:end-row 517,
   :type :redundant-fn-wrapper,
   :level :warning,
   :filename
@@ -8,6 +28,26 @@
   :langs (),
   :message "Redundant fn wrapper",
   :row 517}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/cherry_env.cljs",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: time",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/cljs_libs.clj",
+  :col 29,
+  :end-col 38,
+  :langs (),
+  :message "Unused excluded var: remove-ns",
+  :row 2}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,

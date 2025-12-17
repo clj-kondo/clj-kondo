@@ -112,6 +112,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unknown :require option](#unknown-require-option)
     - [Unreachable code](#unreachable-code)
     - [Unused import](#unused-import)
+    - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
     - [Unresolved symbol](#unresolved-symbol)
         - [:exclude-patterns](#exclude-patterns)
@@ -1614,6 +1615,18 @@ Example warning: `require with :refer`.
 ```clojure
 {:linters {:refer {:exclude [clojure.set]}}}
 ```
+
+### Unused excluded var
+
+*Keyword:* `:unused-excluded-var`.
+
+*Description:* warns when `:refer-clojure :exclude` contains vars that are not redefined in the current namespace.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(ns foo (:refer-clojure :exclude [read]))`
+
+*Example message:* `Unused excluded var: read`.
 
 ### Refer all
 
