@@ -472,27 +472,19 @@
     (when-not (= :off (get-in config [:linters
                                       :refer-clojure-exclude-non-existing-var
                                       :level]))
-      (doseq [excluded-var excluded-vars]
-        (when-not (or (special-symbol? excluded-var)
-                      (contains? special-forms excluded-var)
-                      (exists-in-core? excluded-var lang))
-          (findings/reg-finding!
-           ctx
-           (node->line
-            filename excluded-var
-            :refer-clojure-exclude-non-existing-var
-            (format "The var %s does not exist in %s"
-                    excluded-var
-                    (case lang
-                      :clj "clojure.core"
-                      :cljs "cljs.core"
-                      :cljc (str/join "and"
-                                      (cond-> []
-                                        (not (core-sym? :clj excluded-var))
-                                        (conj "clojure.core")
-                                        ;;
-                                        (not (core-sym? :cljs excluded-var))
-                                        (conj "cljs.core"))))))))))))
+      (doseq [excluded-var excluded-vars
+              :when (not (or (special-symbol? excluded-var)
+                             (contains? special-forms excluded-var)
+                             (exists-in-core? excluded-var lang)))]
+        (findings/reg-finding!
+         ctx
+         (node->line filename excluded-var
+                     :refer-clojure-exclude-non-existing-var
+                     (format "The var %s does not exist in %s"
+                             excluded-var
+                             (case lang
+                               :clj "clojure.core"
+                               :cljs "cljs.core"))))))))
 
 (defn analyze-ns-decl
   [ctx expr]
