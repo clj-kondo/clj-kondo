@@ -107,6 +107,10 @@
         (namespace/reg-used-namespace! ctx
                                        ns-name
                                        resolved-ns)))
+    (when (and aliased? (not resolved-ns))
+      (namespace/reg-unresolved-namespace! ctx
+                                           ns-name
+                                           (with-meta ns-sym (meta expr))))
     (let [children (:children m)
           keys (take-nth 2 children)
           vals (take-nth 2 (rest children))
@@ -328,3 +332,4 @@
                      #(analyze-usages2 ctx %
                                        (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                      (:children expr))))))))))
+

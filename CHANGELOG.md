@@ -31,6 +31,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2661](https://github.com/clj-kondo/clj-kondo/issues/2661): Fix false positive `:unexpected-recur` when `recur` is used inside `clojure.core.match/match` ([@jramosg](https://github.com/jramosg))
 - [#2617](https://github.com/clj-kondo/clj-kondo/issues/2617): Add types for `repeatedly` ([@jramosg](https://github.com/jramosg))
 
+- [#2676](https://github.com/clj-kondo/clj-kondo/issues/2676): Report unresolved namespace for namespaced maps with unknown aliases ([@jramosg](https://github.com/jramosg))
+
 ## 2025.10.23
 
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): NEW linter: `duplicate-key-in-assoc`, defaults to `:warning`
