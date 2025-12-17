@@ -6,24 +6,61 @@
 (deftest unquote-outside-syntax-quote-test
   (testing "unquote outside syntax-quote"
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Unquote (~) used outside syntax-quote"})
-     (lint! "~x" {:linters {:unquote-outside-syntax-quote {:level :warning}}})))
+     '({:file "<stdin>"
+        :row 1
+        :col 1
+        :level :warning
+        :message "Unquote (~) used outside syntax-quote"})
+     (lint! "~x" {:linters {:unquote-outside-syntax-quote 
+                            {:level :warning}}})))
   (testing "unquote-splicing outside syntax-quote"
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Unquote-splicing (~@) used outside syntax-quote"})
-     (lint! "~@x" {:linters {:unquote-outside-syntax-quote {:level :warning}}})))
+     '({:file "<stdin>"
+        :row 1
+        :col 1
+        :level :warning
+        :message "Unquote-splicing (~@) used outside syntax-quote"})
+     (lint! "~@x" {:linters {:unquote-outside-syntax-quote 
+                             {:level :warning}}})))
   (testing "unquote inside syntax-quote is allowed"
-    (is (empty? (lint! "`(foo ~x)" {:linters {:unquote-outside-syntax-quote {:level :warning}}}))))
+    (is (empty? (lint! "`(foo ~x)" {:linters {:unquote-outside-syntax-quote
+                                              {:level :warning}}}))))
   (testing "unquote-splicing inside syntax-quote is allowed"
-    (is (empty? (lint! "`(foo ~@xs)" {:linters {:unquote-outside-syntax-quote {:level :warning}}}))))
+    (is (empty? (lint! "`(foo ~@xs)" {:linters {:unquote-outside-syntax-quote
+                                                {:level :warning}}}))))
   (testing "quoted unquote warns"
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 2, :level :warning, :message "Unquote (~) used outside syntax-quote"})
-     (lint! "'~x" {:linters {:unquote-outside-syntax-quote {:level :warning}}}))))
+     '({:file "<stdin>"
+        :row 1
+        :col 2
+        :level :warning
+        :message "Unquote (~) used outside syntax-quote"})
+     (lint! "'~x" {:linters {:unquote-outside-syntax-quote 
+                             {:level :warning}}}))))
 (testing "quoted unquote-splicing warns"
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 2, :level :warning, :message "Unquote-splicing (~@) used outside syntax-quote"})
+   '({:file "<stdin>" 
+      :row 1 
+      :col 2 
+      :level :warning
+      :message "Unquote-splicing (~@) used outside syntax-quote"})
    (lint! "'~@x" {:linters {:unquote-outside-syntax-quote {:level :warning}}})))
 (testing "linter can be disabled"
-  (is (empty? (lint! "~x" {:linters {:unquote-outside-syntax-quote {:level :off}}})))
-  (is (empty? (lint! "'~x" {:linters {:unquote-outside-syntax-quote {:level :off}}}))))
+  (is (empty? (lint! "~x" {:linters {:unquote-outside-syntax-quote 
+                                     {:level :off}}})))
+  (is (empty? (lint! "'~x" {:linters {:unquote-outside-syntax-quote
+                                      {:level :off}}}))))
+(testing "linter can be disabled in specific calls with config-in-call"
+  (assert-submaps
+   '({:file "<stdin>"
+      :row 7
+      :col 1
+      :level :warning
+      :message "Unquote (~) used outside syntax-quote"})
+   (lint! "(ns scratch
+  {:clj-kondo/config '{:config-in-call {babashka2.process/$$ {:linters {:unquote-outside-syntax-quote {:level :off}}}}}})
+
+(require '[babashka2.process :as proc])
+
+(proc/$$ 1 ~2) ;; no warning here
+~2  ;; warning" {:linters {:unquote-outside-syntax-quote {:level :warning}}})))
