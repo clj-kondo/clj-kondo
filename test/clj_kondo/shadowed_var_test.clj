@@ -45,18 +45,3 @@
    '({:file "<stdin>", :row 1, :col 17, :level :warning, :message "Shadowed var: user/x"})
    (lint! "(def x 1) (let [x 2] x)"
           '{:linters {:shadowed-var {:level :warning}}})))
-
-(comment 
-  (lint!
-   "(ns foo
-     {:clj-kondo/config '{:linters {:shadowed-var
-                                    {:level :warning
-                                     :include [name]
-                                     :suggest {name dude}}
-                                    :unused-excluded-var {:level :warning}}}}
-     (:refer-clojure :exclude [name]))
-
-   (let [name 1
-         frequencies 2]
-     (+ name frequencies))")
-  )
