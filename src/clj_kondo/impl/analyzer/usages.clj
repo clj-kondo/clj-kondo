@@ -131,7 +131,6 @@
          syntax-quote-tag? (= :syntax-quote t)
          unquote-tag? (one-of t [:unquote :unquote-splicing])
          new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
-                                      unquote-tag? (dec syntax-quote-level)
                                       :else syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
