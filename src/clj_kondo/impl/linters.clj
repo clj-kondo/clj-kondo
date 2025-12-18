@@ -161,7 +161,7 @@
          (node->line (:filename ctx) expr :cond-as-case
                      "condp can be replaced with case"))))))
 
-(defn- lint-cond-even-number-of-forms!
+(defn lint-cond-even-number-of-forms!
   [ctx expr]
   (when-not (even? (count (rest (:children expr))))
     (findings/reg-finding!
@@ -170,7 +170,7 @@
                  (format "cond requires even number of forms")))
     true))
 
-(defn- lint-cond [ctx expr]
+(defn lint-cond [ctx expr]
   (let [conditions
         (->> expr :children
              next
