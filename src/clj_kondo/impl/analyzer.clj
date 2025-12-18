@@ -155,6 +155,44 @@
           (select-keys [:end-row :end-col])
           (set/rename-keys {:end-row :scope-end-row :end-col :scope-end-col})))
 
+(defn analyze-binding-vector [ctx children]
+  (let [rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
+        varargs     (into [] (take-while #(not= :as (:k %))) rest-param+)
+        as-args     (into [] (drop-while #(not= :as (:k %))) children)]
+    (cond (< 2 (count varargs))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (nth varargs 2)
+                       :syntax
+                       (str "Only one varargs binding allowed but got: "
+                            (str/join ", " (rest varargs)))))
+
+          (= 1 (count varargs))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (first varargs)
+                       :syntax
+                       "Trailing & in binding form"))
+
+          (< 2 (count as-args))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (nth as-args 2)
+                       :syntax
+                       (str "Only one :as binding allowed but got: "
+                            (str/join ", " (rest as-args)))))
+
+          (= 1 (count as-args))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (first as-args)
+                       :syntax
+                       "Trailing :as in binding form")))))
+
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
   ([ctx expr scoped-expr opts]
@@ -264,7 +302,7 @@
                        exclude-as? (-> ctx :config :linters :unused-binding
                                        :exclude-destructured-as)
                        as-sym (when exclude-as?
-                                (let [[as as-sym] (drop (- (count children) 2) children)]
+                                (let [[as as-sym] (take-last 2 children)]
                                   (when (identical? :as (:k as))
                                     as-sym)))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
@@ -285,6 +323,7 @@
                        expr-meta (meta expr)
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
+                   (analyze-binding-vector ctx children)
                    (with-meta (into {} v)
                      ;; this is used for checking the return tag of a function body
                      (assoc expr-meta
@@ -378,25 +417,13 @@
                                       :type :syntax
                                       :filename (:filename ctx)))))
 
-(defn analyze-arity [ctx arg-vec]
-  (loop [[arg & rest-args] (:children arg-vec)
-         arity 0]
-    (if arg
-      (if (= '& (:value arg))
-        (do
-          (when-not (= 1 (count rest-args))
-            (findings/reg-finding!
-             ctx
-             (assoc (meta (second rest-args))
-                    :filename (:filename ctx)
-                    :type :syntax
-                    :message (str "Only one varargs binding allowed but got: "
-                                  (str/join ", " rest-args)))))
-          {:min-arity arity
-           :varargs? true})
-        (recur rest-args
-               (inc arity)))
-      {:fixed-arity arity})))
+(defn analyze-arity [arg-vec]
+  (reduce (fn [{fa :fixed-arity} {v :value}]
+            (if (= '& v)
+              (reduced {:min-arity fa, :varargs? true})
+              {:fixed-arity (inc fa)}))
+          {:fixed-arity 0}
+          (:children arg-vec)))
 
 (defn analyze-fn-arity [ctx body]
   (if-let [a (:analyzed-arity body)]
@@ -415,7 +442,7 @@
                     arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
                     {return-tag :tag
                      arg-tags :tags} (meta arg-bindings)
-                    arity (analyze-arity ctx arg-vec)
+                    arity (analyze-arity arg-vec)
                     ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
                                  :arity arity
                                  :analyzed-arg-vec (:analyzed arg-bindings)
@@ -810,6 +837,13 @@
               ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
                             (= :let binding-val))]
+          (when (= '& binding-val)
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx)
+                         binding
+                         :syntax
+                         "Invalid binding: &")))
           (if for-let?
             (let [ctx* (ctx-with-bindings ctx bindings)
                   _ (analyze-redundant-bindings ctx* value)
@@ -850,7 +884,8 @@
                                  arities)]
               (recur rest-bindings
                      (merge bindings new-bindings)
-                     next-arities (concat analyzed analyzed-binding analyzed-value)))))
+                     next-arities
+                     (concat analyzed analyzed-binding analyzed-value)))))
         {:arities arities
          :bindings bindings
          :analyzed analyzed}))))
