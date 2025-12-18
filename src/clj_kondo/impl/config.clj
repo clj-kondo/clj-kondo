@@ -102,6 +102,7 @@
               :case-duplicate-test {:level :error}
               :case-quoted-test {:level :warning}
               :case-symbol-test {:level :off}
+              :cond-as-case {:level :off}
               :type-mismatch {:level :error}
               :missing-docstring {:level :off}
               :docstring-blank {:level :warning}
