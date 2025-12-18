@@ -3135,16 +3135,17 @@
                                                             :message "Reader conditionals are only allowed in .cljc files")))
                         (analyze-reader-macro ctx expr))
         (:unquote :unquote-splicing)
-        (do
-          (when (and (not (some #(= [:syntax-quote] %) (:callstack ctx)))
-                     (not (linter-disabled? ctx :unquote-outside-syntax-quote)))
+        (let [level (:syntax-quote-level ctx)]
+          (when-not (and level (pos? level))
             (findings/reg-finding!
              ctx
              (node->line (:filename ctx) expr :unquote-outside-syntax-quote
                          (if (= :unquote t)
                            "Unquote (~) used outside syntax-quote"
                            "Unquote-splicing (~@) used outside syntax-quote"))))
-          (analyze-children ctx children))
+          (let [new-level (if level (dec level) -1)
+                ctx (assoc ctx :syntax-quote-level new-level)]
+            (analyze-children ctx children)))
         :namespaced-map (do
                           (lint-unused-value ctx expr)
                           (usages/analyze-namespaced-map
