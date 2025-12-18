@@ -3141,8 +3141,8 @@
              ctx
              (node->line (:filename ctx) expr :unquote-not-syntax-quoted
                          (if (= :unquote t)
-                           "Unquote (~) used outside syntax-quote"
-                           "Unquote-splicing (~@) used outside syntax-quote"))))
+                           "Unquote (~) not syntax-quoted"
+                           "Unquote-splicing (~@) not syntax-quoted"))))
           (let [new-level (if level (dec level) -1)
                 ctx (assoc ctx :syntax-quote-level new-level)]
             (analyze-children ctx children)))

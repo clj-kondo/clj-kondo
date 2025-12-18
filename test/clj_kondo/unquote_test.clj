@@ -10,7 +10,7 @@
         :row 1
         :col 1
         :level :warning
-        :message "Unquote (~) used outside syntax-quote"})
+        :message "Unquote (~) not syntax-quoted"})
      (lint! "~x" {:linters {:unquote-not-syntax-quoted
                             {:level :warning}}})))
   (testing "unquote-splicing outside syntax-quote"
@@ -19,7 +19,7 @@
         :row 1
         :col 1
         :level :warning
-        :message "Unquote-splicing (~@) used outside syntax-quote"})
+        :message "Unquote-splicing (~@) not syntax-quoted"})
      (lint! "~@x" {:linters {:unquote-not-syntax-quoted
                              {:level :warning}}})))
   (testing "unquote outside syntax-quote by double unquote"
@@ -28,7 +28,7 @@
         :row 1
         :col 14
         :level :warning
-        :message "Unquote (~) used outside syntax-quote"})
+        :message "Unquote (~) not syntax-quoted"})
      (lint! "(def x 1) `[~~x]"
             {:linters {:unquote-not-syntax-quoted
                        {:level :warning}}})))
@@ -44,7 +44,7 @@
         :row 1
         :col 2
         :level :warning
-        :message "Unquote (~) used outside syntax-quote"})
+        :message "Unquote (~) not syntax-quoted"})
      (lint! "'~x" {:linters {:unquote-not-syntax-quoted
                              {:level :warning}}}))))
 (testing "quoted unquote-splicing warns"
@@ -53,7 +53,7 @@
       :row 1
       :col 2
       :level :warning
-      :message "Unquote-splicing (~@) used outside syntax-quote"})
+      :message "Unquote-splicing (~@) not syntax-quoted"})
    (lint! "'~@x" {:linters {:unquote-not-syntax-quoted {:level :warning}}})))
 (testing "linter can be disabled"
   (is (empty? (lint! "~x" {:linters {:unquote-not-syntax-quoted
@@ -66,7 +66,7 @@
       :row 7
       :col 1
       :level :warning
-      :message "Unquote (~) used outside syntax-quote"})
+      :message "Unquote (~) not syntax-quoted"})
    (lint! "(ns scratch
   {:clj-kondo/config '{:config-in-call {babashka2.process/$$ {:linters {:unquote-not-syntax-quoted {:level :off}}}}}})
 

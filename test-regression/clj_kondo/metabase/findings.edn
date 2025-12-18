@@ -370,7 +370,7 @@
   :col 32,
   :end-col 38,
   :langs (),
-  :message "Unquote (~) used outside syntax-quote",
+  :message "Unquote (~) not syntax-quoted",
   :row 97}
  {:end-row 4,
   :type :deprecated-namespace,
@@ -620,7 +620,7 @@
   :col 45,
   :end-col 50,
   :langs (),
-  :message "Unquote (~) used outside syntax-quote",
+  :message "Unquote (~) not syntax-quoted",
   :row 192}
  {:end-row 205,
   :type :unquote-not-syntax-quoted,
@@ -630,7 +630,7 @@
   :col 54,
   :end-col 58,
   :langs (),
-  :message "Unquote (~) used outside syntax-quote",
+  :message "Unquote (~) not syntax-quoted",
   :row 205}
  {:end-row 243,
   :type :unquote-not-syntax-quoted,
@@ -640,7 +640,7 @@
   :col 11,
   :end-col 17,
   :langs (),
-  :message "Unquote-splicing (~@) used outside syntax-quote",
+  :message "Unquote-splicing (~@) not syntax-quoted",
   :row 243}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
