@@ -3593,7 +3593,11 @@ foo/"))
   (is (empty?
        (lint! "(defn new [] :foo)
                (new js/Date 2022 1 1 1 1)"
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(defn new [] :foo)
+               (new String \"foo\")"
+              "--lang" "clj"))))
 
 (deftest ignore-config-test
   (assert-submaps2
