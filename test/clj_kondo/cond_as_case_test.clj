@@ -79,7 +79,6 @@
      (lint! "(condp = x \"foo\" 1 \"bar\" 2)" config)))
 
   (testing "no warning when there are hash collisions"
-    ;; 0, 0.0, and nil all have the same hash value
     (is (empty? (lint! "(condp = x 0 1 nil 2)" config)))
     (is (empty? (lint! "(condp = x 0 1 0.0 2)" config))))
 
@@ -116,8 +115,6 @@
      (lint! "(condp contains? x #{:a} 1 #{:b} 2 :default)" config)))
 
   (testing "no warning when there are hash collisions"
-    ;; 0, 0.0, and nil all have the same hash value
-    (prn "hash collisions")
     (is (empty? (lint! "(condp contains? x #{0} 1 #{nil} 2)" config)))
     (is (empty? (lint! "(condp contains? x #{0} 1 #{0.0} 2)" config))))
 
