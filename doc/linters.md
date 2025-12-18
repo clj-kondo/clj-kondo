@@ -2195,7 +2195,7 @@ Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensiti
 
 ### Unquote outside syntax-quote
 
-*Keyword:* `:unquote-outside-syntax-quote`.
+*Keyword:* `:unquote-not-syntax-quoted`.
 
 *Description:* warns when unquote (`~`) or unquote-splicing (`~@`) is used outside of syntax-quote (`` ` ``).
 

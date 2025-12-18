@@ -363,7 +363,7 @@
   :message "Redundant let binding: query",
   :row 565}
  {:end-row 97,
-  :type :unquote-outside-syntax-quote,
+  :type :unquote-not-syntax-quoted,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/premium_features/defenterprise.clj",
@@ -613,7 +613,7 @@
   :message "Unresolved var: insta/transform",
   :row 114}
  {:end-row 192,
-  :type :unquote-outside-syntax-quote,
+  :type :unquote-not-syntax-quoted,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/log.clj",
@@ -623,7 +623,7 @@
   :message "Unquote (~) used outside syntax-quote",
   :row 192}
  {:end-row 205,
-  :type :unquote-outside-syntax-quote,
+  :type :unquote-not-syntax-quoted,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/log.clj",
@@ -633,7 +633,7 @@
   :message "Unquote (~) used outside syntax-quote",
   :row 205}
  {:end-row 243,
-  :type :unquote-outside-syntax-quote,
+  :type :unquote-not-syntax-quoted,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/log.clj",

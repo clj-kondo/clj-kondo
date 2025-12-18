@@ -3139,7 +3139,7 @@
           (when-not (and level (pos? level))
             (findings/reg-finding!
              ctx
-             (node->line (:filename ctx) expr :unquote-outside-syntax-quote
+             (node->line (:filename ctx) expr :unquote-not-syntax-quoted
                          (if (= :unquote t)
                            "Unquote (~) used outside syntax-quote"
                            "Unquote-splicing (~@) used outside syntax-quote"))))
