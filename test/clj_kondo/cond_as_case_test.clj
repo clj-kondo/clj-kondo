@@ -75,7 +75,7 @@
          :col 1
          :level :warning
          :message "cond can be replaced with case"}]
-       (lint! "(cond (= x {:a [1 {:b [2]} 3] :c 4}) 1 (= x {:d [5 {:e [6]} 7] :f 8}) 2)" config))) 
+       (lint! "(cond (= x {:a [1 {:b [2]} 3] :c 4}) 1 (= x {:d [5 {:e [6]} 7] :f 8}) 2)" config)))
 
     (testing "with symbols in nested structures"
       (assert-submaps2
@@ -114,9 +114,8 @@
     (is (empty? (lint! "(cond (= x {:a [y]}) 1 (= x {:b [z]}) 2)" config)))
     (is (empty? (lint! "(cond (= x {:a [1 {:b y} 3]}) 1 (= x {:c [4 {:d z} 6]}) 2)" config))))
 
-
   (testing "no warning by default (linter is off)"
-    (is (empty? (lint! "(cond (= x :a) 1 (= x :b) 2)"))))
+    (is (empty? (lint! "(cond (= x :a) 1 (= x :b) 2)")))))
 
 (deftest condp-equals-as-case-test
   (testing "condp = can be replaced with case"
@@ -271,4 +270,4 @@
          (lint! "(ns scratch
                    {:clj-kondo/config '{:config-in-call {clojure.core/comment {:linters {:cond-as-case {:level :off}}}}}})
                  (comment (cond (= x :a) 1 (= x :b) 2))"
-                '{:linters {:cond-as-case {:level :warning}}}))))))
+                {:linters {:cond-as-case {:level :warning}}})))))
