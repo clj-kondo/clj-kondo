@@ -21,7 +21,7 @@
   (io/file cache-dir (name lang) (str ns-sym ".transit.json")))
 
 (defn from-cache-1 [cache-dir lang ns-sym]
-  (when-let [{:keys [:resource :source]}
+  (when-let [{:keys [resource source]}
              (or (when cache-dir
                    (let [f (cache-file cache-dir lang ns-sym)]
                      (when (.exists f)

@@ -158,7 +158,7 @@
        (:local-usages ana)))))
 
 (deftest deftype-locals-test
-  (let [{:keys [:locals :local-usages]}
+  (let [{:keys [locals local-usages]}
         (analyze "(deftype Foo [a b c] clojure.lang.IFn (invoke [_] [a b]))"
                  {:config {:analysis {:locals true}}})]
     ;; (clj-kondo.impl.utils/stderr :locals (pr-str locals))
@@ -173,7 +173,7 @@
 
 (deftest protocol-impls-test
   (testing "defrecord without protocol"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defrecord MyBar []
   (something [_]
     123)
@@ -185,7 +185,7 @@
        []
        protocol-impls)))
   (testing "defrecord with simple protocols"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defprotocol AProtocol
   (a-method [this])
   (^Bla b-method [this a b]))
@@ -243,7 +243,7 @@
           :row 21 :col 3 :end-row 23 :end-col 9}]
        protocol-impls)))
   (testing "defrecord with aliased protocol"
-    (let [{:keys [:protocol-impls]}
+    (let [{:keys [protocol-impls]}
           (analyze (->> ["(ns some-ns)"
                          "(defprotocol AProtocol"
                          "  (a-method [this])"
@@ -278,7 +278,7 @@
           :row 11 :col 3 :end-row 13 :end-col 9}]
        protocol-impls)))
   (testing "deftype"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defprotocol AProtocol
   (a-method [this])
   (^Bla b-method [this a b]))
@@ -336,7 +336,7 @@
           :row 21 :col 3 :end-row 23 :end-col 9}]
        protocol-impls)))
   (testing "extend-protocol"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defprotocol AProtocol
   (a-method [this])
   (^Bla b-method [this a b]))
@@ -393,7 +393,7 @@
           :row 20 :col 3 :end-row 22 :end-col 9}]
        protocol-impls)))
   (testing "extend-type"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defprotocol AProtocol
   (a-method [this])
   (^Bla b-method [this a b]))
@@ -453,7 +453,7 @@
           :row 23 :col 3 :end-row 25 :end-col 9}]
        protocol-impls)))
   (testing "reify"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defprotocol AProtocol
   (a-method [this])
   (^Bla b-method [this a b]))
@@ -511,7 +511,7 @@
           :row 21 :col 3 :end-row 23 :end-col 9}]
        protocol-impls)))
   (testing "specify!"
-    (let [{:keys [:protocol-impls]} (analyze "
+    (let [{:keys [protocol-impls]} (analyze "
 (defprotocol AProtocol
   (a-method [this])
   (^Bla b-method [this a b]))
@@ -573,7 +573,7 @@
 
 (deftest defmulti-defmethod-test
   (testing "defmulti and defmethod"
-    (let [{:keys [:var-usages :var-definitions]} (analyze "
+    (let [{:keys [var-usages var-definitions]} (analyze "
 (defmulti my-multi :some-key)
 
 (defmethod my-multi \"some-value\"
@@ -599,7 +599,7 @@
        var-usages))))
 
 (deftest overrides-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns clojure.core) (def defn- :compare-override-attributes)"
                  {:lang :clj
                   :config {:analysis {:var-definitions {:meta true}}}
@@ -610,7 +610,7 @@
         :macro true
         :varargs-min-arity 2}]
      var-definitions))
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns cljs.core) (def array :compare-override-attributes)"
                  {:lang :cljs
                   :config {:analysis {:var-definitions {:meta true}}}
@@ -618,7 +618,7 @@
     (assert-submaps
      '[{:varargs-min-arity 0}]
      var-definitions))
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns cljs.core) (def defn- :compare-override-attributes)"
                  {:lang :cljc
                   :config {:analysis {:var-definitions {:meta true}}}
@@ -635,14 +635,14 @@
      var-definitions)))
 
 (deftest name-position-test
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(defn foo [] foo)" {:config {:analysis {:locals true}}})]
+  (let [{:keys [var-definitions var-usages]} (analyze "(defn foo [] foo)" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name foo :name-row 1 :name-col 7 :name-end-row 1 :name-end-col 10 :end-row 1 :end-col 18}]
      var-definitions)
     (assert-submaps
      '[{:name foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17} {}]
      var-usages))
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:analysis {:locals true}}})]
+  (let [{:keys [var-definitions var-usages]} (analyze "(defprotocol Foo (bar [])) Foo bar" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name Foo :name-row 1 :name-col 14 :name-end-row 1 :name-end-col 17 :end-row 1 :end-col 27}
        {:name bar :name-row 1 :name-col 19 :name-end-row 1 :name-end-col 22 :end-row 1 :end-col 26}]
@@ -660,7 +660,7 @@
         :name-row 1,
         :name-col 32}]
      var-usages))
-  (let [{:keys [:namespace-definitions :namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:analysis {:locals true}}})]
+  (let [{:keys [namespace-definitions namespace-usages]} (analyze "(ns foo (:require [bar :as b :refer [x]] [clojure [string :as str]]))" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name foo
         :row 1,
@@ -692,7 +692,7 @@
         :name-end-row 1
         :name-end-col 58}]
      namespace-usages))
-  (let [{:keys [:var-definitions :var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:analysis {:locals true}}})]
+  (let [{:keys [var-definitions var-usages]} (analyze "(def a (atom nil)) (:foo @a)" {:config {:analysis {:locals true}}})]
     (assert-submaps
      '[{:name-row 1 :name-col 6 :name-end-row 1 :name-end-col 7 :end-row 1 :end-col 19}]
      var-definitions)
@@ -708,7 +708,7 @@
 
 (deftest scope-usage-test
   (testing "when the var-usage is called as function"
-    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:analysis true}})]
+    (let [{:keys [var-usages]} (analyze "(defn foo [a] a) (foo 2)" {:config {:analysis true}})]
       (is (some #(= '{:fixed-arities #{1}
                       :name-end-col 22
                       :name-end-row 1
@@ -725,7 +725,7 @@
                       :to user} % )
                 var-usages))))
   (testing "when the var-usage is not called as function"
-    (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) foo" {:config {:analysis true}})]
+    (let [{:keys [var-usages]} (analyze "(defn foo [a] a) foo" {:config {:analysis true}})]
       (is (some #(= '{:fixed-arities #{1}
                       :name-end-col 21
                       :name-end-row 1
@@ -741,7 +741,7 @@
                       :to user} %)
                 var-usages))))
   #_(testing "when the var-usage call is unknown"
-      (let [{:keys [:var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:analysis true}})]
+      (let [{:keys [var-usages]} (analyze "(defn foo [a] a) (bar 2)" {:config {:analysis true}})]
         (is (some #(= % '{:name-end-row 1
                           :name-end-col 22
                           :name-row 1
@@ -758,8 +758,8 @@
                   var-usages)))))
 
 (deftest analysis-test
-  (let [{:keys [:var-definitions
-                :var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]
+  (let [{:keys [var-definitions
+                var-usages]} (analyze "(defn ^:deprecated foo \"docstring\" {:added \"1.2\"} [])")]
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
@@ -786,7 +786,7 @@
         :arity 4}]
      var-usages))
 
-  (let [{:keys [:var-definitions]} (analyze "(defn foo \"docstring with\\n \\\"escaping\\\"\" [])")]
+  (let [{:keys [var-definitions]} (analyze "(defn foo \"docstring with\\n \\\"escaping\\\"\" [])")]
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
@@ -800,7 +800,7 @@
         :doc "docstring with\n \"escaping\""}]
      var-definitions))
 
-  (let [{:keys [:var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
+  (let [{:keys [var-definitions]} (analyze "(def ^:deprecated x \"docstring\" 1)")]
     (assert-submaps
      '[{:filename "<stdin>",
         :row 1,
@@ -813,8 +813,8 @@
         :doc "docstring",
         :deprecated true}]
      var-definitions))
-  (let [{:keys [:namespace-definitions
-                :namespace-usages]}
+  (let [{:keys [namespace-definitions
+                namespace-usages]}
         (analyze
          "(ns ^:deprecated foo \"docstring\"
             {:added \"1.2\" :no-doc true :author \"Michiel Borkent\"}
@@ -833,10 +833,10 @@
     (assert-submaps
      '[{:filename "<stdin>", :row 3, :col 24, :from foo, :to clojure.string}]
      namespace-usages))
-  (let [{:keys [:namespace-definitions
-                :namespace-usages
-                :var-usages
-                :var-definitions]}
+  (let [{:keys [namespace-definitions
+                namespace-usages
+                var-usages
+                var-definitions]}
         (analyze "(ns foo (:require [clojure.string :as string]))
                   (defn f [] (inc 1 2 3))" {:lang :cljc})]
     (assert-submaps
@@ -927,7 +927,7 @@
         :row 2,
         :to cljs.core}]
      var-usages))
-  (let [{:keys [:var-usages]}
+  (let [{:keys [var-usages]}
         (analyze "(ns foo)
                   (fn [x] x)
                   (fn* [x] x)
@@ -958,7 +958,7 @@
         :from foo,
         :to clojure.core}]
      var-usages))
-  (let [{:keys [:var-usages]}
+  (let [{:keys [var-usages]}
         (analyze "(ns foo)
                   (defn foo [x] x)
                   (def bar foo)"
@@ -966,8 +966,8 @@
     (assert-submaps
      '[]
      var-usages))
-  (let [{:keys [:var-definitions
-                :var-usages]}
+  (let [{:keys [var-definitions
+                var-usages]}
         (analyze "(ns foo)
                   (defn foo [x] (inc x))
                   (def bar foo)"
@@ -1018,7 +1018,7 @@
                                        :analyze-call
                                        {'user/defflow
                                         (str '(require '[clj-kondo.hooks-api :as api])
-                                             '(fn [{:keys [:node]}]
+                                             '(fn [{:keys [node]}]
                                                 (let [[test-name] (rest (:children node))
                                                       new-node (api/list-node
                                                                 [(api/token-node 'def)
@@ -1076,7 +1076,7 @@
                                      :analyze-call
                                      {'user/defflow
                                       (str '(require '[clj-kondo.hooks-api :as api])
-                                           '(fn [{:keys [:node]}]
+                                           '(fn [{:keys [node]}]
                                               (let [[test-name] (rest (:children node))
                                                     new-node (api/list-node
                                                               [(api/token-node 'def)
@@ -1120,7 +1120,7 @@
                                      "    :defined-by 'user/defflow}))")}}}}))))
 
 (deftest analysis-alias-test
-  (let [{:keys [:var-usages]}
+  (let [{:keys [var-usages]}
         (analyze "(ns foo (:require [bar :as b] baz))
                   (b/w)
                   (bar/x)
@@ -1136,7 +1136,7 @@
 (deftest analysis-arglists-test
   (doseq [analysis-opts [true {:arglists true}]]
     (testing (format "analysis opts: %s" analysis-opts)
-      (let [{:keys [:var-definitions]}
+      (let [{:keys [var-definitions]}
             (analyze "(defn f1 [d] d)
                       (defn f2 ([e] e) ([f f'] f))
                       (defprotocol AP (f3 [g] \"doc\") (f4 [h] [i i']))
@@ -1179,7 +1179,7 @@
                          {:arglists true}
                          {:arglists true :var-definitions {:meta true}}]]
     (testing  (format "analysis opts: %s" analysis-opts)
-      (let [{:keys [:var-definitions]}
+      (let [{:keys [var-definitions]}
             (analyze "(defn fnone [x])
                       (defn fattr1 {:arglists '([y])} [x] x)
                       (defn fattr2 ([x] x) ([y y'] y) {:arglists '([y1] [y2 y3])})
@@ -1316,7 +1316,7 @@
       (is (edn/read-string analysis-edn)))))
 
 (deftest test-var-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns foo (:require [clojure.test :as t]))
                   (t/deftest foo)")]
     (assert-submaps
@@ -1325,7 +1325,7 @@
      var-definitions)))
 
 (deftest schema-var-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns foo (:require [schema.core :as s]))
                   (s/def bar)
                   (s/defn f1 [d] d)
@@ -1341,7 +1341,7 @@
      var-definitions)))
 
 (deftest declare-var-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns foo)
                   (declare bar)")]
     (assert-submaps
@@ -1350,7 +1350,7 @@
      var-definitions)))
 
 (deftest deftype-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns foo)
                   (deftype Foo [])")]
     (assert-submaps
@@ -1359,7 +1359,7 @@
      var-definitions)))
 
 (deftest defprotocol-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns foo)
                   (defprotocol Foo (bar [_]) (baz [_]))")]
     (is (= '#{clojure.core/defprotocol} (set (map :defined-by var-definitions))))
@@ -1371,20 +1371,20 @@
      var-definitions)))
 
 (deftest export-test
-  (let [{:keys [:var-definitions]}
+  (let [{:keys [var-definitions]}
         (analyze "(ns foo)
                   (defn ^:export foo [])")]
     (is (true? (:export (first var-definitions))))))
 
 (deftest nested-libspec-test
-  (let [{:keys [:namespace-usages :var-usages]}
+  (let [{:keys [namespace-usages var-usages]}
         (analyze "(ns foo (:require [clojure [set :refer [union]]])) (union #{1 2 3} #{3 4 5})")]
     (is (= 'clojure.set (:to (first namespace-usages))))
     (is (= 'clojure.set (:to (first var-usages))))))
 
 (deftest refer-var-usages-test
   (testing "from require"
-    (let [{:keys [:namespace-usages :var-usages]}
+    (let [{:keys [namespace-usages var-usages]}
           (analyze "(ns foo (:require [clojure [set :refer [union]]])) (union #{1 2 3} #{3 4 5})")]
       (is (= 'clojure.set (:to (first namespace-usages))))
       (assert-submaps
@@ -1392,7 +1392,7 @@
          {:name union :to clojure.set :name-col 53}]
        var-usages)))
   (testing "from use"
-    (let [{:keys [:namespace-usages :var-usages]}
+    (let [{:keys [namespace-usages var-usages]}
           (analyze "(ns foo (:use [clojure [set :only [union]]])) (union #{1 2 3} #{3 4 5})")]
       (is (= 'clojure.set (:to (first namespace-usages))))
       (assert-submaps
@@ -1401,7 +1401,7 @@
        var-usages))))
 
 (deftest standalone-require-test
-  (let [{:keys [:namespace-usages :var-usages]}
+  (let [{:keys [namespace-usages var-usages]}
         (analyze "(require '[clojure [set :refer [union]]])")]
     (is (= 'clojure.set (:to (first namespace-usages))))
     (assert-submaps
@@ -1410,7 +1410,7 @@
      var-usages)))
 
 (deftest hof-test
-  (let [{:keys [:var-usages]}
+  (let [{:keys [var-usages]}
         (analyze "(defn foo [x y] (reduce foo x [y 3 4]))")]
     (is (some (fn [usage]
                 (and (= 'foo (:name usage))
