@@ -7,7 +7,7 @@
 
 (defn remove-schemas-from-children [expr]
   (let [children (:children expr)
-        {:keys [:new-children :schemas]}
+        {:keys [new-children schemas]}
         (loop [[fst-child & rest-children] children
                res {:new-children []
                     :schemas []}]
@@ -19,7 +19,7 @@
                          (update res :schemas conj (first rest-children)))
                   (= :vector (utils/tag expr))
                   (recur rest-children
-                         (let [{:keys [:expr :schemas]} (remove-schemas-from-children fst-child)]
+                         (let [{:keys [expr schemas]} (remove-schemas-from-children fst-child)]
                            (-> res
                                (update :schemas into schemas)
                                (update :new-children conj expr))))
@@ -117,11 +117,11 @@
                                   (reg-misplaced-return-schema!
                                    ctx (second after-params)
                                    "Return schema should go before arities."))
-                              {:keys [:expr :schemas]} (if valid-params-position?
-                                                         (remove-schemas-from-children params)
-                                                         ;; (s/defn foo (:- Foo [])) expanded forms will warn missing params
-                                                         {:expr params
-                                                          :schemas []})
+                              {:keys [expr schemas]} (if valid-params-position?
+                                                       (remove-schemas-from-children params)
+                                                       ;; (s/defn foo (:- Foo [])) expanded forms will warn missing params
+                                                       {:expr params
+                                                        :schemas []})
                               new-cchildren (cons expr after-params)
                               new-fst-child (assoc fst-child :children new-cchildren)]
                           (-> res

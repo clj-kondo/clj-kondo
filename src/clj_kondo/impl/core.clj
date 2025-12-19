@@ -23,7 +23,7 @@
 (defn format-output [config]
   (let [output-cfg (:output config)]
     (if-let [^String pattern (-> output-cfg :pattern)]
-      (fn [{:keys [:filename :row :end-row :col :end-col :level :message :type] :as _finding}]
+      (fn [{:keys [filename row end-row col end-col level message type] :as _finding}]
         (-> pattern
             (str/replace "{{filename}}" filename)
             (str/replace "{{row}}" (str row))
@@ -34,7 +34,7 @@
             (str/replace "{{LEVEL}}" (str/upper-case (name level)))
             (str/replace "{{message}}" message)
             (str/replace "{{type}}" (str type))))
-      (fn [{:keys [:filename :row :col :level :message :type langs] :as _finding}]
+      (fn [{:keys [filename row col level message type langs] :as _finding}]
         (str filename ":"
              row ":"
              col ": "
@@ -373,7 +373,7 @@
   (loop []
     (when-let [group (.pollFirst deque)]
       (try
-        (doseq [{:keys [:filename :source :lang :uri]} group]
+        (doseq [{:keys [filename source lang uri]} group]
           (ana/analyze-input ctx filename uri source lang dev?))
         (catch Exception e (binding [*out* *err*]
                              (prn e))))
@@ -458,7 +458,7 @@
                   :else 0))))
        (reduce + 0)))
 
-(defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
+(defn schedule [ctx {:keys [filename source lang uri] :as m} dev?]
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (when (or (:analysis ctx) (not (:skip-lint ctx)))

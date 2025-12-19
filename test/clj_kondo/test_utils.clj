@@ -19,7 +19,7 @@
 
 (defmethod t/report :end-test-var [_m]
   (when-let [rc *report-counters*]
-    (when-let [{:keys [:fail :error]} @rc]
+    (when-let [{:keys [fail error]} @rc]
       (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
                  (or (pos? fail) (pos? error)))
         (println "=== Failing fast")
