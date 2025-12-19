@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
+- [#2668](https://github.com/clj-kondo/clj-kondo/issues/2668): Lint `&` syntax errors in let bindings and lint for trailing `&` ([@tomdl89](https://github.com/tomdl89)) 
 - [#2654](https://github.com/clj-kondo/clj-kondo/issues/2654): NEW linter: `redundant-let-binding`, defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): `duplicate-key-in-assoc` changed to `duplicate-key-args`, and now lints `dissoc`, `assoc!` and `dissoc!` too ([@tomdl89](https://github.com/tomdl89))
 - [#2651](https://github.com/clj-kondo/clj-kondo/issues/2651): resume linting after paren mismatches
@@ -31,7 +31,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2599](https://github.com/clj-kondo/clj-kondo/issues/2599): detect invalid arity for invoking collection as higher order function
 - [#2661](https://github.com/clj-kondo/clj-kondo/issues/2661): Fix false positive `:unexpected-recur` when `recur` is used inside `clojure.core.match/match` ([@jramosg](https://github.com/jramosg))
 - [#2617](https://github.com/clj-kondo/clj-kondo/issues/2617): Add types for `repeatedly` ([@jramosg](https://github.com/jramosg))
-
+- [#2653](https://github.com/clj-kondo/clj-kondo/issues/2653): NEW linter: `:unquote-not-syntax-quoted` to warn on `~` and `~@` usage outside syntax-quote (`` ` ``) ([@jramosg](https://github.com/jramosg))
+- [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
 ## 2025.10.23
 
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): NEW linter: `duplicate-key-in-assoc`, defaults to `:warning`
