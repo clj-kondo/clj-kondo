@@ -646,10 +646,10 @@ foo/foo ;; this does use the private var
   (testing "Safely handles empty alias call"
     (assert-submaps2
      [{:file "<stdin>"
-       :row 1
-       :col 10
-       :level :error
-       :message "clojure.core/alias is called with 0 args but expects 2"}]
+        :row 1
+        :col 10
+        :level :error
+        :message "clojure.core/alias is called with 0 args but expects 2"}]
      (lint! "(ns foo) (alias)")))
   (assert-submap
    '{:file "<stdin>",

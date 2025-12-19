@@ -34,7 +34,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2653](https://github.com/clj-kondo/clj-kondo/issues/2653): NEW linter: `:unquote-not-syntax-quoted` to warn on `~` and `~@` usage outside syntax-quote (`` ` ``) ([@jramosg](https://github.com/jramosg))
 - [#2600](https://github.com/clj-kondo/clj-kondo/issues/2600): NEW linter: `unused-excluded-var` to warn on unused vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
 
-
 ## 2025.10.23
 
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): NEW linter: `duplicate-key-in-assoc`, defaults to `:warning`
