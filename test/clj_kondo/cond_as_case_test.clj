@@ -32,7 +32,68 @@
          :col 1
          :level :warning
          :message "cond can be replaced with case"}]
-       (lint! "(cond (= x 1) :a (= x 2) :b)" config))))
+       (lint! "(cond (= x 1) :a (= x 2) :b)" config)))
+
+    (testing "with vector constants"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x [:a]) 1 (= x [:b]) 2)" config)))
+
+    (testing "with set constants"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x #{:a}) 1 (= x #{:b}) 2)" config)))
+
+    (testing "with map constants"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x {:a 1}) 1 (= x {:b 2}) 2)" config)))
+
+    (testing "with nested constant collections"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x [[:a]]) 1 (= x [[:b]]) 2)" config))
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x {:a [1 {:b [2]} 3] :c 4}) 1 (= x {:d [5 {:e [6]} 7] :f 8}) 2)" config))) 
+
+    (testing "with symbols in nested structures"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x {:a 'foo :b 'bar}) 1 (= x {:c 'baz :d 'qux}) 2)" config)))
+
+    (testing "with lists containing nested structures"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 1
+         :level :warning
+         :message "cond can be replaced with case"}]
+       (lint! "(cond (= x '([:a 1] [:b 2])) 1 (= x '([:c 3] [:d 4])) 2)" config))))
 
   (testing "no warning when there are hash collisions"
     (is (empty? (lint! "(cond (= x 0) 1 (= x nil) 2)" config)))
@@ -47,9 +108,15 @@
   (testing "no warning when non-constant expressions"
     (is (empty? (lint! "(cond (= x (foo)) 1 (= x (bar)) 2)" config))))
 
+  (testing "no warning when collections contain non-constants"
+    (is (empty? (lint! "(cond (= x [y]) 1 (= x [z]) 2)" config)))
+    (is (empty? (lint! "(cond (= x {:a y}) 1 (= x {:b z}) 2)" config)))
+    (is (empty? (lint! "(cond (= x {:a [y]}) 1 (= x {:b [z]}) 2)" config)))
+    (is (empty? (lint! "(cond (= x {:a [1 {:b y} 3]}) 1 (= x {:c [4 {:d z} 6]}) 2)" config))))
+
 
   (testing "no warning by default (linter is off)"
-    (is (empty? (lint! "(cond (= x :a) 1 (= x :b) 2)")))))
+    (is (empty? (lint! "(cond (= x :a) 1 (= x :b) 2)"))))
 
 (deftest condp-equals-as-case-test
   (testing "condp = can be replaced with case"
@@ -77,6 +144,51 @@
        :level :warning
        :message "condp can be replaced with case"}]
      (lint! "(condp = x \"foo\" 1 \"bar\" 2)" config)))
+
+  (testing "condp = with vector constants"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp = x [:a] 1 [:b] 2)" config)))
+
+  (testing "condp = with map constants"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp = x {:a 1} 1 {:b 2} 2)" config)))
+
+  (testing "condp = with deeply nested structures"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp = x {:a [1 {:b [2]} 3] :c 4} 1 {:d [5 {:e [6]} 7] :f 8} 2)" config)))
+
+  (testing "condp = with symbols in nested structures"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp = x {:a 'foo :b 'bar} 1 {:c 'baz :d 'qux} 2)" config)))
+
+  (testing "condp = with lists containing nested structures"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp = x '([:a 1] [:b 2]) 1 '([:c 3] [:d 4]) 2)" config)))
 
   (testing "no warning when there are hash collisions"
     (is (empty? (lint! "(condp = x 0 1 nil 2)" config)))
@@ -159,4 +271,4 @@
          (lint! "(ns scratch
                    {:clj-kondo/config '{:config-in-call {clojure.core/comment {:linters {:cond-as-case {:level :off}}}}}})
                  (comment (cond (= x :a) 1 (= x :b) 2))"
-                '{:linters {:cond-as-case {:level :warning}}})))))
+                '{:linters {:cond-as-case {:level :warning}}}))))))
