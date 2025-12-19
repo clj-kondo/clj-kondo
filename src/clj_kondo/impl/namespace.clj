@@ -109,7 +109,7 @@
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
-  [{:keys [:base-lang :lang :namespaces]} ns]
+  [{:keys [base-lang lang namespaces]} ns]
   (let [{ns-name :name} ns
         path [base-lang lang ns-name]]
     (get-in (swap! namespaces update-in
@@ -138,7 +138,7 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :namespaces :top-level? :top-ns] :as ctx}
+  ([{:keys [base-lang lang filename namespaces top-level? top-ns] :as ctx}
     ns-sym var-sym expr metadata]
    (let [m (meta expr)
          expr-row (:row m)
@@ -291,7 +291,7 @@
            nil))))))
 
 (defn reg-var-usage!
-  [{:keys [:base-lang :lang :namespaces] :as ctx}
+  [{:keys [base-lang lang namespaces] :as ctx}
    ns-sym usage]
   (when-not (:interop? usage)
     (let [path [base-lang lang ns-sym]
@@ -307,17 +307,17 @@
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
-  [{:keys [:base-lang :lang :namespaces]} ns-sym required-ns-sym]
+  [{:keys [base-lang lang namespaces]} ns-sym required-ns-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
          conj required-ns-sym))
 
 (defn reg-proxied-namespaces!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym proxied-ns-syms]
+  [{:keys [base-lang lang namespaces]} ns-sym proxied-ns-syms]
   (swap! namespaces update-in [base-lang lang ns-sym :proxied-namespaces]
          into proxied-ns-syms))
 
 (defn reg-alias!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym alias-sym aliased-ns-sym]
+  [{:keys [base-lang lang namespaces]} ns-sym alias-sym aliased-ns-sym]
   (swap! namespaces
          (fn [n]
            (-> n
@@ -338,20 +338,20 @@
     (let [binding (if (:mark-bindings-used? ctx)
                     (assoc binding :clj-kondo/mark-used true)
                     binding)
-          {:keys [:base-lang :lang :namespaces]} ctx]
+          {:keys [base-lang lang namespaces]} ctx]
       (swap! namespaces update-in [base-lang lang ns-sym :bindings]
              conj binding)))
   nil)
 
 (defn reg-destructuring-default!
-  [{:keys [:base-lang :lang :namespaces :ns]} default binding]
+  [{:keys [base-lang lang namespaces ns]} default binding]
   (swap! namespaces
          update-in [base-lang lang (:name ns) :destructuring-defaults]
          conj (assoc default :binding binding))
   nil)
 
 (defn reg-used-binding!
-  [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding usage]
+  [{:keys [base-lang lang namespaces filename] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
@@ -359,7 +359,7 @@
   nil)
 
 (defn reg-required-namespaces!
-  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (lint-conflicting-aliases! ctx (:required analyzed-require-clauses))
   (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
   (let [path [base-lang lang ns-sym]
@@ -371,7 +371,7 @@
   nil)
 
 (defn reg-imports!
-  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym imports]
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym imports]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
            ;; TODO:
@@ -421,25 +421,25 @@
   nil)
 
 (defn reg-used-referred-var!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+  [{:keys [base-lang lang namespaces] :as _ctx}
    ns-sym var]
   (swap! namespaces update-in [base-lang lang ns-sym :used-referred-vars]
          conj var))
 
 (defn reg-referred-all-var!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+  [{:keys [base-lang lang namespaces] :as _ctx}
    ns-sym referred-all-ns-sym var-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :refer-alls referred-all-ns-sym :referred]
          conj var-sym))
 
-(defn list-namespaces [{:keys [:namespaces]}]
+(defn list-namespaces [{:keys [namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
         [_ns-name ns] nss]
     ns))
 
 (defn reg-used-import!
-  [{:keys [:base-lang :lang :namespaces] :as ctx}
+  [{:keys [base-lang lang namespaces] :as ctx}
    name-sym ns-sym package class-name expr opts]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
@@ -461,7 +461,7 @@
                                   :name-end-col (or (:end-col name-meta) (:end-col loc))))))
 
 (defn reg-unresolved-namespace!
-  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as ctx} ns-sym unresolved-ns]
+  [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
     (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
@@ -499,7 +499,7 @@
   (let [config (:config ctx)
         level (-> config :linters :shadowed-var :level)]
     (when-not (identical? :off level)
-      (when-let [{:keys [:ns :name]}
+      (when-let [{:keys [ns name]}
                  (let [ns-name (:name (:ns ctx))
                        lang (:lang ctx)
                        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
@@ -831,7 +831,7 @@
                        :cljs 'cljs.core)
                  :name name-sym
                  :resolved-core? true}
-                (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
+                (let [referred-all-ns (some (fn [[k {:keys [excluded]}]]
                                               (when-not (contains? excluded name-sym)
                                                 k))
                                             (:refer-alls ns))]

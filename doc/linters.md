@@ -119,6 +119,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved var](#unresolved-var)
     - [Unsorted imports](#unsorted-imports)
     - [Unsorted required namespaces](#unsorted-required-namespaces)
+    - [Unquote outside syntax-quote](#unquote-outside-syntax-quote)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
@@ -2204,6 +2205,18 @@ keeping the namespace name as is:
 ```
 
 Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensitive`.
+
+### Unquote outside syntax-quote
+
+*Keyword:* `:unquote-not-syntax-quoted`.
+
+*Description:* warns when unquote (`~`) or unquote-splicing (`~@`) is used outside of syntax-quote (`` ` ``).
+
+*Default level:* `:warning`.
+
+*Example trigger:* `~x`
+
+*Example message:* `Unquote (~) used outside syntax-quote`.
 
 ### Unused namespace
 

@@ -351,12 +351,12 @@
           (when-let [t (:tag maybe-tag)]
             (keyword t))))))
 
-(defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
+(defn spec-from-list-expr [{:keys [calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]
     (when-let [call (get @calls-by-id id)]
       (ret-tag-from-call ctx call expr))))
 
-(defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
+(defn expr->tag [{:keys [bindings lang quoted] :as ctx} expr]
   (let [t (tag expr)
         quoted? (or quoted (identical? :edn lang))
         ret (case t

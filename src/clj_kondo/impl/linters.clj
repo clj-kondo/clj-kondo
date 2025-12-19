@@ -678,9 +678,9 @@
                    (assoc :ns referred-ns
                           :referred-ns referred-ns
                           :refer (:name v))))))))
-      (doseq [[referred-all-ns {:keys [:referred :node] :as refer-all}] refer-alls
+      (doseq [[referred-all-ns {:keys [referred node] :as refer-all}] refer-alls
               :when (not (config/refer-all-excluded? refer-all-excluded-config referred-all-ns))]
-        (let [{:keys [:k :value]} node
+        (let [{:keys [k value]} node
               use? (or (= :use k)
                        (= 'use value))
               finding-type (if use? :use :refer-all)
@@ -825,7 +825,7 @@
 (defn lint-unused-private-vars!
   [ctx]
   (let [config (:config ctx)]
-    (doseq [{:keys [:filename :vars :used-vars :base-lang :lang]
+    (doseq [{:keys [filename vars used-vars base-lang lang]
              ns-nm :name
              ns-config :config} (namespace/list-namespaces ctx)
             :let [config (or ns-config config)

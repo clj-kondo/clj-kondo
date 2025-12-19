@@ -82,7 +82,7 @@
                        'java.lang.AssertionError java.lang.AssertionError}
              :imports {'Exception 'java.io.Exception
                        'System java.lang.System}
-             :load-fn (fn [{:keys [:namespace]}]
+             :load-fn (fn [{:keys [namespace]}]
                         (let [^String ns-str (namespace-munge (name namespace))
                               base-path (.replace ns-str "." "/")]
                           (if-let [f (find-file-on-classpath base-path)]

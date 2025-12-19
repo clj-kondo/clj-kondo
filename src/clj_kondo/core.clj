@@ -21,7 +21,7 @@
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
-  [{:keys [:config :findings :summary :analysis :report-level]}]
+  [{:keys [config findings summary analysis report-level]}]
   (let [output-cfg (:output config)
         report-level? (if report-level
                         (let [report-level (keyword report-level)]
@@ -38,7 +38,7 @@
             (when (report-level? (:level finding))
               (println (format-fn finding))))
           (when (:summary output-cfg)
-            (let [{:keys [:error :warning :duration]} summary]
+            (let [{:keys [error warning duration]} summary]
               (printf "linting took %sms, " duration)
               (printf "errors: %s" error)
               (when (report-level? :warning)
