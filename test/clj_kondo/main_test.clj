@@ -568,11 +568,6 @@ foo/foo ;; this does use the private var
   (assert-submaps
    '({:file "corpus/rename.cljc"
       :row 2
-      :col 28
-      :level :warning
-      :message "Unused excluded var: update"}
-     {:file "corpus/rename.cljc"
-      :row 2
       :col 58
       :level :warning
       :message "Unused excluded var: conj"}
