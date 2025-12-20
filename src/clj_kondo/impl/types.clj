@@ -25,6 +25,7 @@
     :neg-int
     :double
     :byte
+    :ratio
     :vector
     :sequential
     :associative
@@ -68,6 +69,7 @@
    :neg-int #{:int :number}
    :double #{:number}
    :byte #{:number}
+   :ratio #{:number}
    :vector #{:seqable :sequential :associative :coll :ifn :stack :ilookup}
    :map #{:seqable :associative :coll :ifn :ilookup}
    :nil #{:seqable}
@@ -88,7 +90,7 @@
 (def could-be-relations
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
-   :number #{:neg-int :pos-int :nat-int :int :double :byte}
+   :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio}
    :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack
            :ilookup}
    :seqable #{:coll :vector :set :map :associative
@@ -129,6 +131,7 @@
    :nat-int "natural integer"
    :neg-int "negative integer"
    :byte "byte"
+   :ratio "ratio"
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
@@ -205,6 +208,7 @@
                      ;; can be auto-cast to
                      :int}
     (Float Double java.lang.Float java.lang.Double) #{:double :float :int :nil}
+    (ratio?) :ratio
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
     (String java.lang.String) :nilable/string ;; as this is now way to
     ;; express non-nilable,
@@ -221,6 +225,7 @@
         (cond (pos-int? v) :pos-int
               (nat-int? v) :nat-int
               (neg-int? v) :neg-int)
+        (ratio? v) :ratio
         (double? v) :double
         :else :number))
 
