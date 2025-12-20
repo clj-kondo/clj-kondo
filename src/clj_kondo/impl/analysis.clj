@@ -113,7 +113,7 @@
                                                   (utils/format-callstack ctx)))
               :lang (when (= :cljc base-lang) lang))))))
 
-(defn reg-namespace! [{:keys [:analysis-ns-meta :analysis :base-lang :lang] :as _ctx}
+(defn reg-namespace! [{:keys [analysis-ns-meta analysis base-lang lang] :as _ctx}
                       filename row col ns-name in-ns? metadata]
   (when analysis
     (swap! analysis update :namespace-definitions conj
@@ -130,7 +130,7 @@
             :in-ns (when in-ns? in-ns?) ;; don't include when false
             :lang (when (= :cljc base-lang) lang)))))
 
-(defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}
+(defn reg-namespace-usage! [{:keys [analysis base-lang lang] :as _ctx}
                             filename row col from-ns to-ns alias metadata]
   (when analysis
     (let [to-ns (export-ns-sym to-ns)]
@@ -145,7 +145,7 @@
               :lang (when (= :cljc base-lang) lang)
               :alias alias)))))
 
-(defn reg-local! [{:keys [:analysis] :as ctx} filename binding]
+(defn reg-local! [{:keys [analysis] :as ctx} filename binding]
   (when (and analysis
              (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :locals conj
@@ -153,7 +153,7 @@
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))))))
 
-(defn reg-local-usage! [{:keys [:analysis] :as ctx} filename binding usage]
+(defn reg-local-usage! [{:keys [analysis] :as ctx} filename binding usage]
   (when (and analysis
              (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :local-usages conj

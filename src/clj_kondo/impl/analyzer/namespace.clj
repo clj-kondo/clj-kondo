@@ -287,7 +287,7 @@
                                 child-k))))
                     (recur (nnext children)
                            m))))
-            (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
+            (let [{:keys [as referred excluded referred-all renamed]} m
                   referred (if (and referred-all
                                     (identical? :clj base-lang))
                              (let [referred (cache/with-thread-lock

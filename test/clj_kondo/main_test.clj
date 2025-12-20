@@ -2334,6 +2334,7 @@ foo/foo ;; this does use the private var
                       (second-attr-map-private-defn)")))
     (is (empty? (lint! "(defn second-attr-map ([]) ([x] x) {:look :metadata!})")))
     (is (empty? (lint! "(defmacro ^{:leading :meta} second-attr-map-macro {:attr1 :meta} ([]) ([x] x) {:attr2 :metadata!})")))
+    (is (empty? (lint! "(let [[x y & xs :as ys] foo] [x y xs ys])")))
     (assert-submaps
      '({:file "<stdin>"
         :row 1
@@ -2361,7 +2362,71 @@ foo/foo ;; this does use the private var
         :col 21
         :level :error
         :message "Only one varargs binding allowed but got: xs, ys"})
-     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))))
+     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 17
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(let [[x y & xs ys] foo] [x y xs ys])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 23
+        :level :error
+        :message "Only one varargs binding allowed but got: c, d"})
+     (lint! "(defn foo [a & [b & c d]] [a b c d])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 16
+        :level :error
+        :message "Trailing & in binding form"})
+     (lint! "(defn foo [a b &] (* a b))"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 11
+        :level :error
+        :message "Invalid binding: &"})
+     (lint! "(let [a b & c] [a b c])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 22
+        :level :error
+        :message "Invalid binding: &"})
+     (lint! "(for [x xs :let [a b & c]] [x a b c])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 25
+        :level :error
+        :message "Only one :as binding allowed but got: x, y"})
+     (lint! "(defn foo [a & xs :as x y] [a xs x y])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(defn foo [a & xs ys :as x y] [a xs ys x y])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Trailing :as in binding form"})
+     (lint! "(defn foo [a & xs :as] [a xs])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 21
+        :level :error
+        :message "Only one :as binding allowed but got: bs, &, xs"})
+     (lint! "(defn foo [a :as bs & xs] [a bs xs])"))
+    (is (empty? (lint! "(let [[:as xs] ys] [xs])")))))
 
 (deftest not-empty?-test
   (let [config {:linters {:not-empty? {:level :warning}
@@ -3593,7 +3658,11 @@ foo/"))
   (is (empty?
        (lint! "(defn new [] :foo)
                (new js/Date 2022 1 1 1 1)"
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(defn new [] :foo)
+               (new String \"foo\")"
+              "--lang" "clj"))))
 
 (deftest ignore-config-test
   (assert-submaps2

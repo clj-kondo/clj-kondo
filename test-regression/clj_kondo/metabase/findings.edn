@@ -386,6 +386,16 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 565}
+ {:end-row 97,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/defenterprise.clj",
+  :col 32,
+  :end-col 38,
+  :langs (),
+  :message "Unquote (~) not syntax-quoted",
+  :row 97}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -626,6 +636,36 @@
   :langs (),
   :message "Unresolved var: insta/transform",
   :row 114}
+ {:end-row 192,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/log.clj",
+  :col 45,
+  :end-col 50,
+  :langs (),
+  :message "Unquote (~) not syntax-quoted",
+  :row 192}
+ {:end-row 205,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/log.clj",
+  :col 54,
+  :end-col 58,
+  :langs (),
+  :message "Unquote (~) not syntax-quoted",
+  :row 205}
+ {:end-row 243,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/log.clj",
+  :col 11,
+  :end-col 17,
+  :langs (),
+  :message "Unquote-splicing (~@) not syntax-quoted",
+  :row 243}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
   :protocol-name YAMLCodec,
