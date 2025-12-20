@@ -470,9 +470,7 @@
               (core-sym? lang excluded-var)))]
     (when-not (linter-disabled? ctx :refer-clojure-exclude-non-existing-var)
       (doseq [excluded-var excluded-vars
-              :when (not (or (special-symbol? excluded-var)
-                             (contains? special-forms excluded-var)
-                             (exists-in-core? excluded-var lang)))]
+              :when (exists-in-core? excluded-var lang)]
         (findings/reg-finding!
          ctx
          (node->line filename excluded-var
