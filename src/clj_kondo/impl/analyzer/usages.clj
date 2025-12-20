@@ -98,8 +98,12 @@
         the-ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)
         ns-keyword (-> expr :ns :k)
         ns-sym (kw->sym ns-keyword)
+        ns-sym (if (= '__current-ns__ ns-sym)
+                 (-> ctx :ns :name)
+                 ns-sym)
         aliased? (:aliased? expr)
-        resolved-ns (when aliased? (get (:qualify-ns the-ns) ns-sym))
+        resolved-ns (if aliased? (get (:qualify-ns the-ns) ns-sym)
+                        ns-sym)
         resolved (or resolved-ns ns-sym)]
     (when resolved-ns
       (when-let [resolved-ns (get (:qualify-ns the-ns) ns-sym)]
@@ -107,7 +111,7 @@
         (namespace/reg-used-namespace! ctx
                                        ns-name
                                        resolved-ns)))
-    (when (and aliased? (not resolved-ns) (not= '__current-ns__ ns-sym))
+    (when-not resolved-ns
       (namespace/reg-unresolved-namespace! ctx
                                            ns-name
                                            (with-meta ns-sym (meta expr))))
