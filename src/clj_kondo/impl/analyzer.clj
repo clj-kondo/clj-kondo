@@ -53,7 +53,7 @@
 (defn analyze-children
   ([ctx children]
    (analyze-children ctx children true))
-  ([{:keys [:callstack :config :top-level?] :as ctx} children add-new-arg-types?]
+  ([{:keys [callstack config top-level?] :as ctx} children add-new-arg-types?]
    (let [top-level? (and top-level?
                          (let [fst (first callstack)]
                            (one-of fst [[clojure.core comment]
@@ -139,7 +139,7 @@
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while
   linting metadata."
-  [{:keys [:lang] :as ctx} expr]
+  [{:keys [lang] :as ctx} expr]
   (meta/lift-meta-content2
    (if (= :cljs lang)
      (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
@@ -154,6 +154,44 @@
           meta
           (select-keys [:end-row :end-col])
           (set/rename-keys {:end-row :scope-end-row :end-col :scope-end-col})))
+
+(defn analyze-binding-vector [ctx children]
+  (let [rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
+        varargs     (into [] (take-while #(not= :as (:k %))) rest-param+)
+        as-args     (into [] (drop-while #(not= :as (:k %))) children)]
+    (cond (< 2 (count varargs))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (nth varargs 2)
+                       :syntax
+                       (str "Only one varargs binding allowed but got: "
+                            (str/join ", " (rest varargs)))))
+
+          (= 1 (count varargs))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (first varargs)
+                       :syntax
+                       "Trailing & in binding form"))
+
+          (< 2 (count as-args))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (nth as-args 2)
+                       :syntax
+                       (str "Only one :as binding allowed but got: "
+                            (str/join ", " (rest as-args)))))
+
+          (= 1 (count as-args))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (first as-args)
+                       :syntax
+                       "Trailing :as in binding form")))))
 
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
@@ -264,7 +302,7 @@
                        exclude-as? (-> ctx :config :linters :unused-binding
                                        :exclude-destructured-as)
                        as-sym (when exclude-as?
-                                (let [[as as-sym] (drop (- (count children) 2) children)]
+                                (let [[as as-sym] (take-last 2 children)]
                                   (when (identical? :as (:k as))
                                     as-sym)))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
@@ -285,6 +323,7 @@
                        expr-meta (meta expr)
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
+                   (analyze-binding-vector ctx children)
                    (with-meta (into {} v)
                      ;; this is used for checking the return tag of a function body
                      (assoc expr-meta
@@ -346,8 +385,8 @@
                       :syntax
                       (str "unsupported binding form " expr))))))))
 
-(defn analyze-in-ns [ctx {:keys [:children] :as expr}]
-  (let [{:keys [:row :col]} expr
+(defn analyze-in-ns [ctx {:keys [children] :as expr}]
+  (let [{:keys [row col]} expr
         lang (:lang ctx)
         ns-name (-> children second :children first :value)
         ns (when ns-name
@@ -378,25 +417,13 @@
                                       :type :syntax
                                       :filename (:filename ctx)))))
 
-(defn analyze-arity [ctx arg-vec]
-  (loop [[arg & rest-args] (:children arg-vec)
-         arity 0]
-    (if arg
-      (if (= '& (:value arg))
-        (do
-          (when-not (= 1 (count rest-args))
-            (findings/reg-finding!
-             ctx
-             (assoc (meta (second rest-args))
-                    :filename (:filename ctx)
-                    :type :syntax
-                    :message (str "Only one varargs binding allowed but got: "
-                                  (str/join ", " rest-args)))))
-          {:min-arity arity
-           :varargs? true})
-        (recur rest-args
-               (inc arity)))
-      {:fixed-arity arity})))
+(defn analyze-arity [arg-vec]
+  (reduce (fn [{fa :fixed-arity} {v :value}]
+            (if (= '& v)
+              (reduced {:min-arity fa, :varargs? true})
+              {:fixed-arity (inc fa)}))
+          {:fixed-arity 0}
+          (:children arg-vec)))
 
 (defn analyze-fn-arity [ctx body]
   (if-let [a (:analyzed-arity body)]
@@ -415,7 +442,7 @@
                     arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
                     {return-tag :tag
                      arg-tags :tags} (meta arg-bindings)
-                    arity (analyze-arity ctx arg-vec)
+                    arity (analyze-arity arg-vec)
                     ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
                                  :arity arity
                                  :analyzed-arg-vec (:analyzed arg-bindings)
@@ -468,8 +495,8 @@
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
-        {:keys [:arg-bindings
-                :arity :analyzed-arg-vec :arglist-str :arg-vec]
+        {:keys [arg-bindings
+                arity analyzed-arg-vec arglist-str arg-vec]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
         ctx (ctx-with-bindings ctx arg-bindings)
@@ -550,8 +577,8 @@
           (recur rest-exprs))))))
 
 (defn extract-arity-info [ctx parsed-bodies]
-  (reduce (fn [acc {:keys [:fixed-arity :varargs? :min-arity :ret :args :arg-vec
-                           :arglist-str]}]
+  (reduce (fn [acc {:keys [fixed-arity varargs? min-arity ret args arg-vec
+                           arglist-str]}]
             (let [arg-tags (when (some identity args)
                              args)
                   v (assoc-some {}
@@ -810,6 +837,13 @@
               ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
                             (= :let binding-val))]
+          (when (= '& binding-val)
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx)
+                         binding
+                         :syntax
+                         "Invalid binding: &")))
           (if for-let?
             (let [ctx* (ctx-with-bindings ctx bindings)
                   _ (analyze-redundant-bindings ctx* value)
@@ -850,7 +884,8 @@
                                  arities)]
               (recur rest-bindings
                      (merge bindings new-bindings)
-                     next-arities (concat analyzed analyzed-binding analyzed-value)))))
+                     next-arities
+                     (concat analyzed analyzed-binding analyzed-value)))))
         {:arities arities
          :bindings bindings
          :analyzed analyzed}))))
@@ -876,8 +911,8 @@
         expr))))
 
 (defn analyze-like-let
-  [{:keys [:filename :callstack
-           :let-parent] :as ctx} expr]
+  [{:keys [filename callstack
+           let-parent] :as ctx} expr]
   (let [call (-> callstack first second)
         [current-call parent-call] callstack
         parent-let (one-of parent-call
@@ -924,7 +959,7 @@
   (analyze-redundant-bindings ctx (-> expr :children second))
   (analyze-like-let ctx expr))
 
-(defn analyze-do [{:keys [:filename :callstack] :as ctx} expr]
+(defn analyze-do [{:keys [filename callstack] :as ctx} expr]
   (let [parent-call (second callstack)
         core? (one-of (first parent-call) [clojure.core cljs.core])
         core-sym (when core?
@@ -1352,7 +1387,7 @@
 (declare analyze-defprotocol)
 
 (defn analyze-schema [ctx fn-sym expr defined-by defined-by->lint-as]
-  (let [{:keys [:expr :schemas]}
+  (let [{:keys [expr schemas]}
         (schema/expand-schema ctx
                               fn-sym
                               expr)]
@@ -1425,7 +1460,7 @@
     (when-not (config/skip? config :invalid-arity callstack)
       (let [filename (:filename ctx)]
         (when-not (linter-disabled? ctx :invalid-arity)
-          (when-let [{:keys [:fixed-arities :varargs-min-arity]}
+          (when-let [{:keys [fixed-arities varargs-min-arity]}
                      binding-info]
             ;; (prn :arities types)
             (let [arg-count (count (rest children))]
@@ -2072,7 +2107,7 @@
                       (cons [resolved-namespace resolved-name]
                             cs)))]
     (cond var?
-          (let [{:keys [:row :end-row :col :end-col]} (meta f)]
+          (let [{:keys [row end-row col end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)
               (namespace/reg-var-usage! ctx ns-name
                                         {:type (if arg-count :call :usage)
@@ -2106,7 +2141,7 @@
                                          :in-def (:in-def ctx)
                                          :derived-location (:derived-location (meta expr))})))
           (and arity arg-count)
-          (let [{:keys [:fixed-arities :varargs-min-arity]} arity
+          (let [{:keys [fixed-arities varargs-min-arity]} arity
                 config (:config ctx)
                 callstack (:callstack ctx)]
             (when-not (config/skip? config :invalid-arity callstack)
@@ -2378,11 +2413,11 @@
     (analyze-associative ctx fields fn-name fields)))
 
 (defn analyze-call
-  [{:keys [:top-level? :base-lang :lang :ns :config :dependencies] :as ctx}
-   {:keys [:arg-count
-           :full-fn-name
-           :row :col
-           :expr] :as m}]
+  [{:keys [top-level? base-lang lang ns config dependencies] :as ctx}
+   {:keys [arg-count
+           full-fn-name
+           row col
+           expr] :as m}]
   (let [ns-name (:name ns)
         not-is-dot (and (not= '. full-fn-name)
                         (not= '.. full-fn-name))]
@@ -2895,11 +2930,11 @@
                           (cons call analyzed))))))))))))
 
 (defn analyze-keyword-call
-  [{:keys [:base-lang :lang :ns] :as ctx}
-   {:keys [:arg-count
-           :full-fn-name
-           :row :col
-           :expr]}]
+  [{:keys [base-lang lang ns] :as ctx}
+   {:keys [arg-count
+           full-fn-name
+           row col
+           expr]}]
   (let [ns-name (:name ns)
         children (:children expr)
         kw-node (first children)
@@ -3135,7 +3170,17 @@
                                                             :message "Reader conditionals are only allowed in .cljc files")))
                         (analyze-reader-macro ctx expr))
         (:unquote :unquote-splicing)
-        (analyze-children ctx children)
+        (let [level (:syntax-quote-level ctx)]
+          (when-not (and level (pos? level))
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) expr :unquote-not-syntax-quoted
+                         (if (= :unquote t)
+                           "Unquote (~) not syntax-quoted"
+                           "Unquote-splicing (~@) not syntax-quoted"))))
+          (let [new-level (if level (dec level) -1)
+                ctx (assoc ctx :syntax-quote-level new-level)]
+            (analyze-children ctx children)))
         :namespaced-map (do
                           (lint-unused-value ctx expr)
                           (usages/analyze-namespaced-map
@@ -3415,7 +3460,7 @@
   "Analyzes expressions and collects defs and calls into a map. To
   optimize cache lookups later on, calls are indexed by the namespace
   they call to, not the ns where the call occurred."
-  [{:keys [:base-lang :lang :config] :as ctx}
+  [{:keys [base-lang lang config] :as ctx}
    expressions]
   (let [init-ns (when-not (= :edn lang)
                   (analyze-ns-decl (-> ctx
@@ -3495,7 +3540,7 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [:config :file-analyzed-fn :total-files :files] :as ctx} filename uri input lang dev?]
+  [{:keys [config file-analyzed-fn total-files files] :as ctx} filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
   (let [ctx (assoc ctx :filename filename)

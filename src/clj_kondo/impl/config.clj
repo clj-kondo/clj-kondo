@@ -182,7 +182,8 @@
               :do-template {:level :warning}
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
-              :locking-suspicious-lock {:level :warning}}
+              :locking-suspicious-lock {:level :warning}
+              :unquote-not-syntax-quoted {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
@@ -367,18 +368,18 @@
         (contains? (:excluded-vars cfg) [ns-sym fn-sym]))))
 
 (defn deprecated-var-excluded [ctx config var-sym excluded-ns excluded-in-def]
-  (let [{:keys [:namespace-regexes :namespace-syms
-                :def-regexes :def-syms]} (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
-                                               namespaces (:namespaces excluded)
-                                               namespace-regexes (filter string? namespaces)
-                                               namespace-syms (set (filter symbol? namespaces))
-                                               defs (:defs excluded)
-                                               def-regexes (filter string? defs)
-                                               def-syms (set (filter symbol? defs))]
-                                           {:namespace-regexes namespace-regexes
-                                            :namespace-syms namespace-syms
-                                            :def-regexes def-regexes
-                                            :def-syms def-syms})
+  (let [{:keys [namespace-regexes namespace-syms
+                def-regexes def-syms]} (let [excluded (get-in config [:linters :deprecated-var :exclude var-sym])
+                                             namespaces (:namespaces excluded)
+                                             namespace-regexes (filter string? namespaces)
+                                             namespace-syms (set (filter symbol? namespaces))
+                                             defs (:defs excluded)
+                                             def-regexes (filter string? defs)
+                                             def-syms (set (filter symbol? defs))]
+                                         {:namespace-regexes namespace-regexes
+                                          :namespace-syms namespace-syms
+                                          :def-regexes def-regexes
+                                          :def-syms def-syms})
         re-find (:re-find-memo ctx)]
     (or (when excluded-in-def
           (let [excluded-in-def (symbol (str excluded-ns) (str excluded-in-def))]
@@ -416,7 +417,7 @@
                    (cond-> nil
                      exclude (assoc :exclude exclude)
                      include (assoc :include include)))]
-    (let [{:keys [:exclude :include]} cfg]
+    (let [{:keys [exclude include]} cfg]
       (if include
         (not (contains? include sym))
         (or (not exclude)

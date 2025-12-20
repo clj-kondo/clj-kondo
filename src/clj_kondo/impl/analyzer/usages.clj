@@ -55,8 +55,8 @@
          ns-name (:name ns)
          keyword-val (:k expr)]
      (when (:analyze-keywords? ctx)
-       (let [{:keys [:destructuring-expr :keys-destructuring?
-                     :keys-destructuring-ns-modifier?]} opts
+       (let [{:keys [destructuring-expr keys-destructuring?
+                     keys-destructuring-ns-modifier?]} opts
              current-ns (some-> ns-name symbol)
              destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr
                                                                      current-ns))
@@ -123,7 +123,7 @@
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
-  ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
+  ([ctx expr {:keys [quote? syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
@@ -135,7 +135,6 @@
          syntax-quote-tag? (= :syntax-quote t)
          unquote-tag? (one-of t [:unquote :unquote-splicing])
          new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
-                                      unquote-tag? (dec syntax-quote-level)
                                       :else syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)

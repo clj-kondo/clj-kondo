@@ -145,7 +145,7 @@ Options:
 
 (defn main
   [& options]
-  (let [{:keys [:help :lint :version :pod :dependencies :fail-level :report-level] :as parsed}
+  (let [{:keys [help lint version pod dependencies fail-level report-level] :as parsed}
         (parse-opts options)]
     (or (cond version
               (print-version)
@@ -158,9 +158,9 @@ Options:
               (print-help)
               (not (report-level? report-level))
               (print-help)
-              :else (let [{:keys [:summary]
+              :else (let [{:keys [summary]
                            :as results} (clj-kondo/run! parsed)
-                          {:keys [:error :warning]} summary]
+                          {:keys [error warning]} summary]
                       (when-not dependencies
                         (clj-kondo/print! (assoc results :report-level report-level)))
                       (cond

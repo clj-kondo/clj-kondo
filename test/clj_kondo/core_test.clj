@@ -60,7 +60,7 @@
       (is (nat-int? (:duration s)))
       (is (nat-int? (:files s)))))
   (testing "end locations are reported correctly"
-    (let [{:keys [:findings]}
+    (let [{:keys [findings]}
           (with-in-str
             "(x  )" (clj-kondo/run! {:lint ["-"]}))]
       (assert-submaps
@@ -163,7 +163,7 @@
     (is (= 10 (:end-col first-and-only-finding)))))
 
 (deftest findings-serialization-test
-  (let [{:keys [:findings]}
+  (let [{:keys [findings]}
         (with-in-str "(ns test (:require [\"@material-ui/core\" :default mui]))"
           (clj-kondo/run!
            {:lint   ["-"]}))]
