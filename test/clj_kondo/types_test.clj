@@ -1166,6 +1166,9 @@
        '({:row 1 :col 13 :message "Expected: function, received: positive integer."})
        (lint! "(repeatedly 10)" config)))))
 
+(deftest ex-info-test
+  (is (empty? (lint! "(ex-info \"hello\" nil) (ex-info \"hello\" nil nil) (ex-info nil nil nil)" config))))
+
 ;;;; Scratch
 
 (comment
