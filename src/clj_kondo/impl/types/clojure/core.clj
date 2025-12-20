@@ -789,10 +789,10 @@
    ;; 4745 'prn-str
    ;; 4754 'print-str
    ;; 4763 'println-str
-   ;; 4794 'ex-info
-   'ex-info {:arities {2 {:args [:nilable/string :map]
+   ;; 4794
+   'ex-info {:arities {2 {:args [:nilable/string :nilable/map]
                           :ret :throwable}
-                       3 {:args [:nilable/string :map :any]
+                       3 {:args [:nilable/string :nilable/map :any]
                           :ret :throwable}}}
    ;; 4803 'ex-data
    ;; 4800 'ex-message

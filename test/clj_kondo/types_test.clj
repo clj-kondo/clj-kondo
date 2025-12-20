@@ -800,10 +800,11 @@
    '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."})
    (lint! "(assoc {} 1 2 #:some-ns{:x 0})" config))
   (assert-submaps
-   '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."})
+   '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."}
+     {:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unresolved namespace s. Are you missing a require?"})
    (lint! "(assoc {} 1 3 #::s{:thing 1})" config))
-  (is (empty? (lint! "(assoc {} 1 #::s{:thing 1})" config)))
-  (is (empty? (lint! "(assoc {} 1 2 3 #::s{:thing 1})" config)))
+  (is (empty? (lint! "(assoc {} 1 #::{:thing 1})" config)))
+  (is (empty? (lint! "(assoc {} 1 2 3 #::{:thing 1})" config)))
   (is (empty? (lint! "(assoc {} 1 2 3 #:some-ns{:thing 1})" config))))
 
 (defn expected-message
@@ -1198,6 +1199,9 @@
     (assert-submaps2
      '({:row 1 :col 14 :message "Expected: ratio, received: double."})
      (lint! "(denominator 3.14)" config))))
+
+(deftest ex-info-test
+  (is (empty? (lint! "(ex-info \"hello\" nil) (ex-info \"hello\" nil nil) (ex-info nil nil nil)" config))))
 
 ;;;; Scratch
 
