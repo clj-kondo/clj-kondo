@@ -23,6 +23,9 @@
 
 (def any->boolean {:arities {1 {:ret :boolean}}})
 
+(def ratio->number {:arities {1 {:args [:ratio]
+                                 :ret :number}}})
+
 
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
@@ -688,8 +691,10 @@
    ;; 3566 'mod
    ;; 3576
    'ratio? any->boolean
-   ;; 3582 'numerator
-   ;; 3590 'denominator
+   ;; 3582 
+   'numerator ratio->number
+   ;; 3590 
+   'denominator ratio->number
    ;; 3598
    'decimal? any->boolean
    ;; 3604

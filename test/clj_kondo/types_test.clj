@@ -1167,6 +1167,39 @@
        '({:row 1 :col 13 :message "Expected: function, received: positive integer."})
        (lint! "(repeatedly 10)" config)))))
 
+(deftest numerator-denominator-test
+  (testing "Valid usages with ratio"
+    (is (empty? (lint! "(numerator 1/2)" config)) 
+        "Valid numerator call with ratio")
+    (is (empty? (lint! "(denominator 1/2)" config))
+        "Valid denominator call with ratio")
+    (is (empty? (lint! "(numerator 3/5)" config))
+        "Valid numerator call with ratio")
+    (is (empty? (lint! "(denominator 3/5)" config))
+        "Valid denominator call with ratio")
+    (testing "Division results are :number type, which could be :ratio, so no warning"
+      (is (empty? (lint! "(numerator (/ 1 2))" config))
+          "Division could produce ratio")
+      (is (empty? (lint! "(denominator (/ 3 5))" config))
+          "Division could produce ratio")
+      (is (empty? (lint! "(numerator (/ 1 1))" config))
+          "Division type is :number which includes :ratio.")
+      (is (empty? (lint! "(denominator (/ 2 2))" config))
+          "Division type is :number which includes :ratio")))
+  (testing "Invalid usages with non-ratio numbers"
+    (assert-submaps2
+     '({:row 1 :col 12 :message "Expected: ratio, received: positive integer."})
+     (lint! "(numerator 42)" config))
+    (assert-submaps2
+     '({:row 1 :col 14 :message "Expected: ratio, received: positive integer."})
+     (lint! "(denominator 42)" config))
+    (assert-submaps2
+     '({:row 1 :col 12 :message "Expected: ratio, received: string."})
+     (lint! "(numerator \"foo\")" config))
+    (assert-submaps2
+     '({:row 1 :col 14 :message "Expected: ratio, received: double."})
+     (lint! "(denominator 3.14)" config))))
+
 (deftest ex-info-test
   (is (empty? (lint! "(ex-info \"hello\" nil) (ex-info \"hello\" nil nil) (ex-info nil nil nil)" config))))
 
