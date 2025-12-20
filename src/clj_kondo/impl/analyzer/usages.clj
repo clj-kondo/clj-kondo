@@ -106,11 +106,10 @@
                         ns-sym)
         resolved (or resolved-ns ns-sym)]
     (when resolved-ns
-      (when-let [resolved-ns (get (:qualify-ns the-ns) ns-sym)]
-        (namespace/reg-used-alias! ctx ns-name ns-sym)
-        (namespace/reg-used-namespace! ctx
-                                       ns-name
-                                       resolved-ns)))
+      (when aliased? (namespace/reg-used-alias! ctx ns-name ns-sym))
+      (namespace/reg-used-namespace! ctx
+                                     ns-name
+                                     resolved-ns))
     (when-not resolved-ns
       (namespace/reg-unresolved-namespace! ctx
                                            ns-name
