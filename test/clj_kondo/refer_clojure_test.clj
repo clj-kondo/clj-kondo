@@ -1,11 +1,11 @@
 (ns clj-kondo.refer-clojure-test
   (:require
-   [clj-kondo.test-utils :refer [assert-submaps lint!]]
+   [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
 
 (deftest refer-clojure-exclude-test
   (testing "clj"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 35
@@ -15,7 +15,7 @@
   (testing "clj valid"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map]))"))))
   (testing "cljs"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 35
@@ -37,7 +37,7 @@
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [future map]))"
                        "--lang" "cljc"))))
   (testing "cljc invalid in clj and cljs"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 35
@@ -53,7 +53,7 @@
 
 (deftest refer-clojure-multiple-exclude-test
   (testing "multiple vars with some valid and some invalid"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 35
@@ -66,7 +66,7 @@
         :message "The var bar does not exist in clojure.core"})
      (lint! "(ns foo (:refer-clojure :exclude [foo map bar filter]))")))
   (testing "multiple vars across multiple lines"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 2
         :col 29
@@ -81,7 +81,7 @@
   (:refer-clojure :exclude [invalid-var map
                             another-bad filter]))")))
   (testing "cljs multiple vars with mix of valid and invalid"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 35
@@ -105,7 +105,7 @@
                        {:linters {:refer-clojure-exclude-non-existing-var
                                   {:level :off}}}))))
   (testing "linter disabled in specific namespace with config-in-ns"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 35
