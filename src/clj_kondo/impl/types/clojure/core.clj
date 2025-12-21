@@ -23,6 +23,9 @@
 
 (def any->boolean {:arities {1 {:ret :boolean}}})
 
+(def ratio->number {:arities {1 {:args [:ratio]
+                                 :ret :number}}})
+
 
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
@@ -688,8 +691,10 @@
    ;; 3566 'mod
    ;; 3576
    'ratio? any->boolean
-   ;; 3582 'numerator
-   ;; 3590 'denominator
+   ;; 3582 
+   'numerator ratio->number
+   ;; 3590 
+   'denominator ratio->number
    ;; 3598
    'decimal? any->boolean
    ;; 3604
@@ -784,10 +789,10 @@
    ;; 4745 'prn-str
    ;; 4754 'print-str
    ;; 4763 'println-str
-   ;; 4794 'ex-info
-   'ex-info {:arities {2 {:args [:nilable/string :map]
+   ;; 4794
+   'ex-info {:arities {2 {:args [:nilable/string :nilable/map]
                           :ret :throwable}
-                       3 {:args [:nilable/string :map :any]
+                       3 {:args [:nilable/string :nilable/map :any]
                           :ret :throwable}}}
    ;; 4803 'ex-data
    ;; 4800 'ex-message
