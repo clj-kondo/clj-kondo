@@ -3962,6 +3962,4 @@ x"
   (redundant-let-test)
   (redundant-do-test)
   (exit-code-test)
-  (t/run-tests)
-  
-  (lint! (io/file "corpus" "spec")))
+  (t/run-tests))
