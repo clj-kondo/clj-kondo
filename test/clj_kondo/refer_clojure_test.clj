@@ -120,60 +120,59 @@
                        {:level :warning}}}))))
 
 (deftest refer-clojure-special-symbol-test
-  (testing "special symbols are valid in clj"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [def]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [if]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [let]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [fn]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [do]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [quote]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [var]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [recur]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [throw]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [try]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [catch]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [finally]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [new]))")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [set!]))"))))
-  (testing "special symbols are valid in cljs"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [def]))"
-                       "--lang" "cljs")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [if]))"
-                       "--lang" "cljs")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [let]))"
-                       "--lang" "cljs")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [fn]))"
-                       "--lang" "cljs")))
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [do]))"
-                       "--lang" "cljs"))))
-  (testing "special symbols are valid in cljc"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [def if let fn]))"
-                       "--lang" "cljc"))))
-  (testing "multiple special symbols"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [def if let fn do quote var recur]))"))))
+  (testing "special symbols warn in clj"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 35
+        :level :warning
+        :message "The var def does not exist in clojure.core"})
+     (lint! "(ns foo (:refer-clojure :exclude [def]))")))
+  (testing "special symbols warn in cljs"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 35
+        :level :warning
+        :message "The var def does not exist in cljs.core"})
+     (lint! "(ns foo (:refer-clojure :exclude [def]))"
+            "--lang" "cljs")))
+  (testing "special symbols warn in cljc"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 35
+        :level :warning
+        :message "The var def does not exist in cljs.core"}
+       {:file "<stdin>"
+        :row 1
+        :col 35
+        :level :warning
+        :message "The var def does not exist in clojure.core"})
+     (lint! "(ns foo (:refer-clojure :exclude [def]))"
+            "--lang" "cljc")))
   (testing "mix of special symbols and regular core symbols"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [def map if filter let]))")))))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 35
+        :level :warning
+        :message "The var def does not exist in clojure.core"}
+       {:file "<stdin>"
+        :row 1
+        :col 43
+        :level :warning
+        :message "The var if does not exist in clojure.core"})
+     (lint! "(ns foo (:refer-clojure :exclude [def map if filter]))"))))
 
 (deftest refer-clojure-special-forms-test
-  (testing ".. (member access) is valid as special-form in clj"
+  (testing ".. is valid in clj"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"))))
-  (testing "special-forms set symbols are valid in clj"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [loop]))"))))
-  (testing ".. (member access) is valid as special-form in cljs"
+  (testing "special-forms are valid in cljs"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"
                        "--lang" "cljs"))))
-  (testing "special-forms set symbols are valid in cljs"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [loop]))"
-                       "--lang" "cljs"))))
-  (testing ".. (member access) is valid as special-form in cljc"
+  (testing "special-forms are valid in cljc"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"
                        "--lang" "cljc"))))
-  (testing "special-forms set symbols are valid in cljc"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. loop]))"
-                       "--lang" "cljc"))))
-  (testing "symbols in both special-symbol? and special-forms"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [let fn]))"))))
   (testing "mix of special-forms and regular core symbols"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. map loop filter]))"))))
-  (testing "all special-forms together"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. let fn loop]))")))))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. map loop filter]))")))))

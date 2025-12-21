@@ -174,7 +174,22 @@
      {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
      {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
    (lint! (io/file "corpus" "cljc")))
-  (assert-submaps '({:file "corpus/spec/alpha.cljs",
+  (assert-submaps2 '({:file "corpus/spec/alpha.cljc"
+                      :row 2
+                      :col 29
+                      :level :warning
+                      :message "The var def does not exist in cljs.core"}
+                     {:file "corpus/spec/alpha.cljc"
+                      :row 2
+                      :col 29
+                      :level :warning
+                      :message "The var def does not exist in clojure.core"}
+                     {:file "corpus/spec/alpha.cljs"
+                      :row 2
+                      :col 29
+                      :level :warning
+                      :message "The var def does not exist in cljs.core"}
+                    {:file "corpus/spec/alpha.cljs",
                      :row 6,
                      :col 1,
                      :level :error,
@@ -3947,4 +3962,6 @@ x"
   (redundant-let-test)
   (redundant-do-test)
   (exit-code-test)
-  (t/run-tests))
+  (t/run-tests)
+  
+  (lint! (io/file "corpus" "spec")))
