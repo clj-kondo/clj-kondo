@@ -465,9 +465,12 @@
 
 (defn- lint-refer-clojure-vars [{:keys [filename lang] :as ctx} excluded-vars]
   (letfn [(exists-in-core?  [excluded-var lang]
-            (if (= :cljc (:base-lang ctx))
-              (some #(core-sym? % excluded-var) [:clj :cljs])
-              (core-sym? lang excluded-var)))]
+            (or
+             (special-symbol? excluded-var)
+             (contains? special-forms excluded-var)
+             (if (= :cljc (:base-lang ctx))
+               (some #(core-sym? % excluded-var) [:clj :cljs])
+               (core-sym? lang excluded-var))))]
     (when-not (linter-disabled? ctx :refer-clojure-exclude-non-existing-var)
       (doseq [excluded-var excluded-vars
               :when (not (exists-in-core? excluded-var lang))]
