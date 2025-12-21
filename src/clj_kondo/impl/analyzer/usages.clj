@@ -55,8 +55,8 @@
          ns-name (:name ns)
          keyword-val (:k expr)]
      (when (:analyze-keywords? ctx)
-       (let [{:keys [:destructuring-expr :keys-destructuring?
-                     :keys-destructuring-ns-modifier?]} opts
+       (let [{:keys [destructuring-expr keys-destructuring?
+                     keys-destructuring-ns-modifier?]} opts
              current-ns (some-> ns-name symbol)
              destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr
                                                                      current-ns))
@@ -98,15 +98,22 @@
         the-ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)
         ns-keyword (-> expr :ns :k)
         ns-sym (kw->sym ns-keyword)
+        ns-sym (if (= '__current-ns__ ns-sym)
+                 (-> ctx :ns :name)
+                 ns-sym)
         aliased? (:aliased? expr)
-        resolved-ns (when aliased? (get (:qualify-ns the-ns) ns-sym))
+        resolved-ns (if aliased? (get (:qualify-ns the-ns) ns-sym)
+                        ns-sym)
         resolved (or resolved-ns ns-sym)]
     (when resolved-ns
-      (when-let [resolved-ns (get (:qualify-ns the-ns) ns-sym)]
-        (namespace/reg-used-alias! ctx ns-name ns-sym)
-        (namespace/reg-used-namespace! ctx
-                                       ns-name
-                                       resolved-ns)))
+      (when aliased? (namespace/reg-used-alias! ctx ns-name ns-sym))
+      (namespace/reg-used-namespace! ctx
+                                     ns-name
+                                     resolved-ns))
+    (when-not resolved-ns
+      (namespace/reg-unresolved-namespace! ctx
+                                           ns-name
+                                           (with-meta ns-sym (meta expr))))
     (let [children (:children m)
           keys (take-nth 2 children)
           vals (take-nth 2 (rest children))
@@ -119,7 +126,7 @@
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
-  ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
+  ([ctx expr {:keys [quote? syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
@@ -327,3 +334,4 @@
                      #(analyze-usages2 ctx %
                                        (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                      (:children expr))))))))))
+

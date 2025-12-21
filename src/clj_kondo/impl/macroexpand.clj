@@ -171,9 +171,9 @@
     {:varargs? varargs?
      :args args}))
 
-(defn expand-fn [{:keys [:children] :as expr}]
-  (let [{:keys [:row :col] :as m} (meta expr)
-        {:keys [:args :varargs?]} (fn-args children)
+(defn expand-fn [{:keys [children] :as expr}]
+  (let [{:keys [row col] :as m} (meta expr)
+        {:keys [args varargs?]} (fn-args children)
         fn-body (with-meta (list-node children)
                   (assoc m
                          :row row

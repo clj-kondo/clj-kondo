@@ -229,12 +229,12 @@
     (when (symbol? ?sym)
       ?sym)))
 
-(defn map-node-vals [{:keys [:children]}]
+(defn map-node-vals [{:keys [children]}]
   (take-nth 2 (rest children)))
 
 (defn map-node-get-value-node
   "Return value node from map node matching given keyword `kw`"
-  [{:keys [:children]} kw]
+  [{:keys [children]} kw]
   (loop [kvs (partition 2 children)]
     (let [kv (first kvs)]
       (cond
@@ -365,7 +365,7 @@
                   (when unresolved?
                     (some #(resolve-call* idacs call % fn-name)
                           (into (vec
-                                 (keep (fn [[ns {:keys [:excluded]}]]
+                                 (keep (fn [[ns {:keys [excluded]}]]
                                          (when-not (contains? excluded fn-name)
                                            ns))
                                        refer-alls))
