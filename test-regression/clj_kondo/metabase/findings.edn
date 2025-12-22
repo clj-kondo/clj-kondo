@@ -1,5 +1,5 @@
 [{:end-row 8,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/analytics/prometheus.clj",
@@ -339,7 +339,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
  {:end-row 2,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -351,7 +351,7 @@
   :message "The var var does not exist in cljs.core",
   :row 2}
  {:end-row 2,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :clj,
   :filename
@@ -363,7 +363,7 @@
   :message "The var var does not exist in clojure.core",
   :row 2}
  {:end-row 5,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -375,7 +375,7 @@
   :message "The var var does not exist in cljs.core",
   :row 5}
  {:end-row 5,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :clj,
   :filename
@@ -387,7 +387,7 @@
   :message "The var var does not exist in clojure.core",
   :row 5}
  {:end-row 2,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -399,7 +399,7 @@
   :message "The var coalesce does not exist in cljs.core",
   :row 2}
  {:end-row 2,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :clj,
   :filename
@@ -725,7 +725,7 @@
   :message "Unquote-splicing (~@) not syntax-quoted",
   :row 243}
  {:end-row 2,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -737,7 +737,7 @@
   :message "The var def does not exist in cljs.core",
   :row 2}
  {:end-row 2,
-  :type :refer-clojure-exclude-non-existing-var,
+  :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :clj,
   :filename

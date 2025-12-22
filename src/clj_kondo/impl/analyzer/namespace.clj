@@ -468,13 +468,13 @@
             (if (= :cljc (:base-lang ctx))
               (some #(core-sym? % excluded-var) [:clj :cljs])
               (core-sym? lang excluded-var)))]
-    (when-not (linter-disabled? ctx :refer-clojure-exclude-non-existing-var)
+    (when-not (linter-disabled? ctx :refer-clojure-exclude-unresolved-var)
       (doseq [excluded-var excluded-vars
               :when (not (exists-in-core? excluded-var lang))]
         (findings/reg-finding!
          ctx
          (node->line filename excluded-var
-                     :refer-clojure-exclude-non-existing-var
+                     :refer-clojure-exclude-unresolved-var
                      (format "The var %s does not exist in %s"
                              excluded-var
                              (case lang

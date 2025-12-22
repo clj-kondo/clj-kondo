@@ -98,11 +98,11 @@
 (deftest refer-clojure-disabled-test
   (testing "linter disabled via config"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [nonexistent]))"
-                       {:linters {:refer-clojure-exclude-non-existing-var
+                       {:linters {:refer-clojure-exclude-unresolved-var
                                   {:level :off}}}))))
   (testing "linter disabled for specific invalid var"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [fake-var]))"
-                       {:linters {:refer-clojure-exclude-non-existing-var
+                       {:linters {:refer-clojure-exclude-unresolved-var
                                   {:level :off}}}))))
   (testing "linter disabled in specific namespace with config-in-ns"
     (assert-submaps2
@@ -114,9 +114,9 @@
      (lint! "(ns foo (:refer-clojure :exclude [nonexistent]))
 
 (ns bar
-  {:clj-kondo/config {:linters {:refer-clojure-exclude-non-existing-var {:level :off}}}}
+  {:clj-kondo/config {:linters {:refer-clojure-exclude-unresolved-var {:level :off}}}}
   (:refer-clojure :exclude [nonexistent]))"
-            {:linters {:refer-clojure-exclude-non-existing-var
+            {:linters {:refer-clojure-exclude-unresolved-var
                        {:level :info}}}))))
 
 (deftest refer-clojure-special-symbol-test
