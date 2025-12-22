@@ -612,9 +612,10 @@
             (namespace/lint-unsorted-required-namespaces! ctx imports-raw :unsorted-imports))
         imports
         (apply merge (map #(analyze-import ctx ns-name %) imports-raw))
+        sexpr-clauses (map sexpr (nnext (:children expr)))
         refer-clojure-clauses
         (apply merge-with into
-               (for [?refer-clojure (nnext (sexpr expr))
+               (for [?refer-clojure sexpr-clauses
                      :when (= :refer-clojure (first ?refer-clojure))
                      [k v] (partition 2 (rest ?refer-clojure))
                      :let [r (case k
@@ -635,7 +636,7 @@
         refer-cljs-globals
         (when (identical? :cljs lang)
           (let [refer-globals (reduce merge {}
-                                     (for [?refer-clojure (nnext (sexpr expr))
+                                     (for [?refer-clojure sexpr-clauses
                                            :when (= :refer-global (first ?refer-clojure))
                                            :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
                                        (if rename
