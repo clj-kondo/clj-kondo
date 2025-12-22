@@ -598,7 +598,7 @@
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw-node (-> ?require-clause :children first)
                                 require-kw (:k require-kw-node)
-                                require-kw (one-of require-kw [:require :require-macros :use])]
+                                require-kw (one-of require-kw [:require :require-macros :use :require-global])]
                           :when require-kw]
                       [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
@@ -632,6 +632,17 @@
                                               :name original-name}])
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
+        refer-cljs-globals
+        (when (identical? :cljs lang)
+          (let [refer-globals (reduce merge {}
+                                     (for [?refer-clojure (nnext (sexpr expr))
+                                           :when (= :refer-global (first ?refer-clojure))
+                                           :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
+                                       (if rename
+                                         (merge (set/map-invert rename) (let [onlies (apply disj (set only) (vals rename))]
+                                                                          (zipmap onlies onlies)))
+                                         (zipmap only only))))]
+            {:referred-globals refer-globals}))
         _ (when (seq (:clojure-excluded refer-clj))
             (lint-refer-clojure-vars ctx (:clojure-excluded refer-clj)))
         gen-class? (some #(= :gen-class (some-> % :children first :k)) clauses)
@@ -639,7 +650,8 @@
                         :let [valid-kw (-> clause :children first :k)
                               valid-kw (one-of valid-kw [:require :require-macros :use
                                                          :import :refer-clojure
-                                                         :load :gen-class])]
+                                                         :load :gen-class
+                                                         :require-global :refer-global])]
                         :when (not valid-kw)]
                     clause)
         _ (when (seq leftovers)
@@ -651,7 +663,8 @@
                           :deprecated deprecated)
                    (merge-with into
                                analyzed-require-clauses
-                               refer-clj))
+                               refer-clj
+                               refer-cljs-globals))
              (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))

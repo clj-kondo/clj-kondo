@@ -12433,16 +12433,6 @@
   :langs (),
   :message "Unresolved symbol: with-pprint-dispatch",
   :row 3226}
- {:end-row 10,
-  :type :unknown-ns-option,
-  :level :warning,
-  :filename "cljs/proxy.cljs",
-  :col 3,
-  :end-col 45,
-  :langs (),
-  :message
-  "Unknown ns option: (:refer-global :only [isNaN Proxy Symbol])",
-  :row 10}
  {:end-row 55,
   :type :unused-binding,
   :level :warning,
@@ -12461,15 +12451,6 @@
   :langs (),
   :message "unused binding receiver",
   :row 60}
- {:end-row 73,
-  :type :unresolved-symbol,
-  :level :error,
-  :filename "cljs/proxy.cljs",
-  :col 56,
-  :end-col 61,
-  :langs (),
-  :message "Unresolved symbol: isNaN",
-  :row 73}
  {:end-row 90,
   :type :unused-binding,
   :level :warning,
@@ -12542,15 +12523,6 @@
   :langs (),
   :message "unused binding prop",
   :row 114}
- {:end-row 117,
-  :type :unresolved-symbol,
-  :level :error,
-  :filename "cljs/proxy.cljs",
-  :col 48,
-  :end-col 54,
-  :langs (),
-  :message "Unresolved symbol: Proxy",
-  :row 117}
  {:end-row 138,
   :type :unused-binding,
   :level :warning,

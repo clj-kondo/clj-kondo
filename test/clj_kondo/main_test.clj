@@ -3955,6 +3955,17 @@ x"
    '[{:file "<stdin>", :row 1, :col 27, :level :error, :message "Unresolved symbol: x"}]
    (lint! "(defstruct Dude :foo :bar x) Dude" {:linters {:unresolved-symbol {:level :error}}})))
 
+(deftest issue-2687-test
+  (is (empty? (lint! "(ns foo (:require-global [Dude :as b])) (b/dude) b (new b)"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:refer-global :only [String])) String String/new (String/.length \"foo\")"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str Str/new (Str/.length \"foo\")"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs"))))
+
 ;;;; Scratch
 
 (comment
