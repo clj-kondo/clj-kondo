@@ -90,6 +90,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant let binding](#redundant-let-binding)
     - [Redundant str call](#redundant-str-call)
     - [Refer](#refer)
+    - [Refer clojure exclude non existing var](#refer-clojure-exclude-unresolved-var)
     - [Refer all](#refer-all)
     - [Schema misplaced return](#schema-misplaced-return)
     - [Self-requiring namespace](#self-requiring-namespace)
@@ -1615,6 +1616,18 @@ Example warning: `require with :refer`.
 ```clojure
 {:linters {:refer {:exclude [clojure.set]}}}
 ```
+
+### Refer clojure exclude non existing var
+
+*Keyword:* `:refer-clojure-exclude-unresolved-var`.
+
+*Description:* warns when `:refer-clojure :exclude` contains vars that do not exist in clojure.core or cljs.core.
+
+*Default level:* `:info`.
+
+*Example trigger:* `(ns foo (:refer-clojure :exclude [nonexistent-var]))`
+
+*Example message:* `The var nonexistent-var does not exist in clojure.core`.
 
 ### Refer all
 
