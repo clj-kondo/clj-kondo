@@ -729,7 +729,9 @@
                                              name* (symbol (last splitted))]
                                          [name*
                                           package]))))
-                               (find (:imports ns) ns-sym))]
+                               (find (:imports ns) ns-sym)
+                               (when cljs?
+                                 (find (:referred-globals ns) ns-sym)))]
                   (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
                   (when call? (findings/warn-reflection ctx expr))
                   {:interop? true
@@ -804,19 +806,15 @@
                            (if cljs?
                              ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                              (let [fs (first-segment name-sym)]
-                               (find (:imports ns) fs))
+                               (or (find (:imports ns) fs)
+                                   (when cljs?
+                                     (find (:referred-globals ns) fs))))
                              (find (:imports ns) name-sym)))]
               (reg-used-import! ctx name-sym ns-name package name-sym* expr {:call call?})
               (when call? (findings/warn-reflection ctx expr))
               {:ns package
                :interop? true
                :name name-sym*})
-            (when cljs?
-              (when-let [ns* (get (:qualify-ns ns) name-sym)]
-                (when (some-> (meta ns*) :raw-name string?)
-                  (reg-used-alias! ctx ns-name name-sym)
-                  {:ns ns*
-                   :name name-sym})))
             (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                                name-sym)]
               (if (or
@@ -831,20 +829,25 @@
                        :cljs 'cljs.core)
                  :name name-sym
                  :resolved-core? true}
-                (let [referred-all-ns (some (fn [[k {:keys [excluded]}]]
-                                              (when-not (contains? excluded name-sym)
-                                                k))
-                                            (:refer-alls ns))]
-                  (if (and (not referred-all-ns)
-                           (class-name? name-sym))
-                    (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
-                        (when call? (findings/warn-reflection ctx expr))
-                        {:interop? true})
-                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                     :name (or (::original-name ctx) name-sym)
-                     :unresolved? true
-                     :allow-forward-reference? (:in-comment ctx)
-                     :clojure-excluded? clojure-excluded?})))))))))))
+                (or (when cljs?
+                      (when-let [ns* (get (:qualify-ns ns) name-sym)]
+                        (reg-used-alias! ctx ns-name name-sym)
+                        {:ns ns*
+                         :name name-sym}))
+                    (let [referred-all-ns (some (fn [[k {:keys [excluded]}]]
+                                                  (when-not (contains? excluded name-sym)
+                                                    k))
+                                                (:refer-alls ns))]
+                      (if (and (not referred-all-ns)
+                               (class-name? name-sym))
+                        (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
+                            (when call? (findings/warn-reflection ctx expr))
+                            {:interop? true})
+                        {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                         :name (or (::original-name ctx) name-sym)
+                         :unresolved? true
+                         :allow-forward-reference? (:in-comment ctx)
+                         :clojure-excluded? clojure-excluded?}))))))))))))
 
 #_
 (do
