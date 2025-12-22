@@ -639,7 +639,7 @@
                                            :when (= :refer-global (first ?refer-clojure))
                                            :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
                                        (if rename
-                                         (merge (set/map-invert rename) (let [onlies (apply disj (set only) (vals rename))]
+                                         (merge (set/map-invert rename) (let [onlies (remove rename only)]
                                                                           (zipmap onlies onlies)))
                                          (zipmap only only))))]
             {:referred-globals refer-globals}))

@@ -3964,7 +3964,15 @@ x"
                      "--lang" "cljs")))
   (is (empty? (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str Str/new (Str/.length \"foo\")"
                      {:linters {:unresolved-symbol {:level :error}}}
-                     "--lang" "cljs"))))
+                     "--lang" "cljs")))
+  (assert-submaps2 [{:file "<stdin>",
+                     :row 1,
+                     :col 66,
+                     :level :error,
+                     :message "Unresolved symbol: String"}]
+                   (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str String"
+                          {:linters {:unresolved-symbol {:level :error}}}
+                          "--lang" "cljs")))
 
 ;;;; Scratch
 
