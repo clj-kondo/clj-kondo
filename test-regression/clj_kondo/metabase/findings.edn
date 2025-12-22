@@ -1,6 +1,6 @@
 [{:end-row 8,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/analytics/prometheus.clj",
   :col 29,
@@ -340,7 +340,7 @@
   :row 189}
  {:end-row 2,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/aggregation.cljc",
@@ -352,7 +352,7 @@
   :row 2}
  {:end-row 2,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/aggregation.cljc",
@@ -364,7 +364,7 @@
   :row 2}
  {:end-row 5,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
@@ -376,7 +376,7 @@
   :row 5}
  {:end-row 5,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
@@ -388,7 +388,7 @@
   :row 5}
  {:end-row 2,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
@@ -400,7 +400,7 @@
   :row 2}
  {:end-row 2,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
@@ -726,7 +726,7 @@
   :row 243}
  {:end-row 2,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
@@ -738,7 +738,7 @@
   :row 2}
  {:end-row 2,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",

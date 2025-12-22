@@ -3420,7 +3420,7 @@
   :row 1847}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
   :col 78,
@@ -3431,7 +3431,7 @@
   :row 10}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "cljs/core.cljc",
   :col 78,
@@ -3442,7 +3442,7 @@
   :row 10}
  {:end-row 27,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
   :col 29,
@@ -3453,7 +3453,7 @@
   :row 27}
  {:end-row 27,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "cljs/core.cljc",
   :col 29,
@@ -3464,7 +3464,7 @@
   :row 27}
  {:end-row 40,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
   :col 38,
@@ -3475,7 +3475,7 @@
   :row 40}
  {:end-row 40,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "cljs/core.cljc",
   :col 38,
@@ -3486,7 +3486,7 @@
   :row 40}
  {:end-row 45,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
   :col 40,
@@ -3497,7 +3497,7 @@
   :row 45}
  {:end-row 45,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
   :col 51,
@@ -3508,7 +3508,7 @@
   :row 45}
  {:end-row 45,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
   :col 64,
@@ -8967,7 +8967,7 @@
   :row 16}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core/server.clj",
   :col 43,
   :end-col 53,
@@ -8976,7 +8976,7 @@
   :row 10}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core/server.clj",
   :col 54,
   :end-col 59,
@@ -8985,7 +8985,7 @@
   :row 10}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core/server.clj",
   :col 60,
   :end-col 68,
@@ -12527,7 +12527,7 @@
   :row 53}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "cljs/spec/alpha.cljc",
   :col 44,
@@ -12538,7 +12538,7 @@
   :row 10}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "cljs/spec/alpha.cljc",
   :col 44,
@@ -12616,7 +12616,7 @@
   :row 544}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 44,
   :end-col 47,
@@ -12865,7 +12865,7 @@
   :row 14}
  {:end-row 11,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/gen/alpha.cljs",
   :col 60,
   :end-col 66,
@@ -13620,7 +13620,7 @@
   :row 553}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 29,
   :end-col 33,
@@ -13629,7 +13629,7 @@
   :row 12}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 34,
   :end-col 43,
@@ -13638,7 +13638,7 @@
   :row 12}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 44,
   :end-col 55,
@@ -13647,7 +13647,7 @@
   :row 12}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 61,
   :end-col 72,
@@ -13656,7 +13656,7 @@
   :row 12}
  {:end-row 13,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 29,
   :end-col 49,
@@ -13665,7 +13665,7 @@
   :row 13}
  {:end-row 13,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 50,
   :end-col 74,
@@ -13675,7 +13675,7 @@
   :row 13}
  {:end-row 14,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 29,
   :end-col 43,
@@ -13684,7 +13684,7 @@
   :row 14}
  {:end-row 14,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 44,
   :end-col 59,
@@ -13962,7 +13962,7 @@
   :row 910}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader/edn.cljs",
   :col 29,
   :end-col 33,
@@ -13971,7 +13971,7 @@
   :row 12}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader/edn.cljs",
   :col 34,
   :end-col 45,
@@ -13980,7 +13980,7 @@
   :row 12}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader/edn.cljs",
   :col 51,
   :end-col 71,
@@ -14327,7 +14327,7 @@
   :row 39}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/tools/reader/reader_types.cljs",
   :col 34,
   :end-col 43,
@@ -21194,7 +21194,7 @@
   :row 148}
  {:end-row 17,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/spec/alpha.clj",
   :col 51,
   :end-col 54,
@@ -21438,7 +21438,7 @@
   :row 1751}
  {:end-row 11,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/spec/gen/alpha.clj",
   :col 62,
   :end-col 68,
@@ -21447,7 +21447,7 @@
   :row 11}
  {:end-row 11,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/spec/gen/alpha.clj",
   :col 69,
   :end-col 73,
@@ -24516,7 +24516,7 @@
   :row 170}
  {:end-row 11,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 29,
@@ -24526,7 +24526,7 @@
   :row 11}
  {:end-row 11,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 34,
@@ -24536,7 +24536,7 @@
   :row 11}
  {:end-row 11,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 44,
@@ -24546,7 +24546,7 @@
   :row 11}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 29,
@@ -24556,7 +24556,7 @@
   :row 12}
  {:end-row 12,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 50,
@@ -24567,7 +24567,7 @@
   :row 12}
  {:end-row 13,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 29,
@@ -24577,7 +24577,7 @@
   :row 13}
  {:end-row 13,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
   :col 44,
@@ -24887,7 +24887,7 @@
   :row 904}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
   :col 29,
@@ -24897,7 +24897,7 @@
   :row 10}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
   :col 34,
@@ -24907,7 +24907,7 @@
   :row 10}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
   :col 51,
@@ -25338,7 +25338,7 @@
   :row 39}
  {:end-row 10,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/reader_types.cljs",
   :col 34,
@@ -28148,7 +28148,7 @@
   :row 94}
  {:end-row 5,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "sci/core.cljc",
   :col 49,
@@ -28159,7 +28159,7 @@
   :row 5}
  {:end-row 5,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "sci/core.cljc",
   :col 49,
@@ -28170,7 +28170,7 @@
   :row 5}
  {:end-row 4,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "sci/impl/analyzer.cljc",
   :col 53,
@@ -28181,7 +28181,7 @@
   :row 4}
  {:end-row 4,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "sci/impl/analyzer.cljc",
   :col 53,
@@ -28400,7 +28400,7 @@
   :row 263}
  {:end-row 3,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :cljs,
   :filename "sci/impl/test.cljc",
   :col 53,
@@ -28411,7 +28411,7 @@
   :row 3}
  {:end-row 3,
   :type :refer-clojure-exclude-non-existing-var,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename "sci/impl/test.cljc",
   :col 53,

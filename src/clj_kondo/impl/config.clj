@@ -96,7 +96,7 @@
                       #_[clojure.test]}
               :refer-all {:level :warning
                           :exclude #{}}
-              :refer-clojure-exclude-non-existing-var {:level :warning}
+              :refer-clojure-exclude-non-existing-var {:level :info}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
               :if-nil-return {:level :off}

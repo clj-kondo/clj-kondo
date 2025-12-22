@@ -1623,7 +1623,7 @@ Example warning: `require with :refer`.
 
 *Description:* warns when `:refer-clojure :exclude` contains vars that do not exist in clojure.core or cljs.core.
 
-*Default level:* `:warning`.
+*Default level:* `:info`.
 
 *Example trigger:* `(ns foo (:refer-clojure :exclude [nonexistent-var]))`
 

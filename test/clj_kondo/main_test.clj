@@ -177,17 +177,17 @@
   (assert-submaps2 '({:file "corpus/spec/alpha.cljc"
                       :row 2
                       :col 29
-                      :level :warning
+                      :level :info
                       :message "The var def does not exist in cljs.core"}
                      {:file "corpus/spec/alpha.cljc"
                       :row 2
                       :col 29
-                      :level :warning
+                      :level :info
                       :message "The var def does not exist in clojure.core"}
                      {:file "corpus/spec/alpha.cljs"
                       :row 2
                       :col 29
-                      :level :warning
+                      :level :info
                       :message "The var def does not exist in cljs.core"}
                     {:file "corpus/spec/alpha.cljs",
                      :row 6,
