@@ -24,6 +24,8 @@
      (lint! "(ns foo (:refer-clojure :exclude [future]))"
             "--lang" "cljs")))
   (testing "cljs valid"
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [munge-str]))" "--lang" "cljs"))))
+  (testing "cljs valid"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [js-obj]))"
                        "--lang" "cljs"))))
   (testing "cljc valid in clj and cljs"

@@ -38,6 +38,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Add `:ratio` type support for `numerator` and `denominator` functions ([@jramosg](https://github.com/jramosg))
 - [#2676](https://github.com/clj-kondo/clj-kondo/issues/2676): Report unresolved namespace for namespaced maps with unknown aliases ([@jramosg](https://github.com/jramosg))
 - [#2683](https://github.com/clj-kondo/clj-kondo/issues/2683): data argument of `ex-info` may be nil since clojure 1.12
+- Bump built-in ClojureScript analysis info
 
 ## 2025.10.23
 
