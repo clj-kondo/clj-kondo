@@ -1380,7 +1380,7 @@
                                         :type type))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (or def-init
-      ;; this was something else than core/def
+        ;; this was something else than core/def
         (analyze-children ctx children))))
 
 (declare analyze-defrecord)
@@ -1934,9 +1934,9 @@
         condition (first children)
         body (next children)]
     (analyze-condition
-      ;; avoid redundant do check for condition
-      (update ctx :callstack conj nil)
-      condition)
+     ;; avoid redundant do check for condition
+     (update ctx :callstack conj nil)
+     condition)
     (if-not (seq body)
       (findings/reg-finding!
        ctx
@@ -3607,27 +3607,27 @@
                                                  (fs/file-name))))
                                  (lint-config/lint-config ctx (first (:children parsed))))
                   nil))
-              (when-let [cfg-dir (-> ctx :config :cfg-dir)]
-                (when-let [main-ns @(:main-ns ctx)]
-                  (let [configs (-> ctx :inline-configs deref seq)
-                        inline-file (io/file cfg-dir "inline-configs"
-                                             (str (namespace-munge main-ns)
-                                                  (when-let [ext (fs/extension (:filename ctx))]
-                                                    (str "." ext))) "config.edn")]
-                    (if (and configs (not (false? (:auto-load-configs config))))
-                      (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                        (cache/with-thread-lock
-                          (cache/with-cache ;; lock config dir for concurrent writes
-                            cfg-dir
-                            10
-                            (binding [*print-namespace-maps* false]
-                              (spit (doto inline-file
-                                      (io/make-parents)) (apply config/merge-config! configs))))))
-                      (when (fs/exists? inline-file)
-                        (fs/delete-tree (fs/parent inline-file)))))))
-              (doseq [f line-length-findings]
-                (findings/reg-finding! ctx f))
-              nil)))
+              nil))
+          (when-let [cfg-dir (-> ctx :config :cfg-dir)]
+            (when-let [main-ns @(:main-ns ctx)]
+              (let [configs (-> ctx :inline-configs deref seq)
+                    inline-file (io/file cfg-dir "inline-configs"
+                                         (str (namespace-munge main-ns)
+                                              (when-let [ext (fs/extension (:filename ctx))]
+                                                (str "." ext))) "config.edn")]
+                (if (and configs (not (false? (:auto-load-configs config))))
+                  (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
+                    (cache/with-thread-lock
+                      (cache/with-cache ;; lock config dir for concurrent writes
+                          cfg-dir
+                          10
+                        (binding [*print-namespace-maps* false]
+                          (spit (doto inline-file
+                                  (io/make-parents)) (apply config/merge-config! configs))))))
+                  (when (fs/exists? inline-file)
+                    (fs/delete-tree (fs/parent inline-file)))))))
+          (doseq [f line-length-findings]
+            (findings/reg-finding! ctx f)))
         (catch Exception e
           (if dev?
             (throw e)

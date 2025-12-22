@@ -39,6 +39,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2683](https://github.com/clj-kondo/clj-kondo/issues/2683): data argument of `ex-info` may be nil since clojure 1.12
 - Bump built-in ClojureScript analysis info
 - Fix [#2687](https://github.com/clj-kondo/clj-kondo/issues/2687): support new `:refer-global` and `:require-global` ns options in CLJS
+- Fix [#2544](https://github.com/clj-kondo/clj-kondo/issues/2544): support inline configs in `.cljc` files
 
 ## 2025.10.23
 
