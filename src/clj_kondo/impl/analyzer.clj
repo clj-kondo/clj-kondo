@@ -3128,6 +3128,27 @@
 
 #_(requiring-resolve 'clojure.set/union)
 
+(defn analyze-non-symbol-function [ctx children t function]
+  (cond
+    (utils/boolean-token? function)
+    (do (reg-not-a-function! ctx function "boolean")
+        (analyze-children (update ctx :callstack conj [nil t])
+                          (rest children)))
+    (utils/string-from-token function)
+    (do (reg-not-a-function! ctx function "string")
+        (analyze-children (update ctx :callstack conj [nil t])
+                          (rest children)))
+    (utils/char-token? function)
+    (do (reg-not-a-function! ctx function "character")
+        (analyze-children (update ctx :callstack conj [nil t])
+                          (rest children)))
+    (utils/number-token? function)
+    (do (reg-not-a-function! ctx function "number")
+        (analyze-children (update ctx :callstack conj [nil t])
+                          (rest children)))
+
+    :else false))
+
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
@@ -3285,12 +3306,16 @@
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (types/add-arg-type-from-expr ctx expr)
-                  (if (utils/symbol-token? quoted-child)
-                    (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children (update ctx :callstack conj [nil t])
-                                          children))
-                    (analyze-children (update ctx :callstack conj [nil t])
-                                      children)))
+                  (cond (utils/symbol-token? quoted-child)
+                        (lint-symbol-call! ctx quoted-child arg-count expr)
+
+                        (identical? :list (:tag quoted-child))
+                        (reg-not-a-function! ctx quoted-child "list")
+
+                        :else
+                        (analyze-non-symbol-function ctx children t quoted-child))
+                  (analyze-children (update ctx :callstack conj [nil t])
+                                    children))
                 (:vector :set)
                 (do (lint-vector-or-set-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
@@ -3339,27 +3364,9 @@
                             (types/add-arg-type-from-call ctx maybe-call expr)
                             (types/add-arg-type-from-expr ctx expr))
                           ret)))
-                    (cond
-                      (utils/boolean-token? function)
-                      (do (reg-not-a-function! ctx expr "boolean")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      (utils/string-from-token function)
-                      (do (reg-not-a-function! ctx expr "string")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      (utils/char-token? function)
-                      (do (reg-not-a-function! ctx expr "character")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      (utils/number-token? function)
-                      (do (reg-not-a-function! ctx expr "number")
-                          (analyze-children (update ctx :callstack conj [nil t])
-                                            (rest children)))
-                      :else
-                      (do
-                        (types/add-arg-type-from-expr (update ctx :callstack conj [nil t]) expr)
-                        (analyze-children ctx children)))))
+                    (when (false? (analyze-non-symbol-function ctx children t function))
+                      (types/add-arg-type-from-expr (update ctx :callstack conj [nil t]) expr)
+                      (analyze-children ctx children))))
                 ;; catch-all
                 (do
                   (types/add-arg-type-from-expr ctx expr)
