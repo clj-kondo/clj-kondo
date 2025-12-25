@@ -108,6 +108,7 @@
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
+   :set #{:sorted-set}
    :ideref #{:atom :var :ifn}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
               :vector :sequential :stack}})
