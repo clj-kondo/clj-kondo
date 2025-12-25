@@ -2460,7 +2460,20 @@
             expr-meta (meta expr)
             resolved-var-sym (symbol (str resolved-namespace) (str resolved-name))
             cfg (when-let [in-call-cfg (:config-in-call config)]
-                  (get in-call-cfg resolved-var-sym))
+                  (or (get in-call-cfg resolved-var-sym)
+                      (when (and (or (not resolved-namespace)
+                                     (= :clj-kondo/unknown-namespace resolved-namespace))
+                                 (symbol? full-fn-name)
+                                 (not (namespace full-fn-name)))
+                        (or (get in-call-cfg full-fn-name)
+                            (let [matches (filter (fn [[k _]]
+                                                    (and (symbol? k)
+                                                         (namespace k)
+                                                         (= (name k)
+                                                            (name full-fn-name))))
+                                                  in-call-cfg)]
+                              (when (= 1 (count matches))
+                                (second (first matches))))))))
             cfg (when cfg
                   (config/expand-ignore cfg))
             ctx (if cfg
@@ -2471,14 +2484,14 @@
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
         (cond unresolved-ns
-              (let [fn-name (-> full-fn-name name symbol)]
+              (let [fn-name (-> full-fn-name name symbol)
+                    ctx (update ctx :callstack
+                                conj [:clj-kondo/unknown-namespace fn-name])]
                 (namespace/reg-unresolved-namespace! ctx ns-name
                                                      (with-meta unresolved-ns
                                                        (assoc (meta full-fn-name)
                                                               :name fn-name)))
-                (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
-                                                               fn-name])
-                                  children))
+                (analyze-children ctx children))
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
@@ -3172,12 +3185,13 @@
         (:unquote :unquote-splicing)
         (let [level (:syntax-quote-level ctx)]
           (when-not (and level (pos? level))
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) expr :unquote-not-syntax-quoted
-                         (if (= :unquote t)
-                           "Unquote (~) not syntax-quoted"
-                           "Unquote-splicing (~@) not syntax-quoted"))))
+            (when-not (linter-disabled? ctx :unquote-not-syntax-quoted)
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) expr :unquote-not-syntax-quoted
+                           (if (= :unquote t)
+                             "Unquote (~) not syntax-quoted"
+                             "Unquote-splicing (~@) not syntax-quoted")))))
           (let [new-level (if level (dec level) -1)
                 ctx (assoc ctx :syntax-quote-level new-level)]
             (analyze-children ctx children)))
