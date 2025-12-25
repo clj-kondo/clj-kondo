@@ -76,7 +76,7 @@
    :nil #{:seqable}
    :coll #{:seqable}
    :set #{:seqable :coll :ifn :ilookup}
-   :sorted-set #{:seqable :coll :ifn :ilookup}
+   :sorted-set #{:set :seqable :coll :ifn :ilookup}
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
