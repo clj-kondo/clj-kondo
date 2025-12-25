@@ -744,16 +744,6 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 45}
- {:end-row 2,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/upload/types.cljc",
-  :col 29,
-  :end-col 43,
-  :langs (),
-  :message "Unused excluded var: make-hierarchy",
-  :row 2}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,

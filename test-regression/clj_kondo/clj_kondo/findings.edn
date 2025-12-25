@@ -583,15 +583,6 @@
   :langs (),
   :message "unused binding date",
   :row 131}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/analyzer.cljc",
-  :col 38,
-  :end-col 44,
-  :langs (),
-  :message "Unused excluded var: ensure",
-  :row 10}
  {:end-row 11,
   :type :unused-excluded-var,
   :level :warning,
@@ -3169,15 +3160,6 @@
   :langs (),
   :message "Prefer placing return type hint on arg vector: String",
   :row 3334}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/compiler.cljc",
-  :col 37,
-  :end-col 43,
-  :langs (),
-  :message "Unused excluded var: ensure",
-  :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
   :level :warning,
@@ -11134,15 +11116,6 @@
   :langs (:clj :cljs),
   :message "Unused private var cljs.pprint/defdirectives",
   :row 122}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/pprint.cljs",
-  :col 29,
-  :end-col 36,
-  :langs (),
-  :message "Unused excluded var: deftype",
-  :row 10}
  {:end-row 94,
   :type :unused-private-var,
   :level :warning,
@@ -14129,15 +14102,6 @@
   :langs (:clj),
   :message "The var def does not exist in clojure.core",
   :row 10}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/spec/alpha.cljc",
-  :col 59,
-  :end-col 66,
-  :langs (),
-  :message "Unused excluded var: resolve",
-  :row 10}
  {:end-row 17,
   :ns clojure.string,
   :type :unused-namespace,
@@ -15300,15 +15264,6 @@
   :message "The var read-string does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/tools/reader.cljs",
-  :col 56,
-  :end-col 60,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 12}
- {:end-row 12,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
@@ -15642,15 +15597,6 @@
   :message "The var read-string does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/tools/reader/edn.cljs",
-  :col 46,
-  :end-col 50,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 12}
- {:end-row 12,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :filename "cljs/tools/reader/edn.cljs",
@@ -15785,15 +15731,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 432}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/tools/reader/impl/commons.cljs",
-  :col 29,
-  :end-col 33,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
  {:end-row 14,
   :ns cljs.tools.reader.impl.utils,
   :type :unused-referred-var,
@@ -17223,24 +17160,6 @@
   :langs (),
   :message "Redundant nested call: str",
   :row 300}
- {:end-row 12,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/vendor/clojure/tools/reader/edn.clj",
-  :col 46,
-  :end-col 50,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 12}
- {:end-row 12,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/vendor/clojure/tools/reader/edn.clj",
-  :col 51,
-  :end-col 71,
-  :langs (),
-  :message "Unused excluded var: default-data-readers",
-  :row 12}
  {:end-row 17,
   :ns cljs.vendor.clojure.tools.reader.impl.utils,
   :type :unused-referred-var,
@@ -17417,15 +17336,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 423}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "cljs/vendor/clojure/tools/reader/impl/commons.clj",
-  :col 29,
-  :end-col 33,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
  {:end-row 13,
   :ns cljs.vendor.clojure.tools.reader.impl.utils,
   :type :unused-referred-var,
@@ -24064,24 +23974,6 @@
   :langs (),
   :message "Redundant nested call: str",
   :row 300}
- {:end-row 12,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "clojure/tools/reader/edn.clj",
-  :col 46,
-  :end-col 50,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 12}
- {:end-row 12,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "clojure/tools/reader/edn.clj",
-  :col 51,
-  :end-col 71,
-  :langs (),
-  :message "Unused excluded var: default-data-readers",
-  :row 12}
  {:end-row 17,
   :ns clojure.tools.reader.impl.utils,
   :type :unused-referred-var,
@@ -24258,15 +24150,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 424}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "clojure/tools/reader/impl/commons.clj",
-  :col 29,
-  :end-col 33,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
  {:end-row 13,
   :ns clojure.tools.reader.impl.utils,
   :type :unused-referred-var,
@@ -26396,16 +26279,6 @@
   :langs (),
   :message "The var read-string does not exist in cljs.core",
   :row 11}
- {:end-row 11,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
-  :col 56,
-  :end-col 60,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 11}
  {:end-row 12,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
@@ -26768,16 +26641,6 @@
   :message "The var read-string does not exist in cljs.core",
   :row 10}
  {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
-  :col 46,
-  :end-col 50,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
- {:end-row 10,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :filename
@@ -26972,16 +26835,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 429}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/impl/commons.cljs",
-  :col 29,
-  :end-col 33,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
  {:end-row 14,
   :ns clj-kondo.impl.toolsreader.v1v2v2.cljs.tools.reader.impl.utils,
   :type :unused-referred-var,
@@ -27906,26 +27759,6 @@
   :langs (),
   :message "Redundant nested call: str",
   :row 300}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "inlined/clj_kondo/impl/toolsreader/v1v2v2/clojure/tools/reader/edn.clj",
-  :col 46,
-  :end-col 50,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "inlined/clj_kondo/impl/toolsreader/v1v2v2/clojure/tools/reader/edn.clj",
-  :col 51,
-  :end-col 71,
-  :langs (),
-  :message "Unused excluded var: default-data-readers",
-  :row 10}
  {:end-row 15,
   :ns
   clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils,
@@ -28122,16 +27955,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 422}
- {:end-row 10,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename
-  "inlined/clj_kondo/impl/toolsreader/v1v2v2/clojure/tools/reader/impl/commons.clj",
-  :col 29,
-  :end-col 33,
-  :langs (),
-  :message "Unused excluded var: char",
-  :row 10}
  {:end-row 13,
   :ns
   clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils,
@@ -30306,42 +30129,6 @@
   :langs (:clj :cljs),
   :message "namespace sci.ctx-store is required but never used",
   :row 6}
- {:end-row 3,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "sci/impl/namespaces.cljc",
-  :col 49,
-  :end-col 53,
-  :langs (),
-  :message "Unused excluded var: eval",
-  :row 3}
- {:end-row 3,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "sci/impl/namespaces.cljc",
-  :col 54,
-  :end-col 58,
-  :langs (),
-  :message "Unused excluded var: read",
-  :row 3}
- {:end-row 4,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "sci/impl/namespaces.cljc",
-  :col 29,
-  :end-col 40,
-  :langs (),
-  :message "Unused excluded var: read-string",
-  :row 4}
- {:end-row 5,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "sci/impl/namespaces.cljc",
-  :col 33,
-  :end-col 44,
-  :langs (),
-  :message "Unused excluded var: load-string",
-  :row 5}
  {:end-row 9,
   :type :unused-excluded-var,
   :level :warning,
@@ -30519,15 +30306,6 @@
   :langs (:cljs),
   :message "Unresolved symbol: bindings",
   :row 263}
- {:end-row 3,
-  :type :unused-excluded-var,
-  :level :warning,
-  :filename "sci/impl/test.cljc",
-  :col 29,
-  :end-col 40,
-  :langs (),
-  :message "Unused excluded var: destructure",
-  :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :warning,
@@ -33602,6 +33380,15 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
+ {:end-row 1034,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename "src/clj_kondo/impl/linters.clj",
+  :col 3,
+  :end-col 11,
+  :langs (),
+  :message "Unresolved symbol: ns-debug",
+  :row 1034}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,
