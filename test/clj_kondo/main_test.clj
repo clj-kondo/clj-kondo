@@ -174,7 +174,22 @@
      {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
      {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
    (lint! (io/file "corpus" "cljc")))
-  (assert-submaps '({:file "corpus/spec/alpha.cljs",
+  (assert-submaps2 '({:file "corpus/spec/alpha.cljc"
+                      :row 2
+                      :col 29
+                      :level :info
+                      :message "The var def does not exist in cljs.core"}
+                     {:file "corpus/spec/alpha.cljc"
+                      :row 2
+                      :col 29
+                      :level :info
+                      :message "The var def does not exist in clojure.core"}
+                     {:file "corpus/spec/alpha.cljs"
+                      :row 2
+                      :col 29
+                      :level :info
+                      :message "The var def does not exist in cljs.core"}
+                    {:file "corpus/spec/alpha.cljs",
                      :row 6,
                      :col 1,
                      :level :error,
@@ -3939,6 +3954,25 @@ x"
   (assert-submaps2
    '[{:file "<stdin>", :row 1, :col 27, :level :error, :message "Unresolved symbol: x"}]
    (lint! "(defstruct Dude :foo :bar x) Dude" {:linters {:unresolved-symbol {:level :error}}})))
+
+(deftest issue-2687-test
+  (is (empty? (lint! "(ns foo (:require-global [Dude :as b])) (b/dude) b (new b)"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:refer-global :only [String])) String String/new (String/.length \"foo\")"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str Str/new (Str/.length \"foo\")"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (assert-submaps2 [{:file "<stdin>",
+                     :row 1,
+                     :col 66,
+                     :level :error,
+                     :message "Unresolved symbol: String"}]
+                   (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str String"
+                          {:linters {:unresolved-symbol {:level :error}}}
+                          "--lang" "cljs")))
 
 ;;;; Scratch
 

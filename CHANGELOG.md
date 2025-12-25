@@ -19,8 +19,13 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
+
+## 2025.12.23
+
 - [#2654](https://github.com/clj-kondo/clj-kondo/issues/2654): NEW linter: `redundant-let-binding`, defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 - [#2653](https://github.com/clj-kondo/clj-kondo/issues/2653): NEW linter: `:unquote-not-syntax-quoted` to warn on `~` and `~@` usage outside syntax-quote (`` ` ``) ([@jramosg](https://github.com/jramosg))
+- [#2613](https://github.com/clj-kondo/clj-kondo/issues/2613): NEW linter: `:refer-clojure-exclude-unresolved-var` to warn on non-existing vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
 - [#2668](https://github.com/clj-kondo/clj-kondo/issues/2668): Lint `&` syntax errors in let bindings and lint for trailing `&` ([@tomdl89](https://github.com/tomdl89))
 - [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): `duplicate-key-in-assoc` changed to `duplicate-key-args`, and now lints `dissoc`, `assoc!` and `dissoc!` too ([@tomdl89](https://github.com/tomdl89))
 - [#2651](https://github.com/clj-kondo/clj-kondo/issues/2651): resume linting after paren mismatches
@@ -32,11 +37,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2599](https://github.com/clj-kondo/clj-kondo/issues/2599): detect invalid arity for invoking collection as higher order function
 - [#2661](https://github.com/clj-kondo/clj-kondo/issues/2661): Fix false positive `:unexpected-recur` when `recur` is used inside `clojure.core.match/match` ([@jramosg](https://github.com/jramosg))
 - [#2617](https://github.com/clj-kondo/clj-kondo/issues/2617): Add types for `repeatedly` ([@jramosg](https://github.com/jramosg))
-- [#2653](https://github.com/clj-kondo/clj-kondo/issues/2653): NEW linter: `:unquote-not-syntax-quoted` to warn on `~` and `~@` usage outside syntax-quote (`` ` ``) ([@jramosg](https://github.com/jramosg))
 - Add `:ratio` type support for `numerator` and `denominator` functions ([@jramosg](https://github.com/jramosg))
 - [#2676](https://github.com/clj-kondo/clj-kondo/issues/2676): Report unresolved namespace for namespaced maps with unknown aliases ([@jramosg](https://github.com/jramosg))
 - [#2683](https://github.com/clj-kondo/clj-kondo/issues/2683): data argument of `ex-info` may be nil since clojure 1.12
-- [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
+- Bump built-in ClojureScript analysis info
+- Fix [#2687](https://github.com/clj-kondo/clj-kondo/issues/2687): support new `:refer-global` and `:require-global` ns options in CLJS
+- Fix [#2554](https://github.com/clj-kondo/clj-kondo/issues/2544): support inline configs in `.cljc` files
 
 ## 2025.10.23
 
