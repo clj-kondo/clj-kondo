@@ -1031,6 +1031,4 @@
 ;;;; scratch
 
 (comment
-  ns-debug
-  (:vars ns-debug)
-  (:used-vars ns-debug))
+  )
