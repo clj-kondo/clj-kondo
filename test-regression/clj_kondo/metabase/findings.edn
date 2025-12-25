@@ -1,4 +1,14 @@
-[{:end-row 43,
+[{:end-row 8,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/analytics/prometheus.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "The var set! does not exist in clojure.core",
+  :row 8}
+ {:end-row 43,
   :type :condition-always-true,
   :level :warning,
   :filename
@@ -358,6 +368,30 @@
   :langs (),
   :message "Unused excluded var: replace",
   :row 3}
+ {:end-row 2,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/aggregation.cljc",
+  :col 52,
+  :end-col 55,
+  :cljc true,
+  :langs (:cljs),
+  :message "The var var does not exist in cljs.core",
+  :row 2}
+ {:end-row 2,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/aggregation.cljc",
+  :col 52,
+  :end-col 55,
+  :cljc true,
+  :langs (:clj),
+  :message "The var var does not exist in clojure.core",
+  :row 2}
  {:end-row 4,
   :type :unused-excluded-var,
   :level :warning,
@@ -378,6 +412,54 @@
   :langs (),
   :message "Unused excluded var: ->>",
   :row 4}
+ {:end-row 5,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 65,
+  :end-col 68,
+  :cljc true,
+  :langs (:cljs),
+  :message "The var var does not exist in cljs.core",
+  :row 5}
+ {:end-row 5,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 65,
+  :end-col 68,
+  :cljc true,
+  :langs (:clj),
+  :message "The var var does not exist in clojure.core",
+  :row 5}
+ {:end-row 2,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
+  :col 42,
+  :end-col 50,
+  :cljc true,
+  :langs (:cljs),
+  :message "The var coalesce does not exist in cljs.core",
+  :row 2}
+ {:end-row 2,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
+  :col 42,
+  :end-col 50,
+  :cljc true,
+  :langs (:clj),
+  :message "The var coalesce does not exist in clojure.core",
+  :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :warning,
@@ -821,6 +903,30 @@
   :end-col 36,
   :langs (),
   :message "Unused excluded var: declare",
+  :row 2}
+ {:end-row 2,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
+  :col 37,
+  :end-col 40,
+  :cljc true,
+  :langs (:cljs),
+  :message "The var def does not exist in cljs.core",
+  :row 2}
+ {:end-row 2,
+  :type :refer-clojure-exclude-unresolved-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
+  :col 37,
+  :end-col 40,
+  :cljc true,
+  :langs (:clj),
+  :message "The var def does not exist in clojure.core",
   :row 2}
  {:end-row 32,
   :protocol-ns clj-yaml.core,

@@ -13,9 +13,9 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
-    :refer [node->line one-of tag sexpr vector-node
-            token-node string-from-token symbol-from-token
-            assoc-some]]
+    :refer [assoc-some linter-disabled? node->line one-of sexpr
+            string-from-token symbol-from-token tag token-node vector-node]]
+   [clj-kondo.impl.var-info :refer [core-sym?]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -463,6 +463,24 @@
    :row row
    :col col})
 
+(defn- lint-refer-clojure-vars [{:keys [filename lang] :as ctx} excluded-vars]
+  (letfn [(exists-in-core?  [excluded-var lang]
+            (if (= :cljc (:base-lang ctx))
+              (some #(core-sym? % excluded-var) [:clj :cljs])
+              (core-sym? lang excluded-var)))]
+    (when-not (linter-disabled? ctx :refer-clojure-exclude-unresolved-var)
+      (doseq [excluded-var excluded-vars
+              :when (not (exists-in-core? excluded-var lang))]
+        (findings/reg-finding!
+         ctx
+         (node->line filename excluded-var
+                     :refer-clojure-exclude-unresolved-var
+                     (format "The var %s does not exist in %s"
+                             excluded-var
+                             (case lang
+                               :clj "clojure.core"
+                               :cljs "cljs.core"))))))))
+
 (defn analyze-ns-decl
   [ctx expr]
   (when (:analyze-keywords? ctx)
@@ -580,7 +598,7 @@
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw-node (-> ?require-clause :children first)
                                 require-kw (:k require-kw-node)
-                                require-kw (one-of require-kw [:require :require-macros :use])]
+                                require-kw (one-of require-kw [:require :require-macros :use :require-global])]
                           :when require-kw]
                       [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
@@ -594,9 +612,10 @@
             (namespace/lint-unsorted-required-namespaces! ctx imports-raw :unsorted-imports))
         imports
         (apply merge (map #(analyze-import ctx ns-name %) imports-raw))
+        sexpr-clauses (map sexpr (nnext (:children expr)))
         refer-clojure-clauses
         (apply merge-with into
-               (for [?refer-clojure (nnext (sexpr expr))
+               (for [?refer-clojure sexpr-clauses
                      :when (= :refer-clojure (first ?refer-clojure))
                      [k v] (partition 2 (rest ?refer-clojure))
                      :let [r (case k
@@ -614,24 +633,39 @@
                                               :name original-name}])
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
+        refer-cljs-globals
+        (when (identical? :cljs lang)
+          (let [refer-globals (reduce merge {}
+                                     (for [?refer-clojure sexpr-clauses
+                                           :when (= :refer-global (first ?refer-clojure))
+                                           :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
+                                       (if rename
+                                         (merge (set/map-invert rename) (let [onlies (remove rename only)]
+                                                                          (zipmap onlies onlies)))
+                                         (zipmap only only))))]
+            {:referred-globals refer-globals}))
+        _ (when (seq (:clojure-excluded refer-clj))
+            (lint-refer-clojure-vars ctx (:clojure-excluded refer-clj)))
         gen-class? (some #(= :gen-class (some-> % :children first :k)) clauses)
         leftovers (for [clause clauses
                         :let [valid-kw (-> clause :children first :k)
                               valid-kw (one-of valid-kw [:require :require-macros :use
                                                          :import :refer-clojure
-                                                         :load :gen-class])]
+                                                         :load :gen-class
+                                                         :require-global :refer-global])]
                         :when (not valid-kw)]
                     clause)
         _ (when (seq leftovers)
             (namespace/lint-unknown-clauses ctx leftovers))
         ns (cond->
-               (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
-                             :imports imports
-                             :gen-class gen-class?
-                             :deprecated deprecated)
-                      (merge-with into
-                                  analyzed-require-clauses
-                                  refer-clj))
+            (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
+                          :imports imports
+                          :gen-class gen-class?
+                          :deprecated deprecated)
+                   (merge-with into
+                               analyzed-require-clauses
+                               refer-clj
+                               refer-cljs-globals))
              (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))

@@ -748,6 +748,7 @@ zipmap})
 ->EmptyList
 ->HashCollisionNode
 ->HashMapIter
+->HashMapLite
 ->HashSetIter
 ->IndexedSeq
 ->IndexedSeqIterator
@@ -768,6 +769,7 @@ zipmap})
 ->NodeIterator
 ->NodeSeq
 ->ObjMap
+->ObjMapIterator
 ->PersistentArrayMap
 ->PersistentArrayMapIterator
 ->PersistentArrayMapSeq
@@ -789,6 +791,7 @@ zipmap})
 ->Reduced
 ->Repeat
 ->SeqIter
+->SetLite
 ->Single
 ->StringBufferWriter
 ->StringIter
@@ -803,6 +806,8 @@ zipmap})
 ->UUID
 ->ValSeq
 ->Var
+->VectorLite
+->VectorLiteIterator
 ->VectorNode
 ->Volatile
 -add-method
@@ -918,6 +923,7 @@ ExceptionInfo
 Fn
 HashCollisionNode
 HashMapIter
+HashMapLite
 HashSetIter
 IAssociative
 IAtom
@@ -984,6 +990,7 @@ IntegerRangeChunk
 Iterate
 KeySeq
 Keyword
+LITE_MODE
 LazySeq
 List
 LongImpl
@@ -1001,6 +1008,7 @@ NeverEquiv
 NodeIterator
 NodeSeq
 ObjMap
+ObjMapIterator
 PROTOCOL_SENTINEL
 PersistentArrayMap
 PersistentArrayMapIterator
@@ -1024,6 +1032,7 @@ Reduced
 Repeat
 START
 SeqIter
+SetLite
 Single
 StringBufferWriter
 StringIter
@@ -1039,6 +1048,8 @@ TransientVector
 UUID
 ValSeq
 Var
+VectorLite
+VectorLiteIterator
 VectorNode
 Volatile
 abs
@@ -1071,6 +1082,7 @@ assoc!
 assoc-in
 associative?
 atom
+bases
 binding
 bit-and
 bit-and-not
@@ -1243,6 +1255,7 @@ hash-double
 hash-keyword
 hash-long
 hash-map
+hash-map-lite
 hash-ordered-coll
 hash-set
 hash-string
@@ -1359,6 +1372,7 @@ mix-collection-hash
 mk-bound-fn
 mod
 munge
+munge-str
 name
 namespace
 nat-int?
@@ -1454,6 +1468,7 @@ reduced
 reduced?
 reductions
 refer-clojure
+refer-global
 regexp?
 reify
 rem
@@ -1467,6 +1482,7 @@ repeatedly
 replace
 replicate
 require
+require-global
 require-macros
 reset!
 reset-meta!
@@ -1490,6 +1506,7 @@ sequence
 sequential?
 set
 set-from-indexed-seq
+set-lite
 set-print-err-fn!
 set-print-fn!
 set-validator!
@@ -1521,6 +1538,7 @@ split-with
 splitv-at
 spread
 str
+str_
 string-hash-cache
 string-hash-cache-count
 string-iter
@@ -1529,6 +1547,7 @@ string?
 subs
 subseq
 subvec
+supers
 swap!
 swap-vals!
 symbol
@@ -1570,6 +1589,8 @@ unchecked-inc
 unchecked-inc-int
 unchecked-int
 unchecked-long
+unchecked-max
+unchecked-min
 unchecked-multiply
 unchecked-multiply-int
 unchecked-negate
@@ -1599,7 +1620,9 @@ vals
 var?
 vary-meta
 vec
+vec-lite
 vector
+vector-lite
 vector?
 volatile!
 volatile?
