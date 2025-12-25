@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2600](https://github.com/clj-kondo/clj-kondo/issues/2600): NEW linter: `unused-excluded-var` to warn on unused vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
+
 ## 2025.12.23
 
 - [#2654](https://github.com/clj-kondo/clj-kondo/issues/2654): NEW linter: `redundant-let-binding`, defaults to `:off` ([@tomdl89](https://github.com/tomdl89))

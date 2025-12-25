@@ -259,6 +259,7 @@
                     (l/lint-unused-imports! ctx)
                     (l/lint-unresolved-namespaces! ctx)
                     (l/lint-discouraged-namespaces! ctx)
+                    (l/lint-unused-excluded-vars! ctx)
                     (l/lint-class-usage ctx idacs)
                     (l/lint-protocol-impls! ctx idacs)
                     ;; redundant ignore should go last!

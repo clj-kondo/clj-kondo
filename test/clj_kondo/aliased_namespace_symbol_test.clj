@@ -20,7 +20,8 @@ baz.qux/some-fn
 (deftest interop-alias-test
   (is (empty? (lint! (io/file "corpus" "aliased_namespaces" "interop.cljc")
                      {:linters {:aliased-namespace-symbol {:level :warning}
-                                :unused-namespace {:level :off}}}))))
+                                :unused-namespace {:level :off}
+                                :unused-excluded-var {:level :off}}}))))
 
 (deftest multiple-aliases-test
   (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
