@@ -194,7 +194,8 @@
                        "--config" (pr-str config)))))
   (testing "special-forms are valid in cljc"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..])) .."
-                       (assoc config :lang :cljc)))))
+                       "--lang" "cljc"
+                       "--config" (pr-str config)))))
   (testing "mix of special-forms and regular core symbols"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. map loop filter]))"
                        {:linters {:unused-excluded-var {:level :off}}})))))
