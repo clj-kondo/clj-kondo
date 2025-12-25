@@ -1,24 +1,24 @@
 (ns clj-kondo.types-test
   (:require
-   [clj-kondo.test-utils :as tu :refer [assert-submaps assert-submaps2 lint!]]
+   [clj-kondo.test-utils :as tu :refer [assert-submaps2 lint!]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest type-mismatch-test
-  (assert-submaps
+  (assert-submaps2
    '({:row 1,
       :col 6,
       :message "Expected: number, received: string."})
    (lint! "(inc \"foo\")"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:row 1,
       :col 7,
       :message "Expected: string, received: number."})
    (lint! "(subs (inc 1) 1)"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 25,
@@ -26,7 +26,7 @@
       :message "Expected: number, received: string."})
    (lint! "(let [x \"foo\" y x] (inc y))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 19,
@@ -39,7 +39,7 @@
       :message "Expected: number, received: string."})
    (lint! "(let [x 1 y (subs x 1)] (inc y))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 19,
@@ -47,7 +47,7 @@
       :message "Expected: atom, received: positive integer."})
    (lint! "(let [x 1] (swap! x identity))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 33,
@@ -55,7 +55,7 @@
       :message "Expected: seqable collection, received: transducer."})
    (lint! "(let [x (map (fn [_]))] (cons 1 x))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 2,
       :col 28,
@@ -70,7 +70,7 @@
            (set/difference (map inc [1 2 3]) #{1 2 3})
            (set/difference (into [] [1 2 3]) #{1 2 3})"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 2,
       :col 30,
@@ -85,7 +85,7 @@
            (str/starts-with? 1 \"s\")
            (str/includes? (str/join [1 2 3]) 1)"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 9,
@@ -93,7 +93,7 @@
       :message "Expected: vector, received: seq."})
    (lint! "(subvec (map inc [1 2 3]) 10 20)"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,
@@ -103,7 +103,7 @@
    (lint! "(peek #{:a :b :c})"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "No type checking if invalid-arity is disabled"
-    (assert-submaps
+    (assert-submaps2
      '({:file "corpus/types/insufficient.clj"
         :row 6
         :col 11
@@ -115,7 +115,7 @@
         :level :error})
      (lint! (io/file "corpus" "types" "insufficient.clj")
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "corpus/types/insufficient.clj"
         :row 6
         :col 11
@@ -129,7 +129,7 @@
                 {:linters {:invalid-arity {:level :off}
                            :type-mismatch {:level :error}}}))))
   (testing "CLJS also works"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 6,
@@ -144,7 +144,7 @@
             {:linters {:type-mismatch {:level :error}}}
             "--lang" "cljs")))
   (testing "leveraging type hints"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 22,
@@ -152,7 +152,7 @@
         :message #"Expected: number"})
      (lint! "(fn [^String x] (inc x))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 21,
@@ -160,7 +160,7 @@
         :message "Expected: string, received: integer."})
      (lint! "(fn [^long x] (subs x 1 1))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 73,
@@ -173,7 +173,7 @@
         :message "Expected: number, received: string or nil."})
      (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo)) (inc (foo 1 2 3 4))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 73,
@@ -181,7 +181,7 @@
         :message #"Expected: number"})
      (lint! "(defn foo (^String []) (^long [x]) ([x y]) (^String [x y z & xs])) (inc (foo))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 31,
@@ -197,7 +197,7 @@
         :message "Expected: list or nil, received: positive integer."})
      (lint! "(defn foo [^java.util.List x] x) (foo 1)"
             {:linters {:type-mismatch {:level :error}}})))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,
@@ -205,7 +205,7 @@
       :message "Expected: string, received: nil."})
    (lint! "(subs nil 1 2)"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 39,
@@ -213,7 +213,7 @@
       :message "Expected: number, received: set or nil."})
    (lint! "(require '[clojure.set :as set]) (inc (set/union nil))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 31,
@@ -221,7 +221,7 @@
       :message "Expected: seqable collection, received: number or nil."})
    (lint! "(defn foo [^Number x] (cons 1 x))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 6,
@@ -229,12 +229,12 @@
       :message "Expected: number, received: list."})
    (lint! "(inc ())"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '[{:file "<stdin>", :row 1, :col 9, :level :error, :message "Expected: seqable collection, received: positive integer."}]
    (lint! "(empty? 1)"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "Insufficient input"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 15,
@@ -242,15 +242,15 @@
         :message "Insufficient input."})
      (lint! "(assoc {} 1 2 3)"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '()
      (lint! "(require '[some-ns :as s]) (assoc {} 1 2 3 #::s{:x 0})"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '()
      (lint! "(assoc {} 1 2 3 #:some-ns{:x 0})"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 15
@@ -260,7 +260,7 @@
             {:linters {:type-mismatch {:level :error}}})))
 
   (testing "handle multiple errors"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 7,
@@ -279,7 +279,7 @@
      (lint! "(subs nil nil nil)"
             {:linters {:type-mismatch {:level :error}}})))
   (testing "checking also works when function is not found in cache"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 45,
@@ -297,7 +297,7 @@
                 :namespaces {foo {foo {:arities {1 {:args [:string]
                                                     :ret :string}}}}}}}})))
   (testing "specs work also when not providing only a ret spec"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 6,
@@ -306,7 +306,7 @@
      (lint! "(inc (list 1 2 3))"
             {:linters {:type-mismatch {:level :error}}})))
   (testing "last element can be different in rest op"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 14,
@@ -315,7 +315,7 @@
      (lint! "(apply + 1 2 3)"
             {:linters {:type-mismatch {:level :error}}})))
   (testing "return type of assoc depends on first arg"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 6,
@@ -324,7 +324,7 @@
      (lint! "(inc (assoc {} :a 1))"
             {:linters {:type-mismatch {:level :error}}})))
   (testing "printing human readable label of alternative"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 6,
@@ -332,7 +332,7 @@
         :message #"Expected: number or character, received: string"})
      (lint! "(int \"foo\")"
             {:linters {:type-mismatch {:level :error}}})))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 6,
@@ -340,7 +340,7 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(seq (symbol \"foo\"))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 8,
@@ -348,7 +348,7 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* (symbol \"foo\"))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 9,
@@ -356,7 +356,7 @@
       :message #"Expected: seqable collection, received: symbol"})
    (lint! "(list* 'foo)"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 12, :level :error,
       :message "Expected: associative collection or string or set, received: seq."})
    (lint! "(contains? (map inc [1 2 3]) 1)"
@@ -365,7 +365,7 @@
     (lint! "(ns cached-ns1) (defn foo [] :keyword)"
            {:linters {:type-mismatch {:level :error}}}
            "--cache" "true")
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 3, :col 6, :level :error, :message "Expected: number, received: keyword."}
        {:file "<stdin>", :row 5, :col 6, :level :error, :message "Expected: number, received: keyword."})
      (lint! "
@@ -377,11 +377,11 @@
             {:linters {:type-mismatch {:level :error}}}
             "--cache" "true")))
   (testing "return type of assoc"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 42, :level :error, :message "Expected: number, received: map."})
      (lint! "(defn foo [_] (assoc {} :foo true)) (inc (foo {}))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 41, :level :error, :message "Expected: number, received: associative collection."})
      (lint! "(defn foo [x] (assoc x :foo true)) (inc (foo {}))"
             {:linters {:type-mismatch {:level :error}}})))
@@ -466,7 +466,7 @@
 
 (deftest map-spec-test
   (testing "map spec"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 1,
         :col 34,
@@ -521,7 +521,7 @@
                                                              :ret :map}}}
                                            baz {:arities {1 {:args [:int]
                                                              :ret :string}}}}}}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>",
         :row 2,
         :col 23,
@@ -545,7 +545,7 @@
                                                                      :req {:b :string}}}}]}}}}}}}}))))
 
 (deftest map-spec-auto-resolved-key-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 6, :col 4, :level :error, :message "Missing required key: :other-ns/thing"})
    (lint! "
 (ns test-ns
@@ -562,19 +562,19 @@
                                                          :some-ns/thing :any}}]}}}}}}}})))
 
 (deftest if-let-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
    (lint! "(inc (if-let [_x 1] :foo 'symbol))"
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest when-let-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or nil."})
    (lint! "(inc (when-let [_x 1] 'symbol))"
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest or-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
    (lint! "(inc (or :foo 'bar))"
           {:linters {:type-mismatch {:level :error}}}))
@@ -588,61 +588,61 @@
    ))
 
 (deftest cond-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 46, :level :error, :message "Expected: number, received: symbol or keyword."})
    (lint! "(defn foo [x] (cond x :foo :else 'bar)) (inc (foo 1))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 45, :level :error, :message "Expected: number, received: symbol or keyword or nil."})
    (lint! "(defn foo [x] (cond x :foo x 'symbol)) (inc (foo 1))"
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest and-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or nil or boolean."})
    (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest return-type-inference-test
   (testing "Function return types"
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 26, :level :error, :message "Expected: number, received: string."})
      (lint! "(defn foo [] \"foo\") (inc (foo))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: map."})
+    (assert-submaps2 '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: map."})
                     (lint! "(defn foo [] (assoc {} :a 1)) (inc (foo))"
                            {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 53, :level :error, :message "Expected: number, received: string."})
      (lint! "(defn foo ([_] 1) ([_ _] \"foo\")) (inc (foo 1)) (inc (foo 1 1))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: string."})
      (lint! "(defn foo [_] (let [_x 1] \"foo\")) (inc (foo 1))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:level :error, :message "Expected: number, received: seq."})
      (lint! "(defn foo [_] (let [_x 1] (for [_x [1 2 3]] \"foo\"))) (inc (foo 1))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 30, :level :error, :message "Expected: string or nil, received: boolean."})
      (lint! "(defn foo [^String _x]) (foo true)"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: string."})
      (lint! "(inc \"fooo\nbar\")"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 6, :level :error,
         :message "Expected: number, received: symbol or keyword."})
      (lint! "(inc (if :foo :bar 'baz))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 6, :level :error,
         :message "Expected: number, received: symbol or nil."})
      (lint! "(inc (when :foo 'baz))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :level :error,
         :message "Expected: number, received: symbol or keyword."})
      (lint! "
@@ -660,11 +660,11 @@
 
 (inc (bar))
 " {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 28, :level :error, :message "Expected: string, received: integer or nil."})
      (lint! "(defn f [^Integer x] (subs x 1 10))"
             {:linters {:type-mismatch {:level :error}}}))
-    (assert-submaps
+    (assert-submaps2
      '({:file "<stdin>", :row 1, :col 40, :level :error, :message "Expected: number, received: keyword."})
      (lint! "(defn foo [] :foo) (let [a (foo)] (inc a))"
             {:linters {:type-mismatch {:level :error}}}))
@@ -678,21 +678,21 @@
                          "--cache" "true"))))))
 
 (deftest clojure-string-replace-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 3, :col 27, :level :error,
       :message "Regex match arg requires string or function replacement arg."})
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" #\"foo\" :foo)"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 3, :col 23, :level :error,
       :message "Char match arg requires char replacement arg."})
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" \\a \"foo\")"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 60, :level :error, :message "String match arg requires string replacement arg."})
    (lint! "(require '[clojure.string :as str]) (str/replace \"foo\" \"o\" (fn [_]))"
           {:linters {:type-mismatch {:level :error}}}))
@@ -751,15 +751,15 @@
                      {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 19, :level :error, :message "String cannot be called as a function."})
    (lint! "(let [name \"foo\"] (name :foo))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 18, :level :error, :message "Number cannot be called as a function."})
    (lint! "(let [x (inc 2)] (x 2))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 23, :level :error, :message "String or nil cannot be called as a function."})
    (lint! "(defn foo [^String x] (x))"
           {:linters {:type-mismatch {:level :error}}})))
@@ -775,17 +775,17 @@
                      {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest let+fn-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 38, :level :error, :message "Expected: number, received: keyword."})
    (lint! "(let [x (fn [^String _x] :foo)] (inc (x :foo)))"
           {:linters {:type-mismatch {:level :error}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: keyword."})
    (lint! "(let [x (fn [x] (keyword x))] (inc (x \"dude\")))"
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest rseq-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 7, :level :error,
       :message "Expected: vector or sorted map, received: seq."})
    (lint! "(rseq (map inc [1 2 3]))"
@@ -796,10 +796,10 @@
 (def config {:linters {:type-mismatch {:level :error}}})
 
 (deftest namespaced-map-as-arg-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."})
    (lint! "(assoc {} 1 2 #:some-ns{:x 0})" config))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."}
      {:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unresolved namespace s. Are you missing a require?"})
    (lint! "(assoc {} 1 3 #::s{:thing 1})" config))
@@ -934,7 +934,7 @@
 
 (deftest function-ret-map-test
   (testing "manually typed function which returns a map"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 8 :message (expected-message :number :map)}]
      (lint! "
 (do
@@ -942,7 +942,7 @@
   (+ 1 (fun2 {:a 23})))"
             config-2)))
   (testing "typed ret map function which calls another typed function which also expects a map"
-    (assert-submaps
+    (assert-submaps2
      [{:row 4 :col 9 :message (expected-message :integer :string)}]
      (lint! "
 (do
@@ -952,7 +952,7 @@
 
 (deftest nilable-map-test
   (testing "pass nil to a nilable map"
-    (assert-submaps
+    (assert-submaps2
      []
      (lint! "
 (do
@@ -961,7 +961,7 @@
             config-2)))
 
   (testing "pass invalid map to a nilable map"
-    (assert-submaps
+    (assert-submaps2
      [{:file "<stdin>", :row 4, :col 9, :level :error, :message "Missing required key: :a"}]
      (lint! "
 (do
@@ -1031,11 +1031,11 @@
                  {:type-mismatch
                   {:level :error}}}]
     (testing "type of def used elsewhere"
-      (assert-submaps
+      (assert-submaps2
        '({:file "<stdin>", :row 1, :col 19, :level :error, :message "Expected: number, received: keyword."})
        (lint! "(def x :foo) (inc x)"
               config))
-      (assert-submaps
+      (assert-submaps2
        '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: function."})
        (lint! "(inc seq)"
               config)))
@@ -1051,13 +1051,13 @@
                            config
                            "--lang" lang)]
           (is (every? :row lints))
-          (assert-submaps
+          (assert-submaps2
            '({:file "<stdin>", :level :error, :message "Expected: number, received: function."})
            lints))))
     (testing "override with config"
       (let [lints (lint! "(ns foo) (def x) (inc x)"
                          (assoc-in config [:linters :type-mismatch :namespaces] '{foo {x {:type :keyword}}} ))]
-        (assert-submaps
+        (assert-submaps2
          '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Expected: number, received: keyword."})
          lints)))))
 
@@ -1159,11 +1159,11 @@
       (is (empty? (lint! "(repeatedly 10 #(println :foo))" config)) "Valid usage should not warn")
       (is (empty? (lint! "(repeatedly #(println :foo))" config)) "Valid usage should not warn"))
     (testing "Invalid usages of repeatedly"
-      (assert-submaps
+      (assert-submaps2
        '({:row 1 :col 13 :message "Expected: natural integer, received: function."}
          {:row 1 :col 29 :message "Expected: function, received: positive integer."})
        (lint! "(repeatedly #(println :foo) 10)" config))
-      (assert-submaps
+      (assert-submaps2
        '({:row 1 :col 13 :message "Expected: function, received: positive integer."})
        (lint! "(repeatedly 10)" config)))))
 
