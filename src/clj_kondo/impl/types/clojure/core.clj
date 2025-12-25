@@ -156,9 +156,16 @@
    'hash-set {:arities {:varargs {:ret :set}}}
    ;; 398
    'sorted-map {:arities {:varargs {:ret :sorted-map}}}
-   ;; 407 'sorted-map-by
-   ;; 417 'sorted-set
-   ;; 425 'sorted-set-by
+   ;; 407 
+   'sorted-map-by {:arities {:varargs {:args [:ifn {:op :rest
+                                                    :spec [:any :any]}]
+                                       :ret :sorted-map}}}
+   ;; 417 
+   'sorted-set {:arities {:varargs {:ret :sorted-set}}}
+   ;; 425 
+   'sorted-set-by {:arities {:varargs {:args [:ifn {:op :rest
+                                                    :spec :any}]
+                                       :ret :sorted-set}}}
    ;; 436
    'nil? any->boolean
    ;; 444 'defmacro

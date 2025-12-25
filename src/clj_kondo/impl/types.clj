@@ -36,6 +36,7 @@
     :map
     :nil
     :set
+    :sorted-set
     :fn
     :keyword
     :symbol
@@ -75,6 +76,7 @@
    :nil #{:seqable}
    :coll #{:seqable}
    :set #{:seqable :coll :ifn :ilookup}
+   :sorted-set #{:seqable :coll :ifn :ilookup}
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
@@ -91,14 +93,15 @@
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio}
-   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack
-           :ilookup}
-   :seqable #{:coll :vector :set :map :associative
+   :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq 
+           :sequential :ifn :stack :ilookup}
+   :seqable #{:coll :vector :set :sorted-set :map :associative
               :char-sequence :string :nil
               :list :seq :sequential :ifn :stack :sorted-map :ilookup}
    :associative #{:map :vector :sequential :stack :sorted-map}
-   :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential :stack :sorted-map :var :ideref :ilookup}
+   :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector 
+          :associative :seqable :coll :sequential :stack :sorted-map :var 
+          :ideref :ilookup}
    :fn #{:transducer}
    :nat-int #{:pos-int}
    :seq #{:list :stack}
@@ -106,8 +109,8 @@
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :ideref #{:atom :var :ifn}
-   :ilookup #{:map :set :sorted-map :coll :seqable :ifn :associative :vector
-              :sequential :stack}})
+   :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
+              :vector :sequential :stack}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
@@ -152,6 +155,7 @@
    :transducer "transducer"
    :seqable-or-transducer "seqable or transducer"
    :set "set"
+   :sorted-set "sorted set"
    :char-sequence "char sequence"
    :sequential "sequential collection"
    :throwable "throwable"

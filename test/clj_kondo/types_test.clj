@@ -1203,8 +1203,47 @@
 (deftest ex-info-test
   (is (empty? (lint! "(ex-info \"hello\" nil) (ex-info \"hello\" nil nil) (ex-info nil nil nil)" config))))
 
+(deftest sorted-collections-test
+  (testing "sorted-map-by"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 16
+        :level :error
+        :message "Expected: function, received: positive integer."})
+     (lint! "(sorted-map-by 1 :a 1)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: sorted map."})
+     (lint! "(inc (sorted-map-by > :a 1))" config)))
+  (testing "sorted-set"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: sorted set."})
+     (lint! "(inc (sorted-set 1 2 3))" config)))
+  (testing "sorted-set-by"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 16
+        :level :error
+        :message "Expected: function, received: positive integer."})
+     (lint! "(sorted-set-by 1 2 3)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: sorted set."})
+     (lint! "(inc (sorted-set-by > 1 2 3))" config))))
+
 ;;;; Scratch
 
 (comment
-
-  )
+)
