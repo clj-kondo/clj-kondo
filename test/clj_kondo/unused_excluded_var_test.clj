@@ -58,3 +58,6 @@
     (is (empty?
          (lint! "(ns foo (:refer-clojure :exclude [read read-string]))"
                 {:linters {:unused-excluded-var {:level :off}}})))))
+
+  (testing "excluded var shadowed by require"
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [comp]) (:require [other-ns :refer [comp]])) comp"))))

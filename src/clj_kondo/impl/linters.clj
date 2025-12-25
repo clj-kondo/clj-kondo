@@ -707,7 +707,7 @@
 
 (defn lint-unused-excluded-vars! [ctx]
   (when-not (linter-disabled? ctx :unused-excluded-var)
-    (doseq [{:keys [clojure-excluded referred-vars] :as ns} (namespace/list-namespaces ctx)
+    (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
             :when (and (seq clojure-excluded)
                        (not (linter-disabled? ns :unused-excluded-var)))
             :let [used (->> (:bindings ns)
@@ -715,11 +715,10 @@
                             (concat (keys (:vars ns)))
                             set)
                   lang (:lang ns)
-                  core-ns? #(utils/one-of % [clojure.core cljs.core])
-                  core-original-name (fn  [[_new-name var-info]]
-                                       (when (core-ns? (:ns var-info))
-                                         (:name var-info)))
-                  renamed-original-names (->> referred-vars
+                  core-original-name (fn  [[_new-name {var-name :name}]]
+                                       (when (var-info/core-sym? lang var-name)
+                                         var-name))
+                  renamed-original-names (->> (:referred-vars ns)
                                               (keep core-original-name)
                                               set)]
             excluded clojure-excluded
@@ -1032,4 +1031,6 @@
 ;;;; scratch
 
 (comment
-  )
+  ns-debug
+  (:vars ns-debug)
+  (:used-vars ns-debug))
