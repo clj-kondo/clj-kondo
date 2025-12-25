@@ -33380,15 +33380,6 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
- {:end-row 1034,
-  :type :unresolved-symbol,
-  :level :error,
-  :filename "src/clj_kondo/impl/linters.clj",
-  :col 3,
-  :end-col 11,
-  :langs (),
-  :message "Unresolved symbol: ns-debug",
-  :row 1034}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,
