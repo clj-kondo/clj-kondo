@@ -20,6 +20,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 - [#2692](https://github.com/clj-kondo/clj-kondo/issues/2692): Lint quoted forms which are not functions ([@tomdl89](https://github.com/tomdl89))
 
+- Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
+([@jramosg](https://github.com/jramosg))
+
 ## 2025.12.23
 
 - [#2654](https://github.com/clj-kondo/clj-kondo/issues/2654): NEW linter: `redundant-let-binding`, defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
