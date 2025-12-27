@@ -19,7 +19,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-[#2695](https://github.com/clj-kondo/clj-kondo/issues/2695): Fix config-in-call so it correctly disables the `:unquote-not-syntax-quoted` linter in specific calls (e.g., `defproject` in `project.clj`). ([@jramosg](https://github.com/jramosg))
+- [#2695](https://github.com/clj-kondo/clj-kondo/issues/2695): Fix config-in-call so it correctly disables the `:unquote-not-syntax-quoted` linter in specific calls (e.g., `defproject` in `project.clj`). ([@jramosg](https://github.com/jramosg))
+- Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
+([@jramosg](https://github.com/jramosg))
 
 ## 2025.12.23
 
