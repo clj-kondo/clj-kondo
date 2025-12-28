@@ -2461,19 +2461,8 @@
             resolved-var-sym (symbol (str resolved-namespace) (str resolved-name))
             cfg (when-let [in-call-cfg (:config-in-call config)]
                   (or (get in-call-cfg resolved-var-sym)
-                      (when (and (or (not resolved-namespace)
-                                     (= :clj-kondo/unknown-namespace resolved-namespace))
-                                 (symbol? full-fn-name)
-                                 (not (namespace full-fn-name)))
-                        (or (get in-call-cfg full-fn-name)
-                            (let [matches (filter (fn [[k _]]
-                                                    (and (symbol? k)
-                                                         (namespace k)
-                                                         (= (name k)
-                                                            (name full-fn-name))))
-                                                  in-call-cfg)]
-                              (when (= 1 (count matches))
-                                (second (first matches))))))))
+                      (and (= :clj-kondo/unknown-namespace resolved-namespace)
+                           (in-call-cfg (symbol "user" (str resolved-name))))))
             cfg (when cfg
                   (config/expand-ignore cfg))
             ctx (if cfg

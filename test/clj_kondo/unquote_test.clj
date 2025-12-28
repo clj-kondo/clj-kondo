@@ -82,7 +82,7 @@
   :dependencies [[some/lib ~proto-version]
                  [other/lib ~proto-version]])"
                        {:linters {:unquote-not-syntax-quoted {:level :warning}}
-                        :config-in-call {'defproject {:linters {:unquote-not-syntax-quoted {:level :off}}}}}))))
+                        :config-in-call {'user/defproject {:linters {:unquote-not-syntax-quoted {:level :off}}}}}))))
   (testing "defproject with unquote in dependencies - should warn without config"
     (assert-submaps2
      '({:file "<stdin>"
@@ -118,9 +118,6 @@
 (defproject my-project \"0.1.0\"
   :dependencies [[some/lib ~proto-version]
                  [other/lib ~proto-version]])")
-        (is (empty? (lint! project-clj
-                           {:linters {:unquote-not-syntax-quoted {:level :warning}}
-                            :config-in-call {'defproject {:linters {:unquote-not-syntax-quoted {:level :off}}}}})))
         (is (empty? (lint! project-clj
                            {:linters {:unquote-not-syntax-quoted {:level :warning}}
                             :config-in-call {'user/defproject {:linters {:unquote-not-syntax-quoted {:level :off}}}}})))
