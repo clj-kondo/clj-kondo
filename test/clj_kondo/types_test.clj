@@ -584,8 +584,7 @@
      :col 6,
      :level :error,
      :message "Expected: number, received: nil."}]
-   (lint! "(inc (or))" {:linters {:type-mismatch {:level :error}}})
-   ))
+   (lint! "(inc (or))" {:linters {:type-mismatch {:level :error}}})))
 
 (deftest cond-test
   (assert-submaps2
@@ -610,8 +609,8 @@
      (lint! "(defn foo [] \"foo\") (inc (foo))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps2 '({:file "<stdin>", :row 1, :col 36, :level :error, :message "Expected: number, received: map."})
-                    (lint! "(defn foo [] (assoc {} :a 1)) (inc (foo))"
-                           {:linters {:type-mismatch {:level :error}}}))
+                     (lint! "(defn foo [] (assoc {} :a 1)) (inc (foo))"
+                            {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 53, :level :error, :message "Expected: number, received: string."})
      (lint! "(defn foo ([_] 1) ([_ _] \"foo\")) (inc (foo 1)) (inc (foo 1 1))"
@@ -1056,7 +1055,7 @@
            lints))))
     (testing "override with config"
       (let [lints (lint! "(ns foo) (def x) (inc x)"
-                         (assoc-in config [:linters :type-mismatch :namespaces] '{foo {x {:type :keyword}}} ))]
+                         (assoc-in config [:linters :type-mismatch :namespaces] '{foo {x {:type :keyword}}}))]
         (assert-submaps2
          '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Expected: number, received: keyword."})
          lints)))))
@@ -1167,9 +1166,39 @@
        '({:row 1 :col 13 :message "Expected: function, received: positive integer."})
        (lint! "(repeatedly 10)" config)))))
 
+(deftest to-array-type-test
+  (testing "Valid usage: nilable collection argument returns array"
+    (is (empty? (lint! "(to-array [1 2 3])" config)))
+    (is (empty? (lint! "(to-array '(1 2 3))" config)))
+    (is (empty? (lint! "(to-array #{1 2 3})" config)))
+    (is (empty? (lint! "(to-array nil)" config))))
+  
+  (testing "Invalid usage: non-seqable argument triggers type-mismatch"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 11
+        :level :error
+        :message "Expected: collection or nil, received: positive integer."})
+     (lint! "(to-array 1)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 11
+        :level :error :message "Expected: collection or nil, received: string."})
+     (lint! "(to-array \"foo\")" config)))
+  (testing "Return type: array triggers type-mismatch in inc"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: array."})
+     (lint! "(inc (to-array [1 2 3]))" config))))
+
 (deftest numerator-denominator-test
   (testing "Valid usages with ratio"
-    (is (empty? (lint! "(numerator 1/2)" config)) 
+    (is (empty? (lint! "(numerator 1/2)" config))
         "Valid numerator call with ratio")
     (is (empty? (lint! "(denominator 1/2)" config))
         "Valid denominator call with ratio")
@@ -1243,7 +1272,83 @@
         :message "Expected: number, received: sorted set."})
      (lint! "(inc (sorted-set-by > 1 2 3))" config))))
 
+(deftest array-functions-test 
+  (testing "alength"
+    (is (empty? (lint! "(alength (to-array [1 2 3]))" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 10
+        :level :error
+        :message "Expected: array, received: string."})
+     (lint! "(alength \"foo\")" config)))
+  (testing "aget 2 args"
+    (is (empty? (lint! "(aget (to-array [1 2 3]) 0)" config)))
+    (is (empty? (lint! "(aget js/document \"getElementById\")" config
+                       "--lang" "cljs")))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aget [1 2 3] 0)" config)))
+  (testing "aget 3 args"
+    (is (empty? (lint! "(aget (to-array [1 2 3]) 0 1)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aget [1 2 3] 0 1)" config)))
+  (testing "aget varargs"
+    (is (empty? (lint! "(aget (to-array [1 2 3]) 0 1 2)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aget [1 2 3] 0 1 2)" config)))
+  (testing "aset 3 args"
+    (is (empty? (lint! "(aset (to-array [1 2 3]) 0 4)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aset [1 2 3] 0 4)" config)))
+  (testing "aset 4 args"
+    (is (empty? (lint! "(aset (to-array [1 2 3]) 0 1 4)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aset [1 2 3] 0 1 4)" config)))
+  (testing "aset varargs"
+    (is (empty? (lint! "(aset (to-array [1 2 3]) 0 1 2 4)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aset [1 2 3] 0 1 2 4)" config)))
+  (testing "aclone"
+    (is (empty? (lint! "(aclone (to-array [1 2 3]))" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 9
+        :level :error
+        :message "Expected: array, received: vector."})
+     (lint! "(aclone [1 2 3])" config))))
+
 ;;;; Scratch
 
 (comment
-)
+  )

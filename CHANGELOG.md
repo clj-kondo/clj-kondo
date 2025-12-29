@@ -21,6 +21,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
 ([@jramosg](https://github.com/jramosg))
+- Add new type `array` and type checking support for the next functions: `to-array`, `alength`, 
+`aget`, `aset` and `aclone` ([@jramosg](https://github.com/jramosg))
 
 ## 2025.12.23
 
