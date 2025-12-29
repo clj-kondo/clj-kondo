@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 `aget`, `aset` and `aclone` ([@jramosg](https://github.com/jramosg))
 - Fix [#2695](https://github.com/clj-kondo/clj-kondo/issues/2696): false positive `:unquote-not-syntax-quoted` in leiningen's `defproject`
 - Leiningen's `defproject` behavior can now be configured using `leiningen.core.project/defproject`
+- Fix [#2699](https://github.com/clj-kondo/clj-kondo/issues/2699): fix false positive unresolved string var with extend-type on CLJS
 
 ## 2025.12.23
 
