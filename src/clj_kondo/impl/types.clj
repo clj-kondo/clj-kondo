@@ -95,14 +95,14 @@
   {:char-sequence #{:string}
    :int #{:neg-int :nat-int :pos-int}
    :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio}
-   :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq 
+   :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
            :sequential :ifn :stack :ilookup}
    :seqable #{:coll :vector :set :sorted-set :map :associative
               :char-sequence :string :nil
               :list :seq :sequential :ifn :stack :sorted-map :ilookup :array}
    :associative #{:map :vector :sequential :stack :sorted-map}
-   :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector 
-          :associative :seqable :coll :sequential :stack :sorted-map :var 
+   :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector
+          :associative :seqable :coll :sequential :stack :sorted-map :var
           :ideref :ilookup}
    :fn #{:transducer}
    :nat-int #{:pos-int}
@@ -113,7 +113,7 @@
    :set #{:sorted-set}
    :ideref #{:atom :var :ifn}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
-              :vector :sequential :stack}})
+              :vector :sequential :stack :array}})
 
 (def misc-types #{:boolean :atom :regex :char})
 
