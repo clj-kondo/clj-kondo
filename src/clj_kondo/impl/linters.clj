@@ -1032,9 +1032,4 @@
 ;;;; scratch
 
 (comment
-  (keys ns-debug)
-  (:lang ns-debug)
-  ns-debug
-
-  (map :name (:used-vars ns-debug))
-  used-vars-debug)
+  )
