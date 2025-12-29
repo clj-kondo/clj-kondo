@@ -143,7 +143,9 @@
    ;; 272
    'butlast seqable->nilable-seq
    ;; 283 'defn
-   ;; 338 'to-array
+   ;; 338 
+   'to-array {:arities {1 {:args [:nilable/coll]
+                           :ret :array}}}
    ;; 346 'cast
    ;; 353
    'vector {:arities {:varargs {:ret :vector}}}
@@ -733,10 +735,18 @@
    'doto {:fn first}
    ;; 3871 'memfn
    ;; 3884 'time
-   ;; 3898 'alength
-   ;; 3905 'aclone
-   ;; 3912 'aget
-   ;; 3923 'aset
+   ;; 3898
+   'alength {:arities {1 {:args [:array] :ret :int}}}
+   ;; 3905 
+   'aclone {:arities {1 {:args [:array] :ret :array}}}
+   ;; 3912 
+   'aget {:arities {2 {:args [:array :int] :ret :any}
+                    3 {:args [:array :int :int] :ret :any}
+                    :varargs {:min-arity 2 :args [:array :int {:op :rest :spec :int}] :ret :any}}}
+   ;; 3923
+   'aset {:arities {3 {:args [:array :int :any] :ret :any}
+                    4 {:args [:array :int :int :any] :ret :any}
+                    :varargs {:min-arity 3 :args [:array :int {:op :rest :spec :int} :any] :ret :any}}}
    ;; 3986 'make-array
    ;; 4003 'to-array-2d
    ;; 4018 'macroexpand-1

@@ -53,7 +53,8 @@
     :any
     :float
     :var
-    :ilookup})
+    :ilookup
+    :array})
 
 (def built-in-specs
   {'clojure.core clojure-core
@@ -87,7 +88,8 @@
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
-   :var #{:ideref :ifn}})
+   :var #{:ideref :ifn}
+   :array #{:seqable :ilookup}})
 
 (def could-be-relations
   {:char-sequence #{:string}
@@ -97,7 +99,7 @@
            :sequential :ifn :stack :ilookup}
    :seqable #{:coll :vector :set :sorted-set :map :associative
               :char-sequence :string :nil
-              :list :seq :sequential :ifn :stack :sorted-map :ilookup}
+              :list :seq :sequential :ifn :stack :sorted-map :ilookup :array}
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector 
           :associative :seqable :coll :sequential :stack :sorted-map :var 
@@ -162,7 +164,8 @@
    :throwable "throwable"
    :sorted-map "sorted map"
    :var "var"
-   :ilookup "ILookup"})
+   :ilookup "ILookup"
+   :array "array"})
 
 (defn label [k]
   (cond
