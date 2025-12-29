@@ -46,31 +46,37 @@
         :level :warning
         :message "Unquote (~) not syntax-quoted"})
      (lint! "'~x" {:linters {:unquote-not-syntax-quoted
-                             {:level :warning}}}))))
-(testing "quoted unquote-splicing warns"
-  (assert-submaps2
-   '({:file "<stdin>"
-      :row 1
-      :col 2
-      :level :warning
-      :message "Unquote-splicing (~@) not syntax-quoted"})
-   (lint! "'~@x" {:linters {:unquote-not-syntax-quoted {:level :warning}}})))
-(testing "linter can be disabled"
-  (is (empty? (lint! "~x" {:linters {:unquote-not-syntax-quoted
-                                     {:level :off}}})))
-  (is (empty? (lint! "'~x" {:linters {:unquote-not-syntax-quoted
-                                      {:level :off}}}))))
-(testing "linter can be disabled in specific calls with config-in-call"
-  (assert-submaps2
-   '({:file "<stdin>"
-      :row 7
-      :col 1
-      :level :warning
-      :message "Unquote (~) not syntax-quoted"})
-   (lint! "(ns scratch
+                             {:level :warning}}})))
+
+  (testing "quoted unquote-splicing warns"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 2
+        :level :warning
+        :message "Unquote-splicing (~@) not syntax-quoted"})
+     (lint! "'~@x" {:linters {:unquote-not-syntax-quoted {:level :warning}}})))
+  (testing "linter can be disabled"
+    (is (empty? (lint! "~x" {:linters {:unquote-not-syntax-quoted
+                                       {:level :off}}})))
+    (is (empty? (lint! "'~x" {:linters {:unquote-not-syntax-quoted
+                                        {:level :off}}}))))
+  (testing "linter can be disabled in specific calls with config-in-call"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 7
+        :col 1
+        :level :warning
+        :message "Unquote (~) not syntax-quoted"})
+     (lint! "(ns scratch
   {:clj-kondo/config '{:config-in-call {babashka2.process/$$ {:linters {:unquote-not-syntax-quoted {:level :off}}}}}})
 
 (require '[babashka2.process :as proc])
 
 (proc/$$ 1 ~2) ;; no warning here
-~2  ;; warning" {:linters {:unquote-not-syntax-quoted {:level :warning}}})))
+~2  ;; warning" {:linters {:unquote-not-syntax-quoted {:level :warning}}}))))
+
+(deftest issue-1695-test
+  (is (empty? (lint! "(def version \"1.0.0\") (defproject dude \"1.0.0\" :foo (inc ~version))"
+                     {:linters {:unquote-not-syntax-quoted {:level :warning}}}
+                     "--filename" "project.clj"))))
