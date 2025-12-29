@@ -1284,20 +1284,15 @@
      (lint! "(alength \"foo\")" config)))
   (testing "aget 2 args"
     (is (empty? (lint! "(aget (to-array [1 2 3]) 0)" config)))
+    (is (empty? (lint! "(aget js/document \"getElementById\")" config
+                       "--lang" "cljs")))
     (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 7
         :level :error
         :message "Expected: array, received: vector."})
-     (lint! "(aget [1 2 3] 0)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 26
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aget (to-array [1 2 3]) \"0\")" config)))
+     (lint! "(aget [1 2 3] 0)" config)))
   (testing "aget 3 args"
     (is (empty? (lint! "(aget (to-array [1 2 3]) 0 1)" config)))
     (assert-submaps2
@@ -1306,21 +1301,7 @@
         :col 7
         :level :error
         :message "Expected: array, received: vector."})
-     (lint! "(aget [1 2 3] 0 1)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 26
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aget (to-array [1 2 3]) \"0\" 1)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 28
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aget (to-array [1 2 3]) 0 \"1\")" config)))
+     (lint! "(aget [1 2 3] 0 1)" config)))
   (testing "aget varargs"
     (is (empty? (lint! "(aget (to-array [1 2 3]) 0 1 2)" config)))
     (assert-submaps2
@@ -1329,28 +1310,7 @@
         :col 7
         :level :error
         :message "Expected: array, received: vector."})
-     (lint! "(aget [1 2 3] 0 1 2)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 26
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aget (to-array [1 2 3]) \"0\" 1 2)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 28
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aget (to-array [1 2 3]) 0 \"1\" 2)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 30
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aget (to-array [1 2 3]) 0 1 \"2\")" config)))
+     (lint! "(aget [1 2 3] 0 1 2)" config)))
   (testing "aset 3 args"
     (is (empty? (lint! "(aset (to-array [1 2 3]) 0 4)" config)))
     (assert-submaps2
@@ -1359,14 +1319,7 @@
         :col 7
         :level :error
         :message "Expected: array, received: vector."})
-     (lint! "(aset [1 2 3] 0 4)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 26
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aset (to-array [1 2 3]) \"0\" 4)" config)))
+     (lint! "(aset [1 2 3] 0 4)" config)))
   (testing "aset 4 args"
     (is (empty? (lint! "(aset (to-array [1 2 3]) 0 1 4)" config)))
     (assert-submaps2
@@ -1375,21 +1328,7 @@
         :col 7
         :level :error
         :message "Expected: array, received: vector."})
-     (lint! "(aset [1 2 3] 0 1 4)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 26
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aset (to-array [1 2 3]) \"0\" 1 4)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 28
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aset (to-array [1 2 3]) 0 \"1\" 4)" config)))
+     (lint! "(aset [1 2 3] 0 1 4)" config)))
   (testing "aset varargs"
     (is (empty? (lint! "(aset (to-array [1 2 3]) 0 1 2 4)" config)))
     (assert-submaps2
@@ -1398,28 +1337,7 @@
         :col 7
         :level :error
         :message "Expected: array, received: vector."})
-     (lint! "(aset [1 2 3] 0 1 2 4)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 26
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aset (to-array [1 2 3]) \"0\" 1 2 4)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 28
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aset (to-array [1 2 3]) 0 \"1\" 2 4)" config))
-    (assert-submaps2
-     '({:file "<stdin>"
-        :row 1
-        :col 30
-        :level :error
-        :message "Expected: integer, received: string."})
-     (lint! "(aset (to-array [1 2 3]) 0 1 \"2\" 4)" config)))
+     (lint! "(aset [1 2 3] 0 1 2 4)" config)))
   (testing "aclone"
     (is (empty? (lint! "(aclone (to-array [1 2 3]))" config)))
     (assert-submaps2

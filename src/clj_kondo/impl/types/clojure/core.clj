@@ -740,13 +740,17 @@
    ;; 3905 
    'aclone {:arities {1 {:args [:array] :ret :array}}}
    ;; 3912 
-   'aget {:arities {2 {:args [:array :int] :ret :any}
-                    3 {:args [:array :int :int] :ret :any}
-                    :varargs {:min-arity 2 :args [:array :int {:op :rest :spec :int}] :ret :any}}}
+   'aget {:arities {2 {:args [:array :any] :ret :any}
+                    3 {:args [:array :any :any] :ret :any}
+                    :varargs {:min-arity 2 
+                              :args [:array :any {:op :rest :spec :any}]
+                              :ret :any}}}
    ;; 3923
-   'aset {:arities {3 {:args [:array :int :any] :ret :any}
-                    4 {:args [:array :int :int :any] :ret :any}
-                    :varargs {:min-arity 3 :args [:array :int {:op :rest :spec :int} :any] :ret :any}}}
+   'aset {:arities {3 {:args [:array :any :any] :ret :any}
+                    4 {:args [:array :any :any :any] :ret :any}
+                    :varargs {:min-arity 3
+                              :args [:array :any {:op :rest :spec :any} :any]
+                              :ret :any}}}
    ;; 3986 'make-array
    ;; 4003 'to-array-2d
    ;; 4018 'macroexpand-1
