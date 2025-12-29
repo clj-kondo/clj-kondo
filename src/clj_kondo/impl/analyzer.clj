@@ -1671,8 +1671,7 @@
           (do
             (when-not (and (identical? :cljs (:lang ctx))
                            (or (one-of sym [number function default object string bigint])
-                               (and (= 'Object sym)
-                                    (one-of defined-by->lint-as [cljs.core/deftype cljs.core/defrecord]))))
+                               (and (some? current-protocol) (= 'Object sym))))
               (analyze-expression** ctx c))
             (let [[protocol-name' protocol-node end-node]
                   (case (name defined-by)
