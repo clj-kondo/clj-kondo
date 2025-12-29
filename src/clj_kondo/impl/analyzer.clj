@@ -1670,8 +1670,7 @@
           ;; to multiple records/types.
           (do
             (when-not (and (identical? :cljs (:lang ctx))
-                           (or (one-of sym [number function default object string bigint])
-                               (and (some? current-protocol) (= 'Object sym))))
+                           (one-of sym [Object number function default object string bigint]))
               (analyze-expression** ctx c))
             (let [[protocol-name' protocol-node end-node]
                   (case (name defined-by)
