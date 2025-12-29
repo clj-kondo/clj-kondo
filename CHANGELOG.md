@@ -20,6 +20,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2600](https://github.com/clj-kondo/clj-kondo/issues/2600): NEW linter: `unused-excluded-var` to warn on unused vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
+- Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
+([@jramosg](https://github.com/jramosg))
+- Add new type `array` and type checking support for the next functions: `to-array`, `alength`,
+`aget`, `aset` and `aclone` ([@jramosg](https://github.com/jramosg))
+- Fix [#2695](https://github.com/clj-kondo/clj-kondo/issues/2696): false positive `:unquote-not-syntax-quoted` in leiningen's `defproject`
+- Leiningen's `defproject` behavior can now be configured using `leiningen.core.project/defproject`
 
 ## 2025.12.23
 

@@ -3172,12 +3172,13 @@
         (:unquote :unquote-splicing)
         (let [level (:syntax-quote-level ctx)]
           (when-not (and level (pos? level))
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) expr :unquote-not-syntax-quoted
-                         (if (= :unquote t)
-                           "Unquote (~) not syntax-quoted"
-                           "Unquote-splicing (~@) not syntax-quoted"))))
+            (when-not (some #(= '[leiningen.core.project defproject] %) (:callstack ctx))
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) expr :unquote-not-syntax-quoted
+                           (if (= :unquote t)
+                             "Unquote (~) not syntax-quoted"
+                             "Unquote-splicing (~@) not syntax-quoted")))))
           (let [new-level (if level (dec level) -1)
                 ctx (assoc ctx :syntax-quote-level new-level)]
             (analyze-children ctx children)))
@@ -3465,8 +3466,11 @@
   (let [init-ns (when-not (= :edn lang)
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
-                                       (dissoc :analysis))
-                                   (parse-string "(ns user)")))
+                                       (dissoc :analysis)
+                                       (utils/ctx-with-linter-disabled :namespace-name-mismatch))
+                                   (if (= "project.clj" (fs/file-name (:filename ctx)))
+                                     (parse-string "(ns leiningen.core.project)")
+                                     (parse-string "(ns user)"))))
         init-ctx (assoc ctx
                         :ns init-ns
                         :calls-by-id (atom {})

@@ -804,6 +804,16 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 31}
+ {:end-row 211,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
+  :col 30,
+  :end-col 41,
+  :langs (),
+  :message "Condition always true",
+  :row 211}
  {:end-row 114,
   :type :unresolved-var,
   :level :warning,

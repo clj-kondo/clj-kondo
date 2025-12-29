@@ -18157,6 +18157,15 @@
   :langs (),
   :message "unused binding name",
   :row 170}
+ {:end-row 183,
+  :type :type-mismatch,
+  :level :error,
+  :filename "clojure/browser/repl.cljs",
+  :col 46,
+  :end-col 56,
+  :langs (),
+  :message "Expected: array, received: nil.",
+  :row 183}
  {:end-row 13,
   :type :uninitialized-var,
   :level :warning,
