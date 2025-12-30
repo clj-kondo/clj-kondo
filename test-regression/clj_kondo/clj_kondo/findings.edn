@@ -1876,6 +1876,30 @@
   :langs (:clj :cljs),
   :message "unused binding macros?",
   :row 2969}
+ {:end-row 3117,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 25,
+  :end-col 31,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 3115}
+ {:end-row 3177,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 25,
+  :end-col 31,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 3175}
  {:end-row 3271,
   :type :unused-binding,
   :level :warning,
@@ -20208,6 +20232,16 @@
   :langs (),
   :message "Missing else branch.",
   :row 277}
+ {:end-row 418,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 27,
+  :end-col 46,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 416}
  {:end-row 565,
   :type :unused-private-var,
   :level :warning,
@@ -29381,6 +29415,43 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: bindings",
   :row 186}
+ {:end-row 215,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename "sci/impl/opts.cljc",
+  :col 23,
+  :end-col 37,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 215}
+ {:end-row 216,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :cljs,
+  :filename "sci/impl/opts.cljc",
+  :col 40,
+  :end-col 60,
+  :cljc true,
+  :langs (:cljs),
+  :branch :cljs,
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 216}
+ {:end-row 217,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename "sci/impl/opts.cljc",
+  :col 24,
+  :end-col 39,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 217}
  {:end-row 82,
   :type :private-call,
   :level :error,

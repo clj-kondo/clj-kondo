@@ -228,6 +228,17 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 97}
+ {:end-row 103,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
+  :col 33,
+  :end-col 56,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 103}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -338,6 +349,52 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
+ {:end-row 376,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/embedding/api/common.clj",
+  :col 26,
+  :end-col 68,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 376}
+ {:end-row 84,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/embedding/api/embed.clj",
+  :col 68,
+  :end-col 110,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 84}
+ {:end-row 160,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/embedding/api/embed.clj",
+  :col 26,
+  :end-col 68,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 160}
+ {:end-row 694,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/util.cljc",
+  :col 30,
+  :end-col 57,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 693}
  {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
@@ -444,6 +501,19 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 565}
+ {:end-row 160,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/parameters/shared.cljc",
+  :col 51,
+  :end-col 62,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 160}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -534,6 +604,17 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 79}
+ {:end-row 297,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/card.clj",
+  :col 26,
+  :end-col 68,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 297}
  {:end-row 30,
   :type :redundant-let-binding,
   :level :warning,
@@ -624,6 +705,28 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 45}
+ {:end-row 50,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/server/middleware/log.clj",
+  :col 24,
+  :end-col 39,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 50}
+ {:end-row 51,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/server/middleware/log.clj",
+  :col 24,
+  :end-col 39,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 51}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
@@ -758,6 +861,28 @@
   :langs (:clj),
   :message "The var def does not exist in clojure.core",
   :row 2}
+ {:end-row 173,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
+  :col 28,
+  :end-col 44,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 173}
+ {:end-row 174,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
+  :col 24,
+  :end-col 40,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 174}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
   :protocol-name YAMLCodec,
@@ -1101,6 +1226,19 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 45}
+ {:end-row 318,
+  :type :improper-or-mapping,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/drill_thru/test_util.cljc",
+  :col 28,
+  :end-col 62,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 318}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,
@@ -1406,6 +1544,105 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
+ {:end-row 287,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 23,
+  :end-col 39,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 287}
+ {:end-row 292,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 17,
+  :end-col 37,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 288}
+ {:end-row 316,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 35,
+  :end-col 55,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 316}
+ {:end-row 317,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 35,
+  :end-col 42,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 317}
+ {:end-row 1392,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 29,
+  :end-col 45,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 1392}
+ {:end-row 1393,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 29,
+  :end-col 68,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 1393}
+ {:end-row 1397,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 29,
+  :end-col 111,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 1394}
+ {:end-row 1466,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 35,
+  :end-col 59,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 1466}
+ {:end-row 1470,
+  :type :improper-or-mapping,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 35,
+  :end-col 52,
+  :langs (),
+  :message
+  "Improper use of :or mapping: default value should not be an s-expression.",
+  :row 1467}
  {:end-row 1018,
   :type :unresolved-symbol,
   :level :error,
