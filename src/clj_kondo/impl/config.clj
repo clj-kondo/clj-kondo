@@ -184,6 +184,7 @@
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
               :locking-suspicious-lock {:level :warning}
+              :improper-or-mapping {:level :warning}
               :unquote-not-syntax-quoted {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->

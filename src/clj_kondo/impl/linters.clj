@@ -718,8 +718,8 @@
                   linter-configs (keep #(get-in config [:linters :discouraged-namespace %]) (concat ns-groups [ns-sym]))]
             :when (seq linter-configs)
             :let [linter-config (apply config/merge-config! linter-configs)
-                  {:keys [message level]
-                   :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
+                  {:keys [message level]} linter-config
+                  message (or message (str "Discouraged namespace: " ns-sym))
                   ctx (assoc ctx :lang lang :base-lang (:base-lang ns) :config config)]]
       (findings/reg-finding!
        ctx

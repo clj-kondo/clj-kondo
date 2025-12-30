@@ -109,15 +109,20 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {true str/join}")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) [str/join]")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
+                       (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)"
+                     {:linters {:improper-or-mapping {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
+                       (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)"
+                     {:linters {:improper-or-mapping {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
+                       (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)"
+                     {:linters {:improper-or-mapping {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)")))
+                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)"
+                     {:linters {:improper-or-mapping {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
+                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"
+                     {:linters {:improper-or-mapping {:level :off}}})))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "dot_alias.cljs"))))
   (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))

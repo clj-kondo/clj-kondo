@@ -54,6 +54,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
+    - [Improper or mapping](#improper-or-mapping)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -999,6 +1000,24 @@ for more details and discussion.
 *Example trigger:* `(defn foo [] (def x 1))`.
 
 *Example message:* `inline def`.
+
+### Improper or mapping
+
+*Keyword:* `:improper-or-mapping`
+
+*Description:* warn on s-expressions in `:or` defaults in map destructuring.
+These defaults are eagerly evaluated, even if the key is present in the map,
+which can lead to unexpected side effects if the default value is an s-expression.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+``` clojure
+(let [{:keys [x] :or {x (f1)}} {:x 1}] x)
+```
+
+*Example message:* `Improper use of :or mapping: default value should not be an s-expression.`
 
 ### Invalid arity
 

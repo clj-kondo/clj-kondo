@@ -134,6 +134,13 @@
                                           :filename (:filename ctx)
                                           :str (:string-value k))]
                 (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
+            (when (identical? :list (utils/tag v))
+              (findings/reg-finding!
+               ctx
+               (assoc (meta v)
+                      :type :improper-or-mapping
+                      :filename (:filename ctx)
+                      :message "Improper use of :or mapping: default value should not be an s-expression.")))
             (analyze-expression** (assoc ctx :undefined-locals undefined-locals) v)))))))
 
 (defn lift-meta-content*
