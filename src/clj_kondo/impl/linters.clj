@@ -928,6 +928,26 @@
         :ns un
         :name (:name m)}))))
 
+(defn lint-imported-but-not-required! [ctx]
+  (let [hide-dupl-path [:config :linters :imported-but-not-required 
+                        :report-duplicates]
+        hide-duplicates? (not (get-in ctx hide-dupl-path))]
+    (doseq [ns (namespace/list-namespaces ctx)
+            :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
+            f (cond-> (:imported-but-not-required ns)
+                hide-duplicates? distinct)
+            :let [{:keys [filename] :as m} (meta f)]]
+      (findings/reg-finding!
+       ctx
+       {:type :imported-but-not-required
+        :filename filename
+        :message (:message m)
+        :row (:row m)
+        :col (:col m)
+        :end-row (:end-row m)
+        :end-col (:end-col m)
+        :ns f}))))
+
 (defn lint-class-usage [ctx idacs]
   (when-let [jm (:java-member-definitions idacs)]
     (doseq [usage @(:java-class-usages ctx)
