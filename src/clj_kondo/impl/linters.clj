@@ -920,7 +920,8 @@
        ctx
        {:type :unresolved-namespace
         :filename filename
-        :message (str "Unresolved namespace " un ". Are you missing a require?")
+        :message (or (:message m)
+                     (str "Unresolved namespace " un ". Are you missing a require?"))
         :row (:row m)
         :col (:col m)
         :end-row (:end-row m)

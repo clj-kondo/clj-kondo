@@ -2022,6 +2022,24 @@ This will exclude all bindings starting with `_x`.
 
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
 
+This linter also warns when a Clojure-defined Java class (e.g. from `deftype`) is imported but the corresponding namespace is not required.
+
+*Example trigger:*
+
+`bar.clj`:
+```clojure
+(ns bar)
+(deftype Bar [])
+```
+
+`foo.clj`:
+```clojure
+(ns foo (:import (bar Bar)))
+(Bar.)
+```
+
+*Example message:* `Imported namespace bar but it was not required.`
+
 You can report duplicate warnings using:
 
 ``` clojure

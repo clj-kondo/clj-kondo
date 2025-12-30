@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2538](https://github.com/clj-kondo/clj-kondo/issues/2538): Extend `:unresolved-namespace` linter to warn when importing Clojure-defined classes without requiring the namespace ([@jramosg](https://github.com/jramosg))
 - Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
 ([@jramosg](https://github.com/jramosg))
 - Add new type `array` and type checking support for the next functions: `to-array`, `alength`,

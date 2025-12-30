@@ -438,6 +438,9 @@
         [_ns-name ns] nss]
     ns))
 
+(declare get-namespace
+         reg-unresolved-namespace!)
+
 (defn reg-used-import!
   [{:keys [base-lang lang namespaces] :as ctx}
    name-sym ns-sym package class-name expr opts]
@@ -450,6 +453,16 @@
         static-method-name (when (and (not= name-sym-str (str class-name))
                                       (not (str/includes? name-sym-str ".")))
                              name-sym-str)]
+    (when (identical? :clj lang)
+      (let [package-sym (symbol package)]
+        (when (get-in @namespaces [base-lang lang package-sym])
+          (let [ns (get-namespace ctx base-lang lang ns-sym)]
+            (when-not (or (some #(= package-sym %) (:required ns))
+                          (= package-sym ns-sym))
+              (reg-unresolved-namespace!
+               ctx ns-sym
+               (vary-meta package-sym merge loc
+                          {:message (format "Imported namespace %s but it was not required." package-sym)})))))))
     (java/reg-class-usage! ctx
                            (str package "." class-name)
                            static-method-name
