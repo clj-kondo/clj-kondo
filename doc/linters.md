@@ -2016,6 +2016,10 @@ This will exclude all bindings starting with `_x`.
 
 *Default level:* `:error`.
 
+*Example trigger:* `foo.bar/baz`.
+
+*Example message:* `Unresolved namespace foo.bar. Are you missing a require?`
+
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
 
 You can report duplicate warnings using:
