@@ -185,7 +185,7 @@
               :missing-protocol-method {:level :warning}
               :locking-suspicious-lock {:level :warning}
               :unquote-not-syntax-quoted {:level :warning}
-              :imported-but-not-required {:level :warning}}}
+              :imported-but-not-required {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
