@@ -928,10 +928,8 @@
         :ns un
         :name (:name m)}))))
 
-(defn lint-imported-but-not-required!
-  [ctx]
-  (let [
-        hide-dupl-path [:config :linters :imported-but-not-required 
+(defn lint-imported-but-not-required! [ctx]
+  (let [hide-dupl-path [:config :linters :imported-but-not-required 
                         :report-duplicates]
         hide-duplicates? (not (get-in ctx hide-dupl-path))]
     (doseq [ns (namespace/list-namespaces ctx)
