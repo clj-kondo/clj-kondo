@@ -1670,7 +1670,7 @@
           ;; to multiple records/types.
           (do
             (when-not (and (identical? :cljs (:lang ctx))
-                           (= 'Object sym))
+                           (one-of sym [Object number function default object string bigint]))
               (analyze-expression** ctx c))
             (let [[protocol-name' protocol-node end-node]
                   (case (name defined-by)
@@ -2259,13 +2259,7 @@
     (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
 (defn analyze-extend-type [ctx expr defined-by defined-by->lint-as]
-  (let [children (next (:children expr))
-        ctx (if (identical? :cljs (:lang ctx))
-              (update-in ctx [:config :linters :unresolved-symbol :exclude]
-                         (fn [config]
-                           (conj config
-                                 'number 'function 'default 'object 'string 'bigint)))
-              ctx)]
+  (let [children (next (:children expr))]
     (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
 (defn analyze-specify! [ctx expr defined-by defined-by->lint-as]

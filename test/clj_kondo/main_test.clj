@@ -2112,6 +2112,10 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(#_:clj-kondo/ignore load-string 1)"
                      {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as string])) string/join (defprotocol IDude) (extend-type string  IDude)"
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-var {:level :error}}}
                      "--lang" "cljs"))))
 
 (deftest tagged-literal-test
