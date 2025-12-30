@@ -258,6 +258,7 @@
                     (l/lint-unresolved-vars! ctx)
                     (l/lint-unused-imports! ctx)
                     (l/lint-unresolved-namespaces! ctx)
+                    (l/lint-imported-but-not-required! ctx)
                     (l/lint-discouraged-namespaces! ctx)
                     (l/lint-class-usage ctx idacs)
                     (l/lint-protocol-impls! ctx idacs)

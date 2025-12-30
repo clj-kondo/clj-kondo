@@ -432,11 +432,24 @@
   (swap! namespaces update-in [base-lang lang ns-sym :refer-alls referred-all-ns-sym :referred]
          conj var-sym))
 
+(defn reg-imported-but-not-required!
+  [{:keys [base-lang lang namespaces filename] :as ctx} ns-sym package-sym loc]
+  (when-not (linter-disabled? ctx :imported-but-not-required)
+    (let [finding (vary-meta package-sym merge loc
+                             {:filename filename
+                              :message (format "Imported namespace %s but it was not required." package-sym)})]
+      (swap! namespaces update-in [base-lang lang ns-sym :imported-but-not-required]
+             (fnil conj [])
+             finding))))
+
 (defn list-namespaces [{:keys [namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
         [_ns-name ns] nss]
     ns))
+
+(defn get-namespace [ctx base-lang lang ns-sym]
+  (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
 
 (defn reg-used-import!
   [{:keys [base-lang lang namespaces] :as ctx}
@@ -450,6 +463,13 @@
         static-method-name (when (and (not= name-sym-str (str class-name))
                                       (not (str/includes? name-sym-str ".")))
                              name-sym-str)]
+    (when (identical? :clj lang)
+      (let [package-sym (symbol package)]
+        (when (get-in @namespaces [base-lang lang package-sym])
+          (let [ns (get-namespace ctx base-lang lang ns-sym)]
+            (when-not (or (some #(= package-sym %) (:required ns))
+                          (= package-sym ns-sym))
+              (reg-imported-but-not-required! ctx ns-sym package-sym loc))))))
     (java/reg-class-usage! ctx
                            (str package "." class-name)
                            static-method-name
@@ -480,8 +500,6 @@
                  (fnil conj [])
                  unresolved-ns))))))
 
-(defn get-namespace [ctx base-lang lang ns-sym]
-  (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
 
 (defn next-token [^StringTokenizer st]
   (when (.hasMoreTokens st)

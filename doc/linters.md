@@ -2016,10 +2016,6 @@ This will exclude all bindings starting with `_x`.
 
 *Default level:* `:error`.
 
-*Example trigger:* `foo.bar/baz`.
-
-*Example message:* `Unresolved namespace foo.bar. Are you missing a require?`
-
 *Config:* use `:exclude [foo.bar]` to suppress the above warning.
 
 You can report duplicate warnings using:
@@ -2027,6 +2023,30 @@ You can report duplicate warnings using:
 ``` clojure
 {:linters {:unresolved-namespace {:report-duplicates true}}}
 ```
+
+### Imported but not required
+
+*Keyword:* `:imported-but-not-required`.
+
+*Default level:* `:warning`.
+
+This linter warns when a Clojure-defined Java class (e.g. from `deftype`) is imported but the corresponding namespace is not required.
+
+*Example trigger:*
+
+`bar.clj`:
+```clojure
+(ns bar)
+(deftype Bar [])
+```
+
+`foo.clj`:
+```clojure
+(ns foo (:import (bar Bar)))
+(Bar.)
+```
+
+*Example message:* `Imported namespace bar but it was not required.`
 
 ### Unresolved symbol
 
