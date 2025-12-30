@@ -706,30 +706,24 @@
                        :unused-alias (str "Unused alias: " alias))))))))
 
 (defn lint-unused-excluded-vars! [ctx]
-  (letfn [(core-original-name [lang [_ {var-name :name}]]
-            (when (var-info/core-sym? lang var-name)
-              var-name))
-          (imported-macro-name [m]
-            (when (some #(= 'import-macros (second %))
-                        (:callstack m))
-              (:name m)))]
-    (when-not (linter-disabled? ctx :unused-excluded-var)
-      (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
-              :when (and (seq clojure-excluded)
-                         (not (linter-disabled? ns :unused-excluded-var)))
-              :let [{:keys [lang used-vars referred-vars vars bindings]} ns
-                    used (set (concat (keys vars)
-                                      (keep imported-macro-name used-vars)
-                                      (keep #(core-original-name lang %)
-                                            referred-vars)
-                                      (map :name bindings)))]
-              excluded clojure-excluded
-              :when (and (not (contains? used excluded))
-                         (var-info/core-sym? lang excluded))]
-        (findings/reg-finding!
-         ctx
-         (node->line (:filename ns) excluded :unused-excluded-var
-                     (format "Unused excluded var: %s" excluded)))))))
+  (when-not (linter-disabled? ctx :unused-excluded-var)
+    (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
+            :when (and (seq clojure-excluded)
+                       (not (linter-disabled? ns :unused-excluded-var)))
+            :let [{:keys [lang referred-vars vars bindings]} ns
+                  core-original-name (fn [[_ {var-name :name}]]
+                                       (when (var-info/core-sym? lang var-name)
+                                         var-name))
+                  used (set (concat (keys vars)
+                                    (keep core-original-name referred-vars)
+                                    (map :name bindings)))]
+            excluded clojure-excluded
+            :when (and (not (contains? used excluded))
+                       (var-info/core-sym? lang excluded))]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ns) excluded :unused-excluded-var
+                   (format "Unused excluded var: %s" excluded))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
