@@ -1622,7 +1622,7 @@ Example warning: `require with :refer`.
 
 *Keyword:* `:unused-excluded-var`.
 
-*Description:* warns when `:refer-clojure :exclude` contains vars that are not redefined in the current namespace.
+*Description:* warns when `:refer-clojure :exclude` contains vars that are not redefined in the current namespace. Locals with the same name as an excluded var also count as a redefinition and will suppress this warning.
 
 *Default level:* `:warning`.
 
