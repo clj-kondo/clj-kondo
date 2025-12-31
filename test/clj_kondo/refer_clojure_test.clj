@@ -3,6 +3,8 @@
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
 
+(def config {:linters {:unused-excluded-var {:level :off}}})
+
 (deftest refer-clojure-exclude-test
   (testing "clj"
     (assert-submaps2
@@ -13,7 +15,8 @@
         :message "The var foo does not exist in clojure.core"})
      (lint! "(ns foo (:refer-clojure :exclude [foo]))")))
   (testing "clj valid"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map]))"))))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map]))"
+                       config))))
   (testing "cljs"
     (assert-submaps2
      '({:file "<stdin>"
@@ -22,22 +25,29 @@
         :level :info
         :message "The var future does not exist in cljs.core"})
      (lint! "(ns foo (:refer-clojure :exclude [future]))"
-            "--lang" "cljs")))
+            "--lang" "cljs"
+            "--config" (pr-str config))))
   (testing "cljs valid"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [munge-str]))" "--lang" "cljs"))))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [munge-str]))"
+                       "--lang" "cljs"
+                       "--config" (pr-str config)))))
   (testing "cljs valid"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [js-obj]))"
-                       "--lang" "cljs"))))
+                       "--lang" "cljs"
+                       "--config" (pr-str config)))))
   (testing "cljc valid in clj and cljs"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map]))"
-                       "--lang" "cljc"))))
+                       "--lang" "cljc"
+                       "--config" (pr-str config)))))
   (testing "cljc valid in cljs"
     (is (empty?
          (lint! "(ns foo (:refer-clojure :exclude [js-obj]))"
-                "--lang" "cljc"))))
+                "--lang" "cljc"
+                "--config" (pr-str config)))))
   (testing "cljc valid in clj"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [future map]))"
-                       "--lang" "cljc"))))
+                       "--lang" "cljc"
+                       "--config" (pr-str config)))))
   (testing "cljc invalid in clj and cljs"
     (assert-submaps2
      [{:file "<stdin>"
@@ -51,7 +61,8 @@
        :level :info
        :message "The var bad-cljs-var does not exist in clojure.core"}]
      (lint! "(ns foo (:refer-clojure :exclude [bad-cljs-var js-obj]))"
-            "--lang" "cljc"))))
+            "--lang" "cljc"
+            "--config" (pr-str config)))))
 
 (deftest refer-clojure-multiple-exclude-test
   (testing "multiple vars with some valid and some invalid"
@@ -66,7 +77,8 @@
         :col 43
         :level :info
         :message "The var bar does not exist in clojure.core"})
-     (lint! "(ns foo (:refer-clojure :exclude [foo map bar filter]))")))
+     (lint! "(ns foo (:refer-clojure :exclude [foo map bar filter]))"
+            config)))
   (testing "multiple vars across multiple lines"
     (assert-submaps2
      '({:file "<stdin>"
@@ -81,7 +93,8 @@
         :message "The var another-bad does not exist in clojure.core"})
      (lint! "(ns foo
   (:refer-clojure :exclude [invalid-var map
-                            another-bad filter]))")))
+                            another-bad filter]))"
+            config)))
   (testing "cljs multiple vars with mix of valid and invalid"
     (assert-submaps2
      '({:file "<stdin>"
@@ -95,7 +108,8 @@
         :level :info
         :message "The var future does not exist in cljs.core"})
      (lint! "(ns foo (:refer-clojure :exclude [bad-cljs-var js-obj future map]))"
-            "--lang" "cljs"))))
+            "--lang" "cljs"
+            "--config" (pr-str config)))))
 
 (deftest refer-clojure-disabled-test
   (testing "linter disabled via config"
@@ -138,7 +152,8 @@
         :level :info
         :message "The var def does not exist in cljs.core"})
      (lint! "(ns foo (:refer-clojure :exclude [def]))"
-            "--lang" "cljs")))
+            "--lang" "cljs"
+            "--config" (pr-str config))))
   (testing "special symbols warn in cljc"
     (assert-submaps2
      '({:file "<stdin>"
@@ -151,8 +166,9 @@
         :col 35
         :level :info
         :message "The var def does not exist in clojure.core"})
-     (lint! "(ns foo (:refer-clojure :exclude [def]))"
-            "--lang" "cljc")))
+     (lint! "(ns foo (:refer-clojure :exclude [def])) def"
+            "--lang" "cljc"
+            "--config" (pr-str config))))
   (testing "mix of special symbols and regular core symbols"
     (assert-submaps2
      '({:file "<stdin>"
@@ -165,16 +181,21 @@
         :col 43
         :level :info
         :message "The var if does not exist in clojure.core"})
-     (lint! "(ns foo (:refer-clojure :exclude [def map if filter]))"))))
+     (lint! "(ns foo (:refer-clojure :exclude [def map if filter]))"
+            {:linters {:unused-excluded-var {:level :off}}}))))
 
 (deftest refer-clojure-special-forms-test
   (testing ".. is valid in clj"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"))))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"
+                       config))))
   (testing "special-forms are valid in cljs"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"
-                       "--lang" "cljs"))))
+                       "--lang" "cljs"
+                       "--config" (pr-str config)))))
   (testing "special-forms are valid in cljc"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..]))"
-                       "--lang" "cljc"))))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [..])) .."
+                       "--lang" "cljc"
+                       "--config" (pr-str config)))))
   (testing "mix of special-forms and regular core symbols"
-    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. map loop filter]))")))))
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [.. map loop filter]))"
+                       {:linters {:unused-excluded-var {:level :off}}})))))

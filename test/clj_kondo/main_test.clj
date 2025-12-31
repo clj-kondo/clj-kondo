@@ -218,7 +218,12 @@
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
     (assert-submaps
-     '({:file "corpus/exclude_clojure.clj",
+     '({:file "corpus/exclude_clojure.clj"
+        :row 6
+        :col 29
+        :level :info
+        :message "Unused excluded var: get"}
+       {:file "corpus/exclude_clojure.clj",
         :row 12,
         :col 1,
         :level :error,
@@ -341,7 +346,11 @@ foo/foo ;; this does use the private var
   (doseq [lang [:clj :cljs :cljc]]
     (testing (str "lang: " lang)
       (assert-submaps
-       '({:row 9,
+       '({:row 2,
+          :col 29,
+          :level :info
+          :message "Unused excluded var: cond"}
+         {:row 9,
           :col 3,
           :level :warning}
          {:row 16,
@@ -572,7 +581,12 @@ foo/foo ;; this does use the private var
           (i \"str\")
           (includes? \"str\")")))
   (assert-submaps
-   '({:file "corpus/rename.cljc",
+   '({:file "corpus/rename.cljc"
+      :row 2
+      :col 58
+      :level :info
+      :message "Unused excluded var: conj"}
+     {:file "corpus/rename.cljc",
       :row 4,
       :col 9,
       :level :error,

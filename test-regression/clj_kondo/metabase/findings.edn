@@ -339,6 +339,36 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
  {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/template/handlebars_helper.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: hash",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver_api/core.clj",
+  :col 45,
+  :end-col 52,
+  :langs (),
+  :message "Unused excluded var: require",
+  :row 2}
+ {:end-row 3,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/util.cljc",
+  :col 29,
+  :end-col 36,
+  :langs (),
+  :message "Unused excluded var: replace",
+  :row 3}
+ {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :cljs,
@@ -362,6 +392,26 @@
   :langs (:clj),
   :message "The var var does not exist in clojure.core",
   :row 2}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 36,
+  :end-col 42,
+  :langs (),
+  :message "Unused excluded var: remove",
+  :row 4}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 71,
+  :end-col 74,
+  :langs (),
+  :message "Unused excluded var: ->>",
+  :row 4}
  {:end-row 5,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
@@ -410,6 +460,16 @@
   :langs (:clj),
   :message "The var coalesce does not exist in clojure.core",
   :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/filter.cljc",
+  :col 69,
+  :end-col 73,
+  :langs (),
+  :message "Unused excluded var: case",
+  :row 2}
  {:end-row 560,
   :type :redundant-let-binding,
   :level :warning,
@@ -422,6 +482,36 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: home-cols",
   :row 560}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/query.cljc",
+  :col 29,
+  :end-col 35,
+  :langs (),
+  :message "Unused excluded var: remove",
+  :row 2}
+ {:end-row 9,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema.cljc",
+  :col 29,
+  :end-col 32,
+  :langs (),
+  :message "Unused excluded var: ref",
+  :row 9}
+ {:end-row 3,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/types/isa.cljc",
+  :col 48,
+  :end-col 55,
+  :langs (),
+  :message "Unused excluded var: number?",
+  :row 3}
  {:end-row 708,
   :type :condition-always-true,
   :level :warning,
@@ -434,6 +524,16 @@
   :langs (:clj :cljs),
   :message "Condition always true",
   :row 707}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/util/match.cljs",
+  :col 29,
+  :end-col 36,
+  :langs (),
+  :message "Unused excluded var: replace",
+  :row 2}
  {:end-row 565,
   :type :redundant-let-binding,
   :level :warning,
@@ -564,6 +664,16 @@
   :langs (),
   :message "Redundant let binding: compiled-query",
   :row 95}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_implicit_joins.clj",
+  :col 29,
+  :end-col 34,
+  :langs (),
+  :message "Unused excluded var: alias",
+  :row 4}
  {:end-row 104,
   :type :redundant-let-binding,
   :level :warning,
@@ -584,6 +694,16 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 630}
+ {:end-row 7,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/pivot/postprocess.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: run!",
+  :row 7}
  {:end-row 75,
   :type :redundant-let-binding,
   :level :warning,
@@ -735,6 +855,56 @@
   :message "Unquote-splicing (~@) not syntax-quoted",
   :row 243}
  {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
+  :col 29,
+  :end-col 31,
+  :langs (),
+  :message "Unused excluded var: fn",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
+  :col 32,
+  :end-col 36,
+  :langs (),
+  :message "Unused excluded var: defn",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
+  :col 37,
+  :end-col 42,
+  :langs (),
+  :message "Unused excluded var: defn-",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
+  :col 43,
+  :end-col 52,
+  :langs (),
+  :message "Unused excluded var: defmethod",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
+  :col 29,
+  :end-col 36,
+  :langs (),
+  :message "Unused excluded var: declare",
+  :row 2}
+ {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
   :lang :cljs,
@@ -801,6 +971,16 @@
   :langs (),
   :message "Condition always true",
   :row 46}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/xrays/domain_entities/malli.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: defn",
+  :row 2}
  {:end-row 203,
   :type :unresolved-symbol,
   :level :error,
@@ -1011,6 +1191,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 248}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
+  :col 29,
+  :end-col 38,
+  :langs (),
+  :message "Unused excluded var: ancestors",
+  :row 2}
  {:end-row 93,
   :type :unresolved-symbol,
   :level :error,

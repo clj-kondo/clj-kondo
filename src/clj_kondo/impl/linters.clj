@@ -7,8 +7,9 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym node->line
-                                           sexpr tag]]
+   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym
+                                           linter-disabled? node->line sexpr
+                                           tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -703,6 +704,23 @@
            ctx
            (node->line (:filename (meta alias)) alias
                        :unused-alias (str "Unused alias: " alias))))))))
+
+(defn lint-unused-excluded-vars! [ctx]
+  (when-not (linter-disabled? ctx :unused-excluded-var)
+    (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
+            :when (and (seq clojure-excluded)
+                       (not (linter-disabled? ns :unused-excluded-var)))
+            :let [{:keys [lang referred-vars vars bindings]} ns
+                  used (set (concat (keys vars)
+                                    (map :name (vals referred-vars))
+                                    (map :name bindings)))]
+            excluded clojure-excluded
+            :when (and (not (contains? used excluded))
+                       (var-info/core-sym? lang excluded))]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ns) excluded :unused-excluded-var
+                   (format "Unused excluded var: %s" excluded))))))
 
 (defn lint-discouraged-namespaces!
   [ctx]
