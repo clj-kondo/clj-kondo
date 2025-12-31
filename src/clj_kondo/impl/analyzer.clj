@@ -2473,7 +2473,7 @@
            (assoc expr-meta
                   :type :destructured-or-always-evaluates
                   :filename (:filename ctx)
-                  :message "Default :or value is always evaluated")))
+                  :message "Default :or value is always evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
                 (namespace/reg-unresolved-namespace! ctx ns-name

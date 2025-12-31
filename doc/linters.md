@@ -1016,7 +1016,7 @@ expression that always evaluates, e.g. a function call.
 (let [{:keys [x] :or {x (f1)}} {:x 1}] x)
 ```
 
-*Example message:* `Default :or value is always evaluated`
+*Example message:* `Default :or value is always evaluated.`
 
 ### Invalid arity
 

@@ -12,24 +12,24 @@
         :row 1
         :col 25
         :level :warning
-        :message "Default :or value is always evaluated"})
+        :message "Default :or value is always evaluated."})
      (lint! "(let [{:keys [x] :or {x (f1)}} {:x 1}] x)"
             config)))
   (testing "multiple calls in :or mappings"
     (assert-submaps
      '({:row 1
         :col 27
-        :message "Default :or value is always evaluated"}
+        :message "Default :or value is always evaluated."}
        {:row 1
         :col 34
-        :message "Default :or value is always evaluated"})
+        :message "Default :or value is always evaluated."})
      (lint! "(let [{:keys [x y] :or {x (f1) y (f2)}} {}] [x y])"
             config)))
   (testing "nested map destructuring"
     (assert-submaps
      '({:row 1
         :col 26
-        :message "Default :or value is always evaluated"})
+        :message "Default :or value is always evaluated."})
      (lint! "(let [{{:keys [b] :or {b (f1)}} :a} {}] b)"
             config)))
   (testing "vector destructuring (should not trigger)"
@@ -45,7 +45,7 @@
       (assert-submaps
        '({:row 1
           :col 29
-          :message "Default :or value is always evaluated"})
+          :message "Default :or value is always evaluated."})
        (lint! "(let [{:keys [x] :or {x {:y (f1)}}} {}] x)"
               config)))
 
