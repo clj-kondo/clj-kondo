@@ -229,24 +229,24 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 97}
  {:end-row 103,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
   :col 33,
   :end-col 56,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 103}
  {:end-row 103,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
   :col 38,
   :end-col 55,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 103}
  {:end-row 4,
   :type :deprecated-namespace,
@@ -359,37 +359,37 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
  {:end-row 376,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/embedding/api/common.clj",
   :col 26,
   :end-col 68,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 376}
  {:end-row 84,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/embedding/api/embed.clj",
   :col 68,
   :end-col 110,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 84}
  {:end-row 160,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/embedding/api/embed.clj",
   :col 26,
   :end-col 68,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 160}
  {:end-row 694,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :lang :clj,
   :filename
@@ -398,10 +398,10 @@
   :end-col 57,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 693}
  {:end-row 694,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :lang :clj,
   :filename
@@ -410,7 +410,7 @@
   :end-col 56,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 694}
  {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
@@ -519,7 +519,7 @@
   :message "Redundant let binding: query",
   :row 565}
  {:end-row 160,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :lang :clj,
   :filename
@@ -528,7 +528,7 @@
   :end-col 62,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 160}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
@@ -621,14 +621,14 @@
   :message "Redundant let binding: query",
   :row 79}
  {:end-row 297,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/query_processor/card.clj",
   :col 26,
   :end-col 68,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 297}
  {:end-row 30,
   :type :redundant-let-binding,
@@ -721,24 +721,24 @@
   :message "Redundant let binding: query",
   :row 45}
  {:end-row 50,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/server/middleware/log.clj",
   :col 24,
   :end-col 39,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 50}
  {:end-row 51,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/server/middleware/log.clj",
   :col 24,
   :end-col 39,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 51}
  {:end-row 137,
   :type :redundant-let-binding,
@@ -875,24 +875,24 @@
   :message "The var def does not exist in clojure.core",
   :row 2}
  {:end-row 173,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
   :col 28,
   :end-col 44,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 173}
  {:end-row 174,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
   :col 24,
   :end-col 40,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 174}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
@@ -1238,7 +1238,7 @@
   :message "Unresolved symbol: partial=",
   :row 45}
  {:end-row 318,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :lang :clj,
   :filename
@@ -1247,7 +1247,7 @@
   :end-col 62,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 318}
  {:end-row 96,
   :type :condition-always-true,
@@ -1554,141 +1554,141 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
- {:type :eager-or-expression,
+ {:type :destructured-or-always-evaluates,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :level :warning,
   :langs ()}
  {:end-row 287,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 23,
   :end-col 39,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 287}
  {:end-row 292,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 17,
   :end-col 37,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 288}
  {:end-row 316,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 35,
   :end-col 55,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 316}
  {:end-row 317,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 35,
   :end-col 42,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 317}
  {:end-row 1392,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 29,
   :end-col 45,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1392}
  {:end-row 1393,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 29,
   :end-col 68,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1393}
  {:end-row 1397,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 29,
   :end-col 111,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1394}
  {:end-row 1394,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 38,
   :end-col 96,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1394}
  {:end-row 1395,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 31,
   :end-col 48,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1395}
  {:end-row 1397,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 31,
   :end-col 110,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1396}
  {:end-row 1397,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 38,
   :end-col 109,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1396}
  {:end-row 1466,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 35,
   :end-col 59,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1466}
  {:end-row 1470,
-  :type :eager-or-expression,
+  :type :destructured-or-always-evaluates,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 35,
   :end-col 52,
   :langs (),
-  :message "Default :or value is eagerly evaluated.",
+  :message "Default :or value is always evaluated",
   :row 1467}
  {:end-row 1018,
   :type :unresolved-symbol,

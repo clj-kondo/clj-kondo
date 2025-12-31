@@ -54,7 +54,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
-    - [Eager or expression in map destructuring](#eager-or-expression-in-map-destructuring)
+    - [Destructured or always evaluates](#destructured-or-always-evaluates)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -1001,13 +1001,14 @@ for more details and discussion.
 
 *Example message:* `inline def`.
 
-### Eager or expression in map destructuring
+### Destructured or always evaluates
 
-*Keyword:* `:eager-or-expression`
+*Keyword:* `:destructured-or-always-evaluates`
 
-*Description:* Warn when an s-expression is used as a default value in `:or` during map destructuring. Such defaults are eagerly evaluated, even if the corresponding key is present in the map, which can cause unexpected side effects if the default is a function call or other expression.
+*Description:* Warn when an `:or` default value in a destructuring contains an
+expression that always evaluates, e.g. a function call.
 
-*Default level:* `:warning`
+*Default level:* `:off`
 
 *Example trigger:*
 
@@ -1015,7 +1016,7 @@ for more details and discussion.
 (let [{:keys [x] :or {x (f1)}} {:x 1}] x)
 ```
 
-*Example message:* `Default :or value is eagerly evaluated.`
+*Example message:* `Default :or value is always evaluated`
 
 ### Invalid arity
 

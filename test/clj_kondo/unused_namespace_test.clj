@@ -110,19 +110,19 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) [str/join]")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)"
-                     {:linters {:eager-or-expression {:level :off}}})))
+                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)"
-                     {:linters {:eager-or-expression {:level :off}}})))
+                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)"
-                     {:linters {:eager-or-expression {:level :off}}})))
+                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)"
-                     {:linters {:eager-or-expression {:level :off}}})))
+                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
                        (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"
-                     {:linters {:eager-or-expression {:level :off}}})))
+                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "dot_alias.cljs"))))
   (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))
