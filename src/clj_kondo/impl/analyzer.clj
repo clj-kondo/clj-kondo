@@ -134,9 +134,10 @@
                                           :filename (:filename ctx)
                                           :str (:string-value k))]
                 (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
-            (analyze-expression** (assoc ctx 
-                                         :undefined-locals undefined-locals 
-                                         :in-or-default? true) v)))))))
+            (let [ctx (assoc ctx
+                             :undefined-locals undefined-locals
+                             :in-or-default? true)]
+              (analyze-expression** ctx v))))))))
 
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while
