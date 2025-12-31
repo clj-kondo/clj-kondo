@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2600](https://github.com/clj-kondo/clj-kondo/issues/2600): NEW linter: `unused-excluded-var` to warn on unused vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
+- [#2459](https://github.com/clj-kondo/clj-kondo/issues/2459): NEW linter: `:destructured-or-always-evaluates` to warn on s-expressions in `:or` defaults in map destructuring ([@jramosg](https://github.com/jramosg))
 - Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
 ([@jramosg](https://github.com/jramosg))
 - Add new type `array` and type checking support for the next functions: `to-array`, `alength`,
