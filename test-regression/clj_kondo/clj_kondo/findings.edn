@@ -1888,6 +1888,42 @@
   :message
   "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 3115}
+ {:end-row 3115,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 29,
+  :end-col 42,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 3115}
+ {:end-row 3116,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 27,
+  :end-col 47,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 3116}
+ {:end-row 3116,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 35,
+  :end-col 46,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 3116}
  {:end-row 3177,
   :type :eager-or-expression,
   :level :warning,
@@ -1900,6 +1936,42 @@
   :message
   "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 3175}
+ {:end-row 3175,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 29,
+  :end-col 42,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 3175}
+ {:end-row 3176,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 27,
+  :end-col 47,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 3176}
+ {:end-row 3176,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 35,
+  :end-col 46,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 3176}
  {:end-row 3271,
   :type :unused-binding,
   :level :warning,
@@ -9887,6 +9959,47 @@
   :langs (),
   :message "The var io-prepl does not exist in clojure.core",
   :row 10}
+ {:clj-kondo.impl/fn-has-first-arg true,
+  :end-row 136,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "cljs/core/server.clj",
+  :col 44,
+  :end-col 74,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 136}
+ {:end-row 136,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "cljs/core/server.clj",
+  :col 45,
+  :end-col 74,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 136}
+ {:end-row 136,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "cljs/core/server.clj",
+  :col 49,
+  :end-col 60,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 136}
+ {:end-row 136,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "cljs/core/server.clj",
+  :col 63,
+  :end-col 73,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 136}
  {:end-row 60,
   :type :unused-binding,
   :level :warning,
@@ -13097,6 +13210,104 @@
   :langs (:clj :cljs),
   :message "unused binding wrap",
   :row 1042}
+ {:clj-kondo.impl/fn-has-first-arg false,
+  :end-row 1046,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 31,
+  :end-col 49,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1044}
+ {:end-row 1046,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 32,
+  :end-col 49,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1044}
+ {:end-row 1044,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 36,
+  :end-col 67,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1044}
+ {:end-row 1045,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 33,
+  :end-col 72,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1045}
+ {:end-row 1045,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 37,
+  :end-col 69,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1045}
+ {:end-row 1046,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 33,
+  :end-col 48,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1046}
+ {:clj-kondo.impl/fn-has-first-arg false,
+  :end-row 1057,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 26,
+  :end-col 49,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1055}
+ {:end-row 1057,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/repl.cljc",
+  :col 27,
+  :end-col 49,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1055}
  {:end-row 1058,
   :type :destructured-or-binding-of-same-map,
   :level :warning,
@@ -19099,6 +19310,27 @@
   :langs (),
   :message "unused binding accept",
   :row 53}
+ {:clj-kondo.impl/fn-has-first-arg true,
+  :end-row 310,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/core/server.clj",
+  :col 72,
+  :end-col 91,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 310}
+ {:end-row 310,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/core/server.clj",
+  :col 73,
+  :end-col 91,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 310}
  {:end-row 64,
   :type :unresolved-symbol,
   :level :error,
@@ -20232,6 +20464,17 @@
   :langs (),
   :message "Missing else branch.",
   :row 277}
+ {:clj-kondo.impl/fn-has-first-arg false,
+  :end-row 415,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 27,
+  :end-col 30,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 415}
  {:end-row 418,
   :type :eager-or-expression,
   :level :warning,
@@ -20242,6 +20485,58 @@
   :message
   "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 416}
+ {:end-row 416,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 31,
+  :end-col 75,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 416}
+ {:clj-kondo.impl/fn-has-first-arg false,
+  :end-row 417,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 29,
+  :end-col 78,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 417}
+ {:end-row 417,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 30,
+  :end-col 78,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 417}
+ {:clj-kondo.impl/fn-has-first-arg false,
+  :end-row 418,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 29,
+  :end-col 45,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 418}
+ {:end-row 418,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename "clojure/main.clj",
+  :col 30,
+  :end-col 45,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 418}
  {:end-row 565,
   :type :unused-private-var,
   :level :warning,
@@ -29415,43 +29710,6 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: bindings",
   :row 186}
- {:end-row 215,
-  :type :eager-or-expression,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/opts.cljc",
-  :col 23,
-  :end-col 37,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
-  :row 215}
- {:end-row 216,
-  :type :eager-or-expression,
-  :level :warning,
-  :lang :cljs,
-  :filename "sci/impl/opts.cljc",
-  :col 40,
-  :end-col 60,
-  :cljc true,
-  :langs (:cljs),
-  :branch :cljs,
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
-  :row 216}
- {:end-row 217,
-  :type :eager-or-expression,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/opts.cljc",
-  :col 24,
-  :end-col 39,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
-  :row 217}
  {:end-row 82,
   :type :private-call,
   :level :error,
@@ -29887,6 +30145,18 @@
   :langs (:clj :cljs),
   :message "Missing protocol method(s): setVal",
   :row 65}
+ {:end-row 45,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename "sci/impl/utils.cljc",
+  :col 21,
+  :end-col 34,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 45}
  {:end-row 154,
   :type :unused-binding,
   :level :warning,

@@ -239,6 +239,17 @@
   :message
   "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 103}
+ {:end-row 103,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
+  :col 38,
+  :end-col 55,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 103}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -395,6 +406,19 @@
   :message
   "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 693}
+ {:end-row 694,
+  :type :eager-or-expression,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/util.cljc",
+  :col 32,
+  :end-col 56,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 694}
  {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
   :level :info,
@@ -1544,6 +1568,13 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
+ {:type :eager-or-expression,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :level :warning,
+  :langs ()}
  {:end-row 287,
   :type :eager-or-expression,
   :level :warning,
@@ -1621,6 +1652,50 @@
   :message
   "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 1394}
+ {:end-row 1394,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 38,
+  :end-col 96,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1394}
+ {:end-row 1395,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 31,
+  :end-col 48,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1395}
+ {:end-row 1397,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 31,
+  :end-col 110,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1396}
+ {:end-row 1397,
+  :type :eager-or-expression,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 38,
+  :end-col 109,
+  :langs (),
+  :message
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :row 1396}
  {:end-row 1466,
   :type :eager-or-expression,
   :level :warning,
