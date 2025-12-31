@@ -47,4 +47,7 @@
           :col 29
           :message "Default :or value is always evaluated"})
        (lint! "(let [{:keys [x] :or {x {:y (f1)}}} {}] x)"
-              config)))))
+              config)))
+
+    (testing "Default is off"
+      (is (empty? (lint! "(let [{:keys [x] :or {x (f1)}} {:x 1}] x)"))))))

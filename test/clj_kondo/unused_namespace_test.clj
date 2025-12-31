@@ -109,20 +109,15 @@
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {true str/join}")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) [str/join]")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)"
-                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
+                       (defn my-id [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)"
-                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
+                       (fn [{:keys [:id] :or {id (str/lower-case \"HI\")}}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)"
-                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
+                       (let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)"
-                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
+                       (if-let [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}] id :bar)")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
-                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])"
-                     {:linters {:destructured-or-always-evaluates {:level :off}}})))
+                       (loop [{:keys [:id] :or {id (str/lower-case \"HI\")}} {:id \"hello\"}])")))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "default.cljs"))))
   (is (empty? (lint! (io/file "corpus" "shadow_cljs" "dot_alias.cljs"))))
   (is (empty? (lint! "(ns foo (:require [bar])) (:id bar/x)")))

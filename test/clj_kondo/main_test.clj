@@ -857,8 +857,7 @@ foo/foo ;; this does use the private var
   (is (empty?
        (lint! "(defn foo [[x y] {:keys [:z] :or {z (+ x y)}}] z)"
               {:linters {:unresolved-symbol {:level :error}
-                         :unused-binding {:level :warning}
-                         :destructured-or-always-evaluates {:level :off}}}))))
+                         :unused-binding {:level :warning}}}))))
 
 (deftest let-test
   (assert-submap
