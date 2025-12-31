@@ -221,7 +221,7 @@
      '({:file "corpus/exclude_clojure.clj"
         :row 6
         :col 29
-        :level :warning
+        :level :info
         :message "Unused excluded var: get"}
        {:file "corpus/exclude_clojure.clj",
         :row 12,
@@ -348,7 +348,7 @@ foo/foo ;; this does use the private var
       (assert-submaps
        '({:row 2,
           :col 29,
-          :level :warning
+          :level :info
           :message "Unused excluded var: cond"}
          {:row 9,
           :col 3,
@@ -584,7 +584,7 @@ foo/foo ;; this does use the private var
    '({:file "corpus/rename.cljc"
       :row 2
       :col 58
-      :level :warning
+      :level :info
       :message "Unused excluded var: conj"}
      {:file "corpus/rename.cljc",
       :row 4,
