@@ -711,11 +711,8 @@
             :when (and (seq clojure-excluded)
                        (not (linter-disabled? ns :unused-excluded-var)))
             :let [{:keys [lang referred-vars vars bindings]} ns
-                  core-original-name (fn [[_ {var-name :name}]]
-                                       (when (var-info/core-sym? lang var-name)
-                                         var-name))
                   used (set (concat (keys vars)
-                                    (keep core-original-name referred-vars)
+                                    (map :name (vals referred-vars))
                                     (map :name bindings)))]
             excluded clojure-excluded
             :when (and (not (contains? used excluded))
