@@ -54,6 +54,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
+    - [Destructured or always evaluates](#destructured-or-always-evaluates)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -999,6 +1000,23 @@ for more details and discussion.
 *Example trigger:* `(defn foo [] (def x 1))`.
 
 *Example message:* `inline def`.
+
+### Destructured or always evaluates
+
+*Keyword:* `:destructured-or-always-evaluates`
+
+*Description:* Warn when an `:or` default value in a destructuring contains an
+expression that always evaluates, e.g. a function call.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(let [{:keys [x] :or {x (f1)}} {:x 1}] x)
+```
+
+*Example message:* `Default :or value is always evaluated.`
 
 ### Invalid arity
 
