@@ -1877,7 +1877,7 @@
   :message "unused binding macros?",
   :row 2969}
  {:end-row 3117,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename "cljs/analyzer.cljc",
@@ -1886,10 +1886,10 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 3115}
  {:end-row 3177,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename "cljs/analyzer.cljc",
@@ -1898,7 +1898,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 3175}
  {:end-row 3271,
   :type :unused-binding,
@@ -20233,14 +20233,14 @@
   :message "Missing else branch.",
   :row 277}
  {:end-row 418,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename "clojure/main.clj",
   :col 27,
   :end-col 46,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 416}
  {:end-row 565,
   :type :unused-private-var,
@@ -29416,7 +29416,7 @@
   :message "Redundant let binding: bindings",
   :row 186}
  {:end-row 215,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename "sci/impl/opts.cljc",
@@ -29425,10 +29425,10 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 215}
  {:end-row 216,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :cljs,
   :filename "sci/impl/opts.cljc",
@@ -29438,10 +29438,10 @@
   :langs (:cljs),
   :branch :cljs,
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 216}
  {:end-row 217,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename "sci/impl/opts.cljc",
@@ -29450,7 +29450,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 217}
  {:end-row 82,
   :type :private-call,

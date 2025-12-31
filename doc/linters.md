@@ -54,7 +54,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
-    - [Improper or mapping](#improper-or-mapping)
+    - [Eager or expression in map destructuringg](#eager-or-expression-in-map-destructuring)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -1001,23 +1001,21 @@ for more details and discussion.
 
 *Example message:* `inline def`.
 
-### Improper or mapping
+### Eager-or-expression
 
-*Keyword:* `:improper-or-mapping`
+*Keyword:* `:eager-or-expression`
 
-*Description:* warn on s-expressions in `:or` defaults in map destructuring.
-These defaults are eagerly evaluated, even if the key is present in the map,
-which can lead to unexpected side effects if the default value is an s-expression.
+*Description:* Warn when an s-expression is used as a default value in `:or` during map destructuring. Such defaults are eagerly evaluated, even if the corresponding key is present in the map, which can cause unexpected side effects if the default is a function call or other expression.
 
 *Default level:* `:warning`
 
 *Example trigger:*
 
-``` clojure
+```clojure
 (let [{:keys [x] :or {x (f1)}} {:x 1}] x)
 ```
 
-*Example message:* `Improper use of :or mapping: default value should not be an s-expression.`
+*Example message:* `Default value in :or is an s-expression and will be eagerly evaluated.`
 
 ### Invalid arity
 

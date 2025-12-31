@@ -229,7 +229,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 97}
  {:end-row 103,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
@@ -237,7 +237,7 @@
   :end-col 56,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 103}
  {:end-row 4,
   :type :deprecated-namespace,
@@ -350,7 +350,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
  {:end-row 376,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/embedding/api/common.clj",
@@ -358,10 +358,10 @@
   :end-col 68,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 376}
  {:end-row 84,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/embedding/api/embed.clj",
@@ -369,10 +369,10 @@
   :end-col 110,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 84}
  {:end-row 160,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/embedding/api/embed.clj",
@@ -380,10 +380,10 @@
   :end-col 68,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 160}
  {:end-row 694,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename
@@ -393,7 +393,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 693}
  {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
@@ -502,7 +502,7 @@
   :message "Redundant let binding: query",
   :row 565}
  {:end-row 160,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename
@@ -512,7 +512,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 160}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
@@ -605,7 +605,7 @@
   :message "Redundant let binding: query",
   :row 79}
  {:end-row 297,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/query_processor/card.clj",
@@ -613,7 +613,7 @@
   :end-col 68,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 297}
  {:end-row 30,
   :type :redundant-let-binding,
@@ -706,7 +706,7 @@
   :message "Redundant let binding: query",
   :row 45}
  {:end-row 50,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/server/middleware/log.clj",
@@ -714,10 +714,10 @@
   :end-col 39,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 50}
  {:end-row 51,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/server/middleware/log.clj",
@@ -725,7 +725,7 @@
   :end-col 39,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 51}
  {:end-row 137,
   :type :redundant-let-binding,
@@ -862,7 +862,7 @@
   :message "The var def does not exist in clojure.core",
   :row 2}
  {:end-row 173,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
@@ -870,10 +870,10 @@
   :end-col 44,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 173}
  {:end-row 174,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/queue.clj",
@@ -881,7 +881,7 @@
   :end-col 40,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 174}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
@@ -1227,7 +1227,7 @@
   :message "Unresolved symbol: partial=",
   :row 45}
  {:end-row 318,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :lang :clj,
   :filename
@@ -1237,7 +1237,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 318}
  {:end-row 96,
   :type :condition-always-true,
@@ -1545,7 +1545,7 @@
   :message "Missing protocol method(s): to-job-data",
   :row 171}
  {:end-row 287,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1553,10 +1553,10 @@
   :end-col 39,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 287}
  {:end-row 292,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1564,10 +1564,10 @@
   :end-col 37,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 288}
  {:end-row 316,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1575,10 +1575,10 @@
   :end-col 55,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 316}
  {:end-row 317,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1586,10 +1586,10 @@
   :end-col 42,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 317}
  {:end-row 1392,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1597,10 +1597,10 @@
   :end-col 45,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 1392}
  {:end-row 1393,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1608,10 +1608,10 @@
   :end-col 68,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 1393}
  {:end-row 1397,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1619,10 +1619,10 @@
   :end-col 111,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 1394}
  {:end-row 1466,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1630,10 +1630,10 @@
   :end-col 59,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 1466}
  {:end-row 1470,
-  :type :improper-or-mapping,
+  :type :eager-or-expression,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
@@ -1641,7 +1641,7 @@
   :end-col 52,
   :langs (),
   :message
-  "Improper use of :or mapping: default value should not be an s-expression.",
+  "Default value in :or is an s-expression and will be eagerly evaluated.",
   :row 1467}
  {:end-row 1018,
   :type :unresolved-symbol,

@@ -2471,9 +2471,9 @@
           (findings/reg-finding!
            ctx
            (assoc expr-meta
-                  :type :improper-or-mapping
+                  :type :eager-or-expression
                   :filename (:filename ctx)
-                  :message "Improper use of :or mapping: default value should not be an s-expression.")))
+                  :message "Default value in :or is an s-expression and will be eagerly evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
                 (namespace/reg-unresolved-namespace! ctx ns-name
