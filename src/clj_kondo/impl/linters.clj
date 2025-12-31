@@ -710,10 +710,11 @@
     (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
             :when (and (seq clojure-excluded)
                        (not (linter-disabled? ns :unused-excluded-var)))
-            :let [{:keys [lang referred-vars vars bindings]} ns
+            :let [{:keys [lang base-lang referred-vars vars bindings]} ns
                   used (set (concat (keys vars)
                                     (map :name (vals referred-vars))
-                                    (map :name bindings)))]
+                                    (map :name bindings)))
+                  ctx (assoc ctx :lang lang :base-lang base-lang)]
             excluded clojure-excluded
             :when (and (not (contains? used excluded))
                        (var-info/core-sym? lang excluded))]

@@ -72,10 +72,19 @@
      (lint!
       "(ns foo (:require [lib.util.match])
     (:refer-clojure :exclude [replace]))
-             
-   (defn desugar-does-not-contain
+ (defn desugar-does-not-contain
      [m]
      (lib.util.match/replace m
        [:does-not-contain & args]
        [:not (into [:contains] args)]))"))))
- 
+
+(deftest issue-2704-test
+  (testing "defmulti defines var"
+    (is (empty? (lint! "(ns sci.impl.core-protocols
+  {:no-doc true}
+  (:refer-clojure :exclude [deref -deref])
+  (:require
+   [sci.impl.types :as types]))
+
+(defmulti #?(:clj deref :cljs -deref) types/type-impl)"
+                       "--filename" "sci/impl.core_protocols.cljc")))))
