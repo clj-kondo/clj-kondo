@@ -6,18 +6,28 @@
 (deftest improper-or-mapping-test
   (testing "improper use of :or mapping in map destructuring"
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 25, :level :warning, :message "Improper use of :or mapping: default value should not be an s-expression."})
+     '({:file "<stdin>"
+        :row 1
+        :col 25
+        :level :warning
+        :message "Improper use of :or mapping: default value should not be an s-expression."})
      (lint! "(let [{:keys [x] :or {x (f1)}} {:x 1}] x)"
             {:linters {:improper-or-mapping {:level :warning}}})))
   (testing "multiple improper :or mappings"
     (assert-submaps
-     '({:row 1, :col 27, :message "Improper use of :or mapping: default value should not be an s-expression."}
-       {:row 1, :col 34, :message "Improper use of :or mapping: default value should not be an s-expression."})
+     '({:row 1
+        :col 27
+        :message "Improper use of :or mapping: default value should not be an s-expression."}
+       {:row 1
+        :col 34
+        :message "Improper use of :or mapping: default value should not be an s-expression."})
      (lint! "(let [{:keys [x y] :or {x (f1) y (f2)}} {}] [x y])"
             {:linters {:improper-or-mapping {:level :warning}}})))
   (testing "nested map destructuring"
     (assert-submaps
-     '({:row 1, :col 26, :message "Improper use of :or mapping: default value should not be an s-expression."})
+     '({:row 1
+        :col 26
+        :message "Improper use of :or mapping: default value should not be an s-expression."})
      (lint! "(let [{{:keys [b] :or {b (f1)}} :a} {}] b)"
             {:linters {:improper-or-mapping {:level :warning}}})))
   (testing "vector destructuring (should not trigger)"
@@ -25,4 +35,14 @@
                        {:linters {:improper-or-mapping {:level :warning}}}))))
   (testing "proper :or mapping (should not trigger)"
     (is (empty? (lint! "(let [{:keys [x] :or {x 1}} {:x 1}] x)"
-                       {:linters {:improper-or-mapping {:level :warning}}})))))
+                       {:linters {:improper-or-mapping {:level :warning}}}))))
+  (testing "empty list in :or (should not trigger)"
+    (is (empty? (lint! "(let [{:keys [x] :or {x ()}} {:x 1}] x)"
+                       {:linters {:improper-or-mapping {:level :warning}}}))))
+  (testing "collection literal with call in :or"
+    (assert-submaps
+     '({:row 1
+        :col 29
+        :message "Improper use of :or mapping: default value should not be an s-expression."})
+     (lint! "(let [{:keys [x] :or {x {:y (f1)}}} {}] x)"
+            {:linters {:improper-or-mapping {:level :warning}}}))))

@@ -134,14 +134,9 @@
                                           :filename (:filename ctx)
                                           :str (:string-value k))]
                 (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
-            (when (identical? :list (utils/tag v))
-              (findings/reg-finding!
-               ctx
-               (assoc (meta v)
-                      :type :improper-or-mapping
-                      :filename (:filename ctx)
-                      :message "Improper use of :or mapping: default value should not be an s-expression.")))
-            (analyze-expression** (assoc ctx :undefined-locals undefined-locals) v)))))))
+            (analyze-expression** (assoc ctx 
+                                         :undefined-locals undefined-locals 
+                                         :in-or-default? true) v)))))))
 
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while
@@ -2471,6 +2466,13 @@
                                  (not (linter-disabled? ctx :type-mismatch)))
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
+        (when (:in-or-default? ctx)
+          (findings/reg-finding!
+           ctx
+           (assoc expr-meta
+                  :type :improper-or-mapping
+                  :filename (:filename ctx)
+                  :message "Improper use of :or mapping: default value should not be an s-expression.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
                 (namespace/reg-unresolved-namespace! ctx ns-name
