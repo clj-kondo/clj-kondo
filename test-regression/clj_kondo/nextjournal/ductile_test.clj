@@ -39,6 +39,27 @@
                                          :repro true})
             findings (:findings lint-result)]
         (assert-submaps2
-         []
+         [{:end-row 5,
+           :type :deprecated-namespace,
+           :level :warning,
+           :filename
+           "test-regression/checkouts/ductile/dev/ductile/insights/utils.clj",
+           :col 14,
+           :end-col 30,
+           :langs (),
+           :message
+           "Namespace io.pedestal.test is deprecated since 0.8.0.",
+           :row 5}
+          {:end-row 17,
+           :type :deprecated-var,
+           :level :warning,
+           :filename
+           "test-regression/checkouts/ductile/dev/ductile/insights/utils.clj",
+           :col 5,
+           :end-col 35,
+           :langs (),
+           :message
+           "#'io.pedestal.test/response-for is deprecated since 0.8.0",
+           :row 12}]
          findings)))
     (println "GITHUB_DUCTILE_PAT not set, skipping ductile test")))
