@@ -91,7 +91,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant let binding](#redundant-let-binding)
     - [Redundant str call](#redundant-str-call)
     - [Refer](#refer)
-    - [Refer clojure exclude non existing var](#refer-clojure-exclude-unresolved-var)
+    - [Refer clojure exclude unresolved var](#unresolved-excluded-var)
     - [Refer all](#refer-all)
     - [Schema misplaced return](#schema-misplaced-return)
     - [Self-requiring namespace](#self-requiring-namespace)
@@ -1648,9 +1648,9 @@ Example warning: `require with :refer`.
 
 *Example message:* `Unused excluded var: read`.
 
-### Refer clojure exclude non existing var
+### Refer clojure exclude unresolved var
 
-*Keyword:* `:refer-clojure-exclude-unresolved-var`.
+*Keyword:* `:unresolved-excluded-var`.
 
 *Description:* warns when `:refer-clojure :exclude` contains vars that do not exist in clojure.core or cljs.core.
 

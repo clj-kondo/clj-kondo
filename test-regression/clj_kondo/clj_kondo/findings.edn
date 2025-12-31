@@ -3536,7 +3536,7 @@
   :message "Unused excluded var: aclone",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
@@ -3547,7 +3547,7 @@
   :message "The var assert-args does not exist in cljs.core",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "cljs/core.cljc",
@@ -3646,7 +3646,7 @@
   :message "Unused excluded var: unchecked-long",
   :row 25}
  {:end-row 27,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
@@ -3657,7 +3657,7 @@
   :message "The var unchecked-divide does not exist in cljs.core",
   :row 27}
  {:end-row 27,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "cljs/core.cljc",
@@ -3668,7 +3668,7 @@
   :message "The var unchecked-divide does not exist in clojure.core",
   :row 27}
  {:end-row 40,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
@@ -3679,7 +3679,7 @@
   :message "The var var does not exist in cljs.core",
   :row 40}
  {:end-row 40,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "cljs/core.cljc",
@@ -3690,7 +3690,7 @@
   :message "The var var does not exist in clojure.core",
   :row 40}
  {:end-row 45,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
@@ -3701,7 +3701,7 @@
   :message "The var defcurried does not exist in cljs.core",
   :row 45}
  {:end-row 45,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
@@ -3712,7 +3712,7 @@
   :message "The var rfn does not exist in cljs.core",
   :row 45}
  {:end-row 45,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/core.cljc",
@@ -9954,7 +9954,7 @@
   :refer source,
   :row 16}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/core/server.clj",
   :col 43,
@@ -9963,7 +9963,7 @@
   :message "The var resolve-fn does not exist in clojure.core",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/core/server.clj",
   :col 54,
@@ -9972,7 +9972,7 @@
   :message "The var prepl does not exist in clojure.core",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/core/server.clj",
   :col 60,
@@ -13694,7 +13694,7 @@
   :message "Redundant let expression.",
   :row 53}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "cljs/spec/alpha.cljc",
@@ -13705,7 +13705,7 @@
   :message "The var def does not exist in cljs.core",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "cljs/spec/alpha.cljc",
@@ -13828,7 +13828,7 @@
   :message "Unused excluded var: cat",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 44,
@@ -14086,7 +14086,7 @@
   :message "unused binding quote",
   :row 14}
  {:end-row 11,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/spec/gen/alpha.cljs",
   :col 60,
@@ -14850,7 +14850,7 @@
   :message "Expected: throwable, received: keyword.",
   :row 553}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 29,
@@ -14859,7 +14859,7 @@
   :message "The var read does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 34,
@@ -14868,7 +14868,7 @@
   :message "The var read-line does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 44,
@@ -14877,7 +14877,7 @@
   :message "The var read-string does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 61,
@@ -14886,7 +14886,7 @@
   :message "The var read+string does not exist in cljs.core",
   :row 12}
  {:end-row 13,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 29,
@@ -14895,7 +14895,7 @@
   :message "The var default-data-readers does not exist in cljs.core",
   :row 13}
  {:end-row 13,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 50,
@@ -14905,7 +14905,7 @@
   "The var *default-data-reader-fn* does not exist in cljs.core",
   :row 13}
  {:end-row 14,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 29,
@@ -14914,7 +14914,7 @@
   :message "The var *data-readers* does not exist in cljs.core",
   :row 14}
  {:end-row 14,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader.cljs",
   :col 44,
@@ -15192,7 +15192,7 @@
   :message "Missing else branch.",
   :row 910}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader/edn.cljs",
   :col 29,
@@ -15201,7 +15201,7 @@
   :message "The var read does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader/edn.cljs",
   :col 34,
@@ -15210,7 +15210,7 @@
   :message "The var read-string does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader/edn.cljs",
   :col 51,
@@ -15557,7 +15557,7 @@
   :message "#'cljs.core/pr-writer is private",
   :row 39}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "cljs/tools/reader/reader_types.cljs",
   :col 34,
@@ -22523,7 +22523,7 @@
   :message "Unresolved symbol: refer",
   :row 148}
  {:end-row 17,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "clojure/spec/alpha.clj",
   :col 51,
@@ -22767,7 +22767,7 @@
   :message "unused binding this",
   :row 1751}
  {:end-row 11,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "clojure/spec/gen/alpha.clj",
   :col 62,
@@ -22776,7 +22776,7 @@
   :message "The var string does not exist in clojure.core",
   :row 11}
  {:end-row 11,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename "clojure/spec/gen/alpha.clj",
   :col 69,
@@ -25872,7 +25872,7 @@
   :message "unused binding free",
   :row 170}
  {:end-row 11,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -25882,7 +25882,7 @@
   :message "The var read does not exist in cljs.core",
   :row 11}
  {:end-row 11,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -25892,7 +25892,7 @@
   :message "The var read-line does not exist in cljs.core",
   :row 11}
  {:end-row 11,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -25902,7 +25902,7 @@
   :message "The var read-string does not exist in cljs.core",
   :row 11}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -25912,7 +25912,7 @@
   :message "The var default-data-readers does not exist in cljs.core",
   :row 12}
  {:end-row 12,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -25923,7 +25923,7 @@
   "The var *default-data-reader-fn* does not exist in cljs.core",
   :row 12}
  {:end-row 13,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -25933,7 +25933,7 @@
   :message "The var *data-readers* does not exist in cljs.core",
   :row 13}
  {:end-row 13,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
@@ -26243,7 +26243,7 @@
   :message "Missing else branch.",
   :row 904}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
@@ -26253,7 +26253,7 @@
   :message "The var read does not exist in cljs.core",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
@@ -26263,7 +26263,7 @@
   :message "The var read-string does not exist in cljs.core",
   :row 10}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/edn.cljs",
@@ -26694,7 +26694,7 @@
   :message "#'cljs.core/pr-writer is private",
   :row 39}
  {:end-row 10,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/reader_types.cljs",
@@ -29544,7 +29544,7 @@
   :message "Unused excluded var: with-redefs",
   :row 4}
  {:end-row 5,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "sci/core.cljc",
@@ -29555,7 +29555,7 @@
   :message "The var set! does not exist in cljs.core",
   :row 5}
  {:end-row 5,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "sci/core.cljc",
@@ -29577,7 +29577,7 @@
   :message "Unused excluded var: destructure",
   :row 4}
  {:end-row 4,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "sci/impl/analyzer.cljc",
@@ -29588,7 +29588,7 @@
   :message "The var macroexpand-all does not exist in cljs.core",
   :row 4}
  {:end-row 4,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "sci/impl/analyzer.cljc",
@@ -29906,7 +29906,7 @@
   :message "Unused excluded var: macroexpand",
   :row 3}
  {:end-row 3,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename "sci/impl/test.cljc",
@@ -29917,7 +29917,7 @@
   :message "The var macroexpand-all does not exist in cljs.core",
   :row 3}
  {:end-row 3,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename "sci/impl/test.cljc",
