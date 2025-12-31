@@ -54,7 +54,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
-    - [Eager or expression in map destructuringg](#eager-or-expression-in-map-destructuring)
+    - [Eager or expression in map destructuring](#eager-or-expression-in-map-destructuring)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -1001,7 +1001,7 @@ for more details and discussion.
 
 *Example message:* `inline def`.
 
-### Eager-or-expression
+### Eager or expression in map destructuring
 
 *Keyword:* `:eager-or-expression`
 
@@ -1015,7 +1015,7 @@ for more details and discussion.
 (let [{:keys [x] :or {x (f1)}} {:x 1}] x)
 ```
 
-*Example message:* `Default value in :or is an s-expression and will be eagerly evaluated.`
+*Example message:* `Default :or value is eagerly evaluated.`
 
 ### Invalid arity
 

@@ -2473,7 +2473,7 @@
            (assoc expr-meta
                   :type :eager-or-expression
                   :filename (:filename ctx)
-                  :message "Default value in :or is an s-expression and will be eagerly evaluated.")))
+                  :message "Default :or value is eagerly evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
                 (namespace/reg-unresolved-namespace! ctx ns-name

@@ -17,8 +17,7 @@
   :col 31,
   :end-col 52,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 222}
  {:end-row 222,
   :type :eager-or-expression,
@@ -28,8 +27,7 @@
   :col 32,
   :end-col 52,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 222}
  {:clj-kondo.impl/fn-has-first-arg false,
   :end-row 6,
@@ -40,8 +38,7 @@
   :col 38,
   :end-col 41,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 6}
  {:clj-kondo.impl/fn-has-first-arg false,
   :end-row 6,
@@ -52,8 +49,7 @@
   :col 56,
   :end-col 59,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 6}
  {:clj-kondo.impl/fn-has-first-arg false,
   :end-row 57,
@@ -64,8 +60,7 @@
   :col 95,
   :end-col 98,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 57}
  {:clj-kondo.impl/fn-has-first-arg false,
   :end-row 57,
@@ -76,8 +71,7 @@
   :col 111,
   :end-col 114,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 57}
  {:end-row 67,
   :type :redundant-fn-wrapper,

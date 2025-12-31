@@ -236,8 +236,7 @@
   :col 33,
   :end-col 56,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 103}
  {:end-row 103,
   :type :eager-or-expression,
@@ -247,8 +246,7 @@
   :col 38,
   :end-col 55,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 103}
  {:end-row 4,
   :type :deprecated-namespace,
@@ -368,8 +366,7 @@
   :col 26,
   :end-col 68,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 376}
  {:end-row 84,
   :type :eager-or-expression,
@@ -379,8 +376,7 @@
   :col 68,
   :end-col 110,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 84}
  {:end-row 160,
   :type :eager-or-expression,
@@ -390,8 +386,7 @@
   :col 26,
   :end-col 68,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 160}
  {:end-row 694,
   :type :eager-or-expression,
@@ -403,8 +398,7 @@
   :end-col 57,
   :cljc true,
   :langs (:clj :cljs),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 693}
  {:end-row 694,
   :type :eager-or-expression,
@@ -416,8 +410,7 @@
   :end-col 56,
   :cljc true,
   :langs (:clj :cljs),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 694}
  {:end-row 2,
   :type :refer-clojure-exclude-unresolved-var,
@@ -535,8 +528,7 @@
   :end-col 62,
   :cljc true,
   :langs (:clj :cljs),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 160}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
@@ -636,8 +628,7 @@
   :col 26,
   :end-col 68,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 297}
  {:end-row 30,
   :type :redundant-let-binding,
@@ -737,8 +728,7 @@
   :col 24,
   :end-col 39,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 50}
  {:end-row 51,
   :type :eager-or-expression,
@@ -748,8 +738,7 @@
   :col 24,
   :end-col 39,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 51}
  {:end-row 137,
   :type :redundant-let-binding,
@@ -893,8 +882,7 @@
   :col 28,
   :end-col 44,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 173}
  {:end-row 174,
   :type :eager-or-expression,
@@ -904,8 +892,7 @@
   :col 24,
   :end-col 40,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 174}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
@@ -1260,8 +1247,7 @@
   :end-col 62,
   :cljc true,
   :langs (:clj :cljs),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 318}
  {:end-row 96,
   :type :condition-always-true,
@@ -1571,8 +1557,7 @@
  {:type :eager-or-expression,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :level :warning,
   :langs ()}
  {:end-row 287,
@@ -1583,8 +1568,7 @@
   :col 23,
   :end-col 39,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 287}
  {:end-row 292,
   :type :eager-or-expression,
@@ -1594,8 +1578,7 @@
   :col 17,
   :end-col 37,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 288}
  {:end-row 316,
   :type :eager-or-expression,
@@ -1605,8 +1588,7 @@
   :col 35,
   :end-col 55,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 316}
  {:end-row 317,
   :type :eager-or-expression,
@@ -1616,8 +1598,7 @@
   :col 35,
   :end-col 42,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 317}
  {:end-row 1392,
   :type :eager-or-expression,
@@ -1627,8 +1608,7 @@
   :col 29,
   :end-col 45,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1392}
  {:end-row 1393,
   :type :eager-or-expression,
@@ -1638,8 +1618,7 @@
   :col 29,
   :end-col 68,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1393}
  {:end-row 1397,
   :type :eager-or-expression,
@@ -1649,8 +1628,7 @@
   :col 29,
   :end-col 111,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1394}
  {:end-row 1394,
   :type :eager-or-expression,
@@ -1660,8 +1638,7 @@
   :col 38,
   :end-col 96,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1394}
  {:end-row 1395,
   :type :eager-or-expression,
@@ -1671,8 +1648,7 @@
   :col 31,
   :end-col 48,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1395}
  {:end-row 1397,
   :type :eager-or-expression,
@@ -1682,8 +1658,7 @@
   :col 31,
   :end-col 110,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1396}
  {:end-row 1397,
   :type :eager-or-expression,
@@ -1693,8 +1668,7 @@
   :col 38,
   :end-col 109,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1396}
  {:end-row 1466,
   :type :eager-or-expression,
@@ -1704,8 +1678,7 @@
   :col 35,
   :end-col 59,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1466}
  {:end-row 1470,
   :type :eager-or-expression,
@@ -1715,8 +1688,7 @@
   :col 35,
   :end-col 52,
   :langs (),
-  :message
-  "Default value in :or is an s-expression and will be eagerly evaluated.",
+  :message "Default :or value is eagerly evaluated.",
   :row 1467}
  {:end-row 1018,
   :type :unresolved-symbol,
