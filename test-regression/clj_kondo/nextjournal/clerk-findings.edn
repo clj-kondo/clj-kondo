@@ -1,6 +1,6 @@
 [{:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer/impl.clj",
   :col 31,
@@ -10,7 +10,7 @@
   :row 4}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer/impl.clj",
   :col 45,
@@ -30,7 +30,7 @@
   :row 517}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/clerk/src/nextjournal/clerk/cherry_env.cljs",
   :col 29,
@@ -40,7 +40,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/clerk/src/nextjournal/clerk/cljs_libs.clj",
   :col 29,

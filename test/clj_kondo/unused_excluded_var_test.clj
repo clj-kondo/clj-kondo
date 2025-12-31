@@ -9,7 +9,7 @@
      [{:row 1
        :col 35
        :message "Unused excluded var: read"
-       :level :warning
+       :level :info
        :file "<stdin>"}]
      (lint!
       "(ns foo (:refer-clojure :exclude [read]))")))
@@ -29,12 +29,12 @@
      [{:row 1
        :col 35
        :message "Unused excluded var: read"
-       :level :warning
+       :level :info
        :file "<stdin>"}
       {:row 1
        :col 40
        :message "Unused excluded var: read-string"
-       :level :warning
+       :level :info
        :file "<stdin>"}]
      (lint!
       "(ns foo (:refer-clojure :exclude [read read-string]))")))
@@ -44,7 +44,7 @@
      [{:row 1
        :col 40
        :message "Unused excluded var: read-string"
-       :level :warning
+       :level :info
        :file "<stdin>"}]
      (lint!
       "(ns foo (:refer-clojure :exclude [read read-string]))
@@ -67,7 +67,7 @@
      [{:row 2
        :col 31
        :message "Unused excluded var: replace"
-       :level :warning
+       :level :info
        :file "<stdin>"}]
      (lint!
       "(ns foo (:require [lib.util.match])

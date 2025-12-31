@@ -340,7 +340,7 @@
   :row 189}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/channel/template/handlebars_helper.clj",
   :col 29,
@@ -350,7 +350,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/driver_api/core.clj",
   :col 45,
@@ -360,7 +360,7 @@
   :row 2}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/legacy_mbql/util.cljc",
   :col 29,
@@ -394,7 +394,7 @@
   :row 2}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
   :col 36,
@@ -404,7 +404,7 @@
   :row 4}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
   :col 71,
@@ -462,7 +462,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/filter.cljc",
   :col 69,
@@ -484,7 +484,7 @@
   :row 560}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/query.cljc",
   :col 29,
@@ -494,7 +494,7 @@
   :row 2}
  {:end-row 9,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/schema.cljc",
   :col 29,
@@ -504,7 +504,7 @@
   :row 9}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/types/isa.cljc",
   :col 48,
@@ -526,7 +526,7 @@
   :row 707}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/lib/util/match.cljs",
   :col 29,
@@ -666,7 +666,7 @@
   :row 95}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_implicit_joins.clj",
   :col 29,
@@ -696,7 +696,7 @@
   :row 630}
  {:end-row 7,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/query_processor/pivot/postprocess.clj",
   :col 29,
@@ -856,7 +856,7 @@
   :row 243}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
   :col 29,
@@ -866,7 +866,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
   :col 32,
@@ -876,7 +876,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
   :col 37,
@@ -886,7 +886,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli.cljc",
   :col 43,
@@ -896,7 +896,7 @@
   :row 2}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
   :col 29,
@@ -973,7 +973,7 @@
   :row 46}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/xrays/domain_entities/malli.clj",
   :col 29,
@@ -1193,7 +1193,7 @@
   :row 248}
  {:end-row 2,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
   :col 29,

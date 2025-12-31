@@ -585,7 +585,7 @@
   :row 131}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/analyzer.cljc",
   :col 71,
   :end-col 81,
@@ -2217,7 +2217,7 @@
   :row 56}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/analyzer/macros.clj",
   :col 29,
   :end-col 36,
@@ -3162,7 +3162,7 @@
   :row 3334}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/compiler.cljc",
   :col 44,
   :end-col 57,
@@ -3171,7 +3171,7 @@
   :row 10}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/compiler.cljc",
   :col 57,
   :end-col 70,
@@ -3544,7 +3544,7 @@
   :row 1904}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/compiler/macros.clj",
   :col 29,
   :end-col 32,
@@ -3553,7 +3553,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 31,
@@ -3562,7 +3562,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 32,
   :end-col 35,
@@ -3571,7 +3571,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 36,
   :end-col 38,
@@ -3580,7 +3580,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 64,
   :end-col 70,
@@ -3611,7 +3611,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 98,
   :end-col 106,
@@ -3620,7 +3620,7 @@
   :row 10}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 33,
@@ -3629,7 +3629,7 @@
   :row 11}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 40,
   :end-col 47,
@@ -3638,7 +3638,7 @@
   :row 11}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 48,
   :end-col 57,
@@ -3647,7 +3647,7 @@
   :row 11}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 58,
   :end-col 70,
@@ -3656,7 +3656,7 @@
   :row 11}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 95,
   :end-col 100,
@@ -3665,7 +3665,7 @@
   :row 11}
  {:end-row 12,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 51,
   :end-col 60,
@@ -3674,7 +3674,7 @@
   :row 12}
  {:end-row 12,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 93,
   :end-col 99,
@@ -3683,7 +3683,7 @@
   :row 12}
  {:end-row 13,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 44,
@@ -3692,7 +3692,7 @@
   :row 13}
  {:end-row 13,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 57,
   :end-col 59,
@@ -3701,7 +3701,7 @@
   :row 13}
  {:end-row 13,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 64,
   :end-col 70,
@@ -3710,7 +3710,7 @@
   :row 13}
  {:end-row 13,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 71,
   :end-col 80,
@@ -3719,7 +3719,7 @@
   :row 13}
  {:end-row 13,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 81,
   :end-col 94,
@@ -3728,7 +3728,7 @@
   :row 13}
  {:end-row 14,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 35,
@@ -3737,7 +3737,7 @@
   :row 14}
  {:end-row 14,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 36,
   :end-col 42,
@@ -3746,7 +3746,7 @@
   :row 14}
  {:end-row 14,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 50,
   :end-col 53,
@@ -3755,7 +3755,7 @@
   :row 14}
  {:end-row 14,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 76,
   :end-col 81,
@@ -3764,7 +3764,7 @@
   :row 14}
  {:end-row 15,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 41,
   :end-col 46,
@@ -3773,7 +3773,7 @@
   :row 15}
  {:end-row 15,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 47,
   :end-col 58,
@@ -3782,7 +3782,7 @@
   :row 15}
  {:end-row 15,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 59,
   :end-col 66,
@@ -3791,7 +3791,7 @@
   :row 15}
  {:end-row 15,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 73,
   :end-col 77,
@@ -3800,7 +3800,7 @@
   :row 15}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 33,
@@ -3809,7 +3809,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 34,
   :end-col 44,
@@ -3818,7 +3818,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 45,
   :end-col 53,
@@ -3827,7 +3827,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 54,
   :end-col 62,
@@ -3836,7 +3836,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 63,
   :end-col 68,
@@ -3845,7 +3845,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 69,
   :end-col 82,
@@ -3854,7 +3854,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 83,
   :end-col 94,
@@ -3863,7 +3863,7 @@
   :row 16}
  {:end-row 17,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 49,
@@ -3872,7 +3872,7 @@
   :row 17}
  {:end-row 17,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 50,
   :end-col 65,
@@ -3881,7 +3881,7 @@
   :row 17}
  {:end-row 17,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 66,
   :end-col 75,
@@ -3890,7 +3890,7 @@
   :row 17}
  {:end-row 17,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 89,
   :end-col 103,
@@ -3899,7 +3899,7 @@
   :row 17}
  {:end-row 18,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 116,
   :end-col 119,
@@ -3908,7 +3908,7 @@
   :row 18}
  {:end-row 22,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 74,
   :end-col 77,
@@ -3917,7 +3917,7 @@
   :row 22}
  {:end-row 22,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 78,
   :end-col 81,
@@ -3926,7 +3926,7 @@
   :row 22}
  {:end-row 22,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 82,
   :end-col 85,
@@ -3935,7 +3935,7 @@
   :row 22}
  {:end-row 23,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 34,
   :end-col 38,
@@ -3944,7 +3944,7 @@
   :row 23}
  {:end-row 23,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 49,
   :end-col 53,
@@ -3953,7 +3953,7 @@
   :row 23}
  {:end-row 24,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 75,
   :end-col 88,
@@ -3962,7 +3962,7 @@
   :row 24}
  {:end-row 25,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 43,
@@ -3993,7 +3993,7 @@
   :row 27}
  {:end-row 35,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 35,
@@ -4002,7 +4002,7 @@
   :row 35}
  {:end-row 35,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 36,
   :end-col 43,
@@ -4011,7 +4011,7 @@
   :row 35}
  {:end-row 35,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 44,
   :end-col 48,
@@ -4020,7 +4020,7 @@
   :row 35}
  {:end-row 35,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 49,
   :end-col 55,
@@ -4029,7 +4029,7 @@
   :row 35}
  {:end-row 35,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 56,
   :end-col 63,
@@ -4038,7 +4038,7 @@
   :row 35}
  {:end-row 39,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 29,
   :end-col 36,
@@ -4047,7 +4047,7 @@
   :row 39}
  {:end-row 39,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/core.cljc",
   :col 37,
   :end-col 46,
@@ -10369,7 +10369,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/env/macros.clj",
   :col 29,
   :end-col 36,
@@ -13738,7 +13738,7 @@
   :row 136}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/repl/browser.clj",
   :col 29,
   :end-col 40,
@@ -13965,7 +13965,7 @@
   :row 77}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/repl/server.clj",
   :col 29,
   :end-col 40,
@@ -14171,7 +14171,7 @@
   :row 544}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 29,
   :end-col 30,
@@ -14180,7 +14180,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 31,
   :end-col 32,
@@ -14189,7 +14189,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 33,
   :end-col 36,
@@ -14198,7 +14198,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 37,
   :end-col 39,
@@ -14207,7 +14207,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 40,
   :end-col 43,
@@ -14225,7 +14225,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/alpha.cljs",
   :col 53,
   :end-col 58,
@@ -14483,7 +14483,7 @@
   :row 11}
  {:end-row 11,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/spec/gen/alpha.cljs",
   :col 72,
   :end-col 77,
@@ -16778,7 +16778,7 @@
   :row 590}
  {:end-row 12,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/vendor/clojure/tools/reader.clj",
   :col 34,
   :end-col 43,
@@ -16787,7 +16787,7 @@
   :row 12}
  {:end-row 12,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "cljs/vendor/clojure/tools/reader.clj",
   :col 56,
   :end-col 60,
@@ -19316,7 +19316,7 @@
   :row 322}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 36,
   :end-col 39,
@@ -19325,7 +19325,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 40,
   :end-col 46,
@@ -19334,7 +19334,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 47,
   :end-col 53,
@@ -19343,7 +19343,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 54,
   :end-col 60,
@@ -19352,7 +19352,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 61,
   :end-col 65,
@@ -19361,7 +19361,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 66,
   :end-col 76,
@@ -19370,7 +19370,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 77,
   :end-col 81,
@@ -19379,7 +19379,7 @@
   :row 16}
  {:end-row 16,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/core/reducers.cljs",
   :col 82,
   :end-col 89,
@@ -23173,7 +23173,7 @@
   :row 11}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/spec/test/alpha.clj",
   :col 29,
   :end-col 33,
@@ -23605,7 +23605,7 @@
   :row 27}
  {:end-row 12,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/tools/reader.clj",
   :col 34,
   :end-col 43,
@@ -23614,7 +23614,7 @@
   :row 12}
  {:end-row 12,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "clojure/tools/reader.clj",
   :col 56,
   :end-col 60,
@@ -27317,7 +27317,7 @@
   :row 198}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/clojure/tools/reader.clj",
   :col 34,
@@ -27327,7 +27327,7 @@
   :row 10}
  {:end-row 10,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/clojure/tools/reader.clj",
   :col 56,
@@ -29912,7 +29912,7 @@
   :row 94}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/addons.cljc",
   :col 36,
   :end-col 40,
@@ -29921,7 +29921,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/addons/future.clj",
   :col 29,
   :end-col 35,
@@ -29930,7 +29930,7 @@
   :row 3}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/core.cljc",
   :col 29,
   :end-col 40,
@@ -29961,7 +29961,7 @@
   :row 5}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/analyzer.cljc",
   :col 29,
   :end-col 40,
@@ -30003,7 +30003,7 @@
   :row nil}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/core_protocols.cljc",
   :col 29,
   :end-col 34,
@@ -30026,7 +30026,7 @@
   :row 81}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/evaluator.cljc",
   :col 29,
   :end-col 33,
@@ -30079,7 +30079,7 @@
   :row 63}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/interpreter.cljc",
   :col 29,
   :end-col 40,
@@ -30088,7 +30088,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/interpreter.cljc",
   :col 41,
   :end-col 52,
@@ -30097,7 +30097,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/interpreter.cljc",
   :col 53,
   :end-col 66,
@@ -30140,7 +30140,7 @@
   :row 6}
  {:end-row 9,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/namespaces.cljc",
   :col 38,
   :end-col 45,
@@ -30204,7 +30204,7 @@
   :row 186}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/parser.cljc",
   :col 29,
   :end-col 40,
@@ -30213,7 +30213,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/parser.cljc",
   :col 41,
   :end-col 45,
@@ -30222,7 +30222,7 @@
   :row 3}
  {:end-row 4,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/protocols.cljc",
   :col 48,
   :end-col 53,
@@ -30231,7 +30231,7 @@
   :row 4}
  {:end-row 5,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/protocols.cljc",
   :col 38,
   :end-col 49,
@@ -30240,7 +30240,7 @@
   :row 5}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/read.cljc",
   :col 29,
   :end-col 33,
@@ -30249,7 +30249,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/read.cljc",
   :col 63,
   :end-col 74,
@@ -30258,7 +30258,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/records.cljc",
   :col 39,
   :end-col 46,
@@ -30317,7 +30317,7 @@
   :row 263}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/test.cljc",
   :col 41,
   :end-col 52,
@@ -30348,7 +30348,7 @@
   :row 3}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/test.cljc",
   :col 69,
   :end-col 82,
@@ -30720,7 +30720,7 @@
   :row 65}
  {:end-row 3,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/vars.cljc",
   :col 29,
   :end-col 36,
@@ -30729,7 +30729,7 @@
   :row 3}
  {:end-row 7,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/vars.cljc",
   :col 29,
   :end-col 43,
@@ -30738,7 +30738,7 @@
   :row 7}
  {:end-row 9,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/vars.cljc",
   :col 29,
   :end-col 42,
@@ -30747,7 +30747,7 @@
   :row 9}
  {:end-row 13,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/impl/vars.cljc",
   :col 29,
   :end-col 38,
@@ -33319,7 +33319,7 @@
   :row 254}
  {:end-row 6,
   :type :unused-excluded-var,
-  :level :warning,
+  :level :info,
   :filename "sci/lang.cljc",
   :col 39,
   :end-col 43,

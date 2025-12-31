@@ -113,7 +113,7 @@
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
               :unused-import {:level :warning}
-              :unused-excluded-var {:level :warning}
+              :unused-excluded-var {:level :info}
               :single-operand-comparison {:level :warning}
               :single-logical-operand {:level :warning}
               :redundant-nested-call {:level :info}
