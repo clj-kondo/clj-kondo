@@ -1649,10 +1649,16 @@ primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, 
 If `:type-mismatch` is disabled, type tracking will not be available and the linter
 will not detect redundant coercions.
 
-*Limitation:* The `long`, `int`, and `short` coercion functions share the same internal
-type representation (`:int`) in clj-kondo's type system. This means cross-coercions
-between these types (e.g., `(long (int x))`) will also trigger warnings, even though
-they perform different operations at runtime.
+*Limitations:*
+
+- The `long`, `int`, and `short` coercion functions share the same internal
+  type representation (`:int`) in clj-kondo's type system. This means cross-coercions
+  between these types (e.g., `(long (int x))`) will also trigger warnings, even though
+  they perform different operations at runtime.
+
+- Java interop method return types are not tracked. Calls like `(double (.doubleValue x))`
+  will not be detected as redundant because clj-kondo does not infer return types from
+  Java method calls.
 
 ### Refer
 
