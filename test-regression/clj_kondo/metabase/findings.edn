@@ -1255,6 +1255,18 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 45}
+ {:end-row 823,
+  :type :type-mismatch,
+  :level :error,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/aggregation_test.cljc",
+  :col 11,
+  :end-col 78,
+  :cljc true,
+  :langs (:clj),
+  :message "Expected: string, received: boolean.",
+  :row 819}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,
@@ -1560,6 +1572,16 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
+ {:end-row 497,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 27,
+  :end-col 55,
+  :langs (),
+  :message "Expected: string, received: boolean.",
+  :row 493}
  {:end-row 1018,
   :type :unresolved-symbol,
   :level :error,
@@ -1580,6 +1602,26 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 54}
+ {:end-row 41,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 10,
+  :end-col 42,
+  :langs (),
+  :message "Expected: string, received: number.",
+  :row 41}
+ {:end-row 42,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 10,
+  :end-col 42,
+  :langs (),
+  :message "Expected: string, received: number.",
+  :row 42}
  {:end-row 33,
   :type :unresolved-symbol,
   :level :error,
@@ -1600,6 +1642,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 282}
+ {:end-row 245,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
+  :col 11,
+  :end-col 99,
+  :langs (),
+  :message "Expected: string, received: boolean.",
+  :row 245}
  {:end-row 359,
   :type :unresolved-symbol,
   :level :error,
@@ -1630,6 +1682,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 408}
+ {:end-row 319,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/models/database_test.clj",
+  :col 17,
+  :end-col 35,
+  :langs (),
+  :message "Expected: string, received: vector.",
+  :row 319}
  {:end-row 606,
   :type :unresolved-symbol,
   :level :error,
