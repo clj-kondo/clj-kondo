@@ -505,7 +505,7 @@
        x))
    coll))
 
-(defn deprecated-namespace-excluded-config [config]
+(defn deprecated-namespace-excluded-config [config ]
   (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
     (set excluded)))
 

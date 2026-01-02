@@ -337,7 +337,7 @@
                 {:call (assoc call*
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
-                                                        nm))}
+                                         nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
                   (if (:req t)
