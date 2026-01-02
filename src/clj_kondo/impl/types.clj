@@ -70,6 +70,7 @@
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
+   :float #{:number}
    :byte #{:number}
    :ratio #{:number}
    :vector #{:seqable :sequential :associative :coll :ifn :stack :ilookup}
@@ -93,8 +94,14 @@
 
 (def could-be-relations
   {:char-sequence #{:string}
-   :int #{:neg-int :nat-int :pos-int}
-   :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio}
+   ;; Subtypes and widening primitive conversions (int can widen to float/double)
+   :int #{:neg-int :nat-int :pos-int :float :double :number}
+   :pos-int #{:float :double :number}
+   :nat-int #{:pos-int :float :double :number}
+   :neg-int #{:float :double :number}
+   :byte #{:int :float :double :number}
+   :float #{:double :number}
+   :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio :float}
    :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
            :sequential :ifn :stack :ilookup}
    :seqable #{:coll :vector :set :sorted-set :map :associative
@@ -105,7 +112,6 @@
           :associative :seqable :coll :sequential :stack :sorted-map :var
           :ideref :ilookup}
    :fn #{:transducer}
-   :nat-int #{:pos-int}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
@@ -133,6 +139,7 @@
    :number "number"
    :int "integer"
    :double "double"
+   :float "float"
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
@@ -210,12 +217,10 @@
     (Number java.lang.Number) :nilable/number
     (int long) :int
     (Integer java.lang.Integer Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
-    (float double) #{:double
-                     ;; can be auto-cast to
-                     :float
-                     ;; can be auto-cast to
-                     :int}
-    (Float Double java.lang.Float java.lang.Double) #{:double :float :int :nil}
+    (double) :double
+    (float) :float
+    (Double java.lang.Double) :nilable/double
+    (Float java.lang.Float) :nilable/float
     (ratio?) :ratio
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
     (String java.lang.String) :nilable/string ;; as this is now way to
@@ -332,7 +337,7 @@
                 {:call (assoc call*
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
-                                         nm))}
+                                                        nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
                   (if (:req t)
@@ -572,5 +577,4 @@
   (match? :seqable :vector)
   (match? :map :associative)
   (match? :map :nilable/associative)
-  (label :nilable/set)
-  )
+  (label :nilable/set))
