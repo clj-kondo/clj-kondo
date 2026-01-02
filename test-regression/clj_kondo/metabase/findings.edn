@@ -2315,16 +2315,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 259}
- {:end-row 292,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/activity_feed/models/recent_views_test.clj",
-  :col 5,
-  :end-col 93,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 211}
  {:end-row 427,
   :type :testing-outside-deftest,
   :level :warning,
@@ -2335,16 +2325,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 424}
- {:end-row 502,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/activity_feed/models/recent_views_test.clj",
-  :col 5,
-  :end-col 92,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 457}
  {:end-row 491,
   :type :testing-outside-deftest,
   :level :warning,
@@ -2355,16 +2335,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 486}
- {:end-row 555,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/activity_feed/models/recent_views_test.clj",
-  :col 5,
-  :end-col 84,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 506}
  {:end-row 20,
   :type :testing-outside-deftest,
   :level :warning,
@@ -3675,36 +3645,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 2216}
- {:end-row 2617,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/app_db/custom_migrations_test.clj",
-  :col 11,
-  :end-col 69,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 2588}
- {:end-row 2617,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/app_db/custom_migrations_test.clj",
-  :col 13,
-  :end-col 68,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 2590}
- {:end-row 2621,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/app_db/custom_migrations_test.clj",
-  :col 11,
-  :end-col 85,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 2619}
  {:end-row 122,
   :type :testing-outside-deftest,
   :level :warning,
@@ -7065,26 +7005,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 1185}
- {:end-row 1304,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
-  :col 9,
-  :end-col 114,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1301}
- {:end-row 1307,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
-  :col 9,
-  :end-col 130,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1305}
  {:end-row 1489,
   :type :testing-outside-deftest,
   :level :warning,
@@ -11455,36 +11375,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 38}
- {:end-row 45,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
-  :col 5,
-  :end-col 86,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 44}
- {:end-row 50,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
-  :col 5,
-  :end-col 83,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 46}
- {:end-row 52,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
-  :col 5,
-  :end-col 96,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 51}
  {:end-row 88,
   :type :testing-outside-deftest,
   :level :warning,
@@ -12105,26 +11995,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 147}
- {:end-row 295,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/util_test.clj",
-  :col 7,
-  :end-col 42,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 277}
- {:end-row 295,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/util_test.clj",
-  :col 11,
-  :end-col 40,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 291}
  {:end-row 301,
   :type :testing-outside-deftest,
   :level :warning,
@@ -13985,26 +13855,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 178}
- {:end-row 30,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/events/impl_test.clj",
-  :col 5,
-  :end-col 69,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 28}
- {:end-row 34,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/events/impl_test.clj",
-  :col 5,
-  :end-col 32,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 31}
  {:end-row 32,
   :type :testing-outside-deftest,
   :level :warning,
@@ -15171,18 +15021,6 @@
   :langs (:clj :cljs),
   :message "testing called outside of deftest",
   :row 455}
- {:end-row 493,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/card_test.cljc",
-  :col 7,
-  :end-col 66,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 481}
  {:end-row 520,
   :type :testing-outside-deftest,
   :level :warning,
@@ -15903,78 +15741,6 @@
   :langs (:clj :cljs),
   :message "testing called outside of deftest",
   :row 402}
- {:end-row 482,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/field/resolution_test.cljc",
-  :col 9,
-  :end-col 81,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 477}
- {:end-row 490,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/field/resolution_test.cljc",
-  :col 9,
-  :end-col 85,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 483}
- {:end-row 959,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/field/resolution_test.cljc",
-  :col 9,
-  :end-col 52,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 950}
- {:end-row 971,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/field/resolution_test.cljc",
-  :col 9,
-  :end-col 55,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 960}
- {:end-row 971,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/field/resolution_test.cljc",
-  :col 11,
-  :end-col 54,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 966}
- {:end-row 977,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/field/resolution_test.cljc",
-  :col 9,
-  :end-col 115,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 972}
  {:end-row 182,
   :type :testing-outside-deftest,
   :level :warning,
@@ -16957,30 +16723,6 @@
   :langs (:clj :cljs),
   :message "testing called outside of deftest",
   :row 86}
- {:end-row 102,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/schema/filter_test.cljc",
-  :col 5,
-  :end-col 30,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 95}
- {:end-row 129,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/schema/literal_test.cljc",
-  :col 5,
-  :end-col 30,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "testing called outside of deftest",
-  :row 119}
  {:end-row 46,
   :type :testing-outside-deftest,
   :level :warning,
@@ -17605,36 +17347,6 @@
   :langs (:clj :cljs),
   :message "testing called outside of deftest",
   :row 262}
- {:end-row 209,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib_be/metadata/jvm_test.clj",
-  :col 7,
-  :end-col 70,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 208}
- {:end-row 212,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib_be/metadata/jvm_test.clj",
-  :col 7,
-  :end-col 87,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 210}
- {:end-row 215,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib_be/metadata/jvm_test.clj",
-  :col 7,
-  :end-col 107,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 213}
  {:end-row 239,
   :type :testing-outside-deftest,
   :level :warning,
@@ -20945,86 +20657,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 28}
- {:end-row 73,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 7,
-  :end-col 51,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 39}
- {:end-row 53,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 11,
-  :end-col 64,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 48}
- {:end-row 59,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 11,
-  :end-col 64,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 54}
- {:end-row 66,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 11,
-  :end-col 42,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 60}
- {:end-row 73,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 11,
-  :end-col 49,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 67}
- {:end-row 98,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 7,
-  :end-col 51,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 77}
- {:end-row 91,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 11,
-  :end-col 104,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 86}
- {:end-row 98,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 11,
-  :end-col 49,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 92}
  {:end-row 125,
   :type :testing-outside-deftest,
   :level :warning,
@@ -21065,46 +20697,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 119}
- {:end-row 140,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 9,
-  :end-col 45,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 135}
- {:end-row 159,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 9,
-  :end-col 45,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 154}
- {:end-row 178,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 5,
-  :end-col 42,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 163}
- {:end-row 193,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/parameters/custom_values_test.clj",
-  :col 5,
-  :end-col 39,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 182}
  {:end-row 217,
   :type :testing-outside-deftest,
   :level :warning,
@@ -22295,46 +21887,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 756}
- {:end-row 832,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
-  :col 9,
-  :end-col 61,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 830}
- {:end-row 836,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
-  :col 9,
-  :end-col 65,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 834}
- {:end-row 840,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
-  :col 9,
-  :end-col 67,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 838}
- {:end-row 844,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
-  :col 9,
-  :end-col 65,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 842}
  {:end-row 73,
   :type :testing-outside-deftest,
   :level :warning,
@@ -22945,206 +22497,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 1019}
- {:end-row 1083,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 7,
-  :end-col 72,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1041}
- {:end-row 1066,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 13,
-  :end-col 77,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1046}
- {:end-row 1050,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 116,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1047}
- {:end-row 1055,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 105,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1052}
- {:end-row 1066,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 76,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1057}
- {:end-row 1066,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 17,
-  :end-col 75,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1062}
- {:end-row 1083,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 13,
-  :end-col 69,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1068}
- {:end-row 1072,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 121,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1069}
- {:end-row 1077,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 111,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1074}
- {:end-row 1083,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 68,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1079}
- {:end-row 1140,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 7,
-  :end-col 91,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1085}
- {:end-row 1115,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 13,
-  :end-col 65,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1095}
- {:end-row 1099,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 112,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1096}
- {:end-row 1105,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 105,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1101}
- {:end-row 1115,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 64,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1107}
- {:end-row 1115,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 17,
-  :end-col 63,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1108}
- {:end-row 1140,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 13,
-  :end-col 88,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1117}
- {:end-row 1121,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 117,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1118}
- {:end-row 1126,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 111,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1123}
- {:end-row 1140,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
-  :col 15,
-  :end-col 87,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 1128}
  {:end-row 1195,
   :type :testing-outside-deftest,
   :level :warning,
@@ -26295,26 +25647,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 2980}
- {:end-row 3133,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
-  :col 9,
-  :end-col 103,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 3129}
- {:end-row 3138,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
-  :col 9,
-  :end-col 108,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 3135}
  {:end-row 3155,
   :type :testing-outside-deftest,
   :level :warning,
@@ -42375,16 +41707,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 265}
- {:end-row 337,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/sync/sync_test.clj",
-  :col 11,
-  :end-col 42,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 335}
  {:end-row 153,
   :type :testing-outside-deftest,
   :level :warning,
@@ -42878,16 +42200,6 @@
   :langs (),
   :message "testing called outside of deftest",
   :row 231}
- {:end-row 15,
-  :type :testing-outside-deftest,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/test/http_client_test.clj",
-  :col 5,
-  :end-col 67,
-  :langs (),
-  :message "testing called outside of deftest",
-  :row 9}
  {:end-row 352,
   :type :testing-outside-deftest,
   :level :warning,

@@ -102,15 +102,9 @@
                                        :missing-test-assertion "missing test assertion"))))
 
 (defn inside-deftest? [callstack]
-  (when callstack
-    (let [parent (first callstack)]
-      (case parent
-        ([clojure.test deftest] [cljs.test deftest])
-        true
-        ([clojure.core let] [cljs.core let]
-         [clojure.test testing] [cljs.test testing])
-        (recur (next callstack))
-        false))))
+  (some #(or (= '[clojure.test deftest] %)
+             (= '[cljs.test deftest] %))
+        callstack))
 
 (defn lint-testing-outside-deftest [ctx call]
   (when-not (inside-deftest? (next (:callstack call)))
