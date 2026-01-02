@@ -101,17 +101,33 @@
                            (node->line (:filename ctx) (:expr call)
                                        :missing-test-assertion "missing test assertion"))))
 
-(defn inside-deftest? [callstack]
+(defn- inside-deftest? [callstack]
   (some #(or (= '[clojure.test deftest] %)
              (= '[cljs.test deftest] %))
         callstack))
 
+(defn- inside-defn?
+  "We need to allow testing inside defn, def and defmacro definitions because 
+   we can't statically determine where that function will be called"
+  [callstack]
+  (let [def-forms '#{[clojure.core defn]
+                     [clojure.core defn-]
+                     [clojure.core def]
+                     [clojure.core defmacro]
+                     [cljs.core defn]
+                     [cljs.core defn-]
+                     [cljs.core def]
+                     [cljs.core defmacro]}]
+    (some #(contains? def-forms %) callstack)))
+
 (defn lint-testing-outside-deftest [ctx call]
-  (when-not (inside-deftest? (next (:callstack call)))
-    (findings/reg-finding!
-     ctx
-     (node->line (:filename ctx) (:expr call)
-                 :testing-outside-deftest "testing called outside of deftest"))))
+  (let [callstack (next (:callstack call))]
+    (when-not (or (inside-deftest? callstack)
+                  (inside-defn? callstack))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) (:expr call)
+                   :testing-outside-deftest "testing called outside of deftest")))))
 
 (defn lint-missing-else-branch
   "Lint missing :else branch on if-like expressions"

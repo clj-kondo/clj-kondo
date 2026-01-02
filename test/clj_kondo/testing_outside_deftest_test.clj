@@ -1,4 +1,4 @@
-(ns clj-kondo.testing-outside-deftest-test 
+(ns clj-kondo.testing-outside-deftest-test
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
@@ -33,14 +33,8 @@
             :message "testing called outside of deftest"})
          (lint! "(require '[clojure.test :refer [testing is]]) (testing \"bar\" (is (= 1 1)))")))
 
-      (testing "testing inside regular function should warn"
-        (assert-submaps2
-         '({:file "<stdin>"
-            :row 1
-            :col 57
-            :level :warning
-            :message "testing called outside of deftest"})
-         (lint! "(ns foo (:require [clojure.test :as t])) (defn my-fn [] (t/testing \"bar\" (t/is (= 1 1))))")))
+      (testing "testing inside regular function should not warn (might be called from deftest)"
+        (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (defn my-fn [] (t/testing \"bar\" (t/is (= 1 1))))"))))
 
       (testing "testing with refer should work"
         (is (empty? (lint! "(require '[clojure.test :refer [deftest testing is]]) (deftest foo (testing \"bar\" (is (= 1 1))))")))
@@ -51,24 +45,3 @@
             :level :warning
             :message "testing called outside of deftest"})
          (lint! "(require '[clojure.test :refer [testing is]]) (testing \"bar\" (is (= 1 1)))"))))))
-(comment 
-(lint! "(deftest no-cache?
-  (with-ns-binding 'nextjournal.clerk.analyzer-test
-    (testing \"are variables set to no-cache?\"
-      (is (not (:no-cache? (ana/analyze '(rand-int 10)))))
-      (is (not (:no-cache? (ana/analyze '(def random-thing (rand-int 1000))))))
-      (is (not (:no-cache? (ana/analyze '(defn random-thing [] (rand-int 1000))))))
-      (is (:no-cache? (ana/analyze '^:nextjournal.clerk/no-cache (rand-int 10))))
-      (is (:no-cache? (ana/analyze '^:nextjournal.clerk/no-cache (def random-thing (rand-int 1000)))))
-      (is (:no-cache? (ana/analyze '^:nextjournal.clerk/no-cache (defn random-thing [] (rand-int 1000))))))
-
-
-    (testing \"deprecated way to set no-cache?\"
-      (is (:no-cache? (ana/analyze '(def ^:nextjournal.clerk/no-cache random-thing (rand-int 1000)))))
-      (is (:no-cache? (ana/analyze '(defn ^:nextjournal.clerk/no-cache random-thing [] (rand-int 1000)))))
-      (is (:no-cache? (ana/analyze '(defn ^{:nextjournal.clerk/no-cache true} random-thing [] (rand-int 1000)))))))
-
-  (testing \"is evaluating namespace set to no-cache?\"
-    (is (not (ana/no-cache? '(rand-int 10) (find-ns 'nextjournal.clerk.analyzer-test))))
-
-    (is (nextjournal.clerk.analyzer/no-cache? '(rand-int 10) (find-ns 'nextjournal.clerk.analyzer)))))"))
