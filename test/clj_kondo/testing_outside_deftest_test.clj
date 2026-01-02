@@ -44,4 +44,16 @@
             :col 47
             :level :warning
             :message "testing called outside of deftest"})
-         (lint! "(require '[clojure.test :refer [testing is]]) (testing \"bar\" (is (= 1 1)))"))))))
+         (lint! "(require '[clojure.test :refer [testing is]]) (testing \"bar\" (is (= 1 1)))")))
+
+      (testing "testing inside anonymous function in use-fixtures should not warn when namespace has deftest"
+        (is (empty? (lint! "(ns foo (:require [clojure.test :as t])) (t/deftest my-test (t/is true)) (t/use-fixtures :each (fn [f] (t/testing \"bar\" (f))))"))))
+
+      (testing "testing inside use-fixtures should warn when namespace has no deftest"
+        (assert-submaps2
+         '({:file "<stdin>"
+            :row 1
+            :col 72
+            :level :warning
+            :message "testing called outside of deftest"})
+         (lint! "(ns foo (:require [clojure.test :as t])) (t/use-fixtures :each (fn [f] (t/testing \"bar\" (f))))"))))))

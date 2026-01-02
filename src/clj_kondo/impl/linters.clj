@@ -101,29 +101,40 @@
                            (node->line (:filename ctx) (:expr call)
                                        :missing-test-assertion "missing test assertion"))))
 
+(defn- namespace-has-tests? [{:keys [base-lang lang] :as ctx}]
+  (let [ns-name (-> ctx :ns :name)
+        defs (get-in @(:namespaces ctx) [base-lang lang ns-name :defs])]
+    (some (fn [[_var-name {:keys [defined-by]}]]
+            (or (= 'clojure.test/deftest defined-by)
+                (= 'cljs.test/deftest defined-by)))
+          defs)))
+
 (defn- inside-deftest? [callstack]
   (some #(or (= '[clojure.test deftest] %)
              (= '[cljs.test deftest] %))
         callstack))
 
-(defn- inside-defn?
-  "We need to allow testing inside defn, def and defmacro definitions because 
-   we can't statically determine where that function will be called"
+(defn- inside-use-fixtures? [callstack]
+  (some #(or (= '[clojure.test use-fixtures] %)
+             (= '[cljs.test use-fixtures] %))
+        callstack))
+
+(defn- inside-function-definition?
+  "We need to allow testing inside defn, def, defmacro, fn and defmethod because 
+   we can't statically determine where those functions will be called"
   [callstack]
-  (let [def-forms '#{[clojure.core defn]
-                     [clojure.core defn-]
-                     [clojure.core def]
-                     [clojure.core defmacro]
-                     [cljs.core defn]
-                     [cljs.core defn-]
-                     [cljs.core def]
-                     [cljs.core defmacro]}]
-    (some #(contains? def-forms %) callstack)))
+  (let [def-forms '#{defn defn- def defmacro fn defmethod}]
+    (some #(contains? def-forms (second %)) callstack)))
+
 
 (defn lint-testing-outside-deftest [ctx call]
-  (let [callstack (next (:callstack call))]
-    (when-not (or (inside-deftest? callstack)
-                  (inside-defn? callstack))
+  (let [callstack (next (:callstack call))
+        in-use-fixtures? (inside-use-fixtures? callstack)]
+    (when-not (or (and in-use-fixtures?
+                       (namespace-has-tests? ctx))
+                  (inside-deftest? callstack)
+                  (and (not in-use-fixtures?)
+                       (inside-function-definition? callstack)))
       (findings/reg-finding!
        ctx
        (node->line (:filename ctx) (:expr call)

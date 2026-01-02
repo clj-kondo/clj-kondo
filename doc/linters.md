@@ -1350,12 +1350,19 @@ misses a value.
 
 *Description:* warn when `testing` is called outside of a `deftest` context. According to the `clojure.test` documentation, the `testing` macro "adds a new string to the list of testing contexts" and "must occur inside a test function (deftest)". Using `testing` outside of a `deftest` is incorrect and will not add proper test context.
 
+The linter allows `testing` in the following contexts:
+
+1. **Inside `deftest`** - the primary valid use case
+2. **Inside function definitions** (`defn`, `defn-`, `def`, `defmacro`, `fn`) - since clj-kondo cannot statically determine where these functions will be called, they are allowed to contain `testing` calls that may be invoked from test contexts
+3. **Inside `use-fixtures`** - only when the namespace contains at least one `deftest`. Fixtures are test setup/teardown functions, and using `testing` in them only makes sense when there are actual tests in the namespace
+
 *Default level:* `:warning`.
 
 *Example trigger:*
 
 ``` clojure
 (require '[clojure.test :as test])
+;; Not allowed: testing at top level
 (test/testing "foo" (test/is (= 1 1)))
 ```
 
@@ -1365,9 +1372,25 @@ misses a value.
 
 ``` clojure
 (require '[clojure.test :as test])
+
+;; Correct: testing inside deftest
 (test/deftest my-test
   (test/testing "foo" 
     (test/is (= 1 1))))
+
+;; Allowed: testing inside helper function (might be called from tests)
+(defn test-helper []
+  (test/testing "helper context"
+    (test/is (= 2 (+ 1 1)))))
+
+;; Allowed: testing in fixture when namespace has deftest
+(test/deftest example-test
+  (test/is true))
+
+(test/use-fixtures :each
+  (fn [f]
+    (test/testing "fixture setup"
+      (f))))
 ```
 
 ### Namespace name mismatch
