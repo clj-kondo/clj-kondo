@@ -48,6 +48,96 @@
   :langs (),
   :message "Unused excluded var: remove-ns",
   :row 2}
+ {:end-row 47,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/analyzer_test.clj",
+  :col 5,
+  :end-col 108,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 41}
+ {:end-row 53,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/analyzer_test.clj",
+  :col 5,
+  :end-col 115,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 50}
+ {:end-row 110,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/analyzer_test.clj",
+  :col 4,
+  :end-col 64,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 108}
+ {:end-row 115,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/analyzer_test.clj",
+  :col 4,
+  :end-col 93,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 113}
+ {:end-row 212,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/analyzer_test.clj",
+  :col 4,
+  :end-col 81,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 211}
+ {:end-row 33,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/builder_test.clj",
+  :col 7,
+  :end-col 39,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 26}
+ {:end-row 36,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/builder_test.clj",
+  :col 7,
+  :end-col 37,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 35}
+ {:end-row 74,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/builder_test.clj",
+  :col 4,
+  :end-col 91,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 69}
+ {:end-row 260,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/eval_test.clj",
+  :col 4,
+  :end-col 79,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 259}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,
@@ -57,4 +147,94 @@
   :end-col 52,
   :langs (),
   :message "Redundant fn wrapper",
-  :row 67}]
+  :row 67}
+ {:end-row 106,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/viewer_test.clj",
+  :col 4,
+  :end-col 80,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 88}
+ {:end-row 376,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/viewer_test.clj",
+  :col 4,
+  :end-col 138,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 374}
+ {:end-row 387,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/viewer_test.clj",
+  :col 4,
+  :end-col 58,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 379}
+ {:end-row 526,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/viewer_test.clj",
+  :col 4,
+  :end-col 53,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 522}
+ {:end-row 529,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/viewer_test.clj",
+  :col 4,
+  :end-col 43,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 528}
+ {:end-row 533,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/viewer_test.clj",
+  :col 4,
+  :end-col 69,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 531}
+ {:end-row 36,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
+  :col 4,
+  :end-col 94,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 27}
+ {:end-row 76,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
+  :col 4,
+  :end-col 69,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 38}
+ {:end-row 76,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
+  :col 6,
+  :end-col 68,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 57}]
