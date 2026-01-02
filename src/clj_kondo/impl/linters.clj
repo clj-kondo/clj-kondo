@@ -101,6 +101,24 @@
                            (node->line (:filename ctx) (:expr call)
                                        :missing-test-assertion "missing test assertion"))))
 
+(defn inside-deftest? [callstack]
+  (when callstack
+    (let [parent (first callstack)]
+      (case parent
+        ([clojure.test deftest] [cljs.test deftest])
+        true
+        ([clojure.core let] [cljs.core let]
+         [clojure.test testing] [cljs.test testing])
+        (recur (next callstack))
+        false))))
+
+(defn lint-testing-outside-deftest [ctx call]
+  (when-not (inside-deftest? (next (:callstack call)))
+    (findings/reg-finding!
+     ctx
+     (node->line (:filename ctx) (:expr call)
+                 :testing-outside-deftest "testing called outside of deftest"))))
+
 (defn lint-missing-else-branch
   "Lint missing :else branch on if-like expressions"
   [ctx expr]
@@ -166,6 +184,8 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
+      ([clojure.test testing] [cljs.test testing])
+      (lint-testing-outside-deftest ctx call)
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)

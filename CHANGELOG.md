@@ -28,7 +28,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix [#2695](https://github.com/clj-kondo/clj-kondo/issues/2696): false positive `:unquote-not-syntax-quoted` in leiningen's `defproject`
 - Leiningen's `defproject` behavior can now be configured using `leiningen.core.project/defproject`
 - Fix [#2699](https://github.com/clj-kondo/clj-kondo/issues/2699): fix false positive unresolved string var with extend-type on CLJS
-- Rename `:refer-clojure-exclude-unresolved-var` linter to `unresolved-excluded-var` for consistency
+- Rename `:refer-clojure-exclude-unresolved-var` linter to `unresolved-excluded-var` for consistency ([@jramosg](https://github.com/jramosg))
+- [#2707](https://github.com/clj-kondo/clj-kondo/issues/2707): NEW linter: `:testing-outside-deftest` to warn when `clojure.test/testing` is called outside of a `deftest` ([@jramosg](https://github.com/jramosg))
 
 ## 2025.12.23
 

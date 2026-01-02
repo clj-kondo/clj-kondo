@@ -73,6 +73,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
     - [Missing test assertion](#missing-test-assertion)
+    - [Testing outside deftest](#testing-outside-deftest)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
@@ -1342,6 +1343,32 @@ misses a value.
 ```
 
 *Example message:* `missing test assertion`.
+
+### Testing outside deftest
+
+*Keyword:* `:testing-outside-deftest`.
+
+*Description:* warn when `testing` is called outside of a `deftest` context. According to the `clojure.test` documentation, the `testing` macro "adds a new string to the list of testing contexts" and "must occur inside a test function (deftest)". Using `testing` outside of a `deftest` is incorrect and will not add proper test context.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(require '[clojure.test :as test])
+(test/testing "foo" (test/is (= 1 1)))
+```
+
+*Example message:* `testing called outside of deftest`.
+
+*Example correct usage:*
+
+``` clojure
+(require '[clojure.test :as test])
+(test/deftest my-test
+  (test/testing "foo" 
+    (test/is (= 1 1))))
+```
 
 ### Namespace name mismatch
 
