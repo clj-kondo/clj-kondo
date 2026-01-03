@@ -29598,6 +29598,18 @@
   :langs (:clj),
   :message "The var macroexpand-all does not exist in clojure.core",
   :row 4}
+ {:end-row 1071,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :lang :cljs,
+  :filename "sci/impl/analyzer.cljc",
+  :col 50,
+  :end-col 72,
+  :cljc true,
+  :langs (:cljs),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 1071}
  {:end-row nil,
   :type :def-fn,
   :level :warning,

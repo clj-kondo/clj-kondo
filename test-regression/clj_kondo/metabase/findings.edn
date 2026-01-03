@@ -348,6 +348,17 @@
   :langs (),
   :message "Unused excluded var: hash",
   :row 2}
+ {:end-row 113,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/impl.clj",
+  :col 25,
+  :end-col 53,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 113}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -536,6 +547,17 @@
   :langs (),
   :message "Unused excluded var: replace",
   :row 2}
+ {:end-row 20,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/notification/condition.clj",
+  :col 14,
+  :end-col 75,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 20}
  {:end-row 565,
   :type :redundant-let-binding,
   :level :warning,
@@ -1255,6 +1277,19 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 45}
+ {:end-row 2032,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/field_test.cljc",
+  :col 40,
+  :end-col 86,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 2032}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,
