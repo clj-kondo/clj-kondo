@@ -19,6 +19,8 @@
     :char-sequence
     :seqable
     :int
+    :long
+    :short
     :number
     :pos-int
     :nat-int
@@ -66,6 +68,8 @@
   {:string #{:char-sequence :seqable}
    :char-sequence #{:seqable}
    :int #{:number}
+   :long #{:number}
+   :short #{:number}
    :pos-int #{:int :nat-int :number}
    :nat-int #{:int :number}
    :neg-int #{:int :number}
@@ -96,12 +100,14 @@
   {:char-sequence #{:string}
    ;; Subtypes and widening primitive conversions (int can widen to float/double)
    :int #{:neg-int :nat-int :pos-int :float :double :number}
+   :long #{:int :neg-int :nat-int :pos-int :float :double :number}
+   :short #{:int :long :neg-int :nat-int :pos-int :float :double :number}
    :pos-int #{:float :double :number}
    :nat-int #{:pos-int :float :double :number}
    :neg-int #{:float :double :number}
-   :byte #{:int :float :double :number}
+   :byte #{:int :long :short :float :double :number}
    :float #{:double :number}
-   :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio :float}
+   :number #{:neg-int :pos-int :nat-int :int :long :short :double :byte :ratio :float}
    :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
            :sequential :ifn :stack :ilookup}
    :seqable #{:coll :vector :set :sorted-set :map :associative
@@ -138,6 +144,8 @@
    :string "string"
    :number "number"
    :int "integer"
+   :long "long"
+   :short "short"
    :double "double"
    :float "float"
    :pos-int "positive integer"
@@ -215,8 +223,12 @@
     (byte) :byte
     (Byte java.lang.Byte) :nilable/byte
     (Number java.lang.Number) :nilable/number
-    (int long) :int
-    (Integer java.lang.Integer Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
+    (int) :int
+    (Integer java.lang.Integer) :nilable/int
+    (long) :long
+    (Long java.lang.Long) :nilable/long
+    (short) :short
+    (Short java.lang.Short) :nilable/short
     (double) :double
     (float) :float
     (Double java.lang.Double) :nilable/double
@@ -337,7 +349,7 @@
                 {:call (assoc call*
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
-                                         nm))}
+                                                        nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
                   (if (:req t)

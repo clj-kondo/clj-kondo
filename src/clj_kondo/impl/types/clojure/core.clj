@@ -681,7 +681,7 @@
    ;; 3473 'num
    ;; 3480
    'long {:arities {1 {:args [:number]
-                       :ret :int}}}
+                       :ret :long}}}
    ;; 3486
    'float {:arities {1 {:args [:number]
                         :ret :float}}}
@@ -690,7 +690,7 @@
                          :ret :double}}}
    ;; 3498
    'short {:arities {1 {:args [:number]
-                        :ret :int}}}
+                        :ret :short}}}
    ;; 3504
    'byte {:arities {1 {:args [#{:byte :number :char}]
                        :ret :byte}}}

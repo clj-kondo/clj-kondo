@@ -88,6 +88,11 @@
          [{:level :warning
            :message "Redundant float coercion - expression already has type float"}]
          (lint! "(defn foo ^float [] 1.0) (float (foo))" cfg)))
+      (testing "warns on long coercion of long-returning fn"
+        (assert-submaps
+         [{:level :warning
+           :message "Redundant long coercion - expression already has type long"}]
+         (lint! "(defn foo ^long [] 1) (long (foo))" cfg)))
       (testing "warns on nested double coercions"
         (assert-submaps
          [{:level :warning
@@ -103,11 +108,16 @@
          [{:level :warning
            :message "Redundant int coercion - expression already has type int"}]
          (lint! "(int (int 1))" cfg)))
-      (testing "warns on long coercion of int-returning fn"
+      (testing "warns on long coercion of long-returning fn"
         (assert-submaps
          [{:level :warning
-           :message "Redundant long coercion - expression already has type int"}]
-         (lint! "(long (int 1))" cfg)))
+           :message "Redundant long coercion - expression already has type long"}]
+         (lint! "(long (long 1))" cfg)))
+      (testing "warns on short coercion of short-returning fn"
+        (assert-submaps
+         [{:level :warning
+           :message "Redundant short coercion - expression already has type short"}]
+         (lint! "(short (short 1))" cfg)))
       (testing "warns on byte coercion of byte-returning fn"
         (assert-submaps
          [{:level :warning
@@ -130,7 +140,14 @@
         (is (empty? (lint! "(double 1)" cfg)))
         (is (empty? (lint! "(float 1)" cfg)))
         (is (empty? (lint! "(int 1.0)" cfg)))
-        (is (empty? (lint! "(long 1.0)" cfg))))
+        (is (empty? (lint! "(long 1.0)" cfg)))
+        ;; Cross-type integer coercions should not warn
+        (is (empty? (lint! "(int (long 1))" cfg)))
+        (is (empty? (lint! "(long (int 1))" cfg)))
+        (is (empty? (lint! "(short (int 1))" cfg)))
+        (is (empty? (lint! "(int (short 1))" cfg)))
+        (is (empty? (lint! "(long (short 1))" cfg)))
+        (is (empty? (lint! "(short (long 1))" cfg))))
       (testing "no warning when type is not known"
         (is (empty? (lint! "(defn foo [] 1) (double (foo))" cfg))))
       (testing "no warning when linter is off"
