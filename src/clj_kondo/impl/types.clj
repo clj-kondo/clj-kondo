@@ -107,6 +107,7 @@
    :neg-int #{:long :short :float :double :number}
    :byte #{:int :long :short :float :double :number}
    :float #{:double :number}
+   :double #{:float :number}
    :number #{:neg-int :pos-int :nat-int :int :long :short :double :byte :ratio :float}
    :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
            :sequential :ifn :stack :ilookup}
