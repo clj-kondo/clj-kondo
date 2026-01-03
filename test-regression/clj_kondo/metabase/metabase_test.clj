@@ -7,8 +7,7 @@
    [clojure.edn :as edn]
    [clojure.pprint :as pp]
    [clojure.string :as str]
-   [clojure.test :as t :refer [deftest is testing]]
-   ))
+   [clojure.test :as t :refer [deftest is testing]]))
 
 (deftest metabase-test
   (let [test-regression-checkouts (fs/file "test-regression" "checkouts")
@@ -32,7 +31,8 @@
                                        :lint paths
                                        :repro true
                                        ;; enable extra linters here that we want to test
-                                       :config {:linters {:redundant-let-binding {:level :warning}}}})
+                                       :config {:linters {:redundant-let-binding {:level :warning}
+                                                          :redundant-primitive-coercion {:level :off}}}})
           findings (:findings lint-result)
           ;; Uncomment this to reset expected findings:
           _ (when (System/getenv "CLJ_KONDO_REGRESSION_UPDATE")
