@@ -201,10 +201,10 @@
                                   short :short, byte :byte, char :char, boolean :boolean}
                                 (:name called-fn))]
         (when (and
+               (not (identical? :off (-> call :config :linters :redundant-primitive-coercion :level)))
                (utils/one-of (:ns called-fn) [clojure.core cljs.core])
                (= 1 (count tags))
                (identical? expected-type (first tags))
-               (not (identical? :off (-> call :config :linters :redundant-primitive-coercion :level)))
                (not (:clj-kondo.impl/generated (:expr call))))
           (findings/reg-finding! ctx
                                  (assoc (select-keys call [:row :end-row :col :end-col :filename])
