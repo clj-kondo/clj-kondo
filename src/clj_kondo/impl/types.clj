@@ -99,12 +99,12 @@
 (def could-be-relations
   {:char-sequence #{:string}
    ;; Subtypes and widening primitive conversions (int can widen to float/double)
-   :int #{:neg-int :nat-int :pos-int :float :double :number}
-   :long #{:int :neg-int :nat-int :pos-int :float :double :number}
+   :int #{:neg-int :nat-int :pos-int :long :short :float :double :number}
+   :long #{:int :neg-int :nat-int :pos-int :short :float :double :number}
    :short #{:int :long :neg-int :nat-int :pos-int :float :double :number}
-   :pos-int #{:float :double :number}
-   :nat-int #{:pos-int :float :double :number}
-   :neg-int #{:float :double :number}
+   :pos-int #{:long :short :float :double :number}
+   :nat-int #{:pos-int :long :short :float :double :number}
+   :neg-int #{:long :short :float :double :number}
    :byte #{:int :long :short :float :double :number}
    :float #{:double :number}
    :number #{:neg-int :pos-int :nat-int :int :long :short :double :byte :ratio :float}
