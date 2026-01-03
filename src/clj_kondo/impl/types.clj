@@ -19,6 +19,8 @@
     :char-sequence
     :seqable
     :int
+    :long
+    :short
     :number
     :pos-int
     :nat-int
@@ -66,10 +68,13 @@
   {:string #{:char-sequence :seqable}
    :char-sequence #{:seqable}
    :int #{:number}
+   :long #{:number}
+   :short #{:number}
    :pos-int #{:int :nat-int :number}
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
+   :float #{:number}
    :byte #{:number}
    :ratio #{:number}
    :vector #{:seqable :sequential :associative :coll :ifn :stack :ilookup}
@@ -93,8 +98,17 @@
 
 (def could-be-relations
   {:char-sequence #{:string}
-   :int #{:neg-int :nat-int :pos-int}
-   :number #{:neg-int :pos-int :nat-int :int :double :byte :ratio}
+   ;; Subtypes and widening primitive conversions (int can widen to float/double)
+   :int #{:neg-int :nat-int :pos-int :long :short :float :double :number}
+   :long #{:int :neg-int :nat-int :pos-int :short :float :double :number}
+   :short #{:int :long :neg-int :nat-int :pos-int :float :double :number}
+   :pos-int #{:long :short :float :double :number}
+   :nat-int #{:pos-int :long :short :float :double :number}
+   :neg-int #{:long :short :float :double :number}
+   :byte #{:int :long :short :float :double :number}
+   :float #{:double :number}
+   :double #{:float :number}
+   :number #{:neg-int :pos-int :nat-int :int :long :short :double :byte :ratio :float}
    :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
            :sequential :ifn :stack :ilookup}
    :seqable #{:coll :vector :set :sorted-set :map :associative
@@ -105,7 +119,6 @@
           :associative :seqable :coll :sequential :stack :sorted-map :var
           :ideref :ilookup}
    :fn #{:transducer}
-   :nat-int #{:pos-int}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
@@ -132,7 +145,10 @@
    :string "string"
    :number "number"
    :int "integer"
+   :long "long"
+   :short "short"
    :double "double"
+   :float "float"
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
@@ -208,14 +224,16 @@
     (byte) :byte
     (Byte java.lang.Byte) :nilable/byte
     (Number java.lang.Number) :nilable/number
-    (int long) :int
-    (Integer java.lang.Integer Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
-    (float double) #{:double
-                     ;; can be auto-cast to
-                     :float
-                     ;; can be auto-cast to
-                     :int}
-    (Float Double java.lang.Float java.lang.Double) #{:double :float :int :nil}
+    (int) :int
+    (Integer java.lang.Integer) :nilable/int
+    (long) :long
+    (Long java.lang.Long) :nilable/long
+    (short) :short
+    (Short java.lang.Short) :nilable/short
+    (double) :double
+    (float) :float
+    (Double java.lang.Double) :nilable/double
+    (Float java.lang.Float) :nilable/float
     (ratio?) :ratio
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
     (String java.lang.String) :nilable/string ;; as this is now way to
@@ -332,7 +350,7 @@
                 {:call (assoc call*
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
-                                         nm))}
+                                                        nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
                   (if (:req t)
@@ -572,5 +590,4 @@
   (match? :seqable :vector)
   (match? :map :associative)
   (match? :map :nilable/associative)
-  (label :nilable/set)
-  )
+  (label :nilable/set))

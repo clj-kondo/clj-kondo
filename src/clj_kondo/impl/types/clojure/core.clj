@@ -26,7 +26,6 @@
 (def ratio->number {:arities {1 {:args [:ratio]
                                  :ret :number}}})
 
-
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
            :fn #(:tag (first %))})
@@ -433,7 +432,7 @@
    ;; 1597
    'namespace {:arities {1 {:ret #{:nil :string}}}}
    ;; 1605
-   'boolean any->boolean
+   'boolean {:arities {1 {:ret :boolean}}}
    ;; 1612
    'ident? any->boolean
    ;; 1617
@@ -680,14 +679,24 @@
    ;; 3460 'class
    ;; 3466 'type
    ;; 3473 'num
-   ;; 3480 'long
-   ;; 3486 'float
-   ;; 3492 'double
-   ;; 3498 'short
-   ;; 3504 'byte
+   ;; 3480
+   'long {:arities {1 {:args [:number]
+                       :ret :long}}}
+   ;; 3486
+   'float {:arities {1 {:args [:number]
+                        :ret :float}}}
+   ;; 3492
+   'double {:arities {1 {:args [:number]
+                         :ret :double}}}
+   ;; 3498
+   'short {:arities {1 {:args [:number]
+                        :ret :short}}}
+   ;; 3504
    'byte {:arities {1 {:args [#{:byte :number :char}]
                        :ret :byte}}}
-   ;; 3510 'char
+   ;; 3510
+   'char {:arities {1 {:args [#{:int :char}]
+                       :ret :char}}}
    ;; 3516 'unchecked-byte
    ;; 3522 'unchecked-short
    ;; 3528 'unchecked-char
@@ -742,7 +751,7 @@
    ;; 3912 
    'aget {:arities {2 {:args [:array :any] :ret :any}
                     3 {:args [:array :any :any] :ret :any}
-                    :varargs {:min-arity 2 
+                    :varargs {:min-arity 2
                               :args [:array :any {:op :rest :spec :any}]
                               :ret :any}}}
    ;; 3923

@@ -197,6 +197,21 @@
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (when-let [expected-type ('{double :double, float :float, long :long, int :int
+                                  short :short, byte :byte, char :char, boolean :boolean}
+                                (:name called-fn))]
+        (when (and
+               (not (identical? :off (-> call :config :linters :redundant-primitive-coercion :level)))
+               (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+               (= 1 (count tags))
+               (identical? expected-type (first tags))
+               (not (:clj-kondo.impl/generated (:expr call))))
+          (findings/reg-finding! ctx
+                                 (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                        :type :redundant-primitive-coercion
+                                        :message (str "Redundant " (:name called-fn)
+                                                      " coercion - expression already has type "
+                                                      (name expected-type))))))
       (when (and
              (= '= (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
