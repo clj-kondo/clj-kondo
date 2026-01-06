@@ -197,4 +197,8 @@ bar)"
         :level :warning
         :message "Unused value: 1"})
      (lint! "(defmulti open-node identity) (defmethod open-node Document [ctx _node] ctx 1 (update ctx :loc identity))"
-            {:linters {:unused-value {:level :warning}}}))))
+            {:linters {:unused-value {:level :warning}}})))
+  (testing "no false positive when defmethod is used for side effects"
+    (is (empty?
+         (lint! "(defmulti foo identity) (defn bar [] (defmethod foo :baz [x] x) nil)"
+                {:linters {:unused-value {:level :warning}}})))))

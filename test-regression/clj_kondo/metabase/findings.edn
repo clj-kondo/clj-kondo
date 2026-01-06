@@ -513,30 +513,6 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
- {:end-row 78,
-  :type :unused-value,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/schema/mbql_clause.cljc",
-  :col 15,
-  :end-col 40,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Unused value: expression/type-of-method",
-  :row 78}
- {:end-row 78,
-  :type :unused-value,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/schema/mbql_clause.cljc",
-  :col 41,
-  :end-col 44,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Unused value: tag",
-  :row 78}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -812,26 +788,6 @@
   :langs (),
   :message "Redundant let binding: include_deactivated",
   :row 244}
- {:end-row 570,
-  :type :unused-value,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/util/date_2.clj",
-  :col 14,
-  :end-col 26,
-  :langs (),
-  :message "Unused value: print-method",
-  :row 570}
- {:end-row 570,
-  :type :unused-value,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/util/date_2.clj",
-  :col 27,
-  :end-col 32,
-  :langs (),
-  :message "Unused value: klass",
-  :row 570}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -1639,18 +1595,6 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
- {:end-row 27,
-  :type :unused-value,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/test_runner/assert_exprs/malli_equals.cljc",
-  :col 17,
-  :end-col 30,
-  :cljc true,
-  :langs (:clj),
-  :message "Unused value: t/assert-expr",
-  :row 27}
  {:end-row 1018,
   :type :unresolved-symbol,
   :level :error,
