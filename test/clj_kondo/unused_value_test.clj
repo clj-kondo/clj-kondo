@@ -182,3 +182,23 @@ bar)"
   (is (empty?
        (lint! "(fn [] '({:a 1} {:b 2} {:c 3}))"
               {:linters {:unused-value {:level :warning}}}))))
+
+(deftest defmethod-unused-value-test
+  (testing "issue #2711 - unused value should be detected in defmethod"
+    (assert-submaps
+     '({:file "<stdin>"
+        :row 1
+        :col 73
+        :level :warning
+        :message "Unused value: ctx"}
+       {:file "<stdin>"
+        :row 1
+        :col 77
+        :level :warning
+        :message "Unused value: 1"})
+     (lint! "(defmulti open-node identity) (defmethod open-node Document [ctx _node] ctx 1 (update ctx :loc identity))"
+            {:linters {:unused-value {:level :warning}}})))
+  (testing "no false positive when defmethod is used for side effects"
+    (is (empty?
+         (lint! "(defmulti foo identity) (defn bar [] (defmethod foo :baz [x] x) nil)"
+                {:linters {:unused-value {:level :warning}}})))))

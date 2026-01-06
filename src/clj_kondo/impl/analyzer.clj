@@ -1806,12 +1806,13 @@
 (defn analyze-defmethod [ctx expr]
   (when-let [children (next (:children expr))]
     (let [[method-name-node dispatch-val-node & fn-tail] children
-          _ (analyze-usages2 (assoc ctx
+          ctx-without-idx (dissoc ctx :idx :len)
+          _ (analyze-usages2 (assoc ctx-without-idx
                                     :defmethod true,
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
-          _ (analyze-expression** ctx dispatch-val-node)]
-      (analyze-fn ctx {:children (cons nil fn-tail)}))))
+          _ (analyze-expression** ctx-without-idx dispatch-val-node)]
+      (analyze-fn ctx-without-idx {:children (cons nil fn-tail)}))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))

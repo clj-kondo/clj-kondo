@@ -288,7 +288,7 @@
                                   (one-of core-sym [do fn fn* defn defn-
                                                     let when-let loop binding with-open
                                                     doseq try when when-not when-first
-                                                    when-some future]))]
+                                                    when-some future defmethod]))]
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :unused-value
@@ -314,7 +314,7 @@
                                     (one-of core-sym [do fn fn* defn defn-
                                                       let when-let loop binding with-open
                                                       doseq try when when-not when-first
-                                                      when-some future])
+                                                      when-some future defmethod])
                                     (when test?
                                       (one-of core-sym [deftest]))))]
                          (when redundant?
