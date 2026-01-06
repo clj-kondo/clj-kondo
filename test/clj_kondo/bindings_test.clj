@@ -278,16 +278,16 @@
                  "(let [{:or {i 2} :keys [:i]} {}])"
                  "(let [{:keys [:i :j] :or {i 2 j 3}} {}] j)"]]
     (assert-submaps2 '({:file "<stdin>"
-                       :row 1
-                       :level :warning
-                       :message "unused binding i"}
-                      {:file "<stdin>"
-                       :row 1
-                       :level :warning
-                       :message "unused default for binding i"})
-                    (lint! input
-                           '{:linters
-                             {:unused-binding {:level :warning}}})))
+                        :row 1
+                        :level :warning
+                        :message "unused default for binding i"}
+                       {:file "<stdin>"
+                        :row 1
+                        :level :warning
+                        :message "unused binding i"})
+                     (lint! input
+                            '{:linters
+                              {:unused-binding {:level :warning}}})))
   (testing "finding points at the symbol of the default"
     (assert-submaps2 '({:file "<stdin>"
                        :row 1
