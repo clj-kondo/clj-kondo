@@ -2026,7 +2026,13 @@
       (findings/reg-finding! ctx
                              (node->line (:filename ctx) format-str-node :format
                                          (format "Format string expects %s arguments instead of %s."
-                                                 percent-count arg-count))))))
+                                                 percent-count arg-count))))
+    (when (and (zero? percent-count)
+               (not (linter-disabled? ctx :redundant-format)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) format-str-node :redundant-format
+                   "Format string contains no format specifiers")))))
 
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
@@ -2045,6 +2051,19 @@
           (analyze-format-string ctx a format-str (rest args))
           (when (zero? attempt)
             ;; format string can be either the first or second argument
+            (recur (inc attempt) (rest args))))))
+    (analyze-children ctx children false)))
+
+(defn analyze-logf [ctx expr]
+  (let [children (next (:children expr))]
+    ;; logf takes a level argument first, so format string is at position 1 or 2
+    (loop [attempt 0
+           args (seq (rest children))]
+      (when-first [a args]
+        (if-let [format-str (utils/string-from-token a)]
+          (analyze-format-string ctx a format-str (rest args))
+          (when (zero? attempt)
+            ;; format string can be either the second or third argument (after level)
             (recur (inc attempt) (rest args))))))
     (analyze-children ctx children false)))
 
@@ -2825,11 +2844,12 @@
                             ([clojure.tools.logging debugf]
                              [clojure.tools.logging infof]
                              [clojure.tools.logging errorf]
-                             [clojure.tools.logging logf]
                              [clojure.tools.logging spyf]
                              [clojure.tools.logging tracef]
                              [clojure.tools.logging warnf])
                             (analyze-formatted-logging ctx expr)
+                            [clojure.tools.logging logf]
+                            (analyze-logf ctx expr)
                             [clojure.data.xml alias-uri]
                             (xml/analyze-alias-uri ctx expr)
                             [clojure.data.xml.impl export-api]

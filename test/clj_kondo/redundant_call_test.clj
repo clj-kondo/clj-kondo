@@ -60,8 +60,8 @@
     (assert-submaps2
      '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single argument to str already is a string"})
      (lint! "
-(str (format \"dude\"))
-#_:clj-kondo/ignore (str (format \"dude\"))
+(str (format \"dude %s\" 1))
+#_:clj-kondo/ignore (str (format \"dude %s\" 1))
 (str 1)
 (str \"foo\" \"bar\")
 (require '[clojure.test :refer [are]])

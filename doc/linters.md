@@ -1530,6 +1530,25 @@ warn on additional vars.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
 
+### Redundant format
+
+*Keyword*: `:redundant-format`
+
+*Description:* warn when format strings contain no format specifiers.
+
+*Default level:* `:info`.
+
+This linter detects calls to `format`, `printf`, and logging functions (`errorf`, `infof`, `logf`, etc.) where the format string contains no placeholders (like `%s`, `%d`, etc.). Such calls are redundant since the format string will be returned as-is without any formatting.
+
+*Example triggers:*
+* `(format "hello")`
+* `(log/errorf "error message")`
+* `(log/logf :info "log message")`
+
+Note: Format strings containing only `%%` (escaped percent) or `%n` (newline) are also considered to have no format specifiers.
+
+*Example message:* `Format string contains no format specifiers`.
+
 ### Redundant fn wrapper
 
 *Keyword*: `:redundant-fn-wrapper`

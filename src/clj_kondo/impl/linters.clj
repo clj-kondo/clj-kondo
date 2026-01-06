@@ -69,7 +69,7 @@
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :syntax
-                 (format "cond requires even number of forms")))
+                 "cond requires even number of forms"))
     true))
 
 (defn lint-cond [ctx expr]
@@ -112,7 +112,7 @@
         (when (= 2 (count args))
           (findings/reg-finding! ctx
                                  (node->line (:filename ctx) expr :missing-else-branch
-                                             (format "Missing else branch."))))))))
+                                             "Missing else branch.")))))))
 
 (defn lint-if-nil-return
   "Lint returning nil from if-like expressions. When-like expressions are
