@@ -3136,7 +3136,6 @@
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
-  ;; (prn :expr expr)
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
@@ -3185,7 +3184,8 @@
                              "Unquote (~) not syntax-quoted"
                              "Unquote-splicing (~@) not syntax-quoted")))))
           (let [new-level (if level (dec level) -1)
-                ctx (assoc ctx :syntax-quote-level new-level)]
+                quoted? (not (pos? level))
+                ctx (assoc ctx :syntax-quote-level new-level :quoted quoted?)]
             (analyze-children ctx children)))
         :namespaced-map (do
                           (lint-unused-value ctx expr)
@@ -3245,26 +3245,27 @@
         (let [edn? (= :edn lang)]
           (if (or edn?
                   (:quoted ctx))
-            (do (types/add-arg-type-from-expr ctx expr)
-                (if (:k expr)
-                  (do (usages/analyze-keyword ctx expr)
-                      (types/add-arg-type-from-expr ctx expr))
-                  (when-let [sym (utils/symbol-from-token expr)]
-                    (when (and (:analyze-symbols? ctx)
-                               (qualified-symbol? sym))
-                      (let [resolved-extra (or (when-not edn?
-                                                 (let [the-ns-name (-> ctx :ns :name)
-                                                       resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
-                                                   (when-not (or (:unresolved? resolved)
-                                                                 (:interop? resolved))
-                                                     {:to (:ns resolved)
-                                                      :name (:name resolved)})))
-                                               {:name (symbol (name sym))})]
-                        (analysis/reg-symbol!
-                         ctx
-                         (:filename ctx) (-> ctx :ns :name)
-                         sym
-                         lang (merge (meta expr) resolved-extra)))))))
+            (do
+              (types/add-arg-type-from-expr ctx expr)
+              (if (:k expr)
+                (do (usages/analyze-keyword ctx expr)
+                    (types/add-arg-type-from-expr ctx expr))
+                (when-let [sym (utils/symbol-from-token expr)]
+                  (when (and (:analyze-symbols? ctx)
+                             (qualified-symbol? sym))
+                    (let [resolved-extra (or (when-not edn?
+                                               (let [the-ns-name (-> ctx :ns :name)
+                                                     resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
+                                                 (when-not (or (:unresolved? resolved)
+                                                               (:interop? resolved))
+                                                   {:to (:ns resolved)
+                                                    :name (:name resolved)})))
+                                             {:name (symbol (name sym))})]
+                      (analysis/reg-symbol!
+                       ctx
+                       (:filename ctx) (-> ctx :ns :name)
+                       sym
+                       lang (merge (meta expr) resolved-extra)))))))
             (let [id (gensym)
                   expr (assoc expr :id id)
                   _ (analyze-usages2 ctx expr)

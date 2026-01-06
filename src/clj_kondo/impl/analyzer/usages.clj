@@ -139,12 +139,12 @@
          unquote-tag? (one-of t [:unquote :unquote-splicing])
          new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
                                       :else syntax-quote-level)
-         syntax-quote? (or syntax-quote? syntax-quote-tag?)
+         syntax-quote? (and (not unquote-tag?) (or syntax-quote? syntax-quote-tag?))
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
                ctx)]
-     (if (and (= 1 syntax-quote-level) unquote-tag?)
+     (if (and (pos? syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
