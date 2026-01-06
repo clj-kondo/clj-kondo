@@ -2042,10 +2042,11 @@
       (analyze-format-string ctx format-str-node format-str (rest children)))
     (analyze-children ctx children false)))
 
-(defn analyze-formatted-logging [ctx expr]
+(defn analyze-formatted-logging [ctx expr resolved-as-name]
   (let [children (next (:children expr))]
     (loop [attempt 0
-           args (seq children)]
+           args (cond-> (seq children)
+                  (= 'logf resolved-as-name) rest)]
       (when-first [a args]
         (if-let [format-str (utils/string-from-token a)]
           (analyze-format-string ctx a format-str (rest args))
@@ -2835,7 +2836,7 @@
                              [clojure.tools.logging spyf]
                              [clojure.tools.logging tracef]
                              [clojure.tools.logging warnf])
-                            (analyze-formatted-logging ctx expr)
+                            (analyze-formatted-logging ctx expr resolved-as-name)
                             [clojure.data.xml alias-uri]
                             (xml/analyze-alias-uri ctx expr)
                             [clojure.data.xml.impl export-api]
