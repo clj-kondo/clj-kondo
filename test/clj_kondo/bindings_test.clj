@@ -1,15 +1,14 @@
 (ns clj-kondo.bindings-test
-  (:require [clj-kondo.test-utils :refer [assert-submaps
-                                          assert-submaps2
+  (:require [clj-kondo.test-utils :refer [assert-submaps2
                                           lint!]]
             [clojure.test :refer [deftest is testing]]
             [missing.test.assertions]))
 
 (deftest unused-binding-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 7, :level :warning, :message "unused binding x"})
    (lint! "(let [x 1])" '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 12,
@@ -17,7 +16,7 @@
       :message "unused binding x"})
    (lint! "(defn foo [x])"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 15,
@@ -25,7 +24,7 @@
       :message "unused binding id"})
    (lint! "(let [{:keys [patient/id order/id]} {}] id)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 14,
@@ -38,7 +37,7 @@
       :message "unused default for binding a"})
    (lint! "(fn [{:keys [:a] :or {a 1}}])"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 8,
@@ -51,7 +50,7 @@
       :message "unused binding y"})
    (lint! "(loop [x 1 y 2])"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 10,
@@ -59,7 +58,7 @@
       :message "unused binding x"})
    (lint! "(if-let [x 1] 1 2)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 11,
@@ -67,7 +66,7 @@
       :message "unused binding x"})
    (lint! "(if-some [x 1] 1 2)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 12,
@@ -75,7 +74,7 @@
       :message "unused binding x"})
    (lint! "(when-let [x 1] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 13,
@@ -83,31 +82,31 @@
       :message "unused binding x"})
    (lint! "(when-some [x 1] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :level :warning,
       :message "unused binding x"})
    (lint! "(for [x []] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :level :warning,
       :message "unused binding x"})
    (lint! "(doseq [x []] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:level :warning,
       :message "unused binding x"}
      {:level :warning,
       :message "unused binding y"})
    (lint! "(with-open [x ? y ?] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:level :warning,
       :message "unused binding x"})
    (lint! "(with-local-vars [x 1] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,
@@ -130,7 +129,7 @@
       :message "clojure.core/pos? is called with 0 args but expects 1"})
    (lint! "(for [x [] :let [x 1 y x] :when (inc) :while (pos?)] 1)"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 48,
@@ -144,7 +143,7 @@
    (lint! "(ns foo (:require [cats.core :as c])) (c/mlet [a 1 b 2])"
           '{:linters {:unused-binding {:level :warning}}
             :lint-as {cats.core/mlet clojure.core/let}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 24,
@@ -152,7 +151,7 @@
       :message "unused binding x"})
    (lint! "(defmacro foo [] (let [x 1] `(inc x)))"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 12,
@@ -160,7 +159,7 @@
       :message "unused binding x"})
    (lint! "(defn foo [x] (quote x))"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 17,
@@ -168,7 +167,7 @@
       :message "unused binding variadic"})
    (lint! "(let [{^boolean variadic :variadic?} {}] [])"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 8,
@@ -176,7 +175,7 @@
       :message "unused binding a"})
    (lint! "#(let [a %])"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,
@@ -184,7 +183,7 @@
       :message "unused binding a"})
    (lint! "(let [a 1] `{:a 'a})"
           '{:linters {:unused-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,:col 36,
       :level :warning,
@@ -245,7 +244,32 @@
   (is (empty? (lint! "(doto (Object.) (.method))"
                      '{:linters {:used-underscored-binding {:level :warning}}})))
   (is (empty? (lint! "(defmulti foo (fn [this x] x))"
-                     '{:linters {:unused-binding {:level :warning :exclude-patterns ["this"]}}}))))
+                     '{:linters {:unused-binding {:level :warning :exclude-patterns ["this"]}}})))
+  (testing "issue 2713: quote-unquote should register binding usage"
+    (is (empty? (lint! "(defmacro evaluator [expr]
+                          `(fn [& args#]
+                             (eval ('~expr @args#))))"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(defmacro another-example [x]
+                          `(let [y# ('~x)]
+                             y#))"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(defmacro multiple-params [a b]
+                          `(list ('~a) ('~b)))"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(defmacro with-unquote-splicing [items]
+                          `(list ('~@items)))"
+                       '{:linters {:unused-binding {:level :warning}}})))
+   
+    (testing "Should still warn for truly unused bindings"
+      (assert-submaps2
+       '({:file "<stdin>"
+          :row 1
+          :col 27
+          :level :warning
+          :message "unused binding unused"})
+       (lint! "(defmacro partially-used [unused used] `(println ('~used)))"
+              '{:linters {:unused-binding {:level :warning}}})))))
 
 
 
@@ -253,7 +277,7 @@
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
                  "(let [{:or {i 2} :keys [:i]} {}])"
                  "(let [{:keys [:i :j] :or {i 2 j 3}} {}] j)"]]
-    (assert-submaps '({:file "<stdin>"
+    (assert-submaps2 '({:file "<stdin>"
                        :row 1
                        :level :warning
                        :message "unused binding i"}
@@ -265,7 +289,7 @@
                            '{:linters
                              {:unused-binding {:level :warning}}})))
   (testing "finding points at the symbol of the default"
-    (assert-submaps '({:file "<stdin>"
+    (assert-submaps2 '({:file "<stdin>"
                        :row 1
                        :col 15
                        :level :warning
@@ -293,7 +317,7 @@
                                    {:level :warning
                                     :exclude-destructured-as true}}})))
     (testing "still shows unused bindings not in as "
-      (assert-submaps '({:file "<stdin>"
+      (assert-submaps2 '({:file "<stdin>"
                          :row 1
                          :col 18
                          :level :warning
@@ -302,7 +326,7 @@
                              '{:linters {:unused-binding
                                          {:level :warning
                                           :exclude-destructured-as true}}}))
-      (assert-submaps '({:file "<stdin>"
+      (assert-submaps2 '({:file "<stdin>"
                          :row 1
                          :col 18
                          :level :warning
@@ -311,7 +335,7 @@
                              '{:linters {:unused-binding
                                          {:level :warning
                                           :exclude-destructured-as true}}}))
-      (assert-submaps '({:file "<stdin>"
+      (assert-submaps2 '({:file "<stdin>"
                          :row 1
                          :col 10
                          :level :warning
@@ -338,7 +362,7 @@
 
 
 (deftest used-underscored-binding-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,
@@ -351,7 +375,7 @@
       :message "Used binding is marked as unused: _c"})
    (lint! "(let [_x 0 {:keys [a b] :as _c} v]  [a b _x _c])"
           '{:linters {:used-underscored-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,
@@ -359,7 +383,7 @@
       :message "Used binding is marked as unused: _"})
    (lint! "(let [_ 1] _)"
           '{:linters {:used-underscored-binding {:level :warning}}}))
-  (assert-submaps
+  (assert-submaps2
    '({:file "<stdin>",
       :row 1,
       :col 7,

@@ -143,7 +143,8 @@
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
-               ctx)]
+               ctx)
+         unquote-tags #{:unquote :unquote-splicing}]
      (if (and (= 1 syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
@@ -152,7 +153,11 @@
              (analyze-keyword ctx expr opts))
            (doall (mapcat
                    #(analyze-usages2 ctx %
-                                     (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                                     (if (unquote-tags (tag %))
+                                       (dissoc opts :quote?)
+                                       (assoc opts
+                                              :quote? quote?
+                                              :syntax-quote? syntax-quote?)))
                    (:children expr))))
          (let [syntax-quote?
                (or syntax-quote?
