@@ -143,9 +143,8 @@
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
-               ctx)
-         unquote-tags #{:unquote :unquote-splicing}]
-     (if (and (= 1 syntax-quote-level) unquote-tag?)
+               ctx)]
+     (if (and (>= syntax-quote-level 1) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
@@ -153,11 +152,9 @@
              (analyze-keyword ctx expr opts))
            (doall (mapcat
                    #(analyze-usages2 ctx %
-                                     (if (unquote-tags (tag %))
-                                       (dissoc opts :quote?)
-                                       (assoc opts
-                                              :quote? quote?
-                                              :syntax-quote? syntax-quote?)))
+                                     (assoc opts
+                                            :quote? quote?
+                                            :syntax-quote? syntax-quote?))
                    (:children expr))))
          (let [syntax-quote?
                (or syntax-quote?
@@ -184,17 +181,17 @@
                                                                       (str "Destructured :or refers to binding of same map: "
                                                                            symbol-val)))))
                      (namespace/reg-used-binding! ctx
-                                                    (-> ns :name)
-                                                    b
-                                                    (when (:analyze-locals? ctx)
-                                                      (assoc-some expr-meta
-                                                                  :name-row (:row expr-meta)
-                                                                  :name-col (:col expr-meta)
-                                                                  :name-end-row (:end-row expr-meta)
-                                                                  :name-end-col (:end-col expr-meta)
-                                                                  :name symbol-val
-                                                                  :filename (:filename ctx)
-                                                                  :str (:string-value expr)))))
+                                                  (-> ns :name)
+                                                  b
+                                                  (when (:analyze-locals? ctx)
+                                                    (assoc-some expr-meta
+                                                                :name-row (:row expr-meta)
+                                                                :name-col (:col expr-meta)
+                                                                :name-end-row (:end-row expr-meta)
+                                                                :name-end-col (:end-col expr-meta)
+                                                                :name symbol-val
+                                                                :filename (:filename ctx)
+                                                                :str (:string-value expr)))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           resolved-alias :alias

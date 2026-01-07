@@ -248,29 +248,25 @@
                      '{:linters {:unused-binding {:level :warning :exclude-patterns ["this"]}}})))
   (testing "issue 2713: quote-unquote should register binding usage"
     (is (empty? (lint! "(defmacro evaluator [expr]
-                          `(fn [& args#]
-                             (eval ('~expr @args#))))"
+                         `(fn [& args#]
+                            (eval `(~'~expr ~@args#))))"
+
                        '{:linters {:unused-binding {:level :warning}}})))
-    (is (empty? (lint! "(defmacro another-example [x]
-                          `(let [y# ('~x)]
-                             y#))"
-                       '{:linters {:unused-binding {:level :warning}}})))
-    (is (empty? (lint! "(defmacro multiple-params [a b]
-                          `(list ('~a) ('~b)))"
-                       '{:linters {:unused-binding {:level :warning}}})))
-    (is (empty? (lint! "(defmacro with-unquote-splicing [items]
-                          `(list ('~@items)))"
-                       '{:linters {:unused-binding {:level :warning}}})))
-   
-    (testing "Should still warn for truly unused bindings"
-      (assert-submaps2
-       '({:file "<stdin>"
-          :row 1
-          :col 27
-          :level :warning
-          :message "unused binding unused"})
-       (lint! "(defmacro partially-used [unused used] `(println ('~used)))"
-              '{:linters {:unused-binding {:level :warning}}})))))
+    (is (empty? (lint! "(defn foo [location opts]
+                         (let [opts' opts]
+                           `(load-string* ~location '[clojure.data.json]
+                                          `(fn [~'~'s] (clojure.data.json/read-str ~'~'s ~@~@opts')))))"
+                       {:linters {:unused-binding {:level :warning}}}))))
+
+  (testing "Should still warn for truly unused bindings"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 27
+        :level :warning
+        :message "unused binding unused"})
+     (lint! "(defmacro partially-used [unused used] `(println ('~used)))"
+            '{:linters {:unused-binding {:level :warning}}}))))
 
 
 
@@ -291,18 +287,18 @@
                              {:unused-binding {:level :warning}}})))
   (testing "finding points at the symbol of the default"
     (assert-submaps2 '({:file "<stdin>"
-                       :row 1
-                       :col 15
-                       :level :warning
-                       :message "unused binding i"}
-                      {:file "<stdin>"
-                       :row 1
-                       :col 24
-                       :level :warning
-                       :message "unused default for binding i"})
-                    (lint! "(let [{:keys [:i] :or {i 2}} {}] nil)"
-                           '{:linters
-                             {:unused-binding {:level :warning}}})))
+                        :row 1
+                        :col 15
+                        :level :warning
+                        :message "unused binding i"}
+                       {:file "<stdin>"
+                        :row 1
+                        :col 24
+                        :level :warning
+                        :message "unused default for binding i"})
+                     (lint! "(let [{:keys [:i] :or {i 2}} {}] nil)"
+                            '{:linters
+                              {:unused-binding {:level :warning}}})))
   (testing "respects :exclude-destructured-keys-in-fn-args setting "
     (is (empty? (lint! "(defn f [{:keys [:a] :or {a 1}}] nil)"
                        '{:linters {:unused-binding
@@ -319,47 +315,47 @@
                                     :exclude-destructured-as true}}})))
     (testing "still shows unused bindings not in as "
       (assert-submaps2 '({:file "<stdin>"
-                         :row 1
-                         :col 18
-                         :level :warning
-                         :message "unused binding a"})
-                      (lint! "(defn f [{:keys [:a] :as config}] nil)"
-                             '{:linters {:unused-binding
-                                         {:level :warning
-                                          :exclude-destructured-as true}}}))
+                          :row 1
+                          :col 18
+                          :level :warning
+                          :message "unused binding a"})
+                       (lint! "(defn f [{:keys [:a] :as config}] nil)"
+                              '{:linters {:unused-binding
+                                          {:level :warning
+                                           :exclude-destructured-as true}}}))
       (assert-submaps2 '({:file "<stdin>"
-                         :row 1
-                         :col 18
-                         :level :warning
-                         :message "unused binding a"})
-                      (lint! "(defn f [{:keys [:a] :as config}] config)"
-                             '{:linters {:unused-binding
-                                         {:level :warning
-                                          :exclude-destructured-as true}}}))
+                          :row 1
+                          :col 18
+                          :level :warning
+                          :message "unused binding a"})
+                       (lint! "(defn f [{:keys [:a] :as config}] config)"
+                              '{:linters {:unused-binding
+                                          {:level :warning
+                                           :exclude-destructured-as true}}}))
       (assert-submaps2 '({:file "<stdin>"
-                         :row 1
-                         :col 10
-                         :level :warning
-                         :message "unused binding x"}
-                        {:file "<stdin>"
-                         :row 1
-                         :col 12
-                         :level :warning
-                         :message "unused binding y"}
-                        {:file "<stdin>"
-                         :row 1
-                         :col 14
-                         :level :warning
-                         :message "unused binding z"}
-                        {:file "<stdin>"
-                         :row 1
-                         :col 24
-                         :level :warning
-                         :message "unused binding a"})
-                      (lint! "(defn f [x y z {:keys [:a] :as g}] g)"
-                             '{:linters {:unused-binding
-                                         {:level :warning
-                                          :exclude-destructured-as true}}})))))
+                          :row 1
+                          :col 10
+                          :level :warning
+                          :message "unused binding x"}
+                         {:file "<stdin>"
+                          :row 1
+                          :col 12
+                          :level :warning
+                          :message "unused binding y"}
+                         {:file "<stdin>"
+                          :row 1
+                          :col 14
+                          :level :warning
+                          :message "unused binding z"}
+                         {:file "<stdin>"
+                          :row 1
+                          :col 24
+                          :level :warning
+                          :message "unused binding a"})
+                       (lint! "(defn f [x y z {:keys [:a] :as g}] g)"
+                              '{:linters {:unused-binding
+                                          {:level :warning
+                                           :exclude-destructured-as true}}})))))
 
 
 (deftest used-underscored-binding-test
