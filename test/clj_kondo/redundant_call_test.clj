@@ -163,5 +163,5 @@
             should not.")
   (assert-submaps2
    [{:level :error
-     :message "Format string expects 0 arguments instead of 1"}]
+     :message "Format string expects 0 arguments instead of 1."}]
    (lint! "(format \"foo\" 42)")))
