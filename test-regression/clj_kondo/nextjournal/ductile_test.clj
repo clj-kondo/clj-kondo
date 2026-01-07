@@ -4,6 +4,8 @@
    [babashka.process :as p]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [assert-submaps2]]
+   [clojure.edn :as edn]
+   [clojure.pprint :as pp]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]))
 
@@ -37,29 +39,9 @@
             lint-result (clj-kondo/run! {:config-dir config-dir
                                          :lint paths
                                          :repro true})
-            findings (:findings lint-result)]
-        (assert-submaps2
-         [{:end-row 5,
-           :type :deprecated-namespace,
-           :level :warning,
-           :filename
-           "test-regression/checkouts/ductile/dev/ductile/insights/utils.clj",
-           :col 14,
-           :end-col 30,
-           :langs (),
-           :message
-           "Namespace io.pedestal.test is deprecated since 0.8.0.",
-           :row 5}
-          {:end-row 17,
-           :type :deprecated-var,
-           :level :warning,
-           :filename
-           "test-regression/checkouts/ductile/dev/ductile/insights/utils.clj",
-           :col 5,
-           :end-col 35,
-           :langs (),
-           :message
-           "#'io.pedestal.test/response-for is deprecated since 0.8.0",
-           :row 12}]
-         findings)))
+            findings (:findings lint-result)
+            _ (when (System/getenv "CLJ_KONDO_REGRESSION_UPDATE")
+                (spit "test-regression/clj_kondo/nextjournal/ductile-findings.edn" (with-out-str (clojure.pprint/pprint findings))))
+            expected (edn/read-string (slurp "test-regression/clj_kondo/nextjournal/ductile-findings.edn"))]
+        (assert-submaps2 expected findings)))
     (println "GITHUB_DUCTILE_PAT not set, skipping ductile test")))
