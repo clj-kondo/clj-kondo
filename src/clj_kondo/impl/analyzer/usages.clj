@@ -144,7 +144,7 @@
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
                ctx)]
-     (if (and (>= syntax-quote-level 1) unquote-tag?)
+     (if (and (pos? syntax-quote-level) unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
