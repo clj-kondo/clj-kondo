@@ -2020,14 +2020,15 @@
                     [indexed (cond-> unindexed (not= (.charAt ^String percent 1) \<) inc)]))
                 [0 0] percents)
         percent-count (max indexed unindexed)
-        arg-count (count args)]
-    (when-not (= percent-count
-                 arg-count)
+        arg-count (count args)
+        counts-match? (= percent-count arg-count)]
+    (when-not counts-match?
       (findings/reg-finding! ctx
                              (node->line (:filename ctx) format-str-node :format
                                          (format "Format string expects %s arguments instead of %s."
                                                  percent-count arg-count))))
     (when (and (zero? percent-count)
+               counts-match?
                (not (linter-disabled? ctx :redundant-format)))
       (findings/reg-finding!
        ctx
