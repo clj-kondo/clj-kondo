@@ -621,15 +621,7 @@
                      [k v] (partition 2 (rest ?refer-clojure))
                      :let [r (case k
                                :exclude
-                               (let [processed (loop [acc [] items v]
-                                                 (if (seq items)
-                                                   (let [x (first items)]
-                                                     (if (= :clj-kondo/ignore x)
-                                                       (let [next (second items)]
-                                                         (recur (conj acc (with-meta next {:clj-kondo/ignore true})) (drop 2 items)))
-                                                       (recur (conj acc x) (rest items))))
-                                                   acc))]
-                                 {:excluded (set processed)})
+                               {:excluded (set v)}
                                :rename
                                {:renamed v
                                 :excluded (set (keys v))}
