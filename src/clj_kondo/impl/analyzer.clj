@@ -3192,7 +3192,9 @@
                              "Unquote (~) not syntax-quoted"
                              "Unquote-splicing (~@) not syntax-quoted")))))
           (let [new-level (if level (dec level) -1)
-                ctx (assoc ctx :syntax-quote-level new-level)]
+                ctx (-> ctx
+                        (assoc :syntax-quote-level new-level)
+                        (dissoc :quoted))]
             (analyze-children ctx children)))
         :namespaced-map (do
                           (lint-unused-value ctx expr)
