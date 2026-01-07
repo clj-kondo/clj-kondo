@@ -3293,12 +3293,13 @@
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (types/add-arg-type-from-expr ctx expr)
-                  (if (utils/symbol-token? quoted-child)
-                    (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children (update ctx :callstack conj [nil t])
-                                          children))
-                    (analyze-children (update ctx :callstack conj [nil t])
-                                      children)))
+                  (cond (utils/symbol-token? quoted-child)
+                        (lint-symbol-call! ctx quoted-child arg-count expr)
+
+                        (identical? :list (:tag quoted-child))
+                        (reg-not-a-function! ctx quoted-child "list"))
+                  (analyze-children (update ctx :callstack conj [nil t])
+                                    children))
                 (:vector :set)
                 (do (lint-vector-or-set-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)

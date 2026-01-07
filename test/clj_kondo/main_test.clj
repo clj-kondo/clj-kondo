@@ -1821,6 +1821,12 @@ foo/foo ;; this does use the private var
                      :level :error,
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 3,
+                     :level :error,
+                     :message "a list is not a function"})
+                  (lint! "('(foo) 1)"))
   (assert-submaps
    [{:file "<stdin>", :row 1, :col 21, :level :error
      :message "Can't call a string as a function"}]
