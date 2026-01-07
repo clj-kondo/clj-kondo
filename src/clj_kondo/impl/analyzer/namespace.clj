@@ -464,13 +464,14 @@
    :col col})
 
 (defn- lint-refer-clojure-vars [{:keys [filename lang] :as ctx} excluded-vars]
-  (letfn [(exists-in-core?  [excluded-var lang]
+  (letfn [(exists-in-core? [excluded-var lang]
             (if (= :cljc (:base-lang ctx))
               (some #(core-sym? % excluded-var) [:clj :cljs])
               (core-sym? lang excluded-var)))]
     (when-not (linter-disabled? ctx :unresolved-excluded-var)
       (doseq [excluded-var excluded-vars
-              :when (not (exists-in-core? excluded-var lang))]
+              :when (not (or (exists-in-core? excluded-var lang)
+                             (:clj-kondo/ignore (meta excluded-var))))]
         (findings/reg-finding!
          ctx
          (node->line filename excluded-var
