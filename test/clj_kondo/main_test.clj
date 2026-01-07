@@ -1805,19 +1805,19 @@ foo/foo ;; this does use the private var
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a boolean is not a function"})
                   (lint! "(true 1)"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a string is not a function"})
                   (lint! "(\"foo\" 1)"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
@@ -1827,6 +1827,12 @@ foo/foo ;; this does use the private var
                      :level :error,
                      :message "a list is not a function"})
                   (lint! "('(foo) 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 3,
+                     :level :error,
+                     :message "a number is not a function"})
+                  (lint! "('1 1)"))
   (assert-submaps
    [{:file "<stdin>", :row 1, :col 21, :level :error
      :message "Can't call a string as a function"}]
@@ -1837,6 +1843,8 @@ foo/foo ;; this does use the private var
                      "{:linters {:not-a-function {:skip-args [user/foo]}
                                  :unresolved-symbol {:level :off}}}")))
   (is (empty? (lint! "(defrecord Foo [field]) #user.Foo{:field (\"asd\")}"
+                     {:linters {:not-a-function {:level :error}}})))
+  (is (empty? (lint! "('{:a 1} :a)"
                      {:linters {:not-a-function {:level :error}}}))))
 
 (deftest cljs-self-require-test
