@@ -60,8 +60,8 @@
     (assert-submaps2
      '({:file "<stdin>", :row 2, :col 1, :level :warning, :message "Single argument to str already is a string"})
      (lint! "
-(str (format \"dude\"))
-#_:clj-kondo/ignore (str (format \"dude\"))
+(str (format \"dude %s\" 1))
+#_:clj-kondo/ignore (str (format \"dude %s\" 1))
 (str 1)
 (str \"foo\" \"bar\")
 (require '[clojure.test :refer [are]])
@@ -154,4 +154,14 @@
         (is (empty? (lint! "(double (double 1))"
                            (assoc-in cfg [:linters :redundant-primitive-coercion :level] :off)))))
       (testing "respects clj-kondo/ignore"
+        
         (is (empty? (lint! "#_:clj-kondo/ignore (double (double 1))" cfg)))))))
+
+(deftest redundant-format-test
+  (testing "Arguments provided to a format string with no placeholders:
+            :format linter should warn, but :redundant-format linter 
+            should not.")
+  (assert-submaps2
+   [{:level :error
+     :message "Format string expects 0 arguments instead of 1."}]
+   (lint! "(format \"foo\" 42)")))

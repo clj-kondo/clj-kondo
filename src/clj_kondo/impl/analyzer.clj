@@ -2020,13 +2020,20 @@
                     [indexed (cond-> unindexed (not= (.charAt ^String percent 1) \<) inc)]))
                 [0 0] percents)
         percent-count (max indexed unindexed)
-        arg-count (count args)]
-    (when-not (= percent-count
-                 arg-count)
+        arg-count (count args)
+        counts-match? (= percent-count arg-count)]
+    (when-not counts-match?
       (findings/reg-finding! ctx
                              (node->line (:filename ctx) format-str-node :format
                                          (format "Format string expects %s arguments instead of %s."
-                                                 percent-count arg-count))))))
+                                                 percent-count arg-count))))
+    (when (and (zero? percent-count)
+               counts-match?
+               (not (linter-disabled? ctx :redundant-format)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) format-str-node :redundant-format
+                   "Format string contains no format specifiers")))))
 
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
@@ -2036,10 +2043,11 @@
       (analyze-format-string ctx format-str-node format-str (rest children)))
     (analyze-children ctx children false)))
 
-(defn analyze-formatted-logging [ctx expr]
+(defn analyze-formatted-logging [ctx expr resolved-as-name]
   (let [children (next (:children expr))]
     (loop [attempt 0
-           args (seq children)]
+           args (cond-> (seq children)
+                  (= 'logf resolved-as-name) rest)]
       (when-first [a args]
         (if-let [format-str (utils/string-from-token a)]
           (analyze-format-string ctx a format-str (rest args))
@@ -2829,7 +2837,7 @@
                              [clojure.tools.logging spyf]
                              [clojure.tools.logging tracef]
                              [clojure.tools.logging warnf])
-                            (analyze-formatted-logging ctx expr)
+                            (analyze-formatted-logging ctx expr resolved-as-name)
                             [clojure.data.xml alias-uri]
                             (xml/analyze-alias-uri ctx expr)
                             [clojure.data.xml.impl export-api]
