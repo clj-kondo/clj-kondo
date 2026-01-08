@@ -1067,6 +1067,56 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 99}
+ {:end-row 442,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 21,
+  :langs (),
+  :message "Condition always true",
+  :row 442}
+ {:end-row 446,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 20,
+  :langs (),
+  :message "Condition always true",
+  :row 446}
+ {:end-row 451,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 21,
+  :langs (),
+  :message "Condition always true",
+  :row 451}
+ {:end-row 455,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 20,
+  :langs (),
+  :message "Condition always true",
+  :row 455}
+ {:end-row 460,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 13,
+  :end-col 19,
+  :langs (),
+  :message "Condition always true",
+  :row 460}
  {:end-row 64,
   :type :unresolved-symbol,
   :level :error,

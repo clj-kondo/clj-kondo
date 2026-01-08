@@ -505,10 +505,11 @@
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)
-          (findings/reg-finding! ctx (node->line (:filename ctx)
-                                                 call
-                                                 :condition-always-true
-                                                 "Condition always true"))))
+          (findings/reg-finding!
+           ctx (-> call
+                   (select-keys [:row :end-row :end-col :col :filename])
+                   (assoc :type :condition-always-true
+                          :message "Condition always true")))))
       (when arity-error?
         (findings/reg-finding!
          ctx
