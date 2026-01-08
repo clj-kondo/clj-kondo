@@ -8,6 +8,16 @@
   :langs (),
   :message "The var set! does not exist in clojure.core",
   :row 8}
+ {:end-row 998,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/app_db/custom_migrations.clj",
+  :col 28,
+  :end-col 58,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 998}
  {:end-row 43,
   :type :condition-always-true,
   :level :warning,
@@ -348,6 +358,17 @@
   :langs (),
   :message "Unused excluded var: hash",
   :row 2}
+ {:end-row 113,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/impl.clj",
+  :col 25,
+  :end-col 53,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 113}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -536,6 +557,17 @@
   :langs (),
   :message "Unused excluded var: replace",
   :row 2}
+ {:end-row 20,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/notification/condition.clj",
+  :col 14,
+  :end-col 75,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 20}
  {:end-row 565,
   :type :redundant-let-binding,
   :level :warning,
@@ -726,6 +758,16 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 174}
+ {:end-row 196,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 39,
+  :end-col 81,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 196}
  {:end-row 211,
   :type :redundant-let-binding,
   :level :warning,
@@ -816,6 +858,16 @@
   :langs (),
   :message "Condition always true",
   :row 211}
+ {:end-row 223,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/i18n.clj",
+  :col 38,
+  :end-col 117,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 223}
  {:end-row 114,
   :type :unresolved-var,
   :level :warning,
@@ -945,6 +997,16 @@
   :langs (),
   :message "Unused excluded var: defn",
   :row 2}
+ {:end-row 487,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/actions/actions_test.clj",
+  :col 31,
+  :end-col 77,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 487}
  {:end-row 203,
   :type :unresolved-symbol,
   :level :error,
@@ -1185,6 +1247,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 2253}
+ {:end-row 3514,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/dashboards/api_test.clj",
+  :col 32,
+  :end-col 76,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 3514}
  {:end-row 82,
   :type :unresolved-symbol,
   :level :error,
@@ -1267,6 +1339,19 @@
   :langs (:clj),
   :message "Expected: string, received: boolean.",
   :row 819}
+ {:end-row 2032,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/field_test.cljc",
+  :col 40,
+  :end-col 86,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 2032}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,
@@ -1349,6 +1434,46 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 902}
+ {:end-row 827,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 827}
+ {:end-row 832,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 832}
+ {:end-row 878,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 878}
+ {:end-row 884,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 884}
  {:end-row 10,
   :type :deprecated-namespace,
   :level :warning,
@@ -1572,6 +1697,16 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
+ {:end-row 123,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/task_test.clj",
+  :col 23,
+  :end-col 92,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 123}
  {:end-row 497,
   :type :type-mismatch,
   :level :error,
@@ -1642,6 +1777,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 282}
+ {:end-row 701,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 82,
+  :end-col 128,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 701}
+ {:end-row 814,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 82,
+  :end-col 118,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 814}
  {:end-row 245,
   :type :type-mismatch,
   :level :error,
@@ -1672,6 +1827,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 101}
+ {:end-row 120,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
+  :col 47,
+  :end-col 69,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 120}
  {:end-row 408,
   :type :unresolved-symbol,
   :level :error,
@@ -1711,4 +1876,14 @@
   :end-col 22,
   :langs (),
   :message "Unresolved symbol: partial=",
-  :row 1017}]
+  :row 1017}
+ {:end-row 46,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/xrays/test_util/automagic_dashboards.clj",
+  :col 20,
+  :end-col 47,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 46}]

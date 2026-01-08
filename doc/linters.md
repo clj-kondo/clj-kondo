@@ -90,6 +90,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant let](#redundant-let)
     - [Redundant let binding](#redundant-let-binding)
     - [Redundant str call](#redundant-str-call)
+    - [Redundant primitive coercion](#redundant-primitive-coercion)
     - [Refer](#refer)
     - [Refer clojure exclude unresolved var](#unresolved-excluded-var)
     - [Refer all](#refer-all)
@@ -1529,6 +1530,25 @@ warn on additional vars.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
 
+### Redundant format
+
+*Keyword*: `:redundant-format`
+
+*Description:* warn when format strings contain no format specifiers.
+
+*Default level:* `:info`.
+
+This linter detects calls to `format`, `printf`, and logging functions (`errorf`, `infof`, `logf`, etc.) where the format string contains no placeholders (like `%s`, `%d`, etc.). Such calls are redundant since the format string will be returned as-is without any formatting.
+
+*Example triggers:*
+* `(format "hello")`
+* `(log/errorf "error message")`
+* `(log/logf :info "log message")`
+
+Note: Format strings containing only `%%` (escaped percent) or `%n` (newline) are also considered to have no format specifiers.
+
+*Example message:* `Format string contains no format specifiers`.
+
 ### Redundant fn wrapper
 
 *Keyword*: `:redundant-fn-wrapper`
@@ -1616,6 +1636,43 @@ is passed to a `str` that is already a string, which makes the `str` unnecessary
 *Example triggers:* `(str "foo")`, `(str (str 1))`.
 
 *Example message:* `Single argument to str already is a string`.
+
+### Redundant primitive coercion
+
+*Keyword*: `:redundant-primitive-coercion`
+
+*Description:* warn on redundant primitive coercion calls. The warning arises when a
+primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, `char`,
+`boolean`) is applied to an expression that already returns that primitive type.
+
+*Default level:* `:info`.
+
+*Example triggers:*
+
+``` clojure
+;; Nested coercions
+(double (double 1))
+
+;; Function already returns double
+(defn foo ^double [] 1.0)
+(double (foo))
+
+;; Function already returns float
+(defn bar ^float [] 1.0)
+(float (bar))
+```
+
+*Example message:* `Redundant double coercion - expression already has type double`.
+
+*Note:* This linter relies on type information from the `:type-mismatch` linter.
+If `:type-mismatch` is disabled, type tracking will not be available and the linter
+will not detect redundant coercions.
+
+*Limitations:*
+
+- Java interop method return types are not tracked. Calls like `(double (.doubleValue x))`
+  will not be detected as redundant because clj-kondo does not infer return types from
+  Java method calls.
 
 ### Refer
 

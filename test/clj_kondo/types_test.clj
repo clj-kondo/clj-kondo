@@ -157,7 +157,7 @@
         :row 1,
         :col 21,
         :level :error,
-        :message "Expected: string, received: integer."})
+        :message "Expected: string, received: long."})
      (lint! "(fn [^long x] (subs x 1 1))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps2
@@ -1172,7 +1172,7 @@
     (is (empty? (lint! "(to-array '(1 2 3))" config)))
     (is (empty? (lint! "(to-array #{1 2 3})" config)))
     (is (empty? (lint! "(to-array nil)" config))))
-  
+
   (testing "Invalid usage: non-seqable argument triggers type-mismatch"
     (assert-submaps2
      '({:file "<stdin>"
@@ -1272,7 +1272,7 @@
         :message "Expected: number, received: sorted set."})
      (lint! "(inc (sorted-set-by > 1 2 3))" config))))
 
-(deftest array-functions-test 
+(deftest array-functions-test
   (testing "alength"
     (is (empty? (lint! "(alength (to-array [1 2 3]))" config)))
     (assert-submaps2
@@ -1348,7 +1348,17 @@
         :message "Expected: array, received: vector."})
      (lint! "(aclone [1 2 3])" config))))
 
+(deftest comp-test
+  (is (empty? (lint! "(comp inc dec)" config)))
+  (is (empty? (lint! "(comp (map inc))" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 7
+      :level :error
+      :message "Expected: function, received: seq."})
+   (lint! "(comp (map inc (range)))" config)))
+
 ;;;; Scratch
 
-(comment
-  )
+(comment)

@@ -69,7 +69,7 @@
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :syntax
-                 (format "cond requires even number of forms")))
+                 "cond requires even number of forms"))
     true))
 
 (defn lint-cond [ctx expr]
@@ -112,7 +112,7 @@
         (when (= 2 (count args))
           (findings/reg-finding! ctx
                                  (node->line (:filename ctx) expr :missing-else-branch
-                                             (format "Missing else branch."))))))))
+                                             "Missing else branch.")))))))
 
 (defn lint-if-nil-return
   "Lint returning nil from if-like expressions. When-like expressions are
@@ -197,6 +197,21 @@
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (when-let [expected-type ('{double :double, float :float, long :long, int :int
+                                  short :short, byte :byte, char :char, boolean :boolean}
+                                (:name called-fn))]
+        (when (and
+               (not (identical? :off (-> call :config :linters :redundant-primitive-coercion :level)))
+               (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+               (= 1 (count tags))
+               (identical? expected-type (first tags))
+               (not (:clj-kondo.impl/generated (:expr call))))
+          (findings/reg-finding! ctx
+                                 (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                        :type :redundant-primitive-coercion
+                                        :message (str "Redundant " (:name called-fn)
+                                                      " coercion - expression already has type "
+                                                      (name expected-type))))))
       (when (and
              (= '= (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
@@ -717,6 +732,7 @@
                   ctx (assoc ctx :lang lang :base-lang base-lang)]
             excluded clojure-excluded
             :when (and (not (contains? used excluded))
+                       (not (utils/ignored? excluded))
                        (var-info/core-sym? lang excluded))]
       (findings/reg-finding!
        ctx
