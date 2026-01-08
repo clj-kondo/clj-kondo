@@ -6,6 +6,14 @@
 (def config {:linters {:unused-excluded-var {:level :off}}})
 
 (deftest refer-clojure-exclude-test
+  (testing "exclude with ignored element only warns for non-ignored (#2691)"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 61
+        :level :info
+        :message "The var foo does not exist in clojure.core"})
+     (lint! "(ns foo (:refer-clojure :exclude [#_:clj-kondo/ignore comp2 foo]))")))
   (testing "clj"
     (assert-submaps2
      '({:file "<stdin>"
