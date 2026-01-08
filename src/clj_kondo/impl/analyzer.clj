@@ -346,7 +346,7 @@
                                                               ;; TODO: restrict this to language :cljd
                                                               :flds])]
                            (if ns-modifier?
-                             (do (analyze-usages2 ctx k (assoc opts :keys-destructuring-ns-modifier? true))
+                             (do (usages/analyze-keyword ctx k (assoc opts :keys-destructuring-ns-modifier? true))
                                  (recur rest-kvs
                                         (into res (map #(extract-bindings
                                                          ctx
@@ -357,7 +357,7 @@
                                                                 :destructuring-type (some-> k :k name keyword)
                                                                 :destructuring-expr k)))
                                               (:children v))))
-                             (do (analyze-usages2 ctx k)
+                             (do (usages/analyze-keyword ctx k)
                                  (case key-name
                                    :or
                                    ;; or doesn't introduce new bindings, it only gives defaults
@@ -3172,7 +3172,9 @@
       (case t
         :quote (do
                  (lint-unused-value ctx expr)
-                 (let [ctx (assoc ctx :quoted true)]
+                 (let [ctx (if (some-> (:syntax-quote-level ctx) pos?)
+                             ctx
+                             (assoc ctx :quoted true))]
                    ;; we don't add a new arg types vector but just let the
                    ;; single argument add its tag to the exising vector
                    (analyze-children ctx children false)))
@@ -3203,8 +3205,7 @@
                              "Unquote-splicing (~@) not syntax-quoted")))))
           (let [new-level (if level (dec level) -1)
                 ctx (-> ctx
-                        (assoc :syntax-quote-level new-level)
-                        (dissoc :quoted))]
+                        (assoc :syntax-quote-level new-level))]
             (analyze-children ctx children)))
         :namespaced-map (do
                           (lint-unused-value ctx expr)
