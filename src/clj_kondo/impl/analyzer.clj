@@ -1002,10 +1002,10 @@
 
 (defn condition-always-true-linter
   [ctx expr]
-  (findings/reg-finding! ctx (assoc (meta expr)
-                                    :filename (:filename ctx)
-                                    :message "Condition always true"
-                                    :type :condition-always-true)))
+  (findings/reg-finding! ctx (node->line (:filename ctx)
+                                         expr
+                                         :condition-always-true
+                                         "Condition always true")))
 
 (defn analyze-condition
   [ctx condition]
