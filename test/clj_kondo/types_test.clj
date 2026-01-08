@@ -1348,6 +1348,17 @@
         :message "Expected: array, received: vector."})
      (lint! "(aclone [1 2 3])" config))))
 
+(deftest comp-test
+  (is (empty? (lint! "(comp inc dec)" config)))
+  (is (empty? (lint! "(comp (map inc))" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 7
+      :level :error
+      :message "Expected: function, received: seq."})
+   (lint! "(comp (map inc (range)))" config)))
+
 ;;;; Scratch
 
 (comment)
