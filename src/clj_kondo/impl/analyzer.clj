@@ -1002,10 +1002,10 @@
 
 (defn condition-always-true-linter
   [ctx expr]
-  (findings/reg-finding! ctx (assoc (meta expr)
-                                    :filename (:filename ctx)
-                                    :message "Condition always true"
-                                    :type :condition-always-true)))
+  (findings/reg-finding! ctx (node->line (:filename ctx)
+                                         expr
+                                         :condition-always-true
+                                         "Condition always true")))
 
 (defn analyze-condition
   [ctx condition]
@@ -1881,6 +1881,13 @@
   (let [[condition & clauses] (rest (:children expr))]
     (analyze-condition ctx condition)
     (analyze-children ctx clauses false)))
+
+(defn analyze-is
+  [ctx expr]
+  (let [[condition & body] (rest (:children expr))]
+    (when condition
+      (analyze-condition ctx condition))
+    (analyze-children ctx body false)))
 
 (defn analyze-constructor
   "Analyzes (new Foo ...) constructor call."
@@ -2770,6 +2777,8 @@
                             (test/analyze-cljs-test-async ctx expr)
                             ([clojure.test are] [cljs.test are])
                             (test/analyze-are ctx resolved-namespace expr)
+                            ([clojure.test is] [cljs.test is])
+                            (analyze-is ctx expr)
                             ([clojure.test.check.properties for-all])
                             (analyze-like-let ctx expr)
                             [cljs.spec.alpha def]
