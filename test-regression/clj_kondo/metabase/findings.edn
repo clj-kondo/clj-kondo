@@ -1714,6 +1714,46 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 1015}
+ {:end-row 45,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/generative_test.clj",
+  :col 14,
+  :end-col 42,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 43}
+ {:end-row 48,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/generative_test.clj",
+  :col 14,
+  :end-col 58,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 46}
+ {:end-row 69,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/generative_test.clj",
+  :col 16,
+  :end-col 44,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 67}
+ {:end-row 72,
+  :type :testing-outside-deftest,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/generative_test.clj",
+  :col 16,
+  :end-col 60,
+  :langs (),
+  :message "testing called outside of deftest",
+  :row 70}
  {:end-row 212,
   :type :unresolved-symbol,
   :level :error,

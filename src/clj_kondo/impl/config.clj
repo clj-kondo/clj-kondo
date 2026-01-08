@@ -32,6 +32,7 @@
               :syntax {:level :error}
               :file {:level :error}
               :missing-test-assertion {:level :warning}
+              :testing-outside-deftest {:level :warning}
               :conflicting-alias {:level :error}
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}

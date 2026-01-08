@@ -101,6 +101,45 @@
                            (node->line (:filename ctx) (:expr call)
                                        :missing-test-assertion "missing test assertion"))))
 
+(defn- namespace-has-tests? [{:keys [base-lang lang] :as ctx}]
+  (let [ns-name (-> ctx :ns :name)
+        defs (get-in @(:namespaces ctx) [base-lang lang ns-name :defs])]
+    (some (fn [[_var-name {:keys [defined-by]}]]
+            (or (= 'clojure.test/deftest defined-by)
+                (= 'cljs.test/deftest defined-by)))
+          defs)))
+
+(defn- inside-deftest? [callstack]
+  (some #(or (= '[clojure.test deftest] %)
+             (= '[cljs.test deftest] %))
+        callstack))
+
+(defn- inside-use-fixtures? [callstack]
+  (some #(or (= '[clojure.test use-fixtures] %)
+             (= '[cljs.test use-fixtures] %))
+        callstack))
+
+(defn- inside-function-definition?
+  "We need to allow testing inside defn, def, defmacro, fn and defmethod because 
+   we can't statically determine where those functions will be called"
+  [callstack]
+  (let [def-forms '#{defn defn- def defmacro fn defmethod}]
+    (some #(contains? def-forms (second %)) callstack)))
+
+
+(defn lint-testing-outside-deftest [ctx call]
+  (let [callstack (next (:callstack call))
+        in-use-fixtures? (inside-use-fixtures? callstack)]
+    (when-not (or (and in-use-fixtures?
+                       (namespace-has-tests? ctx))
+                  (inside-deftest? callstack)
+                  (and (not in-use-fixtures?)
+                       (inside-function-definition? callstack)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) (:expr call)
+                   :testing-outside-deftest "testing called outside of deftest")))))
+
 (defn lint-missing-else-branch
   "Lint missing :else branch on if-like expressions"
   [ctx expr]
@@ -166,6 +205,8 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
+      ([clojure.test testing] [cljs.test testing])
+      (lint-testing-outside-deftest ctx call)
       #_([clojure.test is] [cljs.test is])
       #_(lint-test-is ctx (:expr call))
       nil)
