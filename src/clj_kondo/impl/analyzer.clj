@@ -3301,12 +3301,25 @@
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (types/add-arg-type-from-expr ctx expr)
-                  (if (utils/symbol-token? quoted-child)
-                    (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children (update ctx :callstack conj [nil t])
-                                          children))
-                    (analyze-children (update ctx :callstack conj [nil t])
-                                      children)))
+                  (cond (utils/symbol-token? quoted-child)
+                        (lint-symbol-call! ctx quoted-child arg-count expr)
+
+                        (identical? :list (:tag quoted-child))
+                        (reg-not-a-function! ctx quoted-child "list")
+
+                        (utils/boolean-token? quoted-child)
+                        (reg-not-a-function! ctx quoted-child "boolean")
+
+                        (utils/string-from-token quoted-child)
+                        (reg-not-a-function! ctx quoted-child "string")
+
+                        (utils/char-token? quoted-child)
+                        (reg-not-a-function! ctx quoted-child "character")
+
+                        (utils/number-token? quoted-child)
+                        (reg-not-a-function! ctx quoted-child "number"))
+                  (analyze-children (update ctx :callstack conj [nil t])
+                                    children))
                 (:vector :set)
                 (do (lint-vector-or-set-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
@@ -3357,19 +3370,19 @@
                           ret)))
                     (cond
                       (utils/boolean-token? function)
-                      (do (reg-not-a-function! ctx expr "boolean")
+                      (do (reg-not-a-function! ctx function "boolean")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       (utils/string-from-token function)
-                      (do (reg-not-a-function! ctx expr "string")
+                      (do (reg-not-a-function! ctx function "string")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       (utils/char-token? function)
-                      (do (reg-not-a-function! ctx expr "character")
+                      (do (reg-not-a-function! ctx function "character")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       (utils/number-token? function)
-                      (do (reg-not-a-function! ctx expr "number")
+                      (do (reg-not-a-function! ctx function "number")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       :else

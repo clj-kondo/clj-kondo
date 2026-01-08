@@ -512,6 +512,9 @@
            :name var})
         (:callstack ctx)))
 
+(defn ignored? [expr]
+  (:clj-kondo/ignore (meta expr)))
+
 ;;;; Scratch
 
 (comment

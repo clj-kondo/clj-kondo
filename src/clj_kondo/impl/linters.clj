@@ -732,6 +732,7 @@
                   ctx (assoc ctx :lang lang :base-lang base-lang)]
             excluded clojure-excluded
             :when (and (not (contains? used excluded))
+                       (not (utils/ignored? excluded))
                        (var-info/core-sym? lang excluded))]
       (findings/reg-finding!
        ctx
