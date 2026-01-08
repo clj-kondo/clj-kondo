@@ -1882,6 +1882,13 @@
     (analyze-condition ctx condition)
     (analyze-children ctx clauses false)))
 
+(defn analyze-is
+  [ctx expr]
+  (let [[condition & body] (rest (:children expr))]
+    (when condition
+      (analyze-condition ctx condition))
+    (analyze-children ctx body false)))
+
 (defn analyze-constructor
   "Analyzes (new Foo ...) constructor call."
   [ctx expr]
@@ -2770,6 +2777,8 @@
                             (test/analyze-cljs-test-async ctx expr)
                             ([clojure.test are] [cljs.test are])
                             (test/analyze-are ctx resolved-namespace expr)
+                            ([clojure.test is] [cljs.test is])
+                            (analyze-is ctx expr)
                             ([clojure.test.check.properties for-all])
                             (analyze-like-let ctx expr)
                             [cljs.spec.alpha def]
