@@ -7,6 +7,7 @@
    [clj-kondo.impl.types.clojure.core :refer [clojure-core cljs-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
+   [clj-kondo.impl.types.clojure.test :refer [clojure-test]]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils :refer
     [tag sexpr]]
@@ -62,7 +63,8 @@
   {'clojure.core clojure-core
    'cljs.core cljs-core
    'clojure.set clojure-set
-   'clojure.string clojure-string})
+   'clojure.string clojure-string
+   'clojure.test clojure-test})
 
 (def is-a-relations
   {:string #{:char-sequence :seqable}
