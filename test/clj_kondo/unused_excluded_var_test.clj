@@ -84,7 +84,7 @@
         :row 1
         :col 61
         :level :info
-        :message "The var foo does not exist in clojure.core"})
+        :message "Unresolved excluded var: foo"})
      (lint! "(ns foo (:refer-clojure :exclude [#_:clj-kondo/ignore comp2 foo #_:clj-kondo/ignore inc]))"))))
 
 (deftest issue-2704-test

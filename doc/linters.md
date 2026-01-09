@@ -1705,7 +1705,7 @@ Example warning: `require with :refer`.
 
 *Example message:* `Unused excluded var: read`.
 
-### Refer clojure exclude unresolved var
+### Unresolved excluded var
 
 *Keyword:* `:unresolved-excluded-var`.
 
@@ -1715,7 +1715,7 @@ Example warning: `require with :refer`.
 
 *Example trigger:* `(ns foo (:refer-clojure :exclude [nonexistent-var]))`
 
-*Example message:* `The var nonexistent-var does not exist in clojure.core`.
+*Example message:* `Unresolved excluded var: nonexistent-var`.
 
 ### Refer all
 
