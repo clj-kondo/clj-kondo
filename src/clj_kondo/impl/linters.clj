@@ -44,8 +44,7 @@
            (every? case-testable? (vals v)))))
 
 (defn- has-hash-collisions? [constants]
-  (let [hashes (map hash constants)]
-    (not= (count hashes) (count (distinct hashes)))))
+  (distinct? (map hash constants)))
 
 (defn- parse-equality-condition [cond-node]
   (when (= :list (tag cond-node))
