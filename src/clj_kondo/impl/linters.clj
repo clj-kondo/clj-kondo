@@ -46,21 +46,28 @@
 (defn- all-hashes-distinct? [constants]
   (apply distinct? (map hash constants)))
 
-(defn- parse-equality-condition [cond-node]
+(defn- parse-equality-condition [cond-node equals-excluded?]
   (when (= :list (tag cond-node))
     (let [children (:children cond-node)]
       (when (>= (count children) 3)
-        (let [[op arg1 arg2] children]
-          (when (= '= (:value op))
+        (let [[op arg1 arg2] children
+              op-value (:value op)]
+          (when (and op-value
+                     (symbol? op-value)
+                     (or
+                      (and (= '= op-value) (not equals-excluded?))
+                      (= 'clojure.core/= op-value)
+                      (= 'cljs.core/= op-value)))
             (cond
               (and (constant? arg2) (not (constant? arg1)))
               [(sexpr arg1) (sexpr arg2)]
               (and (constant? arg1) (not (constant? arg2)))
               [(sexpr arg2) (sexpr arg1)])))))))
 
-(defn- extract-equality-cond-pattern [conditions]
+(defn- extract-equality-cond-pattern [conditions equals-excluded?]
   (when (seq conditions)
-    (when-let [[var-sexpr first-const] (parse-equality-condition (first conditions))]
+    (when-let [[var-sexpr first-const] 
+               (parse-equality-condition (first conditions) equals-excluded?)]
       (when (case-testable? first-const)
         (loop [remaining (rest conditions)
                constants [first-const]]
@@ -72,19 +79,24 @@
               (if (and (= :else cond-sexpr) (= 1 (count remaining)))
                 {:var-sexpr var-sexpr :constants constants}
                 (when-let [[cond-var cond-const]
-                           (parse-equality-condition cond-node)]
-                  (when (and (= var-sexpr cond-var) (case-testable? cond-const))
-                    (recur (rest remaining) (conj constants cond-const))))))))))))
+                           (parse-equality-condition cond-node 
+                                                     equals-excluded?)]
+                  (when (and (= var-sexpr cond-var) 
+                             (case-testable? cond-const))
+                    (recur (rest remaining) 
+                           (conj constants cond-const))))))))))))
 
 (defn- lint-cond-as-case! [ctx expr conditions]
   (when-not (utils/linter-disabled? ctx :cond-as-case)
-    (when-let [{:keys [constants]} (extract-equality-cond-pattern conditions)]
-      (when (and (>= (count constants) 2)
-                 (all-hashes-distinct? constants))
-        (findings/reg-finding!
-         ctx
-         (node->line (:filename ctx) expr :cond-as-case
-                     "cond can be replaced with case"))))))
+    (let [equals-excluded? (get-in ctx [:caller-ns :clojure-excluded '=])]
+      (when-let [{:keys [constants]} 
+                 (extract-equality-cond-pattern conditions equals-excluded?)]
+        (when (and (>= (count constants) 2)
+                   (all-hashes-distinct? constants))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) expr :cond-as-case
+                       "cond can be replaced with case")))))))
 
 (defn- condp-default-clause? [clauses]
   (and (empty? (rest clauses)) (odd? (count clauses))))
@@ -682,11 +694,10 @@
           :end-col end-col
           :type :redundant-call
           :message (format "Single arg use of %s always returns the arg itself" fn-sym)}))
-      (let [ctx (assoc ctx :filename filename)]
+      (let [ctx (assoc ctx :filename filename :caller-ns caller-ns)]
         (when call?
           (lint-specific-calls!
-           (assoc ctx
-                  :filename filename)
+           ctx
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))

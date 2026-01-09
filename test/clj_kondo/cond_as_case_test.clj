@@ -271,3 +271,39 @@
                    {:clj-kondo/config '{:config-in-call {clojure.core/comment {:linters {:cond-as-case {:level :off}}}}}})
                  (comment (cond (= x :a) 1 (= x :b) 2))"
                 {:linters {:cond-as-case {:level :warning}}})))))
+
+(deftest no-warning-with-overridden-equals-test
+  (testing "no warning when = is excluded from clojure.core"
+    (is (empty? (lint! "(ns my.ns
+                          (:refer-clojure :exclude [=]))
+                        (defn = [a b] (prn \"custom equals\") false)
+                        (cond (= x :a) 1 (= x :b) 2)"
+                       config))))
+
+  (testing "warning when explicitly using clojure.core/="
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "cond can be replaced with case"}]
+     (lint! "(cond (clojure.core/= x :a) 1 (clojure.core/= x :b) 2)" config))))
+
+(comment
+  (require '[clojure.test :refer [run-tests]]) 
+  (run-tests 'clj-kondo.cond-as-case-test)
+  (lint! "(ns scratch
+                     {:clj-kondo/config '{:config-in-call {clojure.core/comment {:linters {:cond-as-case {:level :off}}}}}})
+                   (comment (cond (= x :a) 1 (= x :b) 2))"
+         {:linters {:cond-as-case {:level :warning}}}
+         )
+  
+  (empty? (lint! "#_{:clj-kondo/ignore [:cond-as-case]}
+                          (cond (= x :a) 1 (= x :b) 2)"
+                 {:linters {:cond-as-case {:level :warning}}}))
+  (lint! "(ns my.ns
+                            (:refer-clojure :exclude [=]))
+                          (defn = [a b] (prn \"custom equals\") false)
+                          (cond (= x :a) 1 (= x :b) 2)"
+         )
+  )
