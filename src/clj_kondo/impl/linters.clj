@@ -72,12 +72,11 @@
         (loop [remaining (rest conditions)
                constants [first-const]]
           (if (empty? remaining)
-            {:var-sexpr var-sexpr
-             :constants constants}
+            {:constants constants}
             (let [cond-node (first remaining)
-                  cond-sexpr (try (sexpr cond-node) (catch Exception _ nil))]
+                  cond-sexpr (:value cond-node)]
               (if (and (= :else cond-sexpr) (= 1 (count remaining)))
-                {:var-sexpr var-sexpr :constants constants}
+                {:constants constants}
                 (when-let [[cond-var cond-const]
                            (parse-equality-condition cond-node 
                                                      equals-excluded?)]
