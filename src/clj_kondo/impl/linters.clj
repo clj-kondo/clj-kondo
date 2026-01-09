@@ -51,7 +51,7 @@
     (let [children (:children cond-node)]
       (when (>= (count children) 3)
         (let [[op arg1 arg2] children]
-          (when (= '= (sexpr op))
+          (when (= '= (:value op))
             (cond
               (and (constant? arg2) (not (constant? arg1)))
               [(sexpr arg1) (sexpr arg2)]
