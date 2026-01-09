@@ -20,6 +20,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
+- :condition-always-true` finding was adding full context into findigns ([@jramosg](https://github.com/jramosg))
+- [#2340](https://github.com/clj-kondo/clj-kondo/issues/2340): Extend `:condition-always-true` linter to check first argument of `clojure.test/is` ([@jramosg](https://github.com/jramosg))
 - [#2719](https://github.com/clj-kondo/clj-kondo/issues/2719): Fix: `comp` args are now properly type checked
 - [#2712](https://github.com/clj-kondo/clj-kondo/issues/2712): NEW linter: `:redundant-format` to warn when format strings contain no format specifiers ([@jramosg](https://github.com/jramosg))
 - [#2692](https://github.com/clj-kondo/clj-kondo/issues/2692): Lint quoted forms which are not functions ([@tomdl89](https://github.com/tomdl89))

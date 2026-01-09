@@ -1,14 +1,4 @@
-[{:end-row 110,
-  :type :unresolved-symbol,
-  :level :error,
-  :filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/monitor_notifications.clj",
-  :col 137,
-  :end-col 138,
-  :langs (),
-  :message "Unresolved symbol: x",
-  :row 110}
- {:end-row 5,
+[{:end-row 5,
   :type :deprecated-namespace,
   :level :warning,
   :filename
