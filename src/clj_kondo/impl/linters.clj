@@ -60,9 +60,9 @@
                       (= 'cljs.core/= op-value)))
             (cond
               (and (constant? arg2) (not (constant? arg1)))
-              [(sexpr arg1) (sexpr arg2)]
+              [arg1 (sexpr arg2)]
               (and (constant? arg1) (not (constant? arg2)))
-              [(sexpr arg2) (sexpr arg1)])))))))
+              [arg2 (sexpr arg1)])))))))
 
 (defn- extract-equality-cond-pattern [conditions equals-excluded?]
   (when (seq conditions)
