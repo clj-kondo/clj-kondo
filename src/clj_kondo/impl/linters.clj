@@ -43,8 +43,8 @@
            (every? case-testable? (keys v))
            (every? case-testable? (vals v)))))
 
-(defn- has-hash-collisions? [constants]
-  (not (distinct? (map hash constants))))
+(defn- all-hashes-distinct? [constants]
+  (apply distinct? (map hash constants)))
 
 (defn- parse-equality-condition [cond-node]
   (when (= :list (tag cond-node))
@@ -80,7 +80,7 @@
   (when-not (utils/linter-disabled? ctx :cond-as-case)
     (when-let [{:keys [constants]} (extract-equality-cond-pattern conditions)]
       (when (and (>= (count constants) 2)
-                 (not (has-hash-collisions? constants)))
+                 (all-hashes-distinct? constants))
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :cond-as-case
@@ -153,7 +153,7 @@
   (when-not (utils/linter-disabled? ctx :cond-as-case)
     (when-let [{:keys [constants]} (or (extract-condp-equals-pattern expr)
                                        (extract-condp-contains-pattern expr))]
-      (when (not (has-hash-collisions? constants))
+      (when (all-hashes-distinct? constants)
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) expr :cond-as-case
