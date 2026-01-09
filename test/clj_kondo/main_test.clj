@@ -174,26 +174,9 @@
      {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
      {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
    (lint! (io/file "corpus" "cljc")))
-  (assert-submaps2 '({:file "corpus/spec/alpha.cljc"
-                      :row 2
-                      :col 29
-                      :level :info
-                      :message "The var def does not exist in cljs.core"}
-                     {:file "corpus/spec/alpha.cljc"
-                      :row 2
-                      :col 29
-                      :level :info
-                      :message "The var def does not exist in clojure.core"}
-                     {:file "corpus/spec/alpha.cljs"
-                      :row 2
-                      :col 29
-                      :level :info
-                      :message "The var def does not exist in cljs.core"}
-                    {:file "corpus/spec/alpha.cljs",
-                     :row 6,
-                     :col 1,
-                     :level :error,
-                     :message "spec.alpha/def is called with 2 args but expects 3"})
+  (assert-submaps2 '({:file "corpus/spec/alpha.cljc", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
+                     {:file "corpus/spec/alpha.cljs", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
+                     {:file "corpus/spec/alpha.cljs", :row 6, :col 1, :level :error, :message "spec.alpha/def is called with 2 args but expects 3"})
                   (lint! (io/file "corpus" "spec")))
   (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
                      "--lang" "cljc")))
