@@ -20,6 +20,24 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
+- [#2719](https://github.com/clj-kondo/clj-kondo/issues/2719): Fix: `comp` args are now properly type checked
+- [#2712](https://github.com/clj-kondo/clj-kondo/issues/2712): NEW linter: `:redundant-format` to warn when format strings contain no format specifiers ([@jramosg](https://github.com/jramosg))
+- [#2692](https://github.com/clj-kondo/clj-kondo/issues/2692): Lint quoted forms which are not functions ([@tomdl89](https://github.com/tomdl89))
+- [#2691](https://github.com/clj-kondo/clj-kondo/issues/2691): Fix: `:refer-clojure :exclude` now properly ignores elements with `#_` (e.g. `#_:clj-kondo/ignore comp2`) [@jramosg](https://github.com/jramosg).
+- [#2713](https://github.com/clj-kondo/clj-kondo/issues/2713): Fix regression: getting unused binding warning in `~'~` unquote expressions ([@jramosg](https://github.com/jramosg))
+- [#2711](https://github.com/clj-kondo/clj-kondo/issues/2711): Unused value inside `defmethod` ([@jramosg](https://github.com/jramosg))
+- [#2709](https://github.com/clj-kondo/clj-kondo/issues/2709): NEW linter: `:redundant-primitive-coercion` to warn when primitive coercion functions are applied to expressions already of that type
+- [#2600](https://github.com/clj-kondo/clj-kondo/issues/2600): NEW linter: `unused-excluded-var` to warn on unused vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
+- [#2459](https://github.com/clj-kondo/clj-kondo/issues/2459): NEW linter: `:destructured-or-always-evaluates` to warn on s-expressions in `:or` defaults in map destructuring ([@jramosg](https://github.com/jramosg))
+- Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions
+([@jramosg](https://github.com/jramosg))
+- Add new type `array` and type checking support for the next functions: `to-array`, `alength`,
+`aget`, `aset` and `aclone` ([@jramosg](https://github.com/jramosg))
+- Add type checking support for clojure.test functions and macros ([@jramosg](https://github.com/jramosg))
+- Fix [#2695](https://github.com/clj-kondo/clj-kondo/issues/2696): false positive `:unquote-not-syntax-quoted` in leiningen's `defproject`
+- Leiningen's `defproject` behavior can now be configured using `leiningen.core.project/defproject`
+- Fix [#2699](https://github.com/clj-kondo/clj-kondo/issues/2699): fix false positive unresolved string var with extend-type on CLJS
+- Rename `:refer-clojure-exclude-unresolved-var` linter to `unresolved-excluded-var` for consistency
 
 ## 2025.12.23
 

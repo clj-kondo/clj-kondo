@@ -99,3 +99,4 @@ src/scratch2.clj
 
 test-regression/checkouts
 test-regression/clj_kondo/clj_kondo/.clj-kondo
+.mcp-tasks-current.edn

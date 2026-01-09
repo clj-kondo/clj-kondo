@@ -7,8 +7,9 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym node->line
-                                           sexpr tag]]
+   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym
+                                           linter-disabled? node->line sexpr
+                                           tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -165,7 +166,7 @@
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :syntax
-                 (format "cond requires even number of forms")))
+                 "cond requires even number of forms"))
     true))
 
 (defn lint-cond [ctx expr]
@@ -208,7 +209,7 @@
         (when (= 2 (count args))
           (findings/reg-finding! ctx
                                  (node->line (:filename ctx) expr :missing-else-branch
-                                             (format "Missing else branch."))))))))
+                                             "Missing else branch.")))))))
 
 (defn lint-if-nil-return
   "Lint returning nil from if-like expressions. When-like expressions are
@@ -295,6 +296,21 @@
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (when-let [expected-type ('{double :double, float :float, long :long, int :int
+                                  short :short, byte :byte, char :char, boolean :boolean}
+                                (:name called-fn))]
+        (when (and
+               (not (identical? :off (-> call :config :linters :redundant-primitive-coercion :level)))
+               (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+               (= 1 (count tags))
+               (identical? expected-type (first tags))
+               (not (:clj-kondo.impl/generated (:expr call))))
+          (findings/reg-finding! ctx
+                                 (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                        :type :redundant-primitive-coercion
+                                        :message (str "Redundant " (:name called-fn)
+                                                      " coercion - expression already has type "
+                                                      (name expected-type))))))
       (when (and
              (= '= (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
@@ -803,6 +819,25 @@
            (node->line (:filename (meta alias)) alias
                        :unused-alias (str "Unused alias: " alias))))))))
 
+(defn lint-unused-excluded-vars! [ctx]
+  (when-not (linter-disabled? ctx :unused-excluded-var)
+    (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
+            :when (and (seq clojure-excluded)
+                       (not (linter-disabled? ns :unused-excluded-var)))
+            :let [{:keys [lang base-lang referred-vars vars bindings]} ns
+                  used (set (concat (keys vars)
+                                    (map :name (vals referred-vars))
+                                    (map :name bindings)))
+                  ctx (assoc ctx :lang lang :base-lang base-lang)]
+            excluded clojure-excluded
+            :when (and (not (contains? used excluded))
+                       (not (utils/ignored? excluded))
+                       (var-info/core-sym? lang excluded))]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ns) excluded :unused-excluded-var
+                   (format "Unused excluded var: %s" excluded))))))
+
 (defn lint-discouraged-namespaces!
   [ctx]
   (let [config (:config ctx)]
@@ -817,8 +852,8 @@
                   linter-configs (keep #(get-in config [:linters :discouraged-namespace %]) (concat ns-groups [ns-sym]))]
             :when (seq linter-configs)
             :let [linter-config (apply config/merge-config! linter-configs)
-                  {:keys [message level]
-                   :or {message (str "Discouraged namespace: " ns-sym)}} linter-config
+                  {:keys [message level]} linter-config
+                  message (or message (str "Discouraged namespace: " ns-sym))
                   ctx (assoc ctx :lang lang :base-lang (:base-lang ns) :config config)]]
       (findings/reg-finding!
        ctx

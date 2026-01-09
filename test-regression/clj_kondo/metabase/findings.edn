@@ -1,5 +1,5 @@
 [{:end-row 8,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/analytics/prometheus.clj",
@@ -8,6 +8,16 @@
   :langs (),
   :message "The var set! does not exist in clojure.core",
   :row 8}
+ {:end-row 998,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/app_db/custom_migrations.clj",
+  :col 28,
+  :end-col 58,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 998}
  {:end-row 43,
   :type :condition-always-true,
   :level :warning,
@@ -339,7 +349,50 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
  {:end-row 2,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/template/handlebars_helper.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: hash",
+  :row 2}
+ {:end-row 113,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/impl.clj",
+  :col 25,
+  :end-col 53,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 113}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver_api/core.clj",
+  :col 45,
+  :end-col 52,
+  :langs (),
+  :message "Unused excluded var: require",
+  :row 2}
+ {:end-row 3,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/util.cljc",
+  :col 29,
+  :end-col 36,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: replace",
+  :row 3}
+ {:end-row 2,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -351,7 +404,7 @@
   :message "The var var does not exist in cljs.core",
   :row 2}
  {:end-row 2,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename
@@ -362,8 +415,32 @@
   :langs (:clj),
   :message "The var var does not exist in clojure.core",
   :row 2}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 36,
+  :end-col 42,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: remove",
+  :row 4}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 71,
+  :end-col 74,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: ->>",
+  :row 4}
  {:end-row 5,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -375,7 +452,7 @@
   :message "The var var does not exist in cljs.core",
   :row 5}
  {:end-row 5,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename
@@ -387,7 +464,7 @@
   :message "The var var does not exist in clojure.core",
   :row 5}
  {:end-row 2,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -399,7 +476,7 @@
   :message "The var coalesce does not exist in cljs.core",
   :row 2}
  {:end-row 2,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename
@@ -409,6 +486,18 @@
   :cljc true,
   :langs (:clj),
   :message "The var coalesce does not exist in clojure.core",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/filter.cljc",
+  :col 69,
+  :end-col 73,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: case",
   :row 2}
  {:end-row 560,
   :type :redundant-let-binding,
@@ -422,6 +511,30 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: home-cols",
   :row 560}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/query.cljc",
+  :col 29,
+  :end-col 35,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: remove",
+  :row 2}
+ {:end-row 3,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/types/isa.cljc",
+  :col 48,
+  :end-col 55,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: number?",
+  :row 3}
  {:end-row 708,
   :type :condition-always-true,
   :level :warning,
@@ -434,6 +547,27 @@
   :langs (:clj :cljs),
   :message "Condition always true",
   :row 707}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/util/match.cljs",
+  :col 29,
+  :end-col 36,
+  :langs (),
+  :message "Unused excluded var: replace",
+  :row 2}
+ {:end-row 20,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/notification/condition.clj",
+  :col 14,
+  :end-col 75,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 20}
  {:end-row 565,
   :type :redundant-let-binding,
   :level :warning,
@@ -564,6 +698,16 @@
   :langs (),
   :message "Redundant let binding: compiled-query",
   :row 95}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_implicit_joins.clj",
+  :col 29,
+  :end-col 34,
+  :langs (),
+  :message "Unused excluded var: alias",
+  :row 4}
  {:end-row 104,
   :type :redundant-let-binding,
   :level :warning,
@@ -584,6 +728,16 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 630}
+ {:end-row 7,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/pivot/postprocess.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: run!",
+  :row 7}
  {:end-row 75,
   :type :redundant-let-binding,
   :level :warning,
@@ -604,6 +758,16 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 174}
+ {:end-row 196,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 39,
+  :end-col 81,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 196}
  {:end-row 211,
   :type :redundant-let-binding,
   :level :warning,
@@ -684,6 +848,26 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 31}
+ {:end-row 211,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
+  :col 30,
+  :end-col 41,
+  :langs (),
+  :message "Condition always true",
+  :row 211}
+ {:end-row 223,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/i18n.clj",
+  :col 38,
+  :end-col 117,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 223}
  {:end-row 114,
   :type :unresolved-var,
   :level :warning,
@@ -725,7 +909,19 @@
   :message "Unquote-splicing (~@) not syntax-quoted",
   :row 243}
  {:end-row 2,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
+  :col 29,
+  :end-col 36,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: declare",
+  :row 2}
+ {:end-row 2,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :cljs,
   :filename
@@ -737,7 +933,7 @@
   :message "The var def does not exist in cljs.core",
   :row 2}
  {:end-row 2,
-  :type :refer-clojure-exclude-unresolved-var,
+  :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,
   :filename
@@ -791,6 +987,26 @@
   :langs (),
   :message "Condition always true",
   :row 46}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/xrays/domain_entities/malli.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: defn",
+  :row 2}
+ {:end-row 487,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/actions/actions_test.clj",
+  :col 31,
+  :end-col 77,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 487}
  {:end-row 203,
   :type :unresolved-symbol,
   :level :error,
@@ -1001,6 +1217,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 248}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
+  :col 29,
+  :end-col 38,
+  :langs (),
+  :message "Unused excluded var: ancestors",
+  :row 2}
  {:end-row 93,
   :type :unresolved-symbol,
   :level :error,
@@ -1021,6 +1247,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 2253}
+ {:end-row 3514,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/dashboards/api_test.clj",
+  :col 32,
+  :end-col 76,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 3514}
  {:end-row 82,
   :type :unresolved-symbol,
   :level :error,
@@ -1091,6 +1327,31 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 45}
+ {:end-row 823,
+  :type :type-mismatch,
+  :level :error,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/aggregation_test.cljc",
+  :col 11,
+  :end-col 78,
+  :cljc true,
+  :langs (:clj),
+  :message "Expected: string, received: boolean.",
+  :row 819}
+ {:end-row 2032,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/field_test.cljc",
+  :col 40,
+  :end-col 86,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 2032}
  {:end-row 96,
   :type :condition-always-true,
   :level :warning,
@@ -1173,6 +1434,46 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 902}
+ {:end-row 827,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 827}
+ {:end-row 832,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 832}
+ {:end-row 878,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 878}
+ {:end-row 884,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 884}
  {:end-row 10,
   :type :deprecated-namespace,
   :level :warning,
@@ -1396,6 +1697,26 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
+ {:end-row 123,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/task_test.clj",
+  :col 23,
+  :end-col 92,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 123}
+ {:end-row 497,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 27,
+  :end-col 55,
+  :langs (),
+  :message "Expected: string, received: boolean.",
+  :row 493}
  {:end-row 1018,
   :type :unresolved-symbol,
   :level :error,
@@ -1416,6 +1737,26 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 54}
+ {:end-row 41,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 10,
+  :end-col 42,
+  :langs (),
+  :message "Expected: string, received: number.",
+  :row 41}
+ {:end-row 42,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 10,
+  :end-col 42,
+  :langs (),
+  :message "Expected: string, received: number.",
+  :row 42}
  {:end-row 33,
   :type :unresolved-symbol,
   :level :error,
@@ -1436,6 +1777,36 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 282}
+ {:end-row 701,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 82,
+  :end-col 128,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 701}
+ {:end-row 814,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 82,
+  :end-col 118,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 814}
+ {:end-row 245,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
+  :col 11,
+  :end-col 99,
+  :langs (),
+  :message "Expected: string, received: boolean.",
+  :row 245}
  {:end-row 359,
   :type :unresolved-symbol,
   :level :error,
@@ -1456,6 +1827,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 101}
+ {:end-row 120,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
+  :col 47,
+  :end-col 69,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 120}
  {:end-row 408,
   :type :unresolved-symbol,
   :level :error,
@@ -1466,6 +1847,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 408}
+ {:end-row 319,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/models/database_test.clj",
+  :col 17,
+  :end-col 35,
+  :langs (),
+  :message "Expected: string, received: vector.",
+  :row 319}
  {:end-row 606,
   :type :unresolved-symbol,
   :level :error,
@@ -1485,4 +1876,14 @@
   :end-col 22,
   :langs (),
   :message "Unresolved symbol: partial=",
-  :row 1017}]
+  :row 1017}
+ {:end-row 46,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/xrays/test_util/automagic_dashboards.clj",
+  :col 20,
+  :end-col 47,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 46}]

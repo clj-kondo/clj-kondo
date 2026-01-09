@@ -26,7 +26,6 @@
 (def ratio->number {:arities {1 {:args [:ratio]
                                  :ret :number}}})
 
-
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
            :fn #(:tag (first %))})
@@ -143,7 +142,9 @@
    ;; 272
    'butlast seqable->nilable-seq
    ;; 283 'defn
-   ;; 338 'to-array
+   ;; 338 
+   'to-array {:arities {1 {:args [:nilable/coll]
+                           :ret :array}}}
    ;; 346 'cast
    ;; 353
    'vector {:arities {:varargs {:ret :vector}}}
@@ -156,9 +157,16 @@
    'hash-set {:arities {:varargs {:ret :set}}}
    ;; 398
    'sorted-map {:arities {:varargs {:ret :sorted-map}}}
-   ;; 407 'sorted-map-by
-   ;; 417 'sorted-set
-   ;; 425 'sorted-set-by
+   ;; 407 
+   'sorted-map-by {:arities {:varargs {:args [:ifn {:op :rest
+                                                    :spec [:any :any]}]
+                                       :ret :sorted-map}}}
+   ;; 417 
+   'sorted-set {:arities {:varargs {:ret :sorted-set}}}
+   ;; 425 
+   'sorted-set-by {:arities {:varargs {:args [:ifn {:op :rest
+                                                    :spec :any}]
+                                       :ret :sorted-set}}}
    ;; 436
    'nil? any->boolean
    ;; 444 'defmacro
@@ -424,7 +432,7 @@
    ;; 1597
    'namespace {:arities {1 {:ret #{:nil :string}}}}
    ;; 1605
-   'boolean any->boolean
+   'boolean {:arities {1 {:ret :boolean}}}
    ;; 1612
    'ident? any->boolean
    ;; 1617
@@ -522,9 +530,9 @@
    ;; 2548
    'volatile? any->boolean
    ;; 2557
-   'comp {:arities {:varargs [{:op :rest
-                               :spec :ifn}]
-                    :ret :ifn}}
+   'comp {:arities {:varargs {:args [:ifn {:op :rest
+                                           :spec :ifn}]
+                              :ret :ifn}}}
    ;; 2576
    'juxt {:arities {:varargs {:args [:ifn {:op :rest
                                            :spec :ifn}]
@@ -671,14 +679,24 @@
    ;; 3460 'class
    ;; 3466 'type
    ;; 3473 'num
-   ;; 3480 'long
-   ;; 3486 'float
-   ;; 3492 'double
-   ;; 3498 'short
-   ;; 3504 'byte
+   ;; 3480
+   'long {:arities {1 {:args [:number]
+                       :ret :long}}}
+   ;; 3486
+   'float {:arities {1 {:args [:number]
+                        :ret :float}}}
+   ;; 3492
+   'double {:arities {1 {:args [:number]
+                         :ret :double}}}
+   ;; 3498
+   'short {:arities {1 {:args [:number]
+                        :ret :short}}}
+   ;; 3504
    'byte {:arities {1 {:args [#{:byte :number :char}]
                        :ret :byte}}}
-   ;; 3510 'char
+   ;; 3510
+   'char {:arities {1 {:args [#{:int :char}]
+                       :ret :char}}}
    ;; 3516 'unchecked-byte
    ;; 3522 'unchecked-short
    ;; 3528 'unchecked-char
@@ -726,10 +744,22 @@
    'doto {:fn first}
    ;; 3871 'memfn
    ;; 3884 'time
-   ;; 3898 'alength
-   ;; 3905 'aclone
-   ;; 3912 'aget
-   ;; 3923 'aset
+   ;; 3898
+   'alength {:arities {1 {:args [:array] :ret :int}}}
+   ;; 3905 
+   'aclone {:arities {1 {:args [:array] :ret :array}}}
+   ;; 3912 
+   'aget {:arities {2 {:args [:array :any] :ret :any}
+                    3 {:args [:array :any :any] :ret :any}
+                    :varargs {:min-arity 2
+                              :args [:array :any {:op :rest :spec :any}]
+                              :ret :any}}}
+   ;; 3923
+   'aset {:arities {3 {:args [:array :any :any] :ret :any}
+                    4 {:args [:array :any :any :any] :ret :any}
+                    :varargs {:min-arity 3
+                              :args [:array :any {:op :rest :spec :any} :any]
+                              :ret :any}}}
    ;; 3986 'make-array
    ;; 4003 'to-array-2d
    ;; 4018 'macroexpand-1

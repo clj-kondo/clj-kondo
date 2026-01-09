@@ -55,6 +55,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Def + fn instead of defn](#def--fn-instead-of-defn)
     - [Destructured or binding of same map](#destructured-or-binding-of-same-map)
     - [Inline def](#inline-def)
+    - [Destructured or always evaluates](#destructured-or-always-evaluates)
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
@@ -90,8 +91,9 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant let](#redundant-let)
     - [Redundant let binding](#redundant-let-binding)
     - [Redundant str call](#redundant-str-call)
+    - [Redundant primitive coercion](#redundant-primitive-coercion)
     - [Refer](#refer)
-    - [Refer clojure exclude non existing var](#refer-clojure-exclude-unresolved-var)
+    - [Refer clojure exclude unresolved var](#unresolved-excluded-var)
     - [Refer all](#refer-all)
     - [Schema misplaced return](#schema-misplaced-return)
     - [Self-requiring namespace](#self-requiring-namespace)
@@ -114,6 +116,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unknown :require option](#unknown-require-option)
     - [Unreachable code](#unreachable-code)
     - [Unused import](#unused-import)
+    - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
     - [Unresolved symbol](#unresolved-symbol)
         - [:exclude-patterns](#exclude-patterns)
@@ -1047,6 +1050,23 @@ for more details and discussion.
 
 *Example message:* `inline def`.
 
+### Destructured or always evaluates
+
+*Keyword:* `:destructured-or-always-evaluates`
+
+*Description:* Warn when an `:or` default value in a destructuring contains an
+expression that always evaluates, e.g. a function call.
+
+*Default level:* `:off`
+
+*Example trigger:*
+
+```clojure
+(let [{:keys [x] :or {x (f1)}} {:x 1}] x)
+```
+
+*Example message:* `Default :or value is always evaluated.`
+
 ### Invalid arity
 
 **Keyword:** `:invalid-arity`.
@@ -1557,6 +1577,25 @@ warn on additional vars.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
 
+### Redundant format
+
+*Keyword*: `:redundant-format`
+
+*Description:* warn when format strings contain no format specifiers.
+
+*Default level:* `:info`.
+
+This linter detects calls to `format`, `printf`, and logging functions (`errorf`, `infof`, `logf`, etc.) where the format string contains no placeholders (like `%s`, `%d`, etc.). Such calls are redundant since the format string will be returned as-is without any formatting.
+
+*Example triggers:*
+* `(format "hello")`
+* `(log/errorf "error message")`
+* `(log/logf :info "log message")`
+
+Note: Format strings containing only `%%` (escaped percent) or `%n` (newline) are also considered to have no format specifiers.
+
+*Example message:* `Format string contains no format specifiers`.
+
 ### Redundant fn wrapper
 
 *Keyword*: `:redundant-fn-wrapper`
@@ -1645,6 +1684,43 @@ is passed to a `str` that is already a string, which makes the `str` unnecessary
 
 *Example message:* `Single argument to str already is a string`.
 
+### Redundant primitive coercion
+
+*Keyword*: `:redundant-primitive-coercion`
+
+*Description:* warn on redundant primitive coercion calls. The warning arises when a
+primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, `char`,
+`boolean`) is applied to an expression that already returns that primitive type.
+
+*Default level:* `:info`.
+
+*Example triggers:*
+
+``` clojure
+;; Nested coercions
+(double (double 1))
+
+;; Function already returns double
+(defn foo ^double [] 1.0)
+(double (foo))
+
+;; Function already returns float
+(defn bar ^float [] 1.0)
+(float (bar))
+```
+
+*Example message:* `Redundant double coercion - expression already has type double`.
+
+*Note:* This linter relies on type information from the `:type-mismatch` linter.
+If `:type-mismatch` is disabled, type tracking will not be available and the linter
+will not detect redundant coercions.
+
+*Limitations:*
+
+- Java interop method return types are not tracked. Calls like `(double (.doubleValue x))`
+  will not be detected as redundant because clj-kondo does not infer return types from
+  Java method calls.
+
 ### Refer
 
 *Keyword:* `:refer`
@@ -1664,9 +1740,21 @@ Example warning: `require with :refer`.
 {:linters {:refer {:exclude [clojure.set]}}}
 ```
 
-### Refer clojure exclude non existing var
+### Unused excluded var
 
-*Keyword:* `:refer-clojure-exclude-unresolved-var`.
+*Keyword:* `:unused-excluded-var`.
+
+*Description:* warns when `:refer-clojure :exclude` contains vars that are not redefined in the current namespace. Locals with the same name as an excluded var also count as a redefinition and will suppress this warning.
+
+*Default level:* `:info`.
+
+*Example trigger:* `(ns foo (:refer-clojure :exclude [read]))`
+
+*Example message:* `Unused excluded var: read`.
+
+### Refer clojure exclude unresolved var
+
+*Keyword:* `:unresolved-excluded-var`.
 
 *Description:* warns when `:refer-clojure :exclude` contains vars that do not exist in clojure.core or cljs.core.
 

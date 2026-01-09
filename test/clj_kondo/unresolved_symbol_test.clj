@@ -342,7 +342,8 @@
 (defn scalb
   [x exp]
   (Math/scalb ^double x ^int exp))"
-                     {:linters {:unresolved-symbol {:level :error}}})))
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unused-excluded-var {:level :off}}})))
   (is (empty? (lint! "
 (^[_] java.net.URI/new \"http://localhost\")
 (^[long/1] java.net.URI/new \"http://localhost\")

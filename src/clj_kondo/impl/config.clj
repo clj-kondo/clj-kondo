@@ -67,7 +67,7 @@
                                             #_(riemann.streams/where [service event])
                                             ;; ignore all unresolved symbols in one-of:
                                             #_(clj-kondo.impl.utils/one-of)
-                                            (user/defproject) ;; ignore project.clj's defproject
+                                            (leiningen.core.project/defproject) ;; ignore project.clj's defproject
                                             (clojure.test/are [thrown? thrown-with-msg?])
                                             (cljs.test/are [thrown? thrown-with-msg?])
                                             (clojure.test/is [thrown? thrown-with-msg?])
@@ -96,7 +96,7 @@
                       #_[clojure.test]}
               :refer-all {:level :warning
                           :exclude #{}}
-              :refer-clojure-exclude-unresolved-var {:level :info}
+              :unresolved-excluded-var {:level :info}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
               :if-nil-return {:level :off}
@@ -114,6 +114,7 @@
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
               :unused-import {:level :warning}
+              :unused-excluded-var {:level :info}
               :single-operand-comparison {:level :warning}
               :single-logical-operand {:level :warning}
               :redundant-nested-call {:level :info}
@@ -149,6 +150,8 @@
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
               :redundant-str-call {:level :info}
+              :redundant-primitive-coercion {:level :info}
+              :redundant-format {:level :info}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :aliased-namespace-symbol {:level :off
@@ -185,6 +188,7 @@
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
               :locking-suspicious-lock {:level :warning}
+              :destructured-or-always-evaluates {:level :off}
               :unquote-not-syntax-quoted {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->

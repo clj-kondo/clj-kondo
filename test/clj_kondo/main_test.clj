@@ -218,7 +218,12 @@
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
     (assert-submaps
-     '({:file "corpus/exclude_clojure.clj",
+     '({:file "corpus/exclude_clojure.clj"
+        :row 6
+        :col 29
+        :level :info
+        :message "Unused excluded var: get"}
+       {:file "corpus/exclude_clojure.clj",
         :row 12,
         :col 1,
         :level :error,
@@ -341,7 +346,11 @@ foo/foo ;; this does use the private var
   (doseq [lang [:clj :cljs :cljc]]
     (testing (str "lang: " lang)
       (assert-submaps
-       '({:row 9,
+       '({:row 2,
+          :col 29,
+          :level :info
+          :message "Unused excluded var: cond"}
+         {:row 9,
           :col 3,
           :level :warning}
          {:row 16,
@@ -572,7 +581,12 @@ foo/foo ;; this does use the private var
           (i \"str\")
           (includes? \"str\")")))
   (assert-submaps
-   '({:file "corpus/rename.cljc",
+   '({:file "corpus/rename.cljc"
+      :row 2
+      :col 58
+      :level :info
+      :message "Unused excluded var: conj"}
+     {:file "corpus/rename.cljc",
       :row 4,
       :col 9,
       :level :error,
@@ -1791,22 +1805,34 @@ foo/foo ;; this does use the private var
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a boolean is not a function"})
                   (lint! "(true 1)"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a string is not a function"})
                   (lint! "(\"foo\" 1)"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 3,
+                     :level :error,
+                     :message "a list is not a function"})
+                  (lint! "('(foo) 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 3,
+                     :level :error,
+                     :message "a number is not a function"})
+                  (lint! "('1 1)"))
   (assert-submaps
    [{:file "<stdin>", :row 1, :col 21, :level :error
      :message "Can't call a string as a function"}]
@@ -1817,6 +1843,8 @@ foo/foo ;; this does use the private var
                      "{:linters {:not-a-function {:skip-args [user/foo]}
                                  :unresolved-symbol {:level :off}}}")))
   (is (empty? (lint! "(defrecord Foo [field]) #user.Foo{:field (\"asd\")}"
+                     {:linters {:not-a-function {:level :error}}})))
+  (is (empty? (lint! "('{:a 1} :a)"
                      {:linters {:not-a-function {:level :error}}}))))
 
 (deftest cljs-self-require-test
@@ -2098,6 +2126,10 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(#_:clj-kondo/ignore load-string 1)"
                      {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as string])) string/join (defprotocol IDude) (extend-type string  IDude)"
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-var {:level :error}}}
                      "--lang" "cljs"))))
 
 (deftest tagged-literal-test

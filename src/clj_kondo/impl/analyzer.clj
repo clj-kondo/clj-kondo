@@ -134,7 +134,10 @@
                                           :filename (:filename ctx)
                                           :str (:string-value k))]
                 (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
-            (analyze-expression** (assoc ctx :undefined-locals undefined-locals) v)))))))
+            (let [ctx (assoc ctx
+                             :undefined-locals undefined-locals
+                             :in-or-default? true)]
+              (analyze-expression** ctx v))))))))
 
 (defn lift-meta-content*
   "Used within extract-bindings. Disables unresolved symbols while
@@ -1670,7 +1673,7 @@
           ;; to multiple records/types.
           (do
             (when-not (and (identical? :cljs (:lang ctx))
-                           (= 'Object sym))
+                           (one-of sym [Object number function default object string bigint]))
               (analyze-expression** ctx c))
             (let [[protocol-name' protocol-node end-node]
                   (case (name defined-by)
@@ -1803,12 +1806,13 @@
 (defn analyze-defmethod [ctx expr]
   (when-let [children (next (:children expr))]
     (let [[method-name-node dispatch-val-node & fn-tail] children
-          _ (analyze-usages2 (assoc ctx
+          ctx-without-idx (dissoc ctx :idx :len)
+          _ (analyze-usages2 (assoc ctx-without-idx
                                     :defmethod true,
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
-          _ (analyze-expression** ctx dispatch-val-node)]
-      (analyze-fn ctx {:children (cons nil fn-tail)}))))
+          _ (analyze-expression** ctx-without-idx dispatch-val-node)]
+      (analyze-fn ctx-without-idx {:children (cons nil fn-tail)}))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
@@ -2016,13 +2020,20 @@
                     [indexed (cond-> unindexed (not= (.charAt ^String percent 1) \<) inc)]))
                 [0 0] percents)
         percent-count (max indexed unindexed)
-        arg-count (count args)]
-    (when-not (= percent-count
-                 arg-count)
+        arg-count (count args)
+        counts-match? (= percent-count arg-count)]
+    (when-not counts-match?
       (findings/reg-finding! ctx
                              (node->line (:filename ctx) format-str-node :format
                                          (format "Format string expects %s arguments instead of %s."
-                                                 percent-count arg-count))))))
+                                                 percent-count arg-count))))
+    (when (and (zero? percent-count)
+               counts-match?
+               (not (linter-disabled? ctx :redundant-format)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) format-str-node :redundant-format
+                   "Format string contains no format specifiers")))))
 
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
@@ -2032,10 +2043,11 @@
       (analyze-format-string ctx format-str-node format-str (rest children)))
     (analyze-children ctx children false)))
 
-(defn analyze-formatted-logging [ctx expr]
+(defn analyze-formatted-logging [ctx expr resolved-as-name]
   (let [children (next (:children expr))]
     (loop [attempt 0
-           args (seq children)]
+           args (cond-> (seq children)
+                  (= 'logf resolved-as-name) rest)]
       (when-first [a args]
         (if-let [format-str (utils/string-from-token a)]
           (analyze-format-string ctx a format-str (rest args))
@@ -2259,13 +2271,7 @@
     (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
 (defn analyze-extend-type [ctx expr defined-by defined-by->lint-as]
-  (let [children (next (:children expr))
-        ctx (if (identical? :cljs (:lang ctx))
-              (update-in ctx [:config :linters :unresolved-symbol :exclude]
-                         (fn [config]
-                           (conj config
-                                 'number 'function 'default 'object 'string 'bigint)))
-              ctx)]
+  (let [children (next (:children expr))]
     (analyze-extend-type-children ctx children defined-by defined-by->lint-as)))
 
 (defn analyze-specify! [ctx expr defined-by defined-by->lint-as]
@@ -2470,6 +2476,13 @@
                                  (not (linter-disabled? ctx :type-mismatch)))
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
+        (when (:in-or-default? ctx)
+          (findings/reg-finding!
+           ctx
+           (assoc expr-meta
+                  :type :destructured-or-always-evaluates
+                  :filename (:filename ctx)
+                  :message "Default :or value is always evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
                 (namespace/reg-unresolved-namespace! ctx ns-name
@@ -2824,7 +2837,7 @@
                              [clojure.tools.logging spyf]
                              [clojure.tools.logging tracef]
                              [clojure.tools.logging warnf])
-                            (analyze-formatted-logging ctx expr)
+                            (analyze-formatted-logging ctx expr resolved-as-name)
                             [clojure.data.xml alias-uri]
                             (xml/analyze-alias-uri ctx expr)
                             [clojure.data.xml.impl export-api]
@@ -3172,14 +3185,17 @@
         (:unquote :unquote-splicing)
         (let [level (:syntax-quote-level ctx)]
           (when-not (and level (pos? level))
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) expr :unquote-not-syntax-quoted
-                         (if (= :unquote t)
-                           "Unquote (~) not syntax-quoted"
-                           "Unquote-splicing (~@) not syntax-quoted"))))
+            (when-not (some #(= '[leiningen.core.project defproject] %) (:callstack ctx))
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) expr :unquote-not-syntax-quoted
+                           (if (= :unquote t)
+                             "Unquote (~) not syntax-quoted"
+                             "Unquote-splicing (~@) not syntax-quoted")))))
           (let [new-level (if level (dec level) -1)
-                ctx (assoc ctx :syntax-quote-level new-level)]
+                ctx (-> ctx
+                        (assoc :syntax-quote-level new-level)
+                        (dissoc :quoted))]
             (analyze-children ctx children)))
         :namespaced-map (do
                           (lint-unused-value ctx expr)
@@ -3285,12 +3301,25 @@
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (types/add-arg-type-from-expr ctx expr)
-                  (if (utils/symbol-token? quoted-child)
-                    (do (lint-symbol-call! ctx quoted-child arg-count expr)
-                        (analyze-children (update ctx :callstack conj [nil t])
-                                          children))
-                    (analyze-children (update ctx :callstack conj [nil t])
-                                      children)))
+                  (cond (utils/symbol-token? quoted-child)
+                        (lint-symbol-call! ctx quoted-child arg-count expr)
+
+                        (identical? :list (:tag quoted-child))
+                        (reg-not-a-function! ctx quoted-child "list")
+
+                        (utils/boolean-token? quoted-child)
+                        (reg-not-a-function! ctx quoted-child "boolean")
+
+                        (utils/string-from-token quoted-child)
+                        (reg-not-a-function! ctx quoted-child "string")
+
+                        (utils/char-token? quoted-child)
+                        (reg-not-a-function! ctx quoted-child "character")
+
+                        (utils/number-token? quoted-child)
+                        (reg-not-a-function! ctx quoted-child "number"))
+                  (analyze-children (update ctx :callstack conj [nil t])
+                                    children))
                 (:vector :set)
                 (do (lint-vector-or-set-call! ctx function arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
@@ -3341,19 +3370,19 @@
                           ret)))
                     (cond
                       (utils/boolean-token? function)
-                      (do (reg-not-a-function! ctx expr "boolean")
+                      (do (reg-not-a-function! ctx function "boolean")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       (utils/string-from-token function)
-                      (do (reg-not-a-function! ctx expr "string")
+                      (do (reg-not-a-function! ctx function "string")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       (utils/char-token? function)
-                      (do (reg-not-a-function! ctx expr "character")
+                      (do (reg-not-a-function! ctx function "character")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       (utils/number-token? function)
-                      (do (reg-not-a-function! ctx expr "number")
+                      (do (reg-not-a-function! ctx function "number")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
                       :else
@@ -3465,8 +3494,11 @@
   (let [init-ns (when-not (= :edn lang)
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
-                                       (dissoc :analysis))
-                                   (parse-string "(ns user)")))
+                                       (dissoc :analysis)
+                                       (utils/ctx-with-linter-disabled :namespace-name-mismatch))
+                                   (if (= "project.clj" (fs/file-name (:filename ctx)))
+                                     (parse-string "(ns leiningen.core.project)")
+                                     (parse-string "(ns user)"))))
         init-ctx (assoc ctx
                         :ns init-ns
                         :calls-by-id (atom {})

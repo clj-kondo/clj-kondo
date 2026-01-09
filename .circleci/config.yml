@@ -31,7 +31,7 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "deps.edn" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies
+            - v1-dependencies-
       - run:
           name: Install Clojure
           command: |
@@ -71,9 +71,9 @@ jobs:
               rm -rf /home/circleci/.gitconfig
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "deps.edn" }}
+            - v2-dependencies-{{ checksum "deps.edn" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies
+            - v2-dependencies-
       - run:
           name: Install Clojure
           command: |
@@ -107,7 +107,7 @@ jobs:
             - ~/.m2
             - ~/.gitlibs
             - ~/repo/test-regression/checkouts
-          key: v1-dependencies-{{ checksum "deps.edn" }}
+          key: v2-dependencies-{{ checksum "deps.edn" }}
 
   linux:
     docker:
