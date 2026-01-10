@@ -1447,20 +1447,24 @@
     (is (empty? (lint! "(instance? String \"hello\")" config)))
     (is (empty? (lint! "(instance? java.io.File (java.io.File. \".\"))" config)))
     (is (empty? (lint! "(if (instance? Number 42) 1 2)" config))))
-  (testing "instance? requires class as first argument"
+  (testing "instance? accepts function as first argument (for ClojureScript compatibility)"
+    (is (empty? (lint! "(instance? cljs.core.ExceptionInfo (ex-info \"msg\" {}))" config)))
+    (is (empty? (lint! "(instance? identity 42)" config)))
+    (is (empty? (lint! "(instance? (fn [x] x) \"test\")" config))))
+  (testing "instance? requires class or fn as first argument"
     (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 12
         :level :error
-        :message "Expected: class, received: positive integer."})
+        :message "Expected: function or class, received: positive integer."})
      (lint! "(instance? 42 \"hello\")" config))
     (assert-submaps2
      '({:file "<stdin>"
         :row 1
         :col 12
         :level :error
-        :message "Expected: class, received: string."})
+        :message "Expected: function or class, received: string."})
      (lint! "(instance? \"String\" 42)" config))))
 
 (deftest make-array-test

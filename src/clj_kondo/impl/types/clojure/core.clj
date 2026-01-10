@@ -107,7 +107,10 @@
    ;; 126
    'seq seqable->nilable-seq
    ;; 139
-   'instance? {:arities {2 {:args [:class :any]
+   ;; Note: fn is allowed in addition to class for ClojureScript compatibility.
+   ;; In CLJS, cljs.core.ExceptionInfo is a constructor function, not a class:
+   ;;   (instance? #?(:clj clojure.lang.ExceptionInfo :cljs cljs.core.ExceptionInfo) e)
+   'instance? {:arities {2 {:args [#{:class :fn} :any]
                             :ret :boolean}}}
    ;; 146
    'seq? any->boolean
@@ -1247,7 +1250,8 @@
                                 :ret :keyword}
                              2 {:args [#{:nilable/string :keyword :symbol}
                                        #{:string :keyword :symbol}]
-                                :ret :keyword}}}))
+                                :ret :keyword}}}
+         'ExceptionInfo {:ret :class}))
 
 (comment
   (bases java.io.File)
