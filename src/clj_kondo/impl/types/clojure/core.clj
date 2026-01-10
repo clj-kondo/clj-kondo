@@ -953,15 +953,15 @@
    ;; 6109 'load
    ;; 6128 'compile
    ;; 6142
-   'get-in {:arities {2 {:args [gettable :seqable]
+   'get-in {:arities {2 {:args [gettable :sequential]
                          :ret :any}
-                      3 {:args [gettable :seqable :any]
+                      3 {:args [gettable :sequential :any]
                          :ret :any}}}
    ;; 6152
-   'assoc-in {:arities {3 {:args [:nilable/associative :seqable :any]
+   'assoc-in {:arities {3 {:args [:nilable/associative :sequential :any]
                            :ret :associative}}}
    ;; 6172
-   'update-in {:arities {:varargs {:args [:nilable/associative :seqable :ifn {:op :rest :spec :any}]
+   'update-in {:arities {:varargs {:args [:nilable/associative :sequential :ifn {:op :rest :spec :any}]
                                    :ret :associative}}}
    ;; 6188
    'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
