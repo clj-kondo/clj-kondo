@@ -17,8 +17,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-
 ## Unreleased
+
+- [#2563](https://github.com/clj-kondo/clj-kondo/issues/2563): NEW linter: `:cond-as-case`, suggests replacing `cond`/`condp` with `case` when possible, defaults to `:off` ([@jramosg](https://github.com/jramosg))
 - Change second arg for assoc-in, get-in and update-in to be sequential, not just seqable ([@tomdl89](https://github.com/tomdl89))
 - :condition-always-true` finding was adding full context into findigns ([@jramosg](https://github.com/jramosg))
 - [#2340](https://github.com/clj-kondo/clj-kondo/issues/2340): Extend `:condition-always-true` linter to check first argument of `clojure.test/is` ([@jramosg](https://github.com/jramosg))
