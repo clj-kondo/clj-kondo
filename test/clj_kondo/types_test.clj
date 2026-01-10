@@ -1394,7 +1394,13 @@
         :col 6
         :level :error
         :message "Expected: number, received: seq."})
-     (lint! "(inc (bases java.io.File))" config))))
+     (lint! "(inc (bases java.io.File))" config)))
+  (testing "bases in ClojureScript accepts both classes and functions"
+    ;; In CLJS, bases can work with constructor functions
+    (is (empty? (lint! "(bases identity)"
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(bases (fn []))"
+                       config "--lang" "cljs")))))
 
 (deftest supers-test
   (testing "supers with valid class argument"
@@ -1424,7 +1430,13 @@
         :col 6
         :level :error
         :message "Expected: number, received: set or nil."})
-     (lint! "(inc (supers java.io.File))" config))))
+     (lint! "(inc (supers java.io.File))" config)))
+  (testing "supers in ClojureScript accepts both classes and functions"
+    ;; In CLJS, supers can work with constructor functions
+    (is (empty? (lint! "(supers identity)"
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(supers (fn []))"
+                       config "--lang" "cljs")))))
 
 (deftest class-test
   (testing "class argument can be any"
@@ -1463,10 +1475,13 @@
         :message "Expected: class, received: string."})
      (lint! "(instance? \"String\" 42)" config)))
   (testing "instance? in ClojureScript doesn't produce type errors"
+    ;; In CLJS, instance? accepts both classes and constructor functions
     (is (empty? (lint! "(instance? ExceptionInfo (ex-info \"msg\" {}))"
-                       "--lang" "cljs")))
+                       config "--lang" "cljs")))
     (is (empty? (lint! "(instance? identity 42)"
-                       "--lang" "cljs")))))
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(ns foo (:require [cljs.core])) (instance? cljs.core/ExceptionInfo {})"
+                       config "--lang" "cljs")))))
 
 (deftest make-array-test
   (testing "make-array with 2 args (type and length)"
