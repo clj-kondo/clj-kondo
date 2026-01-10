@@ -1417,6 +1417,18 @@
   :langs (),
   :message "Condition always true",
   :row 55}
+ {:end-row 1562,
+  :type :type-mismatch,
+  :level :error,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/legacy_mbql/normalize_test.cljc",
+  :col 69,
+  :end-col 92,
+  :cljc true,
+  :langs (:cljs),
+  :message "Expected: class, received: function.",
+  :row 1562}
  {:end-row 823,
   :type :type-mismatch,
   :level :error,

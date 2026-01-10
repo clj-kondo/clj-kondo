@@ -107,7 +107,8 @@
    ;; 126
    'seq seqable->nilable-seq
    ;; 139
-   'instance? any->boolean
+   'instance? {:arities {2 {:args [:class :any]
+                            :ret :boolean}}}
    ;; 146
    'seq? any->boolean
    ;; 153
@@ -145,7 +146,9 @@
    ;; 338 
    'to-array {:arities {1 {:args [:nilable/coll]
                            :ret :array}}}
-   ;; 346 'cast
+   ;; 346 
+   'cast {:arities {2 {:args [:class :any]
+                       :ret :any}}}
    ;; 353
    'vector {:arities {:varargs {:ret :vector}}}
    ;; 367
@@ -676,7 +679,9 @@
    ;; 3400 'disj!
    ;; 3425 'import
    ;; 3443 'into-array
-   ;; 3460 'class
+   ;; 3460
+   'class {:arities {1 {:args [:any]
+                        :ret :class}}}
    ;; 3466 'type
    ;; 3473 'num
    ;; 3480
@@ -760,7 +765,12 @@
                     :varargs {:min-arity 3
                               :args [:array :any {:op :rest :spec :any} :any]
                               :ret :any}}}
-   ;; 3986 'make-array
+   ;; 3986
+   'make-array {:arities {2 {:args [:class :int]
+                             :ret :array}
+                          :varargs {:min-arity 2
+                                    :args [:class :int {:op :rest :spec :int}]
+                                    :ret :array}}}
    ;; 4003 'to-array-2d
    ;; 4018 'macroexpand-1
    ;; 4026 'macroexpand
@@ -924,8 +934,12 @@
    ;; 5520 'thread-bound?
    ;; 5528 'make-hierarchy
    ;; 5537 'not-empty
-   ;; 5543 'bases
-   ;; 5553 'supers
+   ;; 5543 
+   'bases {:arities {1 {:args [:class]
+                        :ret :seq}}}
+   ;; 5553
+   'supers {:arities {1 {:args [:class]
+                         :ret :nilable/set}}}
    ;; 5564 'isa?
    ;; 5585 'parents
    ;; 5598 'ancestors
@@ -1234,3 +1248,15 @@
                              2 {:args [#{:nilable/string :keyword :symbol}
                                        #{:string :keyword :symbol}]
                                 :ret :keyword}}}))
+
+(comment
+  (bases java.io.File)
+  ;; => (java.lang.Object java.io.Serializable java.lang.Comparable)
+  (supers Object)
+  ;; => nil
+  (supers java.io.File)
+  ;; => #{java.lang.Object java.io.Serializable java.lang.Comparable}
+  (make-array Integer/TYPE 3)
+   ;; => #object["[I" 0x54dee272 "[I@54dee272"]
+
+  )

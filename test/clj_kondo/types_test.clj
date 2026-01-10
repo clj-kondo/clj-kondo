@@ -1359,6 +1359,158 @@
       :message "Expected: function, received: seq."})
    (lint! "(comp (map inc (range)))" config)))
 
+(deftest cast-test
+  (testing "cast with valid class argument"
+    (is (empty? (lint! "(cast String \"hello\")" config)))
+    (is (empty? (lint! "(cast java.io.File (java.io.File. \".\"))" config))))
+  (testing "cast with invalid argument - not a class"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(cast 1 \"hello\")" config)))
+  (testing "cast return value should be any"
+    (is (empty? (lint! "(inc (cast java.lang.Long 5))" config)))))
+
+(deftest bases-test
+  (testing "bases with valid class argument"
+    (is (empty? (lint! "(bases java.io.File)" config)))
+    (is (empty? (lint! "(bases String)" config))))
+  (testing "bases with invalid argument - not a class"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 8
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(bases 1)" config)))
+  (testing "bases return value should be seq"
+    (is (empty? (lint! "(first (bases java.io.File))" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: seq."})
+     (lint! "(inc (bases java.io.File))" config))))
+
+(deftest supers-test
+  (testing "supers with valid class argument"
+    (is (empty? (lint! "(supers java.io.File)" config)))
+    (is (empty? (lint! "(supers Object)" config))))
+  (testing "supers with invalid argument - not a class"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 9
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(supers 1)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 9
+        :level :error
+        :message "Expected: class, received: string."})
+     (lint! "(supers \"hello\")" config)))
+  (testing "supers return value should be set or nil"
+    (is (empty? (lint! "(conj (supers java.io.File) Object)" config)))
+    
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: set or nil."})
+     (lint! "(inc (supers java.io.File))" config))))
+
+(deftest class-test
+  (testing "class argument can be any"
+    (is (empty? (lint! "(class \"hello\")" config)))
+    (is (empty? (lint! "(class 1)" config)))
+    (is (empty? (lint! "(class nil)" config))))
+  (testing "class returns class"
+    (is (empty? (lint! "(bases (class \"hello\"))" config)))
+    (is (empty? (lint! "(supers (class []))" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: class."})
+     (lint! "(inc (class 42))" config))))
+
+(deftest instance-test
+  (testing "instance? returns boolean"
+    (is (empty? (lint! "(instance? String \"hello\")" config)))
+    (is (empty? (lint! "(instance? java.io.File (java.io.File. \".\"))" config)))
+    (is (empty? (lint! "(if (instance? Number 42) 1 2)" config))))
+  (testing "instance? requires class as first argument"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 12
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(instance? 42 \"hello\")" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 12
+        :level :error
+        :message "Expected: class, received: string."})
+     (lint! "(instance? \"String\" 42)" config))))
+
+(deftest make-array-test
+  (testing "make-array with 2 args (type and length)"
+    (is (empty? (lint! "(make-array String 10)" config)))
+    (is (empty? (lint! "(make-array Integer/TYPE 5)" config))))
+  (testing "make-array with multiple dimensions"
+    (is (empty? (lint! "(make-array String 10 20)" config)))
+    (is (empty? (lint! "(make-array Integer/TYPE 5 3 2)" config))))
+  (testing "make-array requires class as first argument"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 13
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(make-array 42 10)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 13
+        :level :error
+        :message "Expected: class, received: string."})
+     (lint! "(make-array \"String\" 10)" config)))
+  (testing "make-array requires int as dimension arguments"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 20
+        :level :error
+        :message "Expected: integer, received: string."})
+     (lint! "(make-array String \"10\")" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 23
+        :level :error
+        :message "Expected: integer, received: string."})
+     (lint! "(make-array String 10 \"20\")" config)))
+  (testing "make-array returns array"
+    (is (empty? (lint! "(alength (make-array String 10))" config)))
+    (is (empty? (lint! "(aget (make-array String 10) 0)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: array."})
+     (lint! "(inc (make-array String 10))" config))))
+
 ;;;; Scratch
 
 (comment)
