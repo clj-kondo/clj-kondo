@@ -197,7 +197,43 @@
     (is (empty? (lint! "(condp = x :a 1)" config))))
 
   (testing "no warning for non-= predicates (besides contains?)"
-    (is (empty? (lint! "(condp some x #{:a} 1 #{:b} 2)" config)))))
+    (is (empty? (lint! "(condp some x #{:a} 1 #{:b} 2)" config))))
+
+  (testing "no warning when = is excluded from clojure.core"
+    (is (empty? (lint! "(ns my.ns
+                          (:refer-clojure :exclude [=]))
+                        (defn = [a b] (prn \"custom equals\") false)
+                        (condp = x :a 1 :b 2)"
+                       config))))
+
+  (testing "warning when explicitly using clojure.core/= in condp"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp clojure.core/= x :a 1 :b 2)" config)))
+
+  (testing "warning when using aliased clojure.core/= in condp"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 2
+       :col 14
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(ns my.ns (:require [clojure.core :as core]))
+             (condp core/= x :a 1 :b 2)"
+            config))
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 2
+       :col 18
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(ns my.ns (:require [clojure.core :as clj]))
+                 (condp clj/= x :a 1 :b 2)"
+            config))))
 
 (deftest condp-contains-as-case-test
   (testing "condp contains? can be replaced with case"
@@ -287,4 +323,43 @@
        :col 1
        :level :warning
        :message "cond can be replaced with case"}]
-     (lint! "(cond (clojure.core/= x :a) 1 (clojure.core/= x :b) 2)" config))))
+     (lint! "(cond (clojure.core/= x :a) 1 (clojure.core/= x :b) 2)" config)))
+
+  (testing "warning when using aliased clojure.core/="
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 2
+       :col 14
+       :level :warning
+       :message "cond can be replaced with case"}]
+     (lint! "(ns my.ns (:require [clojure.core :as core]))
+             (cond (core/= x :a) 1 (core/= x :b) 2)"
+            config))))
+
+(deftest no-warning-with-overridden-contains-test
+  (testing "no warning when contains? is excluded from clojure.core"
+    (is (empty? (lint! "(ns my.ns
+                          (:refer-clojure :exclude [contains?]))
+                        (defn contains? [coll item] (prn \"custom contains?\") false)
+                        (condp contains? x #{:a} 1 #{:b} 2)"
+                       config))))
+
+  (testing "warning when explicitly using clojure.core/contains?"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 1
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(condp clojure.core/contains? x #{:a} 1 #{:b} 2)" config)))
+
+  (testing "warning when using aliased clojure.core/contains?"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 2
+       :col 14
+       :level :warning
+       :message "condp can be replaced with case"}]
+     (lint! "(ns my.ns (:require [clojure.core :as core]))
+             (condp core/contains? x #{:a} 1 #{:b} 2)"
+            config))))
