@@ -12,7 +12,7 @@
         :row 1
         :col 61
         :level :info
-        :message "The var foo does not exist in clojure.core"})
+        :message "Unresolved excluded var: foo"})
      (lint! "(ns foo (:refer-clojure :exclude [#_:clj-kondo/ignore comp2 foo]))")))
   (testing "clj"
     (assert-submaps2
@@ -20,7 +20,7 @@
         :row 1
         :col 35
         :level :info
-        :message "The var foo does not exist in clojure.core"})
+        :message "Unresolved excluded var: foo"})
      (lint! "(ns foo (:refer-clojure :exclude [foo]))")))
   (testing "clj valid"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map]))"
@@ -31,7 +31,7 @@
         :row 1
         :col 35
         :level :info
-        :message "The var future does not exist in cljs.core"})
+        :message "Unresolved excluded var: future"})
      (lint! "(ns foo (:refer-clojure :exclude [future]))"
             "--lang" "cljs"
             "--config" (pr-str config))))
@@ -62,12 +62,7 @@
        :row 1
        :col 35
        :level :info
-       :message "The var bad-cljs-var does not exist in cljs.core"}
-      {:file "<stdin>"
-       :row 1
-       :col 35
-       :level :info
-       :message "The var bad-cljs-var does not exist in clojure.core"}]
+       :message "Unresolved excluded var: bad-cljs-var"}]
      (lint! "(ns foo (:refer-clojure :exclude [bad-cljs-var js-obj]))"
             "--lang" "cljc"
             "--config" (pr-str config)))))
@@ -79,12 +74,12 @@
         :row 1
         :col 35
         :level :info
-        :message "The var foo does not exist in clojure.core"}
+        :message "Unresolved excluded var: foo"}
        {:file "<stdin>"
         :row 1
         :col 43
         :level :info
-        :message "The var bar does not exist in clojure.core"})
+        :message "Unresolved excluded var: bar"})
      (lint! "(ns foo (:refer-clojure :exclude [foo map bar filter]))"
             config)))
   (testing "multiple vars across multiple lines"
@@ -93,12 +88,12 @@
         :row 2
         :col 29
         :level :info
-        :message "The var invalid-var does not exist in clojure.core"}
+        :message "Unresolved excluded var: invalid-var"}
        {:file "<stdin>"
         :row 3
         :col 29
         :level :info
-        :message "The var another-bad does not exist in clojure.core"})
+        :message "Unresolved excluded var: another-bad"})
      (lint! "(ns foo
   (:refer-clojure :exclude [invalid-var map
                             another-bad filter]))"
@@ -109,12 +104,12 @@
         :row 1
         :col 35
         :level :info
-        :message "The var bad-cljs-var does not exist in cljs.core"}
+        :message "Unresolved excluded var: bad-cljs-var"}
        {:file "<stdin>"
         :row 1
         :col 55
         :level :info
-        :message "The var future does not exist in cljs.core"})
+        :message "Unresolved excluded var: future"})
      (lint! "(ns foo (:refer-clojure :exclude [bad-cljs-var js-obj future map]))"
             "--lang" "cljs"
             "--config" (pr-str config)))))
@@ -134,7 +129,7 @@
         :row 1
         :col 35
         :level :info
-        :message "The var nonexistent does not exist in clojure.core"})
+        :message "Unresolved excluded var: nonexistent"})
      (lint! "(ns foo (:refer-clojure :exclude [nonexistent]))
 
 (ns bar
@@ -150,7 +145,7 @@
         :row 1
         :col 35
         :level :info
-        :message "The var def does not exist in clojure.core"})
+        :message "Unresolved excluded var: def"})
      (lint! "(ns foo (:refer-clojure :exclude [def]))")))
   (testing "special symbols warn in cljs"
     (assert-submaps2
@@ -158,7 +153,7 @@
         :row 1
         :col 35
         :level :info
-        :message "The var def does not exist in cljs.core"})
+        :message "Unresolved excluded var: def"})
      (lint! "(ns foo (:refer-clojure :exclude [def]))"
             "--lang" "cljs"
             "--config" (pr-str config))))
@@ -168,12 +163,7 @@
         :row 1
         :col 35
         :level :info
-        :message "The var def does not exist in cljs.core"}
-       {:file "<stdin>"
-        :row 1
-        :col 35
-        :level :info
-        :message "The var def does not exist in clojure.core"})
+        :message "Unresolved excluded var: def"})
      (lint! "(ns foo (:refer-clojure :exclude [def])) def"
             "--lang" "cljc"
             "--config" (pr-str config))))
@@ -183,12 +173,12 @@
         :row 1
         :col 35
         :level :info
-        :message "The var def does not exist in clojure.core"}
+        :message "Unresolved excluded var: def"}
        {:file "<stdin>"
         :row 1
         :col 43
         :level :info
-        :message "The var if does not exist in clojure.core"})
+        :message "Unresolved excluded var: if"})
      (lint! "(ns foo (:refer-clojure :exclude [def map if filter]))"
             {:linters {:unused-excluded-var {:level :off}}}))))
 

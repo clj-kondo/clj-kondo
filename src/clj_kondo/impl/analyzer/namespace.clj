@@ -476,11 +476,8 @@
          ctx
          (node->line filename excluded-var
                      :unresolved-excluded-var
-                     (format "The var %s does not exist in %s"
-                             excluded-var
-                             (case lang
-                               :clj "clojure.core"
-                               :cljs "cljs.core"))))))))
+                     (str "Unresolved excluded var: "
+                          excluded-var)))))))
 
 (defn analyze-ns-decl
   [ctx expr]
