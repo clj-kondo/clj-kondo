@@ -1250,8 +1250,7 @@
                                 :ret :keyword}
                              2 {:args [#{:nilable/string :keyword :symbol}
                                        #{:string :keyword :symbol}]
-                                :ret :keyword}}}
-         'ExceptionInfo {:ret :class}))
+                                :ret :keyword}}}))
 
 (comment
   (bases java.io.File)
