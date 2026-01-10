@@ -1359,6 +1359,17 @@
       :message "Expected: function, received: seq."})
    (lint! "(comp (map inc (range)))" config)))
 
+(deftest -in-fns-test
+  (is (empty? (lint! "(assoc-in {:a {:b 42}} [:a :b] 43)" config)))
+  (is (empty? (lint! "(get-in {:a {:b 42}} '(:a :b))" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 25
+      :level :error
+      :message "Expected: sequential collection, received: set."})
+   (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
+
 ;;;; Scratch
 
 (comment)
