@@ -18,6 +18,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update carve -->
 
 
+## Unreleased
+
+- Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
+
 ## 2026.01.12
 
 - [#2712](https://github.com/clj-kondo/clj-kondo/issues/2712): NEW linter: `:redundant-format` to warn when format strings contain no format specifiers ([@jramosg](https://github.com/jramosg))
