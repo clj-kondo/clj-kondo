@@ -20,7 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
+- [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
 
 ## 2026.01.12
 
