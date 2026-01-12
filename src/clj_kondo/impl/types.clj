@@ -57,7 +57,8 @@
     :float
     :var
     :ilookup
-    :array})
+    :array
+    :class})
 
 (def built-in-specs
   {'clojure.core clojure-core
@@ -130,7 +131,7 @@
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
               :vector :sequential :stack :array}})
 
-(def misc-types #{:boolean :atom :regex :char})
+(def misc-types #{:boolean :atom :regex :char :class})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -183,7 +184,8 @@
    :sorted-map "sorted map"
    :var "var"
    :ilookup "ILookup"
-   :array "array"})
+   :array "array"
+   :class "class"})
 
 (defn label [k]
   (cond
@@ -246,6 +248,8 @@
     (Character java.lang.Character) :nilable/char
     (Seqable clojure.lang.Seqable) :seqable
     (java.util.List) :nilable/list
+    (class) :class
+    (Class java.lang.Class) :nilable/class
     nil))
 
 (defn number->tag [v]
