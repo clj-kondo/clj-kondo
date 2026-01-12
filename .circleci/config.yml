@@ -115,8 +115,8 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_VERSION: '24'
-      GRAALVM_HOME: /home/circleci/graalvm-24
+      GRAALVM_VERSION: '25'
+      GRAALVM_HOME: /home/circleci/graalvm-25
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_ARCH: amd64 # used in release script
       CLJ_KONDO_TEST_ENV: native
@@ -187,8 +187,8 @@ jobs:
     working_directory: ~/repo
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_VERSION: "24"
-      GRAALVM_HOME: /home/circleci/graalvm-24
+      GRAALVM_VERSION: "25"
+      GRAALVM_HOME: /home/circleci/graalvm-25
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_ARCH: aarch64 # used in release script
       CLJ_KONDO_STATIC: "true"
@@ -253,8 +253,8 @@ jobs:
     resource_class: large
     environment:
       LEIN_ROOT: "true"
-      GRAALVM_VERSION: '24'
-      GRAALVM_HOME: /home/circleci/graalvm-24
+      GRAALVM_VERSION: '25'
+      GRAALVM_HOME: /home/circleci/graalvm-25
       CLJ_KONDO_PLATFORM: linux # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_STATIC: true
@@ -327,8 +327,8 @@ jobs:
       xcode: "14.3.1"
       resource_class: m4pro.medium
     environment:
-      GRAALVM_VERSION: "24"
-      GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
+      GRAALVM_VERSION: "25"
+      GRAALVM_HOME: /Users/distiller/graalvm-25/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_ARCH: amd64 # used in release script
@@ -401,8 +401,8 @@ jobs:
       xcode: "14.3.1"
       resource_class: m4pro.medium
     environment:
-      GRAALVM_VERSION: "24"
-      GRAALVM_HOME: /Users/distiller/graalvm-24/Contents/Home
+      GRAALVM_VERSION: "25"
+      GRAALVM_HOME: /Users/distiller/graalvm-25/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_ARCH: aarch64 # used in release script
