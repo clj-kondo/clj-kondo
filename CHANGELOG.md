@@ -19,8 +19,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 
 ## Unreleased
+
 - Change second arg for assoc-in, get-in and update-in to be sequential, not just seqable ([@tomdl89](https://github.com/tomdl89))
-- :condition-always-true` finding was adding full context into findigns ([@jramosg](https://github.com/jramosg))
+- `:condition-always-true` finding was adding full context into findigns ([@jramosg](https://github.com/jramosg))
 - [#2340](https://github.com/clj-kondo/clj-kondo/issues/2340): Extend `:condition-always-true` linter to check first argument of `clojure.test/is` ([@jramosg](https://github.com/jramosg))
 - [#2719](https://github.com/clj-kondo/clj-kondo/issues/2719): Fix: `comp` args are now properly type checked ([@tomdl89](https://github.com/tomdl89))
 - [#2712](https://github.com/clj-kondo/clj-kondo/issues/2712): NEW linter: `:redundant-format` to warn when format strings contain no format specifiers ([@jramosg](https://github.com/jramosg))
@@ -42,6 +43,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Leiningen's `defproject` behavior can now be configured using `leiningen.core.project/defproject`
 - Fix [#2699](https://github.com/clj-kondo/clj-kondo/issues/2699): fix false positive unresolved string var with extend-type on CLJS
 - Rename `:refer-clojure-exclude-unresolved-var` linter to `unresolved-excluded-var` for consistency
+- Upgrade to GraalVM 25
 
 ## 2025.12.23
 
