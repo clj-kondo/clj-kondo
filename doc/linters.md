@@ -14,6 +14,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Case quoted test](#case-quoted-test)
         - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
+    - [Cond-as-case](#cond-as-case)
     - [Cond-else](#cond-else)
     - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
@@ -249,6 +250,52 @@ enabling this linter, you can prepend the `case` expression with
 ```
 
 *Example message:* `Unexpected linter name: :foo`.
+
+### Cond-as-case
+
+*Keyword:* `:cond-as-case`.
+
+*Description:* warn on `cond` or `condp` expressions that can be replaced with `case`.
+This improves both readability and performance since `case` uses constant-time lookup
+instead of linear search.
+
+*Default level:* `:off`.
+
+*Example triggers:*
+
+``` clojure
+;; cond with equality comparisons
+(cond
+  (= x :a) 1
+  (= x :b) 2)
+
+;; condp with =
+(condp = x
+  :a 1
+  :b 2)
+
+;; condp with contains?
+(condp contains? x
+  #{:a} 1
+  #{:b :c} 2)
+```
+
+*Example message:* `cond can be replaced with case` or `condp can be replaced with case`.
+
+*Notes:*
+
+- The linter only triggers when there are at least 2 test constants.
+- The linter will not trigger when the test constants have hash collisions
+  (e.g., `0`, `0.0`, and `nil` all have the same hash), since `case` would
+  fall back to linear lookup for those cases anyway.
+- All test constants must be compile-time constants suitable for `case`:
+  keywords, numbers, strings, characters, booleans, symbols, or nil.
+
+*Config:* to enable this linter:
+
+``` clojure
+{:linters {:cond-as-case {:level :warning}}}
+```
 
 ### Cond-else
 
