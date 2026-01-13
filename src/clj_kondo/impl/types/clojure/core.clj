@@ -533,9 +533,10 @@
    ;; 2548
    'volatile? any->boolean
    ;; 2557
-   'comp {:arities {:varargs {:args [:ifn {:op :rest
+   'comp {:arities {0 {:ret :fn}
+                    :varargs {:args [:ifn {:op :rest
                                            :spec :ifn}]
-                              :ret :ifn}}}
+                              :ret :fn}}}
    ;; 2576
    'juxt {:arities {:varargs {:args [:ifn {:op :rest
                                            :spec :ifn}]

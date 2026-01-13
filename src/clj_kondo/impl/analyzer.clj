@@ -1972,31 +1972,26 @@
                    matcher-type
                    (not (identical? matcher-type :any)))
           (case match-type
-            :string (when (not (or (identical? matcher-type :string)
-                                   (identical? matcher-type :nilable/string)))
+            :string (when (not (types/match? matcher-type :nilable/string))
                       (findings/reg-finding!
                        ctx
                        (node->line (:filename ctx) (last children)
                                    :type-mismatch
-                                   "String match arg requires string replacement arg.")))
-            :char (when (not (identical? matcher-type :char))
+                                   (str "String match arg requires string replacement arg, received: " (types/label matcher-type)))))
+            :char (when (not (types/match? matcher-type :char))
                     (findings/reg-finding!
                      ctx
                      (node->line (:filename ctx) (last children)
                                  :type-mismatch
-                                 "Char match arg requires char replacement arg.")))
-            :regex (when (not (or (identical? matcher-type :string)
-                                  (identical? matcher-type :nilable/string)
-                                  ;; we could allow :ifn here, but keywords are
-                                  ;; not valid in this position, so we do an
-                                  ;; additional check for :map
-                                  (identical? matcher-type :fn)
-                                  (identical? matcher-type :map)))
+                                 (str "Char match arg requires char replacement arg, received: " (types/label matcher-type)))))
+            :regex (when (not (or (types/match? matcher-type :nilable/string)
+                                  (and (types/match? matcher-type :ifn)
+                                       (not (identical? :keyword matcher-type)))))
                      (findings/reg-finding!
                       ctx
                       (node->line (:filename ctx) (last children)
                                   :type-mismatch
-                                  "Regex match arg requires string or function replacement arg.")))
+                                  (str "Regex match arg requires string or function replacement arg, received: " (types/label matcher-type)))))
             nil))))))
 
 (defn analyze-proxy-super [ctx expr]

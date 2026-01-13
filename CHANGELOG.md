@@ -17,6 +17,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- Fix `str/replace` false positive and tighten comp ret type
 
 ## 2026.01.12
 
