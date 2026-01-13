@@ -679,20 +679,20 @@
 (deftest clojure-string-replace-test
   (assert-submaps2
    '({:file "<stdin>", :row 3, :col 27, :level :error,
-      :message "Regex match arg requires string or function replacement arg."})
+      :message "Regex match arg requires string or function replacement arg, received: keyword"})
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" #\"foo\" :foo)"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
    '({:file "<stdin>", :row 3, :col 23, :level :error,
-      :message "Char match arg requires char replacement arg."})
+      :message "Char match arg requires char replacement arg, received: string"})
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" \\a \"foo\")"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 60, :level :error, :message "String match arg requires string replacement arg."})
+   '({:file "<stdin>", :row 1, :col 60, :level :error, :message "String match arg requires string replacement arg, received: function"})
    (lint! "(require '[clojure.string :as str]) (str/replace \"foo\" \"o\" (fn [_]))"
           {:linters {:type-mismatch {:level :error}}}))
   (is (empty? (lint! "
@@ -747,6 +747,10 @@
   (is (empty? (lint! "
 (require '[clojure.string :as str]) (defn replace-str [_foo bar] bar)
 (str/replace \"foo\" #\"bar\" (partial replace-str \"dude\"))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(ns foo (:require [clojure.string :as str]))
+(str/replace \"$a\" #\"\\w+\" (comp str))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
@@ -1349,6 +1353,7 @@
      (lint! "(aclone [1 2 3])" config))))
 
 (deftest comp-test
+  (is (empty? (lint! "(comp)" config)))
   (is (empty? (lint! "(comp inc dec)" config)))
   (is (empty? (lint! "(comp (map inc))" config)))
   (assert-submaps2
