@@ -16,6 +16,7 @@
       (assert-submaps2
        [{:row 1 :col 5 :message msg}]
        (lint! "#?@(:default [1] :clj [2])" config "--lang" "cljc"))
+
       (testing ":default last"
         (is (empty? (lint! "#?(:clj 1 :default 2)" config "--lang" "cljc")))
         (is (empty? (lint! "#?(:clj 1 :cljs 2 :default 3)" config "--lang" "cljc"))))
