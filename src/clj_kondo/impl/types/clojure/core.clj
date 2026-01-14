@@ -1026,8 +1026,7 @@
                     4 {:args [:ifn :any :any :any]
                        :ret :ifn}}}
    ;; 6697 'case
-   ;; 6780
-   'Inst {}
+   ;; 6780 'Inst
    ;; 6780
    'inst-ms* {:arities {1 {:args [:inst] :ret :long}}}
    ;; 6787
