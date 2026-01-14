@@ -9,6 +9,7 @@ configuration. For general configurations options, go [here](config.md).
 - [Linters](#linters)
     - [Aliased namespace symbol](#aliased-namespace-symbol)
     - [Aliased namespace var usage](#aliased-namespace-var-usage)
+    - [Aliased referred var](#aliased-referred-var)
     - [Case](#case)
     - [Case duplicate test](#case-duplicate-test)
         - [Case quoted test](#case-quoted-test)
@@ -175,6 +176,26 @@ configuration. For general configurations options, go [here](config.md).
 ```
 
 *Example message:* `Namespace only aliased but wasn't loaded: clojure.data.xml`
+
+### Aliased referred var
+
+*Keyword:* `:aliased-referred-var`.
+
+*Description:* warn when a var is both referred and accessed via an alias in the same namespace.
+
+*Default level:* `:info`.
+
+*Example trigger:*
+
+```clojure
+(ns foo
+  (:require [clojure.set :as set :refer [union]]))
+
+(set/union #{1} #{2})
+(union #{3} #{4})
+```
+
+*Example message:* `var clojure.set/union is referred as union but also used via alias set`
 
 ### Case
 
