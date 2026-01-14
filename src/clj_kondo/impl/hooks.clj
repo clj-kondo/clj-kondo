@@ -4,7 +4,7 @@
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.utils :as utils :refer [*ctx*]]
+   [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.pprint]
    [sci.core :as sci]
@@ -29,7 +29,7 @@
                   (let [f (io/file cp-entry (str base-path "." ext))]
                     (when (.exists f) f)))
                 ["clj_kondo" "clj" "cljc"]))
-        (:classpath *ctx*)))
+        (:classpath utils/*ctx*)))
 
 #_(defmacro macroexpand [macro node]
     `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
@@ -169,7 +169,7 @@
                               (format "(require '%s %s)\n%s" ns
                                       (if api/*reload* :reload "")
                                       x)))]
-                 (binding [*ctx* ctx]
+                 (binding [utils/*ctx* ctx]
                    ;; require isn't thread safe in SCI
                    (sci/eval-string* (store/get-ctx) code))))
              (when-let [x (or (get-in hook-cfg [:macroexpand sym])
@@ -188,10 +188,11 @@
                                         ns
                                         (if api/*reload* :reload "")
                                         x)))
-                       macro (binding [*ctx* ctx]
+                       macro (binding [utils/*ctx* ctx]
                                (sci/eval-string* (store/get-ctx) code))]
                    (fn [{:keys [node]}]
-                     {:node (macroexpand macro node (:bindings *ctx*))})))))))
+                     {:node (macroexpand macro node 
+                                         (:bindings utils/*ctx*))})))))))
        (catch Exception e
          (binding [*out* *err*]
            (println "WARNING: error while trying to read hook for"

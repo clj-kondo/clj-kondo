@@ -38,8 +38,8 @@
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
-    [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
-     one-of parse-string select-lang sexpr string-from-token symbol-call tag
+    [assoc-some ctx-with-bindings linter-disabled? node->line
+     one-of parse-string select-lang sexpr string-from-token symbol-call
      tag]]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -106,7 +106,7 @@
   (let [undefined-locals (set (keys m))]
     (doseq [[k v] (partition 2 (:children defaults))]
       (let [binding (:value k)
-            simple? (and (identical? :token (utils/tag k))
+            simple? (and (identical? :token (tag k))
                          (simple-symbol? binding))]
         (when-not simple?
           (let [m (meta k)]
@@ -622,7 +622,7 @@
                     matching-node (some #(when (= tstr (str %))
                                            %) name-node-meta-nodes)]
                 (when matching-node
-                  (findings/reg-finding! ctx (utils/node->line
+                  (findings/reg-finding! ctx (node->line
                                               (:filename ctx)
                                               matching-node
                                               :non-arg-vec-return-type-hint
@@ -799,7 +799,7 @@
     (->> binding-vector :children
          (take-nth 2)
          (map #(extract-bindings ctx % scoped-expr {}))
-         (reduce deep-merge {}))))
+         (reduce utils/deep-merge {}))))
 
 (defn analyze-redundant-bindings [ctx bv-node]
   (when (and (not (identical? :off (-> ctx :config :linters :redundant-let-binding :level)))
@@ -1098,7 +1098,7 @@
         ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
-        _ (when (and ?name-expr (identical? :token (utils/tag ?name-expr)))
+        _ (when (and ?name-expr (identical? :token (tag ?name-expr)))
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
         ;; we need the arity beforehand because this is valid in each body
@@ -1312,12 +1312,12 @@
         [child & children] (if docstring (next children) children)
         core-def? (one-of (first (:callstack ctx)) [[clojure.core def] [cljs.core def]])
         _ (when (and core-def? children)
-            (findings/reg-finding! ctx (utils/node->line (:filename ctx) expr :invalid-arity "Too many arguments to def")))
+            (findings/reg-finding! ctx (node->line (:filename ctx) expr :invalid-arity "Too many arguments to def")))
         _ (when-not child
-            (findings/reg-finding! ctx (utils/node->line (:filename ctx) expr :uninitialized-var "Uninitialized var")))
+            (findings/reg-finding! ctx (node->line (:filename ctx) expr :uninitialized-var "Uninitialized var")))
         [extra-meta extra-meta-node children] (if (and defmulti?
                                                        child
-                                                       (identical? :map (utils/tag child)))
+                                                       (identical? :map (tag child)))
                                                 [(sexpr child) child children]
                                                 [nil nil (cons child children)])
         metadata (if extra-meta (merge metadata extra-meta)
@@ -1350,12 +1350,12 @@
       (when (not earmuffed?)
         (findings/reg-finding!
          ctx
-         (utils/node->line (:filename ctx) var-name-node
+         (node->line (:filename ctx) var-name-node
                            :dynamic-var-not-earmuffed
                            (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
       (when earmuffed?
         (findings/reg-finding! ctx
-                               (utils/node->line (:filename ctx) var-name-node
+                               (node->line (:filename ctx) var-name-node
                                                  :earmuffed-var-not-dynamic
                                                  (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
@@ -1523,8 +1523,8 @@
   (when (or (:in-def ctx)
             (and (not (:top-level? ctx))
                  (let [[parent-ns parent-fn] (second (:callstack ctx))]
-                   (and (utils/one-of parent-ns [clojure.core cljs.core])
-                        (utils/one-of parent-fn [fn defmethod])))))
+                   (and (one-of parent-ns [clojure.core cljs.core])
+                        (one-of parent-fn [fn defmethod])))))
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :inline-def "inline def"))))
@@ -2073,7 +2073,7 @@
 (defn analyze-format [ctx expr]
   (let [children (next (:children expr))
         format-str-node (first children)
-        format-str (utils/string-from-token format-str-node)]
+        format-str (string-from-token format-str-node)]
     (when format-str
       (analyze-format-string ctx format-str-node format-str (rest children)))
     (analyze-children ctx children false)))
@@ -2084,7 +2084,7 @@
            args (cond-> (seq children)
                   (= 'logf resolved-as-name) rest)]
       (when-first [a args]
-        (if-let [format-str (utils/string-from-token a)]
+        (if-let [format-str (string-from-token a)]
           (analyze-format-string ctx a format-str (rest args))
           (when (zero? attempt)
             ;; format string can be either the first or second argument
@@ -2114,7 +2114,7 @@
         ;; _ (prn :prepending prepending :f f :f-args f-args)
         _ (analyze-children ctx prepending false)
         fana (analyze-expression** ctx f)
-        t (utils/tag f)
+        t (tag f)
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)
         arity (if binding
@@ -2212,7 +2212,7 @@
                (node->line (:filename ctx) f
                            :invalid-arity
                            (linters/arity-error nil (str/capitalize (name t)) arg-count expected nil))))))
-    (when (and (not (utils/linter-disabled? ctx :reduce-without-init))
+    (when (and (not (linter-disabled? ctx :reduce-without-init))
                (= 'reduce hof-resolved-name)
                (or (= 'clojure.core hof-ns-name)
                    (= 'clojure.cljs hof-ns-name))
@@ -2328,7 +2328,7 @@
     ;; TODO, warning if no instance. Instance is required
     (when instance (analyze-expression** ctx instance))
     (when meth
-      (if (and (identical? :list (utils/tag meth)) (not args))
+      (if (and (identical? :list (tag meth)) (not args))
         (let [[meth & children] (:children meth)]
           (analysis/reg-instance-invocation! ctx meth)
           (analyze-children ctx children))
@@ -2341,8 +2341,7 @@
           (repeat {})))
 
 (defn- analyze-with-precision [ctx _expr children]
-  (analyze-children (utils/ctx-with-bindings ctx
-                                             with-precision-bindings)
+  (analyze-children (ctx-with-bindings ctx with-precision-bindings)
                     children))
 
 (defn- analyze-= [ctx expr]
@@ -2425,7 +2424,7 @@
         obj (first children)]
     (let [only-object? (= 1 (count children))
           no-symbol? (and (not (utils/symbol-from-token obj))
-                          (= :list (utils/tag obj)))
+                          (= :list (tag obj)))
           interned-object? (and t
                                 (not= :any t)
                                 (or (one-of t [:keyword :string :boolean :number])
@@ -2590,8 +2589,8 @@
                              (dec (count children))]))
                         same-call? (and new-name-node
                                         new-arg-count
-                                        (= (utils/tag name-node)
-                                           (utils/tag new-name-node))
+                                        (= (tag name-node)
+                                           (tag new-name-node))
                                         (= full-fn-name (:value new-name-node))
                                         (= arg-count
                                            new-arg-count))
@@ -3277,7 +3276,7 @@
                                (qualified-symbol? sym))
                       (let [resolved-extra (or (when-not edn?
                                                  (let [the-ns-name (-> ctx :ns :name)
-                                                       resolved (namespace/resolve-name ctx false the-ns-name sym expr)]
+                                                       resolved (resolve-name ctx false the-ns-name sym expr)]
                                                    (when-not (or (:unresolved? resolved)
                                                                  (:interop? resolved))
                                                      {:to (:ns resolved)
@@ -3323,7 +3322,7 @@
                         (utils/boolean-token? quoted-child)
                         (reg-not-a-function! ctx quoted-child "boolean")
 
-                        (utils/string-from-token quoted-child)
+                        (string-from-token quoted-child)
                         (reg-not-a-function! ctx quoted-child "string")
 
                         (utils/char-token? quoted-child)
@@ -3334,7 +3333,7 @@
                   (analyze-children (update ctx :callstack conj [nil t])
                                     children))
                 (:vector :set)
-                (do (lint-vector-or-set-call! ctx (utils/tag function) arg-count expr)
+                (do (lint-vector-or-set-call! ctx (tag function) arg-count expr)
                     (types/add-arg-type-from-expr ctx expr)
                     (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
@@ -3386,7 +3385,7 @@
                       (do (reg-not-a-function! ctx function "boolean")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
-                      (utils/string-from-token function)
+                      (string-from-token function)
                       (do (reg-not-a-function! ctx function "string")
                           (analyze-children (update ctx :callstack conj [nil t])
                                             (rest children)))
