@@ -2,8 +2,7 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer
-    [node->line tag one-of tag sexpr]]
+   [clj-kondo.impl.utils :as utils :refer [node->line one-of sexpr tag]]
    [datalog.parser :as datalog]))
 
 (set! *warn-on-reflection* true)
