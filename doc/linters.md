@@ -38,6 +38,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
+    - [Duplicate refer](#duplicate-refer)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
     - [Duplicate key args](#duplicate-key-args)
@@ -777,6 +778,21 @@ Explanation by Bozhidar Batsov:
 ```
 
 *Example message:* `duplicate require of clojure.string`
+
+### Duplicate refer
+
+*Keyword:* `:duplicate-refer`.
+
+*Description:* warns on var that has been referred more than once in a `:refer` or `:refer-macros` vector.
+
+*Example trigger:*
+
+``` clojure
+(ns foo
+  (:require [clojure.set :refer [union union]]))
+```
+
+*Example message:* `Duplicate refer: union`
 
 ### Duplicate set key
 
