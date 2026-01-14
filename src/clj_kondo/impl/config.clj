@@ -29,7 +29,6 @@
               :redundant-let {:level :warning}
               :redundant-let-binding {:level :off}
               :cond-else {:level :warning}
-              :reader-conditional-default-not-last {:level :warning}
               :syntax {:level :error}
               :file {:level :error}
               :missing-test-assertion {:level :warning}

@@ -1476,18 +1476,6 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 
 *Example message:* `Protocol methods do not support varargs`.
 
-### Reader conditional default not last
-
-*Keyword:* `:reader-conditional-default-not-last`.
-
-*Description:* warn when `:default` does not come last in a reader conditional.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `#?(:default 1 :clj 2)`
-
-*Example message:* `:default should be the last branch in a reader conditional`.
-
 ### Redefined var
 
 *Keyword:* `:redefined-var`.

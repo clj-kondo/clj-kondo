@@ -117,14 +117,14 @@
      :col (:col m)
      :filename filename}))
 
-(defn- lint-reader-conditional-default-not-last! [ctx k ts]
-  (when (and (not (linter-disabled? ctx :reader-conditional-default-not-last))
+(defn- lint-unreachable-reader-conditional! [ctx k ts]
+  (when (and (not (linter-disabled? ctx :unreachable-code))
              (= :default (:k k))
              (seq ts))
     (common/reg-finding! ctx (node->line (:filename ctx)
                                          k
-                                         :reader-conditional-default-not-last
-                                         ":default should be the last branch in a reader conditional"))))
+                                          :unreachable-code
+                                         "unreachable code. :default should be the last branch in a reader conditional"))))
 
 (defn process-reader-conditional [ctx node lang splice?]
   (if (and node
@@ -140,7 +140,7 @@
                                           :level :error
                                           :type :syntax
                                           :message "Feature should be a keyword")))
-        (lint-reader-conditional-default-not-last! ctx k ts)
+        (lint-unreachable-reader-conditional! ctx k ts)
         (let [kw (:k k)
               default (or default
                           (when (= :default kw)
