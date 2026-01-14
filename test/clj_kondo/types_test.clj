@@ -1536,6 +1536,30 @@
         :message "Expected: number, received: array."})
      (lint! "(inc (make-array String 10))" config))))
 
+(deftest inst-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "inst-ms and inst-ms* handle inst type"
+      (is (empty? (lint! "(defn f [^java.util.Date d] (inst-ms d))" config)))
+      (is (empty? (lint! "(defn f [^java.util.Date d] (inst-ms* d))" config)))
+      (is (empty? (lint! "(inst-ms (java.util.Date.))" config)))
+      (is (empty? (lint! "(inst-ms* (java.util.Date.))" config)))
+      (is (empty (lint! "(ns foo (:require [clj-time.core :as time]))
+                        (inst-ms (time/now))"))))
+    (testing "inst-ms and inst-ms* mismatch"
+      (assert-submaps2
+       '({:message "Expected: inst, received: string."})
+       (lint! "(inst-ms \"foo\")" config))
+      (assert-submaps2
+       '({:message "Expected: inst, received: positive integer."})
+       (lint! "(inst-ms* 10)" config))
+      (assert-submaps2
+       '({:message "Expected: inst, received: long or nil."})
+       (lint! "(defn f [^Long d] (inst-ms d))")))
+    (testing "inst-ms and inst-ms* return long"
+      (assert-submaps2
+       '({:message "Expected: string, received: long."})
+       (lint! "(defn f [^java.util.Date d] (subs (inst-ms d) 1))" config)))))
+
 (deftest -in-fns-test
   (is (empty? (lint! "(assoc-in {:a {:b 42}} [:a :b] 43)" config)))
   (is (empty? (lint! "(get-in {:a {:b 42}} '(:a :b))" config)))
