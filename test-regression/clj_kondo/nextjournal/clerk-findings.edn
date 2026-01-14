@@ -48,6 +48,17 @@
   :langs (),
   :message "Unused excluded var: remove-ns",
   :row 2}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/viewer.cljc",
+  :col 6,
+  :cljc true,
+  :langs (:cljs),
+  :message
+  "var flatland.ordered.map/ordered-map is referred as ordered-map but also used via alias omap",
+  :row 105}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,
