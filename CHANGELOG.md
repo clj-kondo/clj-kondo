@@ -20,10 +20,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Fix `str/replace` false positive and tighten comp ret type
-
-## Unreleased
-
 - [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
+- Add new type `inst` and type checking support for `inst-ms` and `inst-ms*` ([@jramosg](https://github.com/jramosg))
 
 ## 2026.01.12
 

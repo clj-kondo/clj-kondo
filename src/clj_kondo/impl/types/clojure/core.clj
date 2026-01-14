@@ -1027,8 +1027,10 @@
                        :ret :ifn}}}
    ;; 6697 'case
    ;; 6780 'Inst
-   ;; 6780 'inst-ms*
-   ;; 6787 'inst-ms
+   ;; 6780
+   'inst-ms* {:arities {1 {:args [:inst] :ret :long}}}
+   ;; 6787
+   'inst-ms {:arities {1 {:args [:inst] :ret :long}}}
    ;; 6793
    'inst? any->boolean
    ;; 6805

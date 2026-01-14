@@ -58,6 +58,7 @@
     :var
     :ilookup
     :array
+    :inst
     :class})
 
 (def built-in-specs
@@ -131,7 +132,7 @@
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
               :vector :sequential :stack :array}})
 
-(def misc-types #{:boolean :atom :regex :char :class})
+(def misc-types #{:boolean :atom :regex :char :class :inst})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -185,7 +186,8 @@
    :var "var"
    :ilookup "ILookup"
    :array "array"
-   :class "class"})
+   :class "class"
+   :inst "instant"})
 
 (defn label [k]
   (cond
@@ -250,6 +252,7 @@
     (java.util.List) :nilable/list
     (class) :class
     (Class java.lang.Class) :nilable/class
+    (Date java.util.Date) :nilable/inst
     nil))
 
 (defn number->tag [v]
