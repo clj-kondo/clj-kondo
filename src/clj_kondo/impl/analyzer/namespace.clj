@@ -97,18 +97,17 @@
 
 (defn- lint-duplicate-refers! [ctx refers]
   (when-not (linter-disabled? ctx :duplicate-refer)
-    (reduce (fn [seen refer-node]
-              (let [s (:value refer-node)]
-                (if (contains? seen s)
-                  (do
-                    (findings/reg-finding!
-                     ctx
-                     (node->line (:filename ctx)
-                                 refer-node
-                                 :duplicate-refer
-                                 (str "Duplicate refer: " s)))
-                    seen)
-                  (conj seen s))))
+    (reduce (fn [seen {v :value, :as refer-node}]
+              (if (contains? seen v)
+                (do
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx)
+                               refer-node
+                               :duplicate-refer
+                               (str "Duplicate refer: " v)))
+                  seen)
+                (conj seen v)))
             #{} refers)))
 
 (defn analyze-libspec
