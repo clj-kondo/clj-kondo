@@ -178,7 +178,7 @@
                      {:file "corpus/spec/alpha.cljs", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
                      {:file "corpus/spec/alpha.cljs", :row 6, :col 1, :level :error, :message "spec.alpha/def is called with 2 args but expects 3"})
                   (lint! (io/file "corpus" "spec")))
-  (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
+  (is (empty? (lint! "(defn foo [#?(:clj s :default s)]) (foo 1)"
                      "--lang" "cljc")))
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
                      "--lang" "cljc")))
