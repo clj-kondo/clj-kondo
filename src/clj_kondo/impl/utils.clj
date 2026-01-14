@@ -118,9 +118,9 @@
      :filename filename}))
 
 (defn- lint-unreachable-reader-conditional! [ctx k ts]
-  (when (and (not (linter-disabled? ctx :unreachable-code))
-             (= :default (:k k))
-             (seq ts))
+  (when (and (= :default (:k k))
+             (seq ts)
+             (not (linter-disabled? ctx :unreachable-code)))
     (common/reg-finding! ctx (node->line (:filename ctx)
                                          k
                                          :unreachable-code
