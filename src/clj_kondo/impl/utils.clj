@@ -101,6 +101,31 @@
     splice? (update :children (fn [children]
                                 (map #(attach-branch* % lang) children)))))
 
+(defn linter-disabled? [ctx linter]
+  (= :off (get-in ctx [:config :linters linter :level])))
+
+(defn node->line [filename node t message]
+  #_(when (and (= type :missing-docstring)
+               (not (:row (meta node))))
+      (prn node))
+  (let [m (meta node)]
+    {:type t
+     :message message
+     :row (:row m)
+     :end-row (:end-row m)
+     :end-col (:end-col m)
+     :col (:col m)
+     :filename filename}))
+
+(defn- lint-unreachable-reader-conditional! [ctx k ts]
+  (when (and (= :default (:k k))
+             (seq ts)
+             (not (linter-disabled? ctx :unreachable-code)))
+    (common/reg-finding! ctx (node->line (:filename ctx)
+                                         k
+                                         :unreachable-code
+                                         "Unreachable code: default reader conditional branch should go last"))))
+
 (defn process-reader-conditional [ctx node lang splice?]
   (if (and node
            (= :reader-macro (node/tag node))
@@ -115,6 +140,7 @@
                                           :level :error
                                           :type :syntax
                                           :message "Feature should be a keyword")))
+        (lint-unreachable-reader-conditional! ctx k ts)
         (let [kw (:k k)
               default (or default
                           (when (= :default kw)
@@ -156,19 +182,6 @@
   ([ctx node lang splice?]
    (when-let [processed (process-reader-conditional ctx node lang splice?)]
      (select-lang-children ctx processed lang))))
-
-(defn node->line [filename node t message]
-  #_(when (and (= type :missing-docstring)
-               (not (:row (meta node))))
-      (prn node))
-  (let [m (meta node)]
-    {:type t
-     :message message
-     :row (:row m)
-     :end-row (:end-row m)
-     :end-col (:end-col m)
-     :col (:col m)
-     :filename filename}))
 
 (defn parse-string [s]
   (p/parse-string s))
@@ -245,9 +258,6 @@
 (defmacro one-of [x elements]
   `(let [x# ~x]
      (case x# (~@elements) x# nil)))
-
-(defn linter-disabled? [ctx linter]
-  (= :off (get-in ctx [:config :linters linter :level])))
 
 (defn ctx-with-bindings [ctx bindings]
   (update ctx :bindings (fn [b]
