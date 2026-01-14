@@ -650,9 +650,8 @@
                         referred-name (when alias
                                         (get referred-by-full-name full-name))]
                   :when referred-name
-                  :let [msg (format "var %s/%s is referred as %s but also used via alias %s"
-                                    (first full-name) (second full-name)
-                                    referred-name alias)]]
+                  :let [msg (format "Var %s is referred but used via alias: %s"
+                                    v-name alias)]]
             (findings/reg-finding!
              ctx
              {:filename (:filename ns)

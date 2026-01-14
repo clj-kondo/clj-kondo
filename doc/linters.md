@@ -196,7 +196,7 @@ configuration. For general configurations options, go [here](config.md).
 (union #{3} #{4})
 ```
 
-*Example message:* `var clojure.set/union is referred as union but also used via alias set`
+*Example message:* `Var union is referred but used via alias: set`
 
 ### Case
 
