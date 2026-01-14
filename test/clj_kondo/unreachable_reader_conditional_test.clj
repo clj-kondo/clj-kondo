@@ -2,7 +2,7 @@
   (:require [clj-kondo.test-utils :refer [lint! assert-submaps2]]
             [clojure.test :refer [deftest is testing]]))
 
-(def ^:private msg "unreachable code. :default should be the last branch in a reader conditional")
+(def ^:private msg "Unreachable code: default reader conditional branch should go last")
 
 (deftest unreachable-reader-conditional-test
   (let [config {:linters {:unreachable-code {:level :warning}}}]

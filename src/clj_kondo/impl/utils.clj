@@ -123,8 +123,8 @@
              (seq ts))
     (common/reg-finding! ctx (node->line (:filename ctx)
                                          k
-                                          :unreachable-code
-                                         "unreachable code. :default should be the last branch in a reader conditional"))))
+                                         :unreachable-code
+                                         "Unreachable code: default reader conditional branch should go last"))))
 
 (defn process-reader-conditional [ctx node lang splice?]
   (if (and node
