@@ -2678,7 +2678,7 @@ foo"))))
       :row 2
       :col 29
       :level :info
-      :message "Var join is used via alias s"})
+      :message "Var join is referred but used via alias: s"})
    (lint! "(ns foo (:require [clojure.string :as s :refer :all]))
            (defn foo [strs] (s/join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
