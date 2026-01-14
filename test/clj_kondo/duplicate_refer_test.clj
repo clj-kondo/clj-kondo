@@ -42,11 +42,3 @@
   (:require [clojure.core :refer-macros [defn defn]]))"
             "{:linters {:unused-namespace {:level :off}
                         :unused-referred-var {:level :off}}}"))))
-
-(comment
-  (lint! "(ns foo
-    (:require [clojure.set :refer [union union]]))
-  (union #{1} #{2})"
-         "{:linters {:unused-namespace {:level :off}
-                          :unused-referred-var {:level :off}}}"))
-
