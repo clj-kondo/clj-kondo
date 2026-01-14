@@ -119,7 +119,8 @@
 
 (defn- lint-reader-conditional-default-not-last! [ctx k ts]
   (when (and (not (linter-disabled? ctx :reader-conditional-default-not-last))
-             (= :default (:k k)) (seq ts))
+             (= :default (:k k))
+             (seq ts))
     (common/reg-finding! ctx (node->line (:filename ctx)
                                          k
                                          :reader-conditional-default-not-last
