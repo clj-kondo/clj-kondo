@@ -635,30 +635,29 @@
 
 (defn- lint-aliased-referred-var! [ctx ns]
   (when-not (utils/linter-disabled? ctx :aliased-referred-var)
-    (let [{:keys [referred-vars]} ns]
-      (when (seq referred-vars)
-        (let [referred-by-full-name (->> referred-vars
+    (when-let [referred-vars (seq (:referred-vars ns))]
+      (let [referred-by-full-name (->> referred-vars
                                        (map (fn [[k info]]
                                               [[(str (:ns info))
                                                 (str (:name info))]
                                                k]))
                                        (into {}))]
-          (doseq [{:keys [alias resolved-ns] :as usage} (:used-vars ns)
-                  :let [v-name (str (:name usage))
-                        v-ns (str (or resolved-ns (:to usage)))
-                        full-name [v-ns v-name]
-                        referred-name (when alias
-                                        (get referred-by-full-name full-name))]
-                  :when referred-name
-                  :let [msg (format "Var %s is referred but used via alias: %s"
-                                    v-name alias)]]
-            (findings/reg-finding!
-             ctx
-             {:filename (:filename ns)
-              :row (:row usage)
-              :col (:col usage)
-              :type :aliased-referred-var
-              :message msg})))))))
+        (doseq [{:keys [alias resolved-ns] :as usage} (:used-vars ns)
+                :let [v-name (str (:name usage))
+                      v-ns (str (or resolved-ns (:to usage)))
+                      full-name [v-ns v-name]
+                      referred-name (when alias
+                                      (get referred-by-full-name full-name))]
+                :when referred-name
+                :let [msg (format "Var %s is referred but used via alias: %s"
+                                  v-name alias)]]
+          (findings/reg-finding!
+           ctx
+           {:filename (:filename ns)
+            :row (:row usage)
+            :col (:col usage)
+            :type :aliased-referred-var
+            :message msg}))))))
 
 (defn lint-unused-namespaces!
   [ctx idacs]
