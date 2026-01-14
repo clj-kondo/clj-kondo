@@ -39,8 +39,7 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings deep-merge linter-disabled? node->line
-     one-of parse-string select-lang sexpr string-from-token symbol-call tag
-     tag]]
+     one-of parse-string select-lang sexpr string-from-token symbol-call tag]]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]

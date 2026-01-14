@@ -95,6 +95,22 @@
                      :consistent-alias
                      (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
+(defn- lint-duplicate-refers! [ctx refers]
+  (when-not (linter-disabled? ctx :duplicate-refer)
+    (reduce (fn [seen refer-node]
+              (let [s (:value refer-node)]
+                (if (contains? seen s)
+                  (do
+                    (findings/reg-finding!
+                     ctx
+                     (node->line (:filename ctx)
+                                 refer-node
+                                 :duplicate-refer
+                                 (str "Duplicate refer: " s)))
+                    seen)
+                  (conj seen s))))
+            #{} refers)))
+
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
   (utils/handle-ignore ctx libspec-expr)
@@ -200,6 +216,7 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
+                           (lint-duplicate-refers! ctx opt-expr-children)
                            (when (:analyze-var-usages? ctx)
                              (run! #(namespace/reg-var-usage! ctx current-ns-name
                                                               (let [m (meta %)]
