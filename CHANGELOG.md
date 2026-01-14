@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): NEW linter: `:reader-conditional-default-not-last` to warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
+- [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals as part of ([@jramosg](https://github.com/jramosg))
 - [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
 - Fix `str/replace` false positive and tighten comp ret type
 - [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
