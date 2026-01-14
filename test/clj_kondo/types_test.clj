@@ -1545,7 +1545,7 @@
       (is (empty? (lint! "(inst-ms* (java.util.Date.))" config)))
       (is (empty (lint! "(ns foo (:require [clj-time.core :as time]))
                         (inst-ms (time/now))"))))
-    
+
     (testing "inst-ms and inst-ms* mismatch"
       (assert-submaps2
        '({:message "Expected: instant, received: string."})
@@ -1555,7 +1555,8 @@
        (lint! "(inst-ms* 10)" config))
       (assert-submaps2
        '({:message "Expected: instant, received: long or nil."})
-       (lint! "(defn f [^Long d] (inst-ms d))")))
+       (lint! "(defn f [^Long d] (inst-ms d))" config)))
+
     (testing "inst-ms and inst-ms* return long"
       (assert-submaps2
        '({:message "Expected: string, received: long."})
