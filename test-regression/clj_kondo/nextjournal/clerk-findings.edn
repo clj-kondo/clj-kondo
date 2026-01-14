@@ -56,8 +56,7 @@
   :col 6,
   :cljc true,
   :langs (:cljs),
-  :message
-  "var flatland.ordered.map/ordered-map is referred as ordered-map but also used via alias omap",
+  :message "Var ordered-map is referred but used via alias: omap",
   :row 105}
  {:end-row 67,
   :type :redundant-fn-wrapper,

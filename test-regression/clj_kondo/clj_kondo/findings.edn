@@ -2158,8 +2158,7 @@
   :col 18,
   :cljc true,
   :langs (:clj),
-  :message
-  "var cljs.util/ns->relpath is referred as ns->relpath but also used via alias util",
+  :message "Var ns->relpath is referred but used via alias: util",
   :row 4883}
  {:end-row 5003,
   :type :unused-binding,
@@ -12487,7 +12486,7 @@
   :col 11,
   :type :aliased-referred-var,
   :message
-  "var cljs.pprint/pprint-logical-block is referred as pprint-logical-block but also used via alias m",
+  "Var pprint-logical-block is referred but used via alias: m",
   :level :info,
   :langs ()}
  {:end-row 2903,
@@ -29595,7 +29594,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "var sci.impl.utils/rethrow-with-location-of-node is referred as rethrow-with-location-of-node but also used via alias utils",
+  "Var rethrow-with-location-of-node is referred but used via alias: utils",
   :row 1706}
  {:end-row nil,
   :type :def-fn,
@@ -29640,8 +29639,7 @@
   :col 10,
   :cljc true,
   :langs (:cljs),
-  :message
-  "var sci.impl.utils/kw-identical? is referred as kw-identical? but also used via alias utils",
+  :message "Var kw-identical? is referred but used via alias: utils",
   :row 64}
  {:type :aliased-referred-var,
   :level :info,
@@ -29650,8 +29648,7 @@
   :col 10,
   :cljc true,
   :langs (:cljs),
-  :message
-  "var sci.impl.utils/kw-identical? is referred as kw-identical? but also used via alias utils",
+  :message "Var kw-identical? is referred but used via alias: utils",
   :row 71}
  {:end-row 263,
   :type :def-fn,

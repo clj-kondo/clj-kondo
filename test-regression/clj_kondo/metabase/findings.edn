@@ -3,8 +3,7 @@
   :row 149,
   :col 73,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:end-row 8,
@@ -42,8 +41,7 @@
   :row 386,
   :col 72,
   :type :aliased-referred-var,
-  :message
-  "var metabase.util.i18n/tru is referred as tru but also used via alias i18n",
+  :message "Var tru is referred but used via alias: i18n",
   :level :info,
   :langs ()}
  {:end-row 4,
@@ -381,8 +379,7 @@
   :row 555,
   :col 23,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -390,8 +387,7 @@
   :row 573,
   :col 48,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -399,8 +395,7 @@
   :row 655,
   :col 56,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -408,8 +403,7 @@
   :row 699,
   :col 36,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -417,8 +411,7 @@
   :row 700,
   :col 43,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -427,7 +420,7 @@
   :col 6,
   :type :aliased-referred-var,
   :message
-  "var metabase.api.common/*current-user-permissions-set* is referred as *current-user-permissions-set* but also used via alias api",
+  "Var *current-user-permissions-set* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -435,8 +428,7 @@
   :row 1156,
   :col 94,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -445,7 +437,7 @@
   :col 50,
   :type :aliased-referred-var,
   :message
-  "var metabase.api.common/*current-user-permissions-set* is referred as *current-user-permissions-set* but also used via alias api",
+  "Var *current-user-permissions-set* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:end-row 113,
@@ -477,8 +469,7 @@
   :col 67,
   :cljc true,
   :langs (:clj :cljs),
-  :message
-  "var metabase.legacy-mbql.schema.helpers/is-clause? is referred as is-clause? but also used via alias helpers",
+  :message "Var is-clause? is referred but used via alias: helpers",
   :row 1616}
  {:end-row 3,
   :type :unused-excluded-var,
@@ -858,8 +849,7 @@
   :row 66,
   :col 42,
   :type :aliased-referred-var,
-  :message
-  "var metabase.api.common/*current-user-id* is referred as *current-user-id* but also used via alias api",
+  :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
  {:filename
@@ -868,7 +858,7 @@
   :col 18,
   :type :aliased-referred-var,
   :message
-  "var metabase.search.config/SearchContext is referred as SearchContext but also used via alias search.config",
+  "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
  {:end-row 137,
