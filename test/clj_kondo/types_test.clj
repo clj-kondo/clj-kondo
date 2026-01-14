@@ -1428,7 +1428,7 @@
      (lint! "(supers \"hello\")" config)))
   (testing "supers return value should be set or nil"
     (is (empty? (lint! "(conj (supers java.io.File) Object)" config)))
-    
+
     (assert-submaps2
      '({:file "<stdin>"
         :row 1
@@ -1545,15 +1545,16 @@
       (is (empty? (lint! "(inst-ms* (java.util.Date.))" config)))
       (is (empty (lint! "(ns foo (:require [clj-time.core :as time]))
                         (inst-ms (time/now))"))))
+    
     (testing "inst-ms and inst-ms* mismatch"
       (assert-submaps2
-       '({:message "Expected: inst, received: string."})
+       '({:message "Expected: instant, received: string."})
        (lint! "(inst-ms \"foo\")" config))
       (assert-submaps2
-       '({:message "Expected: inst, received: positive integer."})
+       '({:message "Expected: instant, received: positive integer."})
        (lint! "(inst-ms* 10)" config))
       (assert-submaps2
-       '({:message "Expected: inst, received: long or nil."})
+       '({:message "Expected: instant, received: long or nil."})
        (lint! "(defn f [^Long d] (inst-ms d))")))
     (testing "inst-ms and inst-ms* return long"
       (assert-submaps2
