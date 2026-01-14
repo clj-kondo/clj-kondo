@@ -186,7 +186,8 @@
    :var "var"
    :ilookup "ILookup"
    :array "array"
-   :class "class"})
+   :class "class"
+   :inst "instant"})
 
 (defn label [k]
   (cond
