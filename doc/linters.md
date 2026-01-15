@@ -10,6 +10,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Aliased namespace symbol](#aliased-namespace-symbol)
     - [Aliased namespace var usage](#aliased-namespace-var-usage)
     - [Aliased referred var](#aliased-referred-var)
+    - [Fully qualified default import](#fully-qualified-default-import)
     - [Case](#case)
     - [Case duplicate test](#case-duplicate-test)
         - [Case quoted test](#case-quoted-test)
@@ -197,6 +198,26 @@ configuration. For general configurations options, go [here](config.md).
 ```
 
 *Example message:* `Var union is referred but used via alias: set`
+
+### Fully qualified default import
+
+*Keyword:* `:fully-qualified-default-import`.
+
+*Description:* warn when using fully qualified Java class names that are available by default, such as classes from `java.lang`, `java.math`, `java.util.concurrent`, and `clojure.lang` packages.
+
+*Default level:* `:info`.
+
+*Example trigger:*
+
+```clojure
+(java.lang.Thread/sleep 1000)
+(try (catch java.lang.Exception e))
+(new java.math.BigDecimal "3.14")
+```
+
+*Example message:* `Fully qualified class java.lang.Thread can be simplified to Thread (available by default)`
+
+*Rationale:* Clojure automatically imports commonly used Java classes, making them available without qualification. Using fully qualified names for these classes is unnecessarily verbose. See [Clojure's default imports](https://clojure.org/reference/java_interop#default_imports) for the complete list.
 
 ### Case
 

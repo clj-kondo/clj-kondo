@@ -91,6 +91,7 @@
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
               :aliased-referred-var {:level :info}
+              :fully-qualified-default-import {:level :info}
               :unused-private-var {:level :warning}
               :refer {:level :off
                       #_:exclude
@@ -508,7 +509,7 @@
        x))
    coll))
 
-(defn deprecated-namespace-excluded-config [config ]
+(defn deprecated-namespace-excluded-config [config]
   (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
     (set excluded)))
 

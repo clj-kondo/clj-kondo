@@ -1439,7 +1439,7 @@ foo/foo ;; this does use the private var
 (defrecord Foo [] IFoo (-foo [_]
                          (let [_f (fn [x] (recur x))]
                            (recur))))
-(deftype FooType [] java.lang.Runnable (run [_]
+(deftype FooType [] Runnable (run [_]
                                          (let [_f (fn [x] (recur x))]
                                            (recur))))
 (reify IFoo (-foo [_] (let [_f (fn [x] (recur x))]
