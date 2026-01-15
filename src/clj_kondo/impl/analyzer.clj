@@ -2344,12 +2344,13 @@
                                              with-precision-bindings)
                     children))
 
-(defn- analyze-=-not= [ctx expr]
+(defn- analyze-=-not= [ctx expr var-name]
   (let [[lhs rhs :as children] (rest (:children expr))
         ;; need to analyze children, to pick up on ignores in arguments
         res (analyze-children ctx children false)]
     (when (= 2 (count children))
-      (when (and (or (true? (:value lhs))
+      (when (and (= '= var-name)
+                 (or (true? (:value lhs))
                      (true? (:value rhs)))
                  (not (or (:clj-kondo.impl/generated lhs)
                           (:clj-kondo.impl/generated rhs))))
@@ -2379,13 +2380,15 @@
                                             :type :equals-expected-position
                                             :message (str "Write expected value " (name pos))
                                             :filename (:filename ctx))))
-        (when (or (false? (:value lhs))
-                  (false? (:value rhs)))
+        (when (and (= '= var-name)
+                   (or (false? (:value lhs))
+                       (false? (:value rhs))))
           (findings/reg-finding! ctx (assoc (meta expr)
                                             :type :equals-false
                                             :message "Prefer (false? x) over (= false x)"
                                             :filename (:filename ctx))))
-        (when (and (or (= "nil" (:string-value lhs))
+        (when (and (= '= var-name)
+                   (or (= "nil" (:string-value lhs))
                        (= "nil" (:string-value rhs)))
                    (not (or (:clj-kondo.impl/generated lhs)
                             (:clj-kondo.impl/generated rhs))))
@@ -2758,7 +2761,7 @@
                           if-not (analyze-if-not ctx expr)
                           new (analyze-constructor ctx expr)
                           set! (analyze-set! ctx expr)
-                          (= not=) (analyze-=-not= ctx expr)
+                          (= not=) (analyze-=-not= ctx expr resolved-as-clojure-var-name)
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
                           (when when-not) (analyze-when ctx expr)

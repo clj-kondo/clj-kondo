@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend equality-related linters (`:equals-true`, `:equals-false`, `:equals-nil`, `:equals-expected-position`) to also warn for `not=` ([@jramosg](https://github.com/jramosg))
+- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
 - [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
 - [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
 - Fix `str/replace` false positive and tighten comp ret type

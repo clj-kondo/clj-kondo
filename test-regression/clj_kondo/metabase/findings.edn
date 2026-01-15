@@ -1766,26 +1766,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 83}
- {:end-row 24,
-  :type :equals-true,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/sync/sync_metadata/indexes_test.clj",
-  :col 11,
-  :end-col 100,
-  :langs (),
-  :message "Prefer (true? x) over (= true x)",
-  :row 24}
- {:end-row 40,
-  :type :equals-true,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/sync/sync_metadata/indexes_test.clj",
-  :col 15,
-  :end-col 99,
-  :langs (),
-  :message "Prefer (true? x) over (= true x)",
-  :row 40}
  {:end-row 171,
   :protocol-ns clojurewerkz.quartzite.conversion,
   :protocol-name JobDataMapConversion,
