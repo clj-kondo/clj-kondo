@@ -641,31 +641,26 @@
         sexpr-clauses (map sexpr (nnext (:children expr)))
         refer-clojure-clauses
         (apply merge-with into
-               (for [?refer-clojure sexpr-clauses
+               (for [?refer-clojure-clause clauses
+                     :let [?refer-clojure (sexpr ?refer-clojure-clause)]
                      :when (= :refer-clojure (first ?refer-clojure))
-                     [k v] (partition 2 (rest ?refer-clojure))
+                     :let [options (-> ?refer-clojure-clause :children rest)
+                           sexpr-options (rest ?refer-clojure)]
+                     [[k v] [_ v-node]] (map vector
+                                             (partition 2 sexpr-options)
+                                             (partition 2 options))
                      :let [r (case k
                                :exclude
-                               {:excluded (set v)}
+                               {:excluded (set v)
+                                :exclude-nodes (:children v-node)}
                                :rename
                                {:renamed v
                                 :excluded (set (keys v))}
                                :only
                                {:only (set v)})]]
                  r))
-        _ (doseq [?refer-clojure-clause clauses
-                  :let [refer-clojure-kw (-> ?refer-clojure-clause
-                                             :children
-                                             first
-                                             :k)]
-                  :when (= :refer-clojure refer-clojure-kw)
-                  :let [options (-> ?refer-clojure-clause :children rest)
-                        option-pairs (partition 2 options)]
-                  [k-node v-node] option-pairs
-                  :let [k (:k k-node)]
-                  :when (= :exclude k)
-                  :let [exclude-children (:children v-node)]]
-            (lint-duplicate-excludes! ctx exclude-children))
+        _ (when-let [exclude-nodes (:exclude-nodes refer-clojure-clauses)]
+            (lint-duplicate-excludes! ctx exclude-nodes))
         refer-clj {:referred-vars
                    (into {} (map (fn [[original-name new-name]]
                                    [new-name {:ns 'clojure.core
