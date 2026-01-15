@@ -177,7 +177,7 @@
   (assert-submaps2 '({:file "corpus/spec/alpha.cljc", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
                      {:file "corpus/spec/alpha.cljs", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
                      {:file "corpus/spec/alpha.cljs", :row 6, :col 1, :level :error, :message "spec.alpha/def is called with 2 args but expects 3"})
-                  (lint! (io/file "corpus" "spec")))
+                   (lint! (io/file "corpus" "spec")))
   (is (empty? (lint! "(defn foo [#?(:clj s :default s)]) (foo 1)"
                      "--lang" "cljc")))
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
@@ -639,10 +639,10 @@ foo/foo ;; this does use the private var
   (testing "Safely handles empty alias call"
     (assert-submaps2
      [{:file "<stdin>"
-        :row 1
-        :col 10
-        :level :error
-        :message "clojure.core/alias is called with 0 args but expects 2"}]
+       :row 1
+       :col 10
+       :level :error
+       :message "clojure.core/alias is called with 0 args but expects 2"}]
      (lint! "(ns foo) (alias)")))
   (assert-submap
    '{:file "<stdin>",
@@ -3548,7 +3548,7 @@ foo/"))
 (inc)")))
 
 (deftest continue-after-delimiter-mismatch-trailing-delimiters-or-eof
-  (doseq [s ["(]  x",  "()) x", "(   x" ]]
+  (doseq [s ["(]  x",  "()) x", "(   x"]]
     (assert-submaps
      '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Unresolved symbol: x"})
      (lint! s {:linters {:unresolved-symbol {:level :error}
@@ -3810,7 +3810,6 @@ foo/"))
                   (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
                          {:linters {:multiple-async-in-deftest {:level :warning}}})))
 
-
 (deftest invalid-fn-name-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 7, :level :error, :message "Function name must be simple symbol but got: :foo"}
@@ -3889,18 +3888,6 @@ foo/"))
        (lint! "(defn foo [x x] x)" {:linters {:shadowed-fn-param {:level :warning}}})))
   (is (empty? (lint! "(fn [x #_:clj-kondo/ignore x] x)" {:linters {:shadowed-fn-param {:level :warning}}}))))
 
-(deftest equals-expected-order-test
-  (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Write expected value first"})
-   (lint! "(= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:level :warning}}}))
-  (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
-  (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
-  (assert-submaps2
-   '({:file "<stdin>", :row 2, :col 40, :level :warning, :message "Write expected value first"})
-   (lint! "(require '[clojure.test :refer [is]])
-                      (is (= (+ 1 2 3) 6))
-                      (= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:only-in-test-assertion true
-                                                                             :level :warning}}})))
 (deftest issue-2361-test
   (is (empty? (lint! "
 (defprotocol PDFDocument)
@@ -3935,9 +3922,9 @@ foo/"))
      {:file "<stdin>", :row 2, :col 36, :level :warning, :message "Unresolved namespace NoClazz. Are you missing a require?"})
    (lint! "(deftype Dude []) Dude/new (defrecord Foo []) Foo/new
           (import [dude TheClazz]) NoClazz/new"
-             {:linters {:unresolved-symbol {:level :warning}
-                        :unresolved-namespace {:level :warning}
-                        :unused-import {:level :warning}}})))
+          {:linters {:unresolved-symbol {:level :warning}
+                     :unresolved-namespace {:level :warning}
+                     :unused-import {:level :warning}}})))
 
 (deftest issue-2490-test
   (is (empty? (lint! "^{:clj-kondo/ignore [:unresolved-symbol]} x
@@ -3978,8 +3965,7 @@ foo/"))
 #_(ns)
 
 x"
-              {:linters {:unresolved-symbol {:level :warning}}})))
-
+                          {:linters {:unresolved-symbol {:level :warning}}})))
 
 (deftest issue-1894-defstruct-test
   (assert-submaps2

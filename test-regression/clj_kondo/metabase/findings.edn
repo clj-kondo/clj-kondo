@@ -1408,6 +1408,16 @@
   :langs (),
   :message "Condition always true",
   :row 93}
+ {:end-row 99,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 25,
+  :end-col 31,
+  :langs (),
+  :message "Write expected value first",
+  :row 99}
  {:end-row 132,
   :type :condition-always-true,
   :level :warning,
@@ -1418,6 +1428,26 @@
   :langs (),
   :message "Condition always true",
   :row 132}
+ {:end-row 153,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 37,
+  :end-col 38,
+  :langs (),
+  :message "Write expected value first",
+  :row 153}
+ {:end-row 180,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 41,
+  :end-col 42,
+  :langs (),
+  :message "Write expected value first",
+  :row 180}
  {:end-row 12,
   :type :unresolved-symbol,
   :level :error,
@@ -1785,6 +1815,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 212}
+ {:end-row 599,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/parameters_test.clj",
+  :col 42,
+  :end-col 46,
+  :langs (),
+  :message "Write expected value first",
+  :row 599}
  {:end-row 394,
   :type :unresolved-symbol,
   :level :error,
