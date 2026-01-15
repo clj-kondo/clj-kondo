@@ -102,6 +102,7 @@
               :if-nil-return {:level :off}
               :case-duplicate-test {:level :error}
               :duplicate-refer {:level :warning}
+              :duplicate-exclude {:level :warning}
               :case-quoted-test {:level :warning}
               :case-symbol-test {:level :off}
               :type-mismatch {:level :error}
@@ -507,7 +508,7 @@
        x))
    coll))
 
-(defn deprecated-namespace-excluded-config [config ]
+(defn deprecated-namespace-excluded-config [config]
   (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
     (set excluded)))
 

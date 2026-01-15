@@ -38,6 +38,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate refer](#duplicate-refer)
+    - [Duplicate exclude](#duplicate-exclude)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
     - [Duplicate key args](#duplicate-key-args)
@@ -772,6 +773,22 @@ Explanation by Bozhidar Batsov:
 ```
 
 *Example message:* `Duplicate refer: union`
+
+### Duplicate exclude
+
+*Keyword:* `:duplicate-exclude`.
+
+*Description:* warns on var that has been excluded more than once in an `:exclude` vector, either in `:refer-clojure` or in `:require` clauses.
+
+*Example trigger:*
+
+``` clojure
+(ns foo
+  (:refer-clojure :exclude [map map])
+  (:require [clojure.set :exclude [union union]]))
+```
+
+*Example message:* `Duplicate exclude: map`
 
 ### Duplicate set key
 

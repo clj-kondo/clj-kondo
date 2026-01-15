@@ -21,6 +21,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
 - [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
+- [#2741](https://github.com/clj-kondo/clj-kondo/issues/2741): NEW linter: `:duplicate-exclude` which warns on duplicate entries in `:exclude` of `:refer-clojure` and `:require`. ([@jramosg](https://github.com/jramosg))
 - Fix `str/replace` false positive and tighten comp ret type
 - [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
 - Add new type `inst` and type checking support for `inst-ms` and `inst-ms*` ([@jramosg](https://github.com/jramosg))
