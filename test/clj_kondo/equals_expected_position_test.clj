@@ -2,7 +2,6 @@
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
-   
 
 (deftest equals-expected-order-test
   (testing "warns when actual is first in ="
