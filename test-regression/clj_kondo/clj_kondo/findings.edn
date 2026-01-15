@@ -29553,7 +29553,7 @@
   :message "Unresolved excluded var: set!",
   :row 5}
  {:end-row 6,
-  :type :duplicate-exclude,
+  :type :duplicate-require-option,
   :level :warning,
   :lang :clj,
   :filename "sci/core.cljc",
