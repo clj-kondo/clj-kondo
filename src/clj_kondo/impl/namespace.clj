@@ -174,7 +174,7 @@
                                    filename (let [thing (if (meta var-sym) var-sym expr)]
                                               thing)
                                    :syntax
-                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
+                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym))))
      (when-not (:skip-reg-var ctx)
        (let [;; don't use reg-finding! in swap since contention can cause it to fire multiple times
              [old-namespaces _]
@@ -449,12 +449,16 @@
         name-sym-str (name name-sym)
         static-method-name (when (and (not= name-sym-str (str class-name))
                                       (not (str/includes? name-sym-str ".")))
-                             name-sym-str)]
+                             name-sym-str)
+        fully-qualified? (= (or (namespace name-sym)
+                                (str name-sym))
+                            (str package "." class-name))]
     (java/reg-class-usage! ctx
                            (str package "." class-name)
                            static-method-name
                            (assoc loc
                                   :call (:call opts)
+                                  :fully-qualified fully-qualified?
                                   :name-row (or (:row name-meta) (:row loc))
                                   :name-col (or (:col name-meta) (:col loc))
                                   :name-end-row (or (:end-row name-meta) (:end-row loc))
@@ -740,7 +744,10 @@
                 (if (identical? :clj lang)
                   (if (and (not (one-of ns* ["clojure.core"]))
                            (class-name? ns*))
-                    (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
+                    (do (java/reg-class-usage! ctx ns* (name name-sym) 
+                                               (meta expr) (meta name-sym) 
+                                               {:call call?
+                                                :fully-qualified true})
                         (when call? (findings/warn-reflection ctx expr))
                         {:interop? true
                          :ns ns-sym

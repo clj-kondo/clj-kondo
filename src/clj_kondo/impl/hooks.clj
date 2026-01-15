@@ -79,9 +79,9 @@
                        'java.io.StringReader java.io.StringReader
                        'clojure.lang.LineNumberingPushbackReader clojure.lang.LineNumberingPushbackReader
                        ;; enable assert
-                       'java.lang.AssertionError java.lang.AssertionError}
+                       'AssertionError AssertionError}
              :imports {'Exception 'java.io.Exception
-                       'System java.lang.System}
+                       'System System}
              :load-fn (fn [{:keys [namespace]}]
                         (let [^String ns-str (namespace-munge (name namespace))
                               base-path (.replace ns-str "." "/")]
@@ -191,7 +191,7 @@
                        macro (binding [utils/*ctx* ctx]
                                (sci/eval-string* (store/get-ctx) code))]
                    (fn [{:keys [node]}]
-                     {:node (macroexpand macro node 
+                     {:node (macroexpand macro node
                                          (:bindings utils/*ctx*))})))))))
        (catch Exception e
          (binding [*out* *err*]

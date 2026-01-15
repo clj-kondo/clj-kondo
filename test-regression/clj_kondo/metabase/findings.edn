@@ -36,6 +36,17 @@
   :langs (),
   :message "Condition always true",
   :row 43}
+ {:end-row 133,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/audit_app/models/audit_log.clj",
+  :col 58,
+  :end-col 73,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Class can be simplified to Class (available by default)",
+  :row 133}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
   :row 386,
@@ -440,6 +451,39 @@
   "Var *current-user-permissions-set* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 297,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/common.clj",
+  :col 5,
+  :end-col 25,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 297}
+ {:end-row 298,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/common.clj",
+  :col 5,
+  :end-col 25,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 298}
+ {:end-row 51,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/h2.clj",
+  :col 16,
+  :end-col 46,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.NoSuchFieldException can be simplified to NoSuchFieldException (available by default)",
+  :row 51}
  {:end-row 113,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -451,6 +495,127 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 113}
+ {:end-row 552,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 7,
+  :end-col 23,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Number can be simplified to Number (available by default)",
+  :row 552}
+ {:end-row 560,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 7,
+  :end-col 23,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 560}
+ {:end-row 602,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 20,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 602}
+ {:end-row 604,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 18,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :row 604}
+ {:end-row 606,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 606}
+ {:end-row 607,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 21,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Integer can be simplified to Integer (available by default)",
+  :row 607}
+ {:end-row 608,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 20,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 608}
+ {:end-row 609,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 19,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Float can be simplified to Float (available by default)",
+  :row 609}
+ {:end-row 610,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 610}
+ {:end-row 611,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 20,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Number can be simplified to Number (available by default)",
+  :row 611}
+ {:end-row 612,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/sync/describe_table.clj",
+  :col 4,
+  :end-col 21,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Boolean can be simplified to Boolean (available by default)",
+  :row 612}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -461,6 +626,72 @@
   :langs (),
   :message "Unused excluded var: require",
   :row 2}
+ {:end-row 67,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/formatter/impl.clj",
+  :col 29,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 67}
+ {:end-row 68,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/formatter/impl.clj",
+  :col 29,
+  :end-col 45,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 68}
+ {:end-row 69,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/formatter/impl.clj",
+  :col 29,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Float can be simplified to Float (available by default)",
+  :row 69}
+ {:end-row 89,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/formatter/impl.clj",
+  :col 24,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 89}
+ {:end-row 90,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/formatter/impl.clj",
+  :col 24,
+  :end-col 40,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 90}
+ {:end-row 91,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/formatter/impl.clj",
+  :col 24,
+  :end-col 39,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Float can be simplified to Float (available by default)",
+  :row 91}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
@@ -579,6 +810,50 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
+ {:end-row 11,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema/literal/jvm.clj",
+  :col 29,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 11}
+ {:end-row 13,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema/literal/jvm.clj",
+  :col 38,
+  :end-col 58,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 13}
+ {:end-row 22,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema/literal/jvm.clj",
+  :col 29,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 22}
+ {:end-row 24,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema/literal/jvm.clj",
+  :col 38,
+  :end-col 58,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 24}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -861,6 +1136,50 @@
   "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
+ {:end-row 32,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/server/handler.clj",
+  :col 3,
+  :end-col 19,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Number can be simplified to Number (available by default)",
+  :row 32}
+ {:end-row 36,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/server/handler.clj",
+  :col 3,
+  :end-col 20,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Boolean can be simplified to Boolean (available by default)",
+  :row 36}
+ {:end-row 38,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/task/job_factory.clj",
+  :col 17,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.ClassNotFoundException can be simplified to ClassNotFoundException (available by default)",
+  :row 38}
+ {:end-row 39,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/task/job_factory.clj",
+  :col 17,
+  :end-col 47,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.NoClassDefFoundError can be simplified to NoClassDefFoundError (available by default)",
+  :row 39}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
@@ -951,6 +1270,17 @@
   :langs (),
   :message "Unresolved var: insta/transform",
   :row 114}
+ {:end-row 323,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/jvm.clj",
+  :col 4,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 323}
  {:end-row 192,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -1005,6 +1335,17 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: def",
   :row 2}
+ {:end-row 16,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/number.cljc",
+  :col 60,
+  :end-col 80,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 16}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
   :protocol-name YAMLCodec,
@@ -1108,6 +1449,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 145}
+ {:end-row 90,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/activity_feed/models/recent_views_test.clj",
+  :col 25,
+  :end-col 41,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 90}
  {:end-row 120,
   :type :unresolved-symbol,
   :level :error,
@@ -1248,6 +1600,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 52}
+ {:end-row 23,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/audit_app/settings_test.clj",
+  :col 8,
+  :end-col 47,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.UnsupportedOperationException can be simplified to UnsupportedOperationException (available by default)",
+  :row 23}
  {:end-row 7,
   :type :deprecated-namespace,
   :level :warning,
@@ -1408,6 +1771,24 @@
   :langs (),
   :message "Condition always true",
   :row 93}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql/query_processor_test_util.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Object can be simplified to Object (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 148,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql/query_processor_test_util.clj",
+  :col 16,
+  :end-col 32,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Object can be simplified to Object (available by default)",
+  :row 148}
  {:end-row 99,
   :type :equals-expected-position,
   :level :warning,
@@ -1458,6 +1839,93 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 12}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 228,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :col 33,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 228}
+ {:end-row 230,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :col 33,
+  :end-col 47,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :row 230}
+ {:end-row 239,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :col 30,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :row 239}
+ {:end-row 290,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :col 41,
+  :end-col 55,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :row 290}
+ {:end-row 293,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :col 49,
+  :end-col 111,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 293}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/driver_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 32,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver_test.clj",
+  :col 8,
+  :end-col 27,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 32}
  {:end-row 31,
   :type :unresolved-symbol,
   :level :error,
@@ -1555,6 +2023,39 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 165}
+ {:end-row 50,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/notification/models_test.clj",
+  :col 12,
+  :end-col 31,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 50}
+ {:end-row 60,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/notification/models_test.clj",
+  :col 12,
+  :end-col 31,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 60}
+ {:end-row 69,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/notification/models_test.clj",
+  :col 12,
+  :end-col 31,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 69}
  {:end-row 72,
   :type :unresolved-symbol,
   :level :error,
@@ -1575,6 +2076,50 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 293}
+ {:end-row 108,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pivot/core_test.cljc",
+  :col 15,
+  :end-col 32,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Integer can be simplified to Integer (available by default)",
+  :row 108}
+ {:end-row 109,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pivot/core_test.cljc",
+  :col 15,
+  :end-col 32,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Integer can be simplified to Integer (available by default)",
+  :row 109}
+ {:end-row 110,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pivot/core_test.cljc",
+  :col 15,
+  :end-col 31,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 110}
+ {:end-row 111,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pivot/core_test.cljc",
+  :col 15,
+  :end-col 31,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 111}
  {:end-row 63,
   :type :unresolved-symbol,
   :level :error,
@@ -1735,6 +2280,46 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 160}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/catch_exceptions_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 121,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/catch_exceptions_test.clj",
+  :col 37,
+  :end-col 56,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 121}
+ {:end-row 146,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/catch_exceptions_test.clj",
+  :col 41,
+  :end-col 60,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 146}
+ {:end-row 132,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/metrics_test.clj",
+  :col 25,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 132}
  {:end-row 22,
   :type :redundant-let-binding,
   :level :warning,
@@ -1785,6 +2370,24 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 42}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 40,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
+  :col 16,
+  :end-col 36,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 40}
  {:end-row 1797,
   :type :unresolved-symbol,
   :level :error,
@@ -1825,6 +2428,50 @@
   :langs (),
   :message "Write expected value first",
   :row 599}
+ {:end-row 28,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/request/settings_test.clj",
+  :col 10,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 28}
+ {:end-row 32,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/request/settings_test.clj",
+  :col 10,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 32}
+ {:end-row 37,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/request/settings_test.clj",
+  :col 10,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 37}
+ {:end-row 41,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/request/settings_test.clj",
+  :col 10,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 41}
  {:end-row 394,
   :type :unresolved-symbol,
   :level :error,
@@ -1855,6 +2502,24 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 121}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/settings/models/setting_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 1422,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/settings/models/setting_test.clj",
+  :col 15,
+  :end-col 34,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 1422}
  {:end-row 114,
   :type :unresolved-symbol,
   :level :error,
@@ -1888,6 +2553,50 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
+ {:end-row 257,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/util_test.clj",
+  :col 15,
+  :end-col 83,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.IllegalArgumentException can be simplified to IllegalArgumentException (available by default)",
+  :row 257}
+ {:end-row 263,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/util_test.clj",
+  :col 17,
+  :end-col 50,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.IllegalArgumentException can be simplified to IllegalArgumentException (available by default)",
+  :row 262}
+ {:end-row 18,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/task/job_factory_test.clj",
+  :col 53,
+  :end-col 118,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.ClassNotFoundException can be simplified to ClassNotFoundException (available by default)",
+  :row 18}
+ {:end-row 31,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/task/job_factory_test.clj",
+  :col 53,
+  :end-col 114,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.NoClassDefFoundError can be simplified to NoClassDefFoundError (available by default)",
+  :row 31}
  {:end-row 497,
   :type :condition-always-true,
   :level :warning,
@@ -1918,6 +2627,61 @@
   :langs (),
   :message "Expected: string, received: boolean.",
   :row 493}
+ {:end-row 1177,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 14,
+  :end-col 33,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 1177}
+ {:end-row 1290,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 14,
+  :end-col 33,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 1290}
+ {:end-row 1297,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 14,
+  :end-col 33,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 1297}
+ {:end-row 1305,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 16,
+  :end-col 35,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 1305}
+ {:end-row 1313,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 16,
+  :end-col 35,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :row 1313}
  {:end-row 1018,
   :type :unresolved-symbol,
   :level :error,
@@ -1938,6 +2702,27 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 54}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/util/malli/defn_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/util/malli/defn_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Integer can be simplified to Integer (available by default)",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/test/metabase/util/malli/fn_test.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Exception can be simplified to Exception (available by default)",
+  :level :info,
+  :langs ()}
  {:end-row 41,
   :type :condition-always-true,
   :level :warning,
@@ -2107,4 +2892,15 @@
   :end-col 47,
   :langs (),
   :message "Format string contains no format specifiers",
-  :row 46}]
+  :row 46}
+ {:end-row 111,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/xrays/transforms/core_test.clj",
+  :col 14,
+  :end-col 38,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.AssertionError can be simplified to AssertionError (available by default)",
+  :row 111}]

@@ -499,14 +499,15 @@
                        (not (utils/linter-disabled? call :redundant-nested-call))
                        (lint-redundant-nested-call call))]]
       (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
-                                                                                                                       :fixed-arities fixed-arities
-                                                                                                                       :arity arity} (:expr call))
+                                                                                                                            :fixed-arities fixed-arities
+                                                                                                                            :arity arity}
+                                       (:expr call))
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)
           (findings/reg-finding!
            ctx (-> call
-                   (select-keys [:row :end-row :end-col :col :filename])
+                   utils/location
                    (assoc :type :condition-always-true
                           :message "Condition always true")))))
       (when arity-error?
@@ -658,6 +659,30 @@
             :col (:col usage)
             :type :aliased-referred-var
             :message msg}))))))
+
+(defn- fully-qualified-default-import [fq-class-name]
+  (when fq-class-name
+    (some (fn [[simple-sym qualified-sym]]
+            (when (= (str qualified-sym) fq-class-name)
+              (str simple-sym)))
+          var-info/default-import->qname)))
+
+(defn lint-fully-qualified-default-import! [ctx]
+  (when-not (utils/linter-disabled? ctx :fully-qualified-default-import)
+    (doseq [usage @(:java-class-usages ctx)
+            :when (:fully-qualified usage)
+            :let [class-name (:class usage)
+                  simple-name (fully-qualified-default-import class-name)]
+            :when simple-name
+            :let [msg (format "Fully qualified class %s can be simplified to %s (available by default)"
+                              class-name simple-name)
+                  ctx (merge ctx
+                             (select-keys usage [:config :filename :lang]))]]
+      (findings/reg-finding!
+       ctx
+       (merge (utils/location usage)
+              {:type :fully-qualified-default-import
+               :message msg})))))
 
 (defn lint-unused-namespaces!
   [ctx idacs]

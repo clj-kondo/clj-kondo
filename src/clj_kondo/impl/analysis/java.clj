@@ -344,6 +344,8 @@
                     :uri (:uri ctx)
                     :filename (:filename ctx)
                     :call (:call opts)
+                    :fully-qualified (or (:fully-qualified opts)
+                                         (:fully-qualified loc+data))
                     :config (:config ctx)
                     :lang (:lang ctx)}
                    loc+data

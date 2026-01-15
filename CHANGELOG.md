@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#737](https://github.com/clj-kondo/clj-kondo/issues/737): NEW linter: `:fully-qualified-default-import`, which warns when using fully qualified Java class names that are available by default (e.g., `java.lang.Thread` instead of `Thread`). ([@jramosg](https://github.com/jramosg))
 - [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
 - [#2734](https://github.com/clj-kondo/clj-kondo/issues/2734): NEW linter: `:aliased-referred-var`, which warns when a var is both referred and accessed via an alias in the same namespace. ([@jramosg](https://github.com/jramosg))
 - [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))

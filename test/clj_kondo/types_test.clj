@@ -1377,7 +1377,7 @@
         :message "Expected: class, received: positive integer."})
      (lint! "(cast 1 \"hello\")" config)))
   (testing "cast return value should be any"
-    (is (empty? (lint! "(inc (cast java.lang.Long 5))" config)))))
+    (is (empty? (lint! "(inc (cast Long 5))" config)))))
 
 (deftest bases-test
   (testing "bases with valid class argument"
