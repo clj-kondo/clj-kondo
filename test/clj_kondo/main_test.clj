@@ -2673,7 +2673,12 @@ foo"))))
       :row 1,
       :col 48,
       :level :warning,
-      :message "use alias or :refer [capitalize]"})
+      :message "use alias or :refer [capitalize]"}
+     {:file "<stdin>"
+      :row 2
+      :col 29
+      :level :info
+      :message "Var join is referred but used via alias: s"})
    (lint! "(ns foo (:require [clojure.string :as s :refer :all]))
            (defn foo [strs] (s/join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
@@ -3943,7 +3948,8 @@ foo/"))
 
 (my. \"dude\")
 "
-                     {:linters {:unresolved-symbol {:level :warning}}}))))
+                     {:linters {:unresolved-symbol {:level :warning}
+                                :aliased-referred-var {:level :off}}}))))
 
 (deftest issue-2511-test
   (assert-submaps2 '({:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/cond-> is called with 0 args but expects 1 or more"}

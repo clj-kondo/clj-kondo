@@ -2151,6 +2151,15 @@
   :langs (:clj),
   :message "Prefer placing return type hint on arg vector: File",
   :row 4868}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 18,
+  :cljc true,
+  :langs (:clj),
+  :message "Var ns->relpath is referred but used via alias: util",
+  :row 4883}
  {:end-row 5003,
   :type :unused-binding,
   :level :warning,
@@ -12472,6 +12481,14 @@
   :langs (),
   :message "Unused private var cljs.pprint/pprint-array",
   :row 2839}
+ {:filename "cljs/pprint.cljs",
+  :row 2852,
+  :col 11,
+  :type :aliased-referred-var,
+  :message
+  "Var pprint-logical-block is referred but used via alias: m",
+  :level :info,
+  :langs ()}
  {:end-row 2903,
   :type :cond-else,
   :level :warning,
@@ -29569,6 +29586,16 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 1071}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :clj,
+  :filename "sci/impl/analyzer.cljc",
+  :col 9,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Var rethrow-with-location-of-node is referred but used via alias: utils",
+  :row 1706}
  {:end-row nil,
   :type :def-fn,
   :level :warning,
@@ -29605,6 +29632,24 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: eval",
   :row 3}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :cljs,
+  :filename "sci/impl/evaluator.cljc",
+  :col 10,
+  :cljc true,
+  :langs (:cljs),
+  :message "Var kw-identical? is referred but used via alias: utils",
+  :row 64}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :cljs,
+  :filename "sci/impl/evaluator.cljc",
+  :col 10,
+  :cljc true,
+  :langs (:cljs),
+  :message "Var kw-identical? is referred but used via alias: utils",
+  :row 71}
  {:end-row 263,
   :type :def-fn,
   :level :warning,

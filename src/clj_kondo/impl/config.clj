@@ -90,6 +90,7 @@
               :deprecated-namespace {:level :warning}
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
+              :aliased-referred-var {:level :info}
               :unused-private-var {:level :warning}
               :refer {:level :off
                       #_:exclude

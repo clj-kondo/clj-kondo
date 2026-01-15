@@ -105,9 +105,6 @@
   (= :off (get-in ctx [:config :linters linter :level])))
 
 (defn node->line [filename node t message]
-  #_(when (and (= type :missing-docstring)
-               (not (:row (meta node))))
-      (prn node))
   (let [m (meta node)]
     {:type t
      :message message
