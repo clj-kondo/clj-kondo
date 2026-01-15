@@ -95,30 +95,26 @@
                      :consistent-alias
                      (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
-(defn- lint-duplicates!
-  [ctx nodes linter-type message-prefix]
-  (when-not (linter-disabled? ctx linter-type)
-    (reduce (fn [seen node]
-              (if (utils/ignored? node)
-                seen
-                (let [v (:value node)]
-                  (if (contains? seen v)
-                    (do
-                      (findings/reg-finding!
-                       ctx
-                       (node->line (:filename ctx)
-                                   node
-                                   linter-type
-                                   (str message-prefix v)))
-                      seen)
-                    (conj seen v)))))
-            #{} nodes)))
-
 (defn- lint-duplicate-require-options! [ctx nodes option-type]
   (let [message-prefix (case option-type
                          :refer "Duplicate refer: "
                          :exclude "Duplicate exclude: ")]
-    (lint-duplicates! ctx nodes :duplicate-require-option message-prefix)))
+   (when-not (linter-disabled? ctx :duplicate-require-option)
+     (reduce (fn [seen node]
+               (if (utils/ignored? node)
+                 seen
+                 (let [v (:value node)]
+                   (if (contains? seen v)
+                     (do
+                       (findings/reg-finding!
+                        ctx
+                        (node->line (:filename ctx)
+                                    node
+                                    :duplicate-require-option
+                                    (str message-prefix v)))
+                       seen)
+                     (conj seen v)))))
+             #{} nodes))))
 
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
