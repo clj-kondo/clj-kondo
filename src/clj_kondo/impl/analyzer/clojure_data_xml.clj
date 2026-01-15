@@ -44,13 +44,13 @@
 
 (defn analyze-export-api [ctx node]
   (let [children (rest (:children node))
-        new-node (utils/list-node
-                  (list* (utils/token-node 'do)
+        new-node (list-node
+                  (list* (token-node 'do)
                          (map (fn [exported-var-node]
                                 (let [qualified-sym (:value exported-var-node)
                                       unqualified-sym (symbol (name qualified-sym))]
-                                  (utils/list-node [(utils/token-node 'clojure.core/def)
-                                                    (utils/token-node unqualified-sym)
-                                                    exported-var-node])))
+                                  (list-node [(token-node 'clojure.core/def)
+                                              (token-node unqualified-sym)
+                                              exported-var-node])))
                               children)))]
     (common/analyze-expression** ctx new-node)))

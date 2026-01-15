@@ -7,9 +7,8 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
-   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym
-                                           linter-disabled? node->line sexpr
-                                           tag]]
+   [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym node->line
+                                           sexpr tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -634,6 +633,32 @@
                         :type :unused-value
                         :message "Unused value"}))))))))))))
 
+(defn- lint-aliased-referred-var! [ctx ns]
+  (when-not (utils/linter-disabled? ctx :aliased-referred-var)
+    (when-let [referred-vars (seq (:referred-vars ns))]
+      (let [referred-by-full-name (->> referred-vars
+                                       (map (fn [[k info]]
+                                              [[(str (:ns info))
+                                                (str (:name info))]
+                                               k]))
+                                       (into {}))]
+        (doseq [{:keys [alias resolved-ns] :as usage} (:used-vars ns)
+                :let [v-name (str (:name usage))
+                      v-ns (str (or resolved-ns (:to usage)))
+                      full-name [v-ns v-name]
+                      referred-name (when alias
+                                      (get referred-by-full-name full-name))]
+                :when referred-name
+                :let [msg (format "Var %s is referred but used via alias: %s"
+                                  v-name alias)]]
+          (findings/reg-finding!
+           ctx
+           {:filename (:filename ns)
+            :row (:row usage)
+            :col (:col usage)
+            :type :aliased-referred-var
+            :message msg}))))))
+
 (defn lint-unused-namespaces!
   [ctx idacs]
   (let [config (:config ctx)]
@@ -722,13 +747,14 @@
           (findings/reg-finding!
            ctx
            (node->line (:filename (meta alias)) alias
-                       :unused-alias (str "Unused alias: " alias))))))))
+                       :unused-alias (str "Unused alias: " alias)))))
+      (lint-aliased-referred-var! ctx ns))))
 
 (defn lint-unused-excluded-vars! [ctx]
-  (when-not (linter-disabled? ctx :unused-excluded-var)
+  (when-not (utils/linter-disabled? ctx :unused-excluded-var)
     (doseq [{:keys [clojure-excluded] :as ns} (namespace/list-namespaces ctx)
             :when (and (seq clojure-excluded)
-                       (not (linter-disabled? ns :unused-excluded-var)))
+                       (not (utils/linter-disabled? ns :unused-excluded-var)))
             :let [{:keys [lang base-lang referred-vars vars bindings]} ns
                   used (set (concat (keys vars)
                                     (map :name (vals referred-vars))
