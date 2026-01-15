@@ -1,4 +1,55 @@
-[{:end-row 4,
+[{:filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/always_array_map.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Iterable can be simplified to Iterable (available by default)",
+  :level :info,
+  :langs ()}
+ {:end-row 23,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/always_array_map.clj",
+  :col 20,
+  :end-col 38,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Iterable can be simplified to Iterable (available by default)",
+  :row 23}
+ {:end-row 71,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/always_array_map.clj",
+  :col 4,
+  :end-col 22,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Iterable can be simplified to Iterable (available by default)",
+  :row 71}
+ {:end-row 79,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer.clj",
+  :col 15,
+  :end-col 39,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.AssertionError can be simplified to AssertionError (available by default)",
+  :row 79}
+ {:end-row 87,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer.clj",
+  :col 21,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 87}
+ {:end-row 4,
   :type :unused-excluded-var,
   :level :info,
   :filename
@@ -58,6 +109,28 @@
   :langs (:cljs),
   :message "Var ordered-map is referred but used via alias: omap",
   :row 105}
+ {:end-row 256,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/eval_test.clj",
+  :col 30,
+  :end-col 46,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 256}
+ {:end-row 257,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/test/nextjournal/clerk/eval_test.clj",
+  :col 36,
+  :end-col 52,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 257}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,

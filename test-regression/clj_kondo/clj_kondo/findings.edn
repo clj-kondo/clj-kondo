@@ -449,6 +449,46 @@
   :langs (),
   :message "Unused private var cheshire.custom/core-failure",
   :row 27}
+ {:end-row 136,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cheshire/custom.clj",
+  :col 5,
+  :end-col 21,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Number can be simplified to Number (available by default)",
+  :row 136}
+ {:end-row 207,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cheshire/custom.clj",
+  :col 9,
+  :end-col 25,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.String can be simplified to String (available by default)",
+  :row 207}
+ {:end-row 239,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cheshire/custom.clj",
+  :col 9,
+  :end-col 25,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Number can be simplified to Number (available by default)",
+  :row 239}
+ {:end-row 271,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cheshire/custom.clj",
+  :col 9,
+  :end-col 26,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Boolean can be simplified to Boolean (available by default)",
+  :row 271}
  {:end-row 5,
   :type :unused-import,
   :level :warning,
@@ -525,6 +565,16 @@
   :langs (),
   :message "unused binding date",
   :row 151}
+ {:end-row 172,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cheshire/generate.clj",
+  :col 5,
+  :end-col 21,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Number can be simplified to Number (available by default)",
+  :row 172}
  {:end-row 4,
   :type :use,
   :level :warning,
@@ -3286,6 +3336,16 @@
   :langs (:clj :cljs),
   :message "unused binding name-var",
   :row 98}
+ {:end-row 144,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/compiler.cljc",
+  :col 23,
+  :end-col 55,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 144}
  {:end-row 263,
   :type :non-arg-vec-return-type-hint,
   :level :warning,
@@ -13078,6 +13138,16 @@
   :message "demunge already refers to #'cljs.core/demunge",
   :row 821}
  {:end-row 825,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/repl.cljc",
+  :col 3,
+  :end-col 42,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 825}
+ {:end-row 825,
   :ns clojure.lang.Compiler,
   :name demunge,
   :type :unresolved-namespace,
@@ -15871,6 +15941,16 @@
   :message "Unresolved symbol: line-seq",
   :row 75}
  {:end-row 86,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/util.cljc",
+  :col 3,
+  :end-col 41,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 86}
+ {:end-row 86,
   :ns clojure.lang.Compiler,
   :name munge,
   :type :unresolved-namespace,
@@ -16379,6 +16459,116 @@
   :langs (),
   :message "unused binding options",
   :row 590}
+ {:end-row 606,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 26,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Boolean can be simplified to Boolean (available by default)",
+  :row 606}
+ {:end-row 609,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 23,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Byte can be simplified to Byte (available by default)",
+  :row 609}
+ {:end-row 610,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Short can be simplified to Short (available by default)",
+  :row 610}
+ {:end-row 611,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 26,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Integer can be simplified to Integer (available by default)",
+  :row 611}
+ {:end-row 612,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 23,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :row 612}
+ {:end-row 613,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Float can be simplified to Float (available by default)",
+  :row 613}
+ {:end-row 614,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 25,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 614}
+ {:end-row 616,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigInteger can be simplified to BigInteger (available by default)",
+  :row 616}
+ {:end-row 617,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 617}
+ {:end-row 628,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 31,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.CharSequence can be simplified to CharSequence (available by default)",
+  :row 628}
+ {:end-row 635,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "cljs/vendor/clojure/data/json.clj",
+  :col 9,
+  :end-col 25,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Object can be simplified to Object (available by default)",
+  :row 635}
  {:end-row 12,
   :type :unused-excluded-var,
   :level :info,
@@ -18380,6 +18570,16 @@
   :langs (),
   :message "redefined var #'clojure.core/map",
   :row 2744}
+ {:end-row 3232,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 13,
+  :end-col 34,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 3232}
  {:end-row 3347,
   :type :redefined-var,
   :level :warning,
@@ -18497,6 +18697,46 @@
   :langs (),
   :message "Unresolved symbol: setChar",
   :row 4010}
+ {:end-row 4050,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 8,
+  :end-col 29,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 4050}
+ {:end-row 4113,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 12,
+  :end-col 33,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 4113}
+ {:end-row 4277,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 22,
+  :end-col 58,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.IllegalAccessError can be simplified to IllegalAccessError (available by default)",
+  :row 4274}
+ {:end-row 4396,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 7,
+  :end-col 61,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 4396}
  {:end-row 4539,
   :type :redefined-var,
   :level :warning,
@@ -18569,6 +18809,16 @@
   :langs (),
   :message "unused binding body",
   :row 4763}
+ {:end-row 5026,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 19,
+  :end-col 40,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 5026}
  {:end-row 5048,
   :type :unused-binding,
   :level :warning,
@@ -18587,6 +18837,16 @@
   :langs (),
   :message "unused binding k",
   :row 5068}
+ {:end-row 5524,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 30,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Enum can be simplified to Enum (available by default)",
+  :row 5524}
  {:end-row 5588,
   :type :redefined-var,
   :level :warning,
@@ -18596,6 +18856,16 @@
   :langs (),
   :message "redefined var #'clojure.core/global-hierarchy",
   :row 5587}
+ {:end-row 5676,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 21,
+  :end-col 98,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.UnsupportedOperationException can be simplified to UnsupportedOperationException (available by default)",
+  :row 5676}
  {:end-row 5743,
   :type :unused-binding,
   :level :warning,
@@ -18614,6 +18884,36 @@
   :langs (),
   :message "unused binding check-keys",
   :row 5764}
+ {:end-row 5810,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 50,
+  :end-col 78,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 5810}
+ {:end-row 5919,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 23,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 5919}
+ {:end-row 5920,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 23,
+  :end-col 51,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 5920}
  {:end-row 5954,
   :type :uninitialized-var,
   :level :warning,
@@ -18689,6 +18989,16 @@
   :langs (),
   :message "unused binding f",
   :row 6970}
+ {:end-row 6974,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core.clj",
+  :col 2,
+  :end-col 18,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Object can be simplified to Object (available by default)",
+  :row 6974}
  {:end-row 7209,
   :type :unused-binding,
   :level :warning,
@@ -18831,6 +19141,16 @@
   :langs (),
   :message "unused binding f",
   :row 126}
+ {:end-row 158,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core/protocols.clj",
+  :col 3,
+  :end-col 19,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Object can be simplified to Object (available by default)",
+  :row 158}
  {:end-row 45,
   :ns clojure.core.protocols,
   :name kv-reduce,
@@ -19380,6 +19700,16 @@
   :langs (),
   :message "Unresolved symbol: maybe-destructured",
   :row 64}
+ {:end-row 132,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_deftype.clj",
+  :col 32,
+  :end-col 69,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 132}
  {:end-row 156,
   :type :unused-binding,
   :level :warning,
@@ -19416,6 +19746,26 @@
   :langs (),
   :message "Docstring should not be blank.",
   :row 296}
+ {:end-row 307,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_deftype.clj",
+  :col 23,
+  :end-col 49,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 307}
+ {:end-row 308,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_deftype.clj",
+  :col 23,
+  :end-col 51,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 308}
  {:end-row 501,
   :type :unused-binding,
   :level :warning,
@@ -19515,6 +19865,66 @@
   :langs (),
   :message "redundant do",
   :row 233}
+ {:end-row 353,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_print.clj",
+  :col 25,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 353}
+ {:end-row 361,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_print.clj",
+  :col 22,
+  :end-col 41,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 361}
+ {:end-row 362,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_print.clj",
+  :col 22,
+  :end-col 36,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Long can be simplified to Long (available by default)",
+  :row 362}
+ {:end-row 363,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_print.clj",
+  :col 22,
+  :end-col 38,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Double can be simplified to Double (available by default)",
+  :row 363}
+ {:end-row 365,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_print.clj",
+  :col 22,
+  :end-col 42,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 365}
+ {:end-row 401,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_print.clj",
+  :col 25,
+  :end-col 45,
+  :langs (),
+  :message
+  "Fully qualified class java.math.BigDecimal can be simplified to BigDecimal (available by default)",
+  :row 401}
  {:end-row 519,
   :type :unused-binding,
   :level :warning,
@@ -19552,6 +19962,16 @@
   :langs (),
   :message "Unresolved symbol: into1",
   :row 40}
+ {:end-row 49,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_proxy.clj",
+  :col 12,
+  :end-col 47,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 49}
  {:end-row 63,
   :type :unused-binding,
   :level :warning,
@@ -19561,6 +19981,16 @@
   :langs (),
   :message "unused binding sym-type",
   :row 63}
+ {:end-row 65,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_proxy.clj",
+  :col 26,
+  :end-col 65,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.UnsupportedOperationException can be simplified to UnsupportedOperationException (available by default)",
+  :row 65}
  {:end-row 93,
   :type :unused-binding,
   :level :warning,
@@ -19588,6 +20018,16 @@
   :langs (),
   :message "unused binding cname",
   :row 292}
+ {:end-row 293,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_proxy.clj",
+  :col 43,
+  :end-col 71,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 293}
  {:end-row 363,
   :type :unused-binding,
   :level :warning,
@@ -19597,6 +20037,16 @@
   :langs (),
   :message "unused binding compile-effect",
   :row 363}
+ {:end-row 365,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/core_proxy.clj",
+  :col 29,
+  :end-col 82,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 365}
  {:end-row 91,
   :type :unused-binding,
   :level :warning,
@@ -19732,6 +20182,16 @@
   :langs (),
   :message "use :else as the catch-all test expression in cond",
   :row 108}
+ {:end-row 59,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/datafy.clj",
+  :col 3,
+  :end-col 18,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Class can be simplified to Class (available by default)",
+  :row 59}
  {:end-row 32,
   :type :unused-binding,
   :level :warning,
@@ -19751,6 +20211,16 @@
   :message
   "Prefer placing return type hint on arg vector: java.lang.reflect.Field",
   :row 74}
+ {:end-row 108,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 15,
+  :end-col 60,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 108}
  {:end-row 112,
   :type :non-arg-vec-return-type-hint,
   :level :warning,
@@ -19760,6 +20230,26 @@
   :langs (),
   :message "Prefer placing return type hint on arg vector: Class",
   :row 112}
+ {:end-row 128,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 8,
+  :end-col 39,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 128}
+ {:end-row 147,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 12,
+  :end-col 47,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 147}
  {:end-row 149,
   :type :unused-binding,
   :level :warning,
@@ -19778,6 +20268,16 @@
   :langs (),
   :message "#'clojure.core/replicate is deprecated since 1.3",
   :row 160}
+ {:end-row 168,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 26,
+  :end-col 71,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 168}
  {:end-row 169,
   :type :unused-binding,
   :level :warning,
@@ -19787,6 +20287,16 @@
   :langs (),
   :message "unused binding class-type",
   :row 169}
+ {:end-row 174,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 26,
+  :end-col 65,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.UnsupportedOperationException can be simplified to UnsupportedOperationException (available by default)",
+  :row 174}
  {:end-row 179,
   :type :unused-binding,
   :level :warning,
@@ -19814,6 +20324,16 @@
   :langs (),
   :message "#'clojure.core/replicate is deprecated since 1.3",
   :row 246}
+ {:end-row 649,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 9,
+  :end-col 62,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 649}
  {:end-row 654,
   :type :non-arg-vec-return-type-hint,
   :level :warning,
@@ -19823,6 +20343,48 @@
   :langs (),
   :message "Prefer placing return type hint on arg vector: Type",
   :row 654}
+ {:end-row 676,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 12,
+  :end-col 47,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 676}
+ {:end-row 733,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 9,
+  :end-col 62,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 733}
+ {:end-row 734,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/genclass.clj",
+  :col 48,
+  :end-col 76,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 734}
+ {:filename "clojure/gvec.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Comparable can be simplified to Comparable (available by default)",
+  :level :info,
+  :langs ()}
+ {:filename "clojure/gvec.clj",
+  :type :fully-qualified-default-import,
+  :message
+  "Fully qualified class java.lang.Iterable can be simplified to Iterable (available by default)",
+  :level :info,
+  :langs ()}
  {:end-row 304,
   :type :unused-binding,
   :level :warning,
@@ -19832,6 +20394,26 @@
   :langs (),
   :message "unused binding this",
   :row 304}
+ {:end-row 405,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/gvec.clj",
+  :col 3,
+  :end-col 23,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Comparable can be simplified to Comparable (available by default)",
+  :row 405}
+ {:end-row 423,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/gvec.clj",
+  :col 3,
+  :end-col 21,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Iterable can be simplified to Iterable (available by default)",
+  :row 423}
  {:end-row 447,
   :type :unused-binding,
   :level :warning,
@@ -20450,6 +21032,16 @@
   :langs (),
   :message "Unused import Compiler$CompilerException",
   :row 19}
+ {:end-row 33,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/main.clj",
+  :col 3,
+  :end-col 42,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 33}
  {:end-row 182,
   :type :unused-binding,
   :level :warning,
@@ -22503,6 +23095,16 @@
   :langs (),
   :message "Unused import Reflector",
   :row 17}
+ {:end-row 212,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/repl.clj",
+  :col 3,
+  :end-col 42,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 212}
  {:end-row 15,
   :type :misplaced-docstring,
   :level :warning,
@@ -22540,6 +23142,26 @@
   :langs (),
   :message "namespace clojure.string is required but never used",
   :row 20}
+ {:end-row 135,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/spec/alpha.clj",
+  :col 15,
+  :end-col 51,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 135}
+ {:end-row 135,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/spec/alpha.clj",
+  :col 52,
+  :end-col 87,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 135}
  {:end-row 549,
   :type :unused-binding,
   :level :warning,
@@ -22810,6 +23432,16 @@
   :langs (),
   :message "Unused private var clojure.spec.test.alpha/fn-spec?",
   :row 63}
+ {:end-row 92,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/spec/test/alpha.clj",
+  :col 18,
+  :end-col 51,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 92}
  {:end-row 131,
   :type :unused-binding,
   :level :warning,
@@ -22999,6 +23631,16 @@
   :langs (),
   :message "Expected: throwable, received: string.",
   :row 74}
+ {:end-row 291,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "clojure/test.clj",
+  :col 51,
+  :end-col 76,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Throwable can be simplified to Throwable (available by default)",
+  :row 291}
  {:end-row 335,
   :type :unused-private-var,
   :level :warning,
@@ -29449,6 +30091,36 @@
   :langs (),
   :message "Unresolved var: node/token-node",
   :row 33}
+ {:end-row 6,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/parser/utils.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 6}
+ {:end-row 11,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/parser/utils.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 11}
+ {:end-row 16,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/parser/utils.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 16}
  {:end-row 12,
   :type :unresolved-var,
   :level :warning,
@@ -29521,6 +30193,46 @@
   :langs (),
   :message "unused binding nspace",
   :row 94}
+ {:end-row 25,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/reader.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 25}
+ {:end-row 29,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/reader.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 29}
+ {:end-row 35,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/reader.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 35}
+ {:end-row 39,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "parser/clj_kondo/impl/rewrite_clj/reader.clj",
+  :col 5,
+  :end-col 24,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Character can be simplified to Character (available by default)",
+  :row 39}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -29552,6 +30264,16 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: set!",
   :row 5}
+ {:end-row 32,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/ctx_store.cljc",
+  :col 24,
+  :end-col 62,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.IllegalStateException can be simplified to IllegalStateException (available by default)",
+  :row 32}
  {:end-row 4,
   :type :unused-excluded-var,
   :level :info,
@@ -29596,17 +30318,13 @@
   :message
   "Var rethrow-with-location-of-node is referred but used via alias: utils",
   :row 1706}
- {:end-row nil,
-  :type :def-fn,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/core_protocols.cljc",
-  :col nil,
-  :end-col nil,
-  :cljc true,
-  :langs (:clj :cljs),
+ {:type :def-fn,
   :message "Use defn instead of def + fn",
-  :row nil}
+  :filename "sci/impl/core_protocols.cljc",
+  :cljc true,
+  :lang :clj,
+  :level :warning,
+  :langs (:clj :cljs)}
  {:end-row 81,
   :protocol-ns sci.impl.types,
   :protocol-name IBox,
@@ -29650,6 +30368,16 @@
   :langs (:cljs),
   :message "Var kw-identical? is referred but used via alias: utils",
   :row 71}
+ {:end-row 268,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/evaluator.cljc",
+  :col 11,
+  :end-col 26,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.Class can be simplified to Class (available by default)",
+  :row 268}
  {:end-row 263,
   :type :def-fn,
   :level :warning,
@@ -29749,6 +30477,16 @@
   :langs (:clj :cljs),
   :message "Single argument to str already is a string",
   :row 102}
+ {:end-row 354,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/load.cljc",
+  :col 41,
+  :end-col 77,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.IllegalAccessError can be simplified to IllegalAccessError (available by default)",
+  :row 349}
  {:end-row 6,
   :ns sci.ctx-store,
   :type :unused-namespace,
@@ -29772,6 +30510,26 @@
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
   :row 353}
+ {:end-row 919,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/namespaces.cljc",
+  :col 26,
+  :end-col 170,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.SecurityException can be simplified to SecurityException (available by default)",
+  :row 918}
+ {:end-row 926,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/namespaces.cljc",
+  :col 26,
+  :end-col 164,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.SecurityException can be simplified to SecurityException (available by default)",
+  :row 925}
  {:end-row 1746,
   :type :deprecated-var,
   :level :warning,
@@ -29783,6 +30541,26 @@
   :langs (:clj),
   :message "#'clojure.core/replicate is deprecated since 1.3",
   :row 1746}
+ {:end-row 1901,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/namespaces.cljc",
+  :col 7,
+  :end-col 46,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 1901}
+ {:end-row 72,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/opts.cljc",
+  :col 48,
+  :end-col 82,
+  :langs (),
+  :message
+  "Fully qualified class java.lang.IllegalArgumentException can be simplified to IllegalArgumentException (available by default)",
+  :row 72}
  {:end-row 146,
   :type :def-fn,
   :level :warning,
@@ -30306,6 +31084,26 @@
   :langs (:clj :cljs),
   :message "Missing protocol method(s): setVal",
   :row 65}
+ {:end-row 63,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/utils.cljc",
+  :col 11,
+  :end-col 44,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 63}
+ {:end-row 84,
+  :type :fully-qualified-default-import,
+  :level :info,
+  :filename "sci/impl/utils.cljc",
+  :col 46,
+  :end-col 88,
+  :langs (),
+  :message
+  "Fully qualified class clojure.lang.Compiler can be simplified to Compiler (available by default)",
+  :row 84}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
