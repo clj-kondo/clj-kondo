@@ -1,4 +1,100 @@
-[{:end-row 5,
+[{:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 182,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 192,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 198,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 203,
+  :col 19,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 210,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 221,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 232,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 264,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/as400_billing_exploration.clj",
+  :row 277,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: clerk-elog",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/eitting_import.clj",
+  :row 141,
+  :col 1,
+  :type :aliased-referred-var,
+  :message "Var query! is referred but used via alias: tx-import",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/manual_interventions.clj",
+  :row 9787,
+  :col 37,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/manual_interventions.clj",
+  :row 12196,
+  :col 30,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:end-row 5,
   :type :deprecated-namespace,
   :level :warning,
   :filename
@@ -18,6 +114,79 @@
   :langs (),
   :message "#'io.pedestal.test/response-for is deprecated since 0.8.0",
   :row 12}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/elog/tx_import.clj",
+  :row 1620,
+  :col 25,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/locations.clj",
+  :row 166,
+  :col 5,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow.clj",
+  :row 1350,
+  :col 38,
+  :type :aliased-referred-var,
+  :message "Var has-hv-battery? is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow.clj",
+  :row 1914,
+  :col 24,
+  :type :aliased-referred-var,
+  :message
+  "Var accessory-pending-installation? is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow.clj",
+  :row 2846,
+  :col 17,
+  :type :aliased-referred-var,
+  :message "Var completed-other? is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow.clj",
+  :row 3457,
+  :col 65,
+  :type :aliased-referred-var,
+  :message "Var completed-other? is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
+  :row 755,
+  :col 5,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
+  :row 87,
+  :col 57,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/engine.clj",
+  :row 1010,
+  :col 7,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
  {:end-row 19,
   :type :type-mismatch,
   :level :error,
@@ -28,6 +197,95 @@
   :langs (),
   :message "Expected: string, received: boolean.",
   :row 19}
+ {:filename
+  "test-regression/checkouts/ductile/test/integration/edi_test.clj",
+  :row 94,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var with-system is referred but used via alias: f",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/integration/edi_test.clj",
+  :row 123,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var with-system is referred but used via alias: f",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
+  :row 697,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var with-system is referred but used via alias: f",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
+  :row 758,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var with-system is referred but used via alias: f",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
+  :row 883,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var with-system is referred but used via alias: f",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
+  :row 922,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var with-system is referred but used via alias: f",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
+  :row 398,
+  :col 3,
+  :type :aliased-referred-var,
+  :message "Var apply-tx is referred but used via alias: test-utils",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
+  :row 442,
+  :col 16,
+  :type :aliased-referred-var,
+  :message "Var apply-tx is referred but used via alias: test-utils",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
+  :row 450,
+  :col 16,
+  :type :aliased-referred-var,
+  :message "Var apply-tx is referred but used via alias: test-utils",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
+  :row 457,
+  :col 16,
+  :type :aliased-referred-var,
+  :message "Var apply-tx is referred but used via alias: test-utils",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/edi/pipeline_test.clj",
+  :row 216,
+  :col 17,
+  :type :aliased-referred-var,
+  :message
+  "Var *insert-chunk-size* is referred but used via alias: pipeline",
+  :level :info,
+  :langs ()}
  {:end-row 38,
   :type :type-mismatch,
   :level :error,
@@ -37,4 +295,118 @@
   :end-col 70,
   :langs (),
   :message "Expected: string, received: boolean.",
-  :row 38}]
+  :row 38}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 142,
+  :col 17,
+  :type :aliased-referred-var,
+  :message
+  "Var eval-dynamic-attrs is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 1689,
+  :col 110,
+  :type :aliased-referred-var,
+  :message "Var brc-dealer-code is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4341,
+  :col 47,
+  :type :aliased-referred-var,
+  :message
+  "Var postprocess-ui-fields-with-fahrzeug is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4459,
+  :col 32,
+  :type :aliased-referred-var,
+  :message
+  "Var open-service-codes-blocking-dispo is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4473,
+  :col 27,
+  :type :aliased-referred-var,
+  :message
+  "Var open-service-codes-blocking-dispo is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4860,
+  :col 40,
+  :type :aliased-referred-var,
+  :message
+  "Var postprocess-ui-fields-with-fahrzeug is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4881,
+  :col 40,
+  :type :aliased-referred-var,
+  :message
+  "Var parking-spot-temp-id is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4894,
+  :col 60,
+  :type :aliased-referred-var,
+  :message
+  "Var parking-spot-temp-id is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4934,
+  :col 66,
+  :type :aliased-referred-var,
+  :message
+  "Var parking-spot-temp-id is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4954,
+  :col 34,
+  :type :aliased-referred-var,
+  :message
+  "Var postprocess-ui-fields-with-fahrzeug is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4971,
+  :col 66,
+  :type :aliased-referred-var,
+  :message
+  "Var parking-spot-temp-id is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 4996,
+  :col 10,
+  :type :aliased-referred-var,
+  :message "Var edit-event-tx is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :row 5018,
+  :col 10,
+  :type :aliased-referred-var,
+  :message "Var edit-event-tx is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}]
