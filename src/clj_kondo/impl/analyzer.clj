@@ -2346,10 +2346,11 @@
 
 (defn- analyze-=-not= [ctx expr var-name]
   (let [[lhs rhs :as children] (rest (:children expr))
+        var=? (= '= var-name)
         ;; need to analyze children, to pick up on ignores in arguments
         res (analyze-children ctx children false)]
     (when (= 2 (count children))
-      (when (and (= '= var-name)
+      (when (and var=?
                  (or (true? (:value lhs))
                      (true? (:value rhs)))
                  (not (or (:clj-kondo.impl/generated lhs)
@@ -2360,8 +2361,8 @@
                                           :filename (:filename ctx))))
       (let [cfg (-> ctx :config :linters :equals-expected-position)
             level (:level cfg)
-            pos (-> cfg :position)
-            only-in-test-assertion (-> cfg :only-in-test-assertion)]
+            pos (:position cfg)
+            only-in-test-assertion (:only-in-test-assertion cfg)]
         (when-let [expr (when-not (identical? :off level)
                           (or
                            (and (identical? :first pos)
@@ -2380,14 +2381,14 @@
                                             :type :equals-expected-position
                                             :message (str "Write expected value " (name pos))
                                             :filename (:filename ctx))))
-        (when (and (= '= var-name)
+        (when (and var=?
                    (or (false? (:value lhs))
                        (false? (:value rhs))))
           (findings/reg-finding! ctx (assoc (meta expr)
                                             :type :equals-false
                                             :message "Prefer (false? x) over (= false x)"
                                             :filename (:filename ctx))))
-        (when (and (= '= var-name)
+        (when (and var=?
                    (or (= "nil" (:string-value lhs))
                        (= "nil" (:string-value rhs)))
                    (not (or (:clj-kondo.impl/generated lhs)
