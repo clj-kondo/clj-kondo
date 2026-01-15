@@ -2344,7 +2344,7 @@
                                              with-precision-bindings)
                     children))
 
-(defn- analyze-= [ctx expr]
+(defn- analyze-=-not= [ctx expr]
   (let [[lhs rhs :as children] (rest (:children expr))
         ;; need to analyze children, to pick up on ignores in arguments
         res (analyze-children ctx children false)]
@@ -2758,7 +2758,7 @@
                           if-not (analyze-if-not ctx expr)
                           new (analyze-constructor ctx expr)
                           set! (analyze-set! ctx expr)
-                          = (analyze-= ctx expr)
+                          (= not=) (analyze-=-not= ctx expr)
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
                           (when when-not) (analyze-when ctx expr)
@@ -3663,8 +3663,8 @@
                   (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
                     (cache/with-thread-lock
                       (cache/with-cache ;; lock config dir for concurrent writes
-                          cfg-dir
-                          10
+                        cfg-dir
+                        10
                         (binding [*print-namespace-maps* false]
                           (spit (doto inline-file
                                   (io/make-parents)) (apply config/merge-config! configs))))))
