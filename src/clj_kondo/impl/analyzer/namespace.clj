@@ -14,7 +14,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
     :refer [assoc-some linter-disabled? node->line one-of sexpr
-            string-from-token symbol-from-token tag token-node vector-node]]
+            string-from-token tag token-node vector-node]]
    [clj-kondo.impl.var-info :refer [core-sym?]]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -137,7 +137,7 @@
         lint-refers? (not (identical? :off (-> linters :refer :level)))
         unknown-require-option-config (-> linters :unknown-require-option)
         req-macros? (= :require-macros require-kw)]
-    (if-let [s (symbol-from-token libspec-expr)]
+    (if-let [s (utils/symbol-from-token libspec-expr)]
       (do
         (when (and (= s current-ns-name)
                    (not req-macros?)

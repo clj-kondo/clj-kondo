@@ -19,7 +19,8 @@
               :unsorted-required-namespaces {:level :warning}
               :uninitialized-var {:level :off}
               :type-mismatch {:namespaces {cljs.core {throw {:arities {1 {:args [:any]}}}}}}
-              :if-nil-return {:level :off}}
+              :if-nil-return {:level :off}
+              :aliased-referred-var {:level :off}}
     :lint-as {day8.re-frame.tracing/fn-traced   clojure.core/fn
               day8.re-frame.tracing/defn-traced clojure.core/defn
               reagent.core/with-let             clojure.core/let

@@ -1,4 +1,12 @@
-[{:end-row 8,
+[{:filename
+  "test-regression/checkouts/metabase/src/metabase/activity_feed/api.clj",
+  :row 149,
+  :col 73,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:end-row 8,
   :type :unresolved-excluded-var,
   :level :info,
   :filename
@@ -28,6 +36,14 @@
   :langs (),
   :message "Condition always true",
   :row 43}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
+  :row 386,
+  :col 72,
+  :type :aliased-referred-var,
+  :message "Var tru is referred but used via alias: i18n",
+  :level :info,
+  :langs ()}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -358,6 +374,72 @@
   :langs (),
   :message "Unused excluded var: hash",
   :row 2}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 555,
+  :col 23,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 573,
+  :col 48,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 655,
+  :col 56,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 699,
+  :col 36,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 700,
+  :col 43,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 1053,
+  :col 6,
+  :type :aliased-referred-var,
+  :message
+  "Var *current-user-permissions-set* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 1156,
+  :col 94,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 1728,
+  :col 50,
+  :type :aliased-referred-var,
+  :message
+  "Var *current-user-permissions-set* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
  {:end-row 113,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -379,6 +461,16 @@
   :langs (),
   :message "Unused excluded var: require",
   :row 2}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/schema.cljc",
+  :col 67,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Var is-clause? is referred but used via alias: helpers",
+  :row 1616}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -764,6 +856,23 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 45}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/request/session.clj",
+  :row 66,
+  :col 42,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/search/impl.clj",
+  :row 433,
+  :col 18,
+  :type :aliased-referred-var,
+  :message
+  "Var SearchContext is referred but used via alias: search.config",
+  :level :info,
+  :langs ()}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
