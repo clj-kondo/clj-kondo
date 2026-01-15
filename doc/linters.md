@@ -38,8 +38,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
-    - [Duplicate refer](#duplicate-refer)
-    - [Duplicate exclude](#duplicate-exclude)
+    - [Duplicate require option](#duplicate-require-option)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
     - [Duplicate key args](#duplicate-key-args)
@@ -780,36 +779,24 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `duplicate require of clojure.string`
 
-### Duplicate refer
+### Duplicate require option
 
-*Keyword:* `:duplicate-refer`.
+*Keyword:* `:duplicate-require-option`.
 
-*Description:* warns on var that has been referred more than once in a `:refer` or `:refer-macros` vector.
-
-*Example trigger:*
-
-``` clojure
-(ns foo
-  (:require [clojure.set :refer [union union]]))
-```
-
-*Example message:* `Duplicate refer: union`
-
-### Duplicate exclude
-
-*Keyword:* `:duplicate-exclude`.
-
-*Description:* warns on var that has been excluded more than once in an `:exclude` vector, either in `:refer-clojure` or in `:require` clauses.
+*Description:* warns on var that has been specified more than once in a `:refer`, `:refer-macros`, or `:exclude` vector.
 
 *Example trigger:*
 
 ``` clojure
 (ns foo
   (:refer-clojure :exclude [map map])
-  (:require [clojure.set :exclude [union union]]))
+  (:require [clojure.set :refer [union union]
+                          :exclude [intersection intersection]]))
 ```
 
-*Example message:* `Duplicate exclude: map`
+*Example messages:*
+- `Duplicate refer: union`
+- `Duplicate exclude: map`
 
 ### Duplicate set key
 

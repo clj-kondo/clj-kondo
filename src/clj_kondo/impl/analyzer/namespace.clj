@@ -114,11 +114,11 @@
                     (conj seen v)))))
             #{} nodes)))
 
-(defn- lint-duplicate-refers! [ctx refers]
-  (lint-duplicates! ctx refers :duplicate-refer "Duplicate refer: "))
-
-(defn- lint-duplicate-excludes! [ctx excludes]
-  (lint-duplicates! ctx excludes :duplicate-exclude "Duplicate exclude: "))
+(defn- lint-duplicate-require-options! [ctx nodes option-type]
+  (let [message-prefix (case option-type
+                         :refer "Duplicate refer: "
+                         :exclude "Duplicate exclude: ")]
+    (lint-duplicates! ctx nodes :duplicate-require-option message-prefix)))
 
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
@@ -225,7 +225,7 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
-                           (lint-duplicate-refers! ctx opt-expr-children)
+                           (lint-duplicate-require-options! ctx opt-expr-children :refer)
                            (when (:analyze-var-usages? ctx)
                              (run! #(namespace/reg-var-usage! ctx current-ns-name
                                                               (let [m (meta %)]
@@ -268,7 +268,8 @@
                                                   (meta opt-expr))))
                 :exclude
                 (do
-                  (lint-duplicate-excludes! ctx (:children opt-expr))
+                  (lint-duplicate-require-options! ctx (:children opt-expr)
+                                                   :exclude)
                   (recur
                    (nnext children)
                    (update m :excluded into (set opt))))
@@ -660,7 +661,7 @@
                                {:only (set v)})]]
                  r))
         _ (when-let [exclude-nodes (:exclude-nodes refer-clojure-clauses)]
-            (lint-duplicate-excludes! ctx exclude-nodes))
+            (lint-duplicate-require-options! ctx exclude-nodes :exclude))
         refer-clj {:referred-vars
                    (into {} (map (fn [[original-name new-name]]
                                    [new-name {:ns 'clojure.core
