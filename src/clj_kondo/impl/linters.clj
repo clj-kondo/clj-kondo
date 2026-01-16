@@ -159,11 +159,11 @@
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
-                             [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
+       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))
           (lint-if-nil-return ctx (:expr call)))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
-                             [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
+       [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       ([clojure.test is] [cljs.test is])
       (when (and
