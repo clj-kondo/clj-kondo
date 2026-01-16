@@ -368,13 +368,9 @@
                     (when-let [v (:val t)]
                       {:tag (get v nm)}))))))))))
 
-(defn- primitive-array-class? [sym]
-  (when (symbol? sym)
-    (when-let [ns-part (namespace sym)]
-      (when (contains? #{"boolean" "byte" "short" "int" "long" "float" "double"
-                         "char"}
-                       ns-part)
-        (re-matches #"\d+" (name sym))))))
+(defn- array-class-literal? [sym]
+  (when (and (symbol? sym) (namespace sym))
+    (re-matches #"\d+" (name sym))))
 
 (defn tag-from-usage
   [ctx usage expr]
@@ -387,10 +383,10 @@
       (cond
         tag {:tag tag}
 
-        ;; Check if this is a primitive array class literal
-        ;; (Clojure 1.12+) would emit those as :class tags (type byte/1) => java.lang.Class
+        ;; Check if this is an array class literal
+        ;; (Clojure 1.12+) would emit those as :class tags (type String/1) => java.lang.Class
         (and (identical? :clj (:lang ctx))
-             (primitive-array-class? (sexpr expr)))
+             (array-class-literal? (sexpr expr)))
         {:tag :class}
 
         :else {:usage (or tag

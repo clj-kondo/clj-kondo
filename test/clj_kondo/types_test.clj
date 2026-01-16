@@ -1500,7 +1500,7 @@
     (is (empty? (lint! "(instance? float/1 (float-array 0))" config)))
     (is (empty? (lint! "(instance? double/1 (double-array 0))" config)))
     (is (empty? (lint! "(instance? boolean/1 (boolean-array 0))" config)))
-    (is (empty? (lint! "(instance? char/1 (char-array 0))" config)))))
+    (is (empty? (lint! "(instance? String/1 (char-array 0))" config)))))
 
 (deftest make-array-test
   (testing "make-array with 2 args (type and length)"
