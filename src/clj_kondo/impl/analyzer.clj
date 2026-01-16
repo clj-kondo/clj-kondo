@@ -1351,13 +1351,13 @@
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) var-name-node
-                           :dynamic-var-not-earmuffed
-                           (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
+                     :dynamic-var-not-earmuffed
+                     (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
       (when earmuffed?
         (findings/reg-finding! ctx
                                (node->line (:filename ctx) var-name-node
-                                                 :earmuffed-var-not-dynamic
-                                                 (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
+                                           :earmuffed-var-not-dynamic
+                                           (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
       (let [type (when-not dynamic?
                    (some-> (:arg-types ctx) deref first :tag))]
@@ -2533,8 +2533,8 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                            [[ns n]
-                             (config/lint-as config resolved-var-sym)]
+                         [[ns n]
+                          (config/lint-as config resolved-var-sym)]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as

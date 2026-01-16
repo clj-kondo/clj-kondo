@@ -20,7 +20,8 @@
   (is (empty? (remove #(= "src/scratch.clj" (:file %))
                       (lint! (io/file "test")
                              {:linters {:unresolved-symbol {:level :error}
-                                        :unused-binding {:level :warning}}})))))
+                                        :unused-binding {:level :warning}
+                                        :test-assertion-string-arg {:level :off}}})))))
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")

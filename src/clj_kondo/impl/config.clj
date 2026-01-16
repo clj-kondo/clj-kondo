@@ -151,6 +151,7 @@
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
               :redundant-str-call {:level :info}
+              :test-assertion-string-arg {:level :warning}
               :redundant-primitive-coercion {:level :info}
               :redundant-format {:level :info}
               :warn-on-reflection {:level :off
@@ -508,7 +509,7 @@
        x))
    coll))
 
-(defn deprecated-namespace-excluded-config [config ]
+(defn deprecated-namespace-excluded-config [config]
   (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
     (set excluded)))
 

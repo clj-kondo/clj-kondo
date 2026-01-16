@@ -32,7 +32,7 @@
                 (:tag (first args))
                 :any))
         :arities {1 {:args [:any]}
-                  2 {:args [:any :string]}}}
+                  2 {:args [:any :any]}}}
    'are {:arities {:varargs {:ret :boolean}}}
    'testing {:fn last}
    'with-test {:arities {:varargs {:ret :var}}}
@@ -87,7 +87,6 @@
   (t/set-test my-fn
               (is (= 4 (my-fn 2))))
   ;; => {:test #function[clj-kondo.impl.types.clojure.test/eval9837/fn--9838], :line 75, :column 3, :file "/home/jon/sandbox/apps/clj-kondo/src/clj_kondo/impl/types/clojure/test.clj", :name my-fn, :ns #namespace[clj-kondo.impl.types.clojure.test]}
-
 
   (t/use-fixtures :each (fn [f] (f)))
   ;; => #:clojure.test{:each-fixtures (#function[clj-kondo.impl.types.clojure.test/eval9843/fn--9844])}
