@@ -386,7 +386,7 @@
         ;; Check if this is an array class literal
         ;; (Clojure 1.12+) would emit those as :class tags (type String/1) => java.lang.Class
         (and (identical? :clj (:lang ctx))
-             (array-class-literal? (sexpr expr)))
+             (array-class-literal? (:value expr)))
         {:tag :class}
 
         :else {:usage (or tag
