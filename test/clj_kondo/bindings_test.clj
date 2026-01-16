@@ -405,4 +405,3 @@
                        {:linters {:unresolved-symbol {:level :error}}})))
     (is (empty? (lint! "(defmacro outer [] `(defmacro ~'inner [a# b#] `(+ ~a# ~b#)))"
                        {:linters {:unresolved-symbol {:level :error}}})))))
-
