@@ -203,9 +203,7 @@
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
-      ;; (prn (:name called-fn) :tags tags )
-      (when-not (utils/linter-disabled? ctx :type-mismatch)
-        (types/lint-arg-types ctx called-fn arg-types tags call))
+      (types/lint-arg-types ctx called-fn arg-types tags call)
       (when (and
              (= 'str (:name called-fn))
              (utils/one-of (:ns called-fn) [clojure.core cljs.core])
