@@ -2837,7 +2837,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
+                             [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
