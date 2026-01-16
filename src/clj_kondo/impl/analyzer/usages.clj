@@ -167,8 +167,9 @@
                      symbol-val (if simple?
                                   (namespace/normalize-sym-name ctx symbol-val)
                                   symbol-val)
-                     expr-meta (meta expr)]
-                 (if-let [b (when (and simple? (not syntax-quote?))
+                     expr-meta (meta expr)
+                     in-syntax-quote? (or syntax-quote? (pos? (or (:syntax-quote-level ctx) 0)))]
+                 (if-let [b (when (and simple? (not in-syntax-quote?))
                               (or (get (:bindings ctx) symbol-val)
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
@@ -201,7 +202,7 @@
                           resolved-core? :resolved-core?
                           :as _m}
                          (let [v (namespace/resolve-name ctx false ns-name symbol-val expr)]
-                           (when-not syntax-quote?
+                           (when-not in-syntax-quote?
                              (when-let [n (:unresolved-ns v)]
                                (namespace/reg-unresolved-namespace!
                                 ctx ns-name
@@ -251,12 +252,12 @@
                                       :top-ns (:top-ns ctx)
                                       :filename (:filename ctx)
                                       :unresolved-symbol-disabled?
-                                      (or syntax-quote?
+                                      (or in-syntax-quote?
                                           ;; e.g. usage of clojure.core,
                                           ;; clojure.string, etc in (:require [...])
                                           (= symbol-val (get (:qualify-ns ns)
                                                              symbol-val)))
-                                      :private-access? (or syntax-quote?
+                                      :private-access? (or in-syntax-quote?
                                                            (:private-access? ctx))
                                       :callstack (:callstack ctx)
                                       :config (:config ctx)
