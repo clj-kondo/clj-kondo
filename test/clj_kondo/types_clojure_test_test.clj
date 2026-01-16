@@ -664,9 +664,3 @@
                         (def my-var 42)
                         (get-possibly-unbound-var 42)"
             {:linters {:type-mismatch {:level :error}}}))))
-
-
-(comment 
-(lint! "(require '[clojure.test :refer [is]]) (defn- humanize [x] (str x)) (is (= 1 2) (humanize {:some :data}))"
-                )
-  )
