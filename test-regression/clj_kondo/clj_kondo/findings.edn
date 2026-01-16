@@ -4358,17 +4358,6 @@
   :langs (:clj :cljs),
   :message "unused binding pair",
   :row 2543}
- {:end-row 2561,
-  :type :unresolved-symbol,
-  :level :error,
-  :lang :clj,
-  :filename "cljs/core.cljc",
-  :col 53,
-  :end-col 63,
-  :cljc true,
-  :langs (:clj),
-  :message "Unresolved symbol: not-native",
-  :row 2561}
  {:end-row 2651,
   :type :unused-binding,
   :level :warning,
