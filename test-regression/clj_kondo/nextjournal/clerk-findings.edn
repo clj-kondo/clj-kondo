@@ -69,22 +69,22 @@
   :message "Redundant fn wrapper",
   :row 67}
  {:end-row 81,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :warning,
   :filename
   "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
   :col 9,
   :end-col 157,
   :langs (),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 81}
  {:end-row 86,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :warning,
   :filename
   "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
   :col 9,
   :end-col 132,
   :langs (),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 86}]
