@@ -1917,7 +1917,11 @@
 
 (defn analyze-is
   [ctx expr]
-  (let [[condition & body] (rest (:children expr))]
+  (let [ctx (cond-> ctx
+              (and (not (linter-disabled? ctx :is-message-not-string))
+                   (nil? (:arg-types ctx)))
+              (assoc :arg-types (atom [])))
+        [condition & body] (rest (:children expr))]
     (when condition
       (analyze-condition ctx condition))
     (analyze-children ctx body false)))

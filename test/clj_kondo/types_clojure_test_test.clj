@@ -51,12 +51,7 @@
                         (is (= 3 3) {:msg \"not equal\"})"
                        {:linters {:is-message-not-string {:level :off}}}))))
 
-  (testing "is accepts non-string message types when linter off"
-    (is (empty? (lint! "(require '[clojure.test :refer [is]])
-                         (is (= 200 (:status response)) {:request request :response response})"
-                       {:linters {:is-message-not-string {:level :off}}}))))
-
-  (testing "is accepts message when it has string type"
+  (testing "is accepts string type resolved argument"
     (is (empty?
          (lint! "(require '[clojure.test :refer [is]])
              (defn humanize [x] (str x))
