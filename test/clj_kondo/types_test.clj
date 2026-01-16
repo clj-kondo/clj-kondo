@@ -1486,7 +1486,16 @@
     (is (empty? (lint! "(instance? identity 42)"
                        config "--lang" "cljs")))
     (is (empty? (lint! "(ns foo (:require [cljs.core])) (instance? cljs.core/ExceptionInfo {})"
-                       config "--lang" "cljs")))))
+                       config "--lang" "cljs"))))
+  (testing "instance? with primitive array class syntax (Clojure 1.12+)"
+    (is (empty? (lint! "(instance? byte/1 (byte-array 0))" config)))
+    (is (empty? (lint! "(instance? int/1 (int-array 0))" config)))
+    (is (empty? (lint! "(instance? long/1 (long-array 0))" config)))
+    (is (empty? (lint! "(instance? short/1 (short-array 0))" config)))
+    (is (empty? (lint! "(instance? float/1 (float-array 0))" config)))
+    (is (empty? (lint! "(instance? double/1 (double-array 0))" config)))
+    (is (empty? (lint! "(instance? boolean/1 (boolean-array 0))" config)))
+    (is (empty? (lint! "(instance? char/1 (char-array 0))" config)))))
 
 (deftest make-array-test
   (testing "make-array with 2 args (type and length)"
