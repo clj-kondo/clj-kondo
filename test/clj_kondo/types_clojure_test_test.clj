@@ -56,6 +56,13 @@
                          (is (= 200 (:status response)) {:request request :response response})"
                        {:linters {:is-message-not-string {:level :off}}}))))
 
+  (testing "is accepts message when it has string type"
+    (is (empty?
+         (lint! "(require '[clojure.test :refer [is]])
+             (defn humanize [x] (str x))
+             (is (= 1 2) (humanize {:some :data}))"
+                {:linters {:is-message-not-string {:level :warning}}}))))
+
   (testing "is accepts any test expression"
     (is (empty? (lint! "(require '[clojure.test :refer [is]])
                         (is true)
@@ -657,3 +664,9 @@
                         (def my-var 42)
                         (get-possibly-unbound-var 42)"
             {:linters {:type-mismatch {:level :error}}}))))
+
+
+(comment 
+(lint! "(require '[clojure.test :refer [is]]) (defn- humanize [x] (str x)) (is (= 1 2) (humanize {:some :data}))"
+                )
+  )

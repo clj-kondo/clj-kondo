@@ -149,7 +149,7 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
-(defn lint-specific-calls! [ctx call called-fn]
+(defn lint-specific-calls! [ctx idacs call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
         config (:config call)
@@ -168,14 +168,19 @@
       ([clojure.test is] [cljs.test is])
       (when (and
              (= 2 (:arity call))
-             (not (identical? :off (-> (:config call) :linters :test-assertion-string-arg :level)))
+             (not (utils/linter-disabled? call :is-message-not-string))
              (not (:clj-kondo.impl/generated (:expr call))))
         (let [expr (:expr call)
-              second-arg (some-> expr :children (nth 2 nil))
+              second-arg (-> expr :children (nth 2 nil))
               arg-meta (meta second-arg)
-              is-string? (or (:lines second-arg)
-                             (= :multi-line (tag second-arg)))]
-          (when-not is-string?
+              literal-string? (or (:lines second-arg)
+                                  (= :multi-line (tag second-arg))) 
+              arg-type (when-let [types (some-> (:arg-types call) deref)]
+                         (when (= 2 (count types))
+                           (tu/resolve-arg-type idacs (second types))))
+            
+              typed-string? (and arg-type (types/match? arg-type :string))]
+          (when-not (or literal-string? typed-string?)
             (findings/reg-finding! ctx
                                    (merge (select-keys call [:filename])
                                           (select-keys arg-meta [:row :end-row :col :end-col])
@@ -607,6 +612,7 @@
           (lint-specific-calls!
            (assoc ctx
                   :filename filename)
+           idacs
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))
