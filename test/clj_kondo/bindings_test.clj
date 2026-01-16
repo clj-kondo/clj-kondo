@@ -399,10 +399,6 @@
    '({:file "<stdin>", :row 1, :col 26, :level :error, :message "duplicate key :or"})
    (lint! "(let [{:keys [_x] :or {} :or {}} nil])")))
 
-;; this is strange, it passes before and after the fix
-;; This throwed the false positive before the fix and now it doesn't
-;; clojure -M:clj-kondo/dev --lint - <<< "(defmacro def-some-macro [] \`(defmacro ~'some-macro [x#] \`(list ~x#)))"
-
 (deftest issue-2747-test
   (testing "Gensym bindings in nested syntax quotes should not cause unresolved symbol errors"
     (is (empty? (lint! "(defmacro def-some-macro [] `(defmacro ~'some-macro [x#] `(list ~x#)))"
