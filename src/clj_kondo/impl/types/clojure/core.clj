@@ -1250,6 +1250,7 @@
       (assoc-in ['instance? :arities 2 :args] [#{:class :fn} :any])
       (assoc-in ['bases :arities 1 :args] [#{:class :fn}])
       (assoc-in ['supers :arities 1 :args] [#{:class :fn}])
+      (assoc 'throw {:arities {1 {:args [:any]}}})
       (assoc 'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
                                     :ret :keyword}
                                  2 {:args [#{:nilable/string :keyword :symbol}
