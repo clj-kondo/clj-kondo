@@ -179,7 +179,7 @@
             (findings/reg-finding! ctx
                                    (merge (select-keys call [:filename])
                                           (select-keys arg-meta [:row :end-row :col :end-col])
-                                          {:type :test-assertion-string-arg
+                                          {:type :is-message-not-string
                                            :message "Test assertion message should be a string"})))))
       nil)
 

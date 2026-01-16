@@ -105,7 +105,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Shadowed var](#shadowed-var)
     - [Static field call](#static-field-call)
     - [Syntax](#syntax)
-    - [Test assertion string arg](#test-assertion-string-arg)
+    - [Is message not string](#is-message-not-string)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
     - [Unexpected recur](#unexpected-recur)
@@ -1905,9 +1905,9 @@ Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
 
-### Test assertion string arg
+### Is message not string
 
-*Keyword:* `:test-assertion-string-arg`.
+*Keyword:* `:is-message-not-string`.
 
 *Description:* warn when `clojure.test/is` receives a non-string message argument. While `clojure.test/is` accepts any value for its message argument and will implicitly convert it to a string, passing non-string values can sometimes indicate a mistake where part of the test assertion was accidentally placed in the message position.
 
@@ -1922,7 +1922,7 @@ Mismatched bracket: found an opening [ on line 1 and a closing )
 You can disable this linter if you intentionally use non-string message values:
 
 ``` clojure
-{:linters {:test-assertion-string-arg {:level :off}}}
+{:linters {:is-message-not-string {:level :off}}}
 ```
 
 This is useful for codebases that pass structured data (maps, vectors, etc.) as test messages for better debugging output.

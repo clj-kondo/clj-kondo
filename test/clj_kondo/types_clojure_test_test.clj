@@ -42,19 +42,19 @@
         :message "Test assertion message should be a string"})
      (lint! "(require '[clojure.test :refer [is]])
              (is (= 1 1) 42)"
-            {:linters {:test-assertion-string-arg {:level :warning}}})))
+            {:linters {:is-message-not-string {:level :warning}}})))
 
   (testing "is with non-string message when linter disabled"
     (is (empty? (lint! "(require '[clojure.test :refer [is]])
                         (is (= 1 1) 42)
                         (is (= 2 2) [\"not\" \"equal\"])
                         (is (= 3 3) {:msg \"not equal\"})"
-                       {:linters {:test-assertion-string-arg {:level :off}}}))))
+                       {:linters {:is-message-not-string {:level :off}}}))))
 
   (testing "is accepts non-string message types when linter off"
     (is (empty? (lint! "(require '[clojure.test :refer [is]])
-                        (is (= 200 (:status response)) {:request request :response response})"
-                       {:linters {:test-assertion-string-arg {:level :off}}}))))
+                         (is (= 200 (:status response)) {:request request :response response})"
+                       {:linters {:is-message-not-string {:level :off}}}))))
 
   (testing "is accepts any test expression"
     (is (empty? (lint! "(require '[clojure.test :refer [is]])

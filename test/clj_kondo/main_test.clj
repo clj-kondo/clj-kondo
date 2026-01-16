@@ -21,7 +21,7 @@
                       (lint! (io/file "test")
                              {:linters {:unresolved-symbol {:level :error}
                                         :unused-binding {:level :warning}
-                                        :test-assertion-string-arg {:level :off}}})))))
+                                        :is-message-not-string {:level :off}}})))))
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
