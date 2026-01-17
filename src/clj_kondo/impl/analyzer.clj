@@ -1075,23 +1075,19 @@
 (defn- let? [x]
   (one-of x [[clojure.core let] [cljs.core let]]))
 
-(defn- def-fn? [{:keys [callstack defmethod-parent]}]
-  (or defmethod-parent
-      (let [[_ parent extra-parent] callstack]
-        (or (def? parent)
-            (and (let? parent) (def? extra-parent))))))
+(defn- def-fn? [{:keys [callstack]}]
+  (let [[_ parent extra-parent] callstack]
+    (or (def? parent)
+        (and (let? parent) (def? extra-parent)))))
 
 (defn- reg-def-fn! [ctx expr filename]
-  (let [expr (if-let [parent (:defmethod-parent ctx)]
-               parent
-               expr)]
-    (findings/reg-finding!
-     ctx
-     (node->line
-      filename
-      expr
-      :def-fn
-      "Use defn instead of def + fn"))))
+  (findings/reg-finding!
+   ctx
+   (node->line
+    filename
+    expr
+    :def-fn
+    "Use defn instead of def + fn")))
 
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
@@ -1848,10 +1844,8 @@
                                     :defmethod true,
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
-          _ (analyze-expression** ctx-without-idx dispatch-val-node)
-          is-def (def? (second (:callstack ctx)))]
-      (analyze-fn (assoc ctx-without-idx :defmethod-parent (when is-def expr))
-                  {:children (cons nil fn-tail)}))))
+          _ (analyze-expression** ctx-without-idx dispatch-val-node)]
+      (analyze-fn ctx-without-idx (with-meta {:children (cons nil fn-tail)} (meta expr))))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
