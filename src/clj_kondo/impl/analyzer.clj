@@ -1064,7 +1064,7 @@
                     bodies arities)]
     (cond->
         ;; we return bodies so we don't have to run fn-arity twice over the bodies
-        {:bodies bodies}
+     {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1075,19 +1075,23 @@
 (defn- let? [x]
   (one-of x [[clojure.core let] [cljs.core let]]))
 
-(defn- def-fn? [{:keys [callstack]}]
-  (let [[_ parent extra-parent] callstack]
-    (or (def? parent)
-        (and (let? parent) (def? extra-parent)))))
+(defn- def-fn? [{:keys [callstack defmethod-parent]}]
+  (or defmethod-parent
+      (let [[_ parent extra-parent] callstack]
+        (or (def? parent)
+            (and (let? parent) (def? extra-parent))))))
 
 (defn- reg-def-fn! [ctx expr filename]
-  (findings/reg-finding!
-   ctx
-   (node->line
-    filename
-    expr
-    :def-fn
-    "Use defn instead of def + fn")))
+  (let [expr (if-let [parent (:defmethod-parent ctx)]
+               parent
+               expr)]
+    (findings/reg-finding!
+     ctx
+     (node->line
+      filename
+      expr
+      :def-fn
+      "Use defn instead of def + fn"))))
 
 (defn analyze-fn [ctx expr]
   (let [ctx (assoc ctx :seen-recur? (volatile! nil))
@@ -1351,13 +1355,13 @@
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) var-name-node
-                           :dynamic-var-not-earmuffed
-                           (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
+                     :dynamic-var-not-earmuffed
+                     (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
       (when earmuffed?
         (findings/reg-finding! ctx
                                (node->line (:filename ctx) var-name-node
-                                                 :earmuffed-var-not-dynamic
-                                                 (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
+                                           :earmuffed-var-not-dynamic
+                                           (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
       (let [type (when-not dynamic?
                    (some-> (:arg-types ctx) deref first :tag))]
@@ -1844,8 +1848,9 @@
                                     :defmethod true,
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
-          _ (analyze-expression** ctx-without-idx dispatch-val-node)]
-      (analyze-fn ctx-without-idx {:children (cons nil fn-tail)}))))
+          _ (analyze-expression** ctx-without-idx dispatch-val-node)
+          is-def (def? (second (:callstack ctx)))]
+      (analyze-fn (assoc ctx-without-idx :defmethod-parent (when is-def expr)) {:children (cons nil fn-tail)}))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
@@ -2533,8 +2538,8 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                            [[ns n]
-                             (config/lint-as config resolved-var-sym)]
+                         [[ns n]
+                          (config/lint-as config resolved-var-sym)]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
@@ -2832,7 +2837,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                             [cljs.core.async alt!] [cljs.core.async alt!!])
+                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
