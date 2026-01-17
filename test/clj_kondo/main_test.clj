@@ -3637,10 +3637,16 @@ foo/"))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) `fb/bar"))))
 
 (deftest ns-unmap-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 26
+      :level :warning
+      :message "Unused excluded var: inc"}
+     {:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
    (lint! "(ns foo) (ns-unmap *ns* 'inc) (inc 1)"
-          {:linters {:unresolved-symbol {:level :error}}}))
+          {:linters {:unresolved-symbol {:level :error}
+                     :unused-excluded-var {:level :warning}}}))
   (is (empty? (lint! "(doseq [sym ['foo 'bar 'baz]] (ns-unmap *ns* sym))"
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! (io/file "corpus" "issue_2259.clj")
