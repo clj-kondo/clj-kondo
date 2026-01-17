@@ -149,7 +149,7 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
-(defn lint-specific-calls! [ctx idacs call called-fn]
+(defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
         config (:config call)
@@ -606,9 +606,7 @@
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
-           (assoc ctx
-                  :filename filename)
-           idacs
+           (assoc ctx :filename filename)
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))
