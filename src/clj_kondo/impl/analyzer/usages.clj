@@ -130,7 +130,7 @@
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
-         sintax-quote-level-pos? (pos? syntax-quote-level)
+         syntax-quote-level-pos? (pos? syntax-quote-level)
          ns-name (:name ns)
          t (tag expr)
          quote? (or quote?
@@ -145,7 +145,7 @@
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
                ctx)]
-     (if (and sintax-quote-level-pos? unquote-tag?)
+     (if (and syntax-quote-level-pos? unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
@@ -169,7 +169,7 @@
                                   (namespace/normalize-sym-name ctx symbol-val)
                                   symbol-val)
                      expr-meta (meta expr)]
-                 (if-let [b (when (and simple? (not sintax-quote-level-pos?))
+                 (if-let [b (when (and simple? (not syntax-quote-level-pos?))
                               (or (get (:bindings ctx) symbol-val)
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
@@ -202,7 +202,7 @@
                           resolved-core? :resolved-core?
                           :as _m}
                          (let [v (namespace/resolve-name ctx false ns-name symbol-val expr)]
-                           (when-not sintax-quote-level-pos?
+                           (when-not syntax-quote-level-pos?
                              (when-let [n (:unresolved-ns v)]
                                (namespace/reg-unresolved-namespace!
                                 ctx ns-name
@@ -252,12 +252,12 @@
                                       :top-ns (:top-ns ctx)
                                       :filename (:filename ctx)
                                       :unresolved-symbol-disabled?
-                                      (or sintax-quote-level-pos?
+                                      (or syntax-quote-level-pos?
                                           ;; e.g. usage of clojure.core,
                                           ;; clojure.string, etc in (:require [...])
                                           (= symbol-val (get (:qualify-ns ns)
                                                              symbol-val)))
-                                      :private-access? (or sintax-quote-level-pos?
+                                      :private-access? (or syntax-quote-level-pos?
                                                            (:private-access? ctx))
                                       :callstack (:callstack ctx)
                                       :config (:config ctx)
