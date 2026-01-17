@@ -2518,12 +2518,7 @@
                   (update ctx :config config/merge-config! cfg)
                   ctx)
             arg-types (when (and resolved-namespace resolved-name
-                                 (or (not (linter-disabled? ctx :type-mismatch))
-                                     (and (#{'clojure.test 'cljs.test}
-                                           resolved-namespace)
-                                          (= 'is resolved-name)
-                                          (not (linter-disabled? 
-                                                ctx :is-message-not-string)))))
+                                 (not (linter-disabled? ctx :type-mismatch)))
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
         (when (:in-or-default? ctx)
