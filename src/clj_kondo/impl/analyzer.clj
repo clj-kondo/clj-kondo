@@ -1063,7 +1063,7 @@
                       (assoc body :analyzed-arity arity))
                     bodies arities)]
     (cond->
-        ;; we return bodies so we don't have to run fn-arity twice over the bodies
+     ;; we return bodies so we don't have to run fn-arity twice over the bodies
      {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
@@ -1850,7 +1850,8 @@
                              method-name-node)
           _ (analyze-expression** ctx-without-idx dispatch-val-node)
           is-def (def? (second (:callstack ctx)))]
-      (analyze-fn (assoc ctx-without-idx :defmethod-parent (when is-def expr)) {:children (cons nil fn-tail)}))))
+      (analyze-fn (assoc ctx-without-idx :defmethod-parent (when is-def expr))
+                  {:children (cons nil fn-tail)}))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
@@ -2837,7 +2838,7 @@
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
-                                                       [cljs.core.async alt!] [cljs.core.async alt!!])
+                             [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
                              (assoc ctx
                                     :analyze-expression** analyze-expression**
