@@ -74,8 +74,9 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing map value](#missing-map-value)
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
-    - [Missing test assertion](#missing-test-assertion)
-    - [Namespace name mismatch](#namespace-name-mismatch)
+     - [Missing test assertion](#missing-test-assertion)
+     - [Is message not string](#is-message-not-string)
+     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
     - [Not empty?](#not-empty)
@@ -103,10 +104,9 @@ configuration. For general configurations options, go [here](config.md).
     - [Single operand comparison](#single-operand-comparison)
     - [Shadowed fn param](#shadowed-fn-param)
     - [Shadowed var](#shadowed-var)
-    - [Static field call](#static-field-call)
-    - [Syntax](#syntax)
-    - [Is message not string](#is-message-not-string)
-    - [Type mismatch](#type-mismatch)
+     - [Static field call](#static-field-call)
+     - [Syntax](#syntax)
+     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
     - [Unexpected recur](#unexpected-recur)
     - [Uninitialized var](#uninitialized-var)
@@ -1382,6 +1382,41 @@ misses a value.
 
 *Example message:* `missing test assertion`.
 
+### Is message not string
+
+*Keyword:* `:is-message-not-string`.
+
+*Description:* warn when `clojure.test/is` receives a non-string message argument.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(require '[clojure.test :refer [is]])
+(is (= 1 1) 42)
+```
+
+*Example message:* `Test assertion message should be a string`.
+
+*Config:* to suppress the above warning:
+
+``` clojure
+{:linters {:is-message-not-string {:level :off}}}
+```
+
+You can also disable this linter inline:
+
+``` clojure
+(is (= 1 1) ^{:clj-kondo/ignore [:is-message-not-string]} 42)
+```
+
+or
+
+``` clojure
+(is (= 1 1) #_:clj-kondo/ignore 42)
+```
+
 ### Namespace name mismatch
 
 *Keyword:* `:namespace-name-mismatch`.
@@ -1904,28 +1939,6 @@ the `ns` form.
 Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
-
-### Is message not string
-
-*Keyword:* `:is-message-not-string`.
-
-*Description:* warn when `clojure.test/is` receives a non-string message argument. While `clojure.test/is` accepts any value for its message argument and will implicitly convert it to a string, passing non-string values can sometimes indicate a mistake where part of the test assertion was accidentally placed in the message position.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(is (= 1 2) 42)`
-
-*Example message:* `Test assertion message should be a string`
-
-*Config:*
-
-You can disable this linter if you intentionally use non-string message values:
-
-``` clojure
-{:linters {:is-message-not-string {:level :off}}}
-```
-
-This is useful for codebases that pass structured data (maps, vectors, etc.) as test messages for better debugging output.
 
 ### Type mismatch
 
