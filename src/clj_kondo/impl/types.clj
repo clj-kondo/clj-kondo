@@ -368,18 +368,29 @@
                     (when-let [v (:val t)]
                       {:tag (get v nm)}))))))))))
 
+(defn- array-class-literal? [sym]
+  (when (and (symbol? sym) (namespace sym))
+    (re-matches #"\d+" (name sym))))
+
 (defn tag-from-usage
-  [ctx usage _expr]
+  [ctx usage expr]
   ;; Note, we need to return maps here because we are adding row and col later on.
   (when-not (:unresolved? usage)
     (let [called-ns (:resolved-ns usage)
           called-name (:name usage)
           conf (config/type-mismatch-config (:config ctx) called-ns called-name)
           tag (:type conf)]
-      (if tag
-        {:tag tag}
-        {:usage (or tag
-                    (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
+      (cond
+        tag {:tag tag}
+
+        ;; Check if this is an array class literal
+        ;; (Clojure 1.12+) would emit those as :class tags (type String/1) => java.lang.Class
+        (and (identical? :clj (:lang ctx))
+             (array-class-literal? (:value expr)))
+        {:tag :class}
+
+        :else {:usage (or tag
+                          (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."
