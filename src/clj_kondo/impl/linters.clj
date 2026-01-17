@@ -149,6 +149,25 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn- lint-is-message-not-string! [ctx call idacs]
+  (when (and (= 2 (:arity call))
+             (not (utils/linter-disabled? ctx :is-message-not-string))
+             (not (:clj-kondo.impl/generated (:expr call))))
+    (let [second-arg (-> call :expr :children (nth 2 nil))
+          literal-string? (or (:lines second-arg)
+                              (= :multi-line (tag second-arg)))
+          arg-type #(as-> (some-> (:arg-types call) deref) types
+                      (when (= 2 (count types))
+                        (tu/resolve-arg-type idacs (second types))))
+          typed-string? #(some-> (arg-type) (types/match? :string))]
+      (when (and (not literal-string?)
+                 (not (typed-string?)))
+        (findings/reg-finding! ctx
+                               (merge (utils/location (meta second-arg))
+                                      (select-keys call [:filename])
+                                      {:type :is-message-not-string
+                                       :message "Test assertion message should be a string"}))))))
+
 (defn lint-specific-calls! [ctx idacs call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
@@ -166,27 +185,7 @@
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       ([clojure.test is] [cljs.test is])
-      (when (and
-             (= 2 (:arity call))
-             (not (utils/linter-disabled? ctx :is-message-not-string))
-             (not (:clj-kondo.impl/generated (:expr call))))
-        (let [expr (:expr call)
-              second-arg (-> expr :children (nth 2 nil))
-              arg-meta (meta second-arg)
-              literal-string? (or (:lines second-arg)
-                                  (= :multi-line (tag second-arg)))
-              typed-string?
-              #(let [arg-type (when-let [types (some-> (:arg-types call) deref)]
-                                (when (= 2 (count types))
-                                  (tu/resolve-arg-type idacs (second types))))]
-                 (and arg-type (types/match? arg-type :string)))]
-          (when (and (not literal-string?)
-                     (not (typed-string?)))
-            (findings/reg-finding! ctx
-                                   (merge (select-keys call [:filename])
-                                          (select-keys arg-meta [:row :end-row :col :end-col])
-                                          {:type :is-message-not-string
-                                           :message "Test assertion message should be a string"})))))
+      (lint-is-message-not-string! ctx call idacs)
       nil)
 
     ;; special forms which are not fns
@@ -525,7 +524,7 @@
         (when (:condition call)
           (findings/reg-finding!
            ctx (-> call
-                   (select-keys [:row :end-row :end-col :col :filename])
+                   utils/location
                    (assoc :type :condition-always-true
                           :message "Condition always true")))))
       (when arity-error?
