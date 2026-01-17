@@ -130,6 +130,19 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 21,
+  :type :redundant-ignore,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/macros.clj",
+  :linters nil,
+  :col 5,
+  :end-col 22,
+  :cljc nil,
+  :langs (:clj),
+  :message "Redundant ignore",
+  :row 21}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
   :row 1350,
