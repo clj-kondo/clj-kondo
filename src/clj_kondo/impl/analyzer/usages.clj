@@ -143,8 +143,9 @@
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
-               ctx)]
-     (if (and (pos? syntax-quote-level) unquote-tag?)
+               ctx)
+         new-syntax-quote-level-pos? (pos? new-syntax-quote-level)]
+     (if (and new-syntax-quote-level-pos? unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
@@ -165,8 +166,7 @@
                      symbol-val (if simple?
                                   (namespace/normalize-sym-name ctx symbol-val)
                                   symbol-val)
-                     expr-meta (meta expr)
-                     new-syntax-quote-level-pos? (pos? new-syntax-quote-level)]
+                     expr-meta (meta expr)]
                  (if-let [b (when (and simple? (not new-syntax-quote-level-pos?))
                               (or (get (:bindings ctx) symbol-val)
                                   (get (:bindings ctx)
