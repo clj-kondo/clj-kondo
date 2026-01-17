@@ -137,14 +137,15 @@
          ;; nested syntax quotes are treated as normal quoted expressions by clj-kondo
          syntax-quote-tag? (= :syntax-quote t)
          unquote-tag? (one-of t [:unquote :unquote-splicing])
-         new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
-                                      :else syntax-quote-level)
+         new-syntax-quote-level (if syntax-quote-tag? (inc syntax-quote-level)
+                                    syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
-               ctx)]
-     (if (and (pos? syntax-quote-level) unquote-tag?)
+               ctx)
+         new-syntax-quote-level-pos? (pos? new-syntax-quote-level)]
+     (if (and new-syntax-quote-level-pos? unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
@@ -156,9 +157,7 @@
                                             :quote? quote?
                                             :syntax-quote? syntax-quote?))
                    (:children expr))))
-         (let [syntax-quote?
-               (or syntax-quote?
-                   (= :syntax-quote t))]
+         (do
            (meta/lift-meta-content2 ctx expr true)
            (case t
              :token
@@ -168,7 +167,7 @@
                                   (namespace/normalize-sym-name ctx symbol-val)
                                   symbol-val)
                      expr-meta (meta expr)]
-                 (if-let [b (when (and simple? (not syntax-quote?))
+                 (if-let [b (when (and simple? (not new-syntax-quote-level-pos?))
                               (or (get (:bindings ctx) symbol-val)
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
@@ -201,7 +200,7 @@
                           resolved-core? :resolved-core?
                           :as _m}
                          (let [v (namespace/resolve-name ctx false ns-name symbol-val expr)]
-                           (when-not syntax-quote?
+                           (when-not new-syntax-quote-level-pos?
                              (when-let [n (:unresolved-ns v)]
                                (namespace/reg-unresolved-namespace!
                                 ctx ns-name
@@ -251,12 +250,12 @@
                                       :top-ns (:top-ns ctx)
                                       :filename (:filename ctx)
                                       :unresolved-symbol-disabled?
-                                      (or syntax-quote?
+                                      (or new-syntax-quote-level-pos?
                                           ;; e.g. usage of clojure.core,
                                           ;; clojure.string, etc in (:require [...])
                                           (= symbol-val (get (:qualify-ns ns)
                                                              symbol-val)))
-                                      :private-access? (or syntax-quote?
+                                      :private-access? (or new-syntax-quote-level-pos?
                                                            (:private-access? ctx))
                                       :callstack (:callstack ctx)
                                       :config (:config ctx)

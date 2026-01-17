@@ -398,3 +398,10 @@
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 26, :level :error, :message "duplicate key :or"})
    (lint! "(let [{:keys [_x] :or {} :or {}} nil])")))
+
+(deftest issue-2747-test
+  (testing "Gensym bindings in nested syntax quotes should not cause unresolved symbol errors"
+    (is (empty? (lint! "(defmacro def-some-macro [] `(defmacro ~'some-macro [x#] `(list ~x#)))"
+                       {:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(defmacro outer [] `(defmacro ~'inner [a# b#] `(+ ~a# ~b#)))"
+                       {:linters {:unresolved-symbol {:level :error}}})))))
