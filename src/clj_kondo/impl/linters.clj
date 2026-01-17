@@ -149,25 +149,6 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
-(defn- lint-is-message-not-string! [ctx call idacs]
-  (when (and (= 2 (:arity call))
-             (not (utils/linter-disabled? ctx :is-message-not-string))
-             (not (:clj-kondo.impl/generated (:expr call))))
-    (let [second-arg (-> call :expr :children (nth 2 nil))
-          literal-string? (or (:lines second-arg)
-                              (= :multi-line (tag second-arg)))
-          arg-type #(let [types (some-> (:arg-types call) deref)]
-                      (when (= 2 (count types))
-                        (tu/resolve-arg-type idacs (second types))))
-          typed-string? #(some-> (arg-type) (types/match? :string))]
-      (when (and (not literal-string?)
-                 (not (typed-string?)))
-        (findings/reg-finding! ctx
-                               (merge (utils/location (meta second-arg))
-                                      (select-keys call [:filename])
-                                      {:type :is-message-not-string
-                                       :message "Test assertion message should be a string"}))))))
-
 (defn lint-specific-calls! [ctx idacs call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
@@ -184,8 +165,6 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
-      ([clojure.test is] [cljs.test is])
-      (lint-is-message-not-string! ctx call idacs)
       nil)
 
     ;; special forms which are not fns
@@ -197,6 +176,24 @@
                                (if (= "cljs.core" cns) "clojure.core" cns))
                              (str called-name)))
       (lint-missing-test-assertion ctx call))))
+
+(defn- lint-is-message-not-string! [ctx call called-fn tags]
+  (when (and
+         (= 'is (:name called-fn))
+         (utils/one-of (:ns called-fn) [clojure.test cljs.test])
+         (= 2 (count tags))
+         (not (utils/linter-disabled? ctx :is-message-not-string))
+         (not (:clj-kondo.impl/generated (:expr call))))
+    (let [second-arg (-> call :expr :children (nth 2 nil))
+          literal-string? (or (:lines second-arg)
+                              (= :multi-line (tag second-arg)))]
+      (when (and (not literal-string?)
+                 (not (some-> (second tags) (types/match? :string))))
+        (findings/reg-finding! ctx
+                               (merge (utils/location (meta second-arg))
+                                      (select-keys call [:filename])
+                                      {:type :is-message-not-string
+                                       :message "Test assertion message should be a string"}))))))
 
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
@@ -214,6 +211,7 @@
                                (assoc (select-keys call [:row :end-row :col :end-col :filename])
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (lint-is-message-not-string! ctx call called-fn tags)
       (when-let [expected-type ('{double :double, float :float, long :long, int :int
                                   short :short, byte :byte, char :char, boolean :boolean}
                                 (:name called-fn))]
