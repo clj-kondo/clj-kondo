@@ -28,7 +28,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
 - [#2734](https://github.com/clj-kondo/clj-kondo/issues/2734): NEW linter: `:aliased-referred-var`, which warns when a var is both referred and accessed via an alias in the same namespace. ([@jramosg](https://github.com/jramosg))
 - [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
-- [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
+- [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735) and [#2741](https://github.com/clj-kondo/clj-kondo/issues/2741): NEW linter: `:duplicate-require-option` which warns on duplicate entries in `:refer`, `:refer-macros`, and `:exclude` clauses of `:require` and `:refer-clojure`. This consolidates the previously separate `:duplicate-refer` and `:duplicate-exclude` linters. ([@jramosg](https://github.com/jramosg))
 - Fix `str/replace` false positive and tighten comp ret type
 - [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
 - Add new type `inst` and type checking support for `inst-ms` and `inst-ms*` ([@jramosg](https://github.com/jramosg))
