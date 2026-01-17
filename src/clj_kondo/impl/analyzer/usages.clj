@@ -130,7 +130,6 @@
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
-         syntax-quote-level-pos? (pos? syntax-quote-level)
          ns-name (:name ns)
          t (tag expr)
          quote? (or quote?
@@ -140,6 +139,7 @@
          unquote-tag? (one-of t [:unquote :unquote-splicing])
          new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
                                       :else syntax-quote-level)
+         syntax-quote-level-pos? (pos? new-syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
