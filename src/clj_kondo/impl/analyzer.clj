@@ -2270,16 +2270,23 @@
     (when (= '*ns* (:value ns-expr))
       (let [t (tag sym-expr)]
         (when (identical? :quote t)
-          (let [sym (first (:children sym-expr))
-                sym (:value sym)]
+          (let [sym-node (first (:children sym-expr))
+                sym (:value sym-node)
+                sym-meta (meta sym-node)]
             (when (simple-symbol? sym)
               (let [nss (:namespaces ctx)
-                    ;; ns (get-in @nss [base-lang lang ns-name])
-                    ]
+                    excluded-meta (assoc-some sym-meta
+                                              :name (:name sym)
+                                              :name-row (:row sym-meta)
+                                              :name-col (:col sym-meta)
+                                              :name-end-row (:end-row sym-meta)
+                                              :name-end-col (:end-col sym-meta)
+                                              :filename (:filename ctx))]
                 (swap! nss update-in [base-lang lang ns-name]
                        (fn [ns]
                          (-> ns
-                             (update :clojure-excluded (fnil conj #{}) sym)
+                             (update :clojure-excluded (fnil conj #{}) 
+                                     (with-meta sym excluded-meta))
                              (update :vars dissoc sym)
                              (update :var-counts dissoc sym))))))))))
     (analyze-children ctx children)))
