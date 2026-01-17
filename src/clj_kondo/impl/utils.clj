@@ -105,14 +105,14 @@
   (= :off (get-in ctx [:config :linters linter :level])))
 
 (defn location [m]
-  (select-keys m [:filename :row :col :end-row :end-col]))
+  (reduce (fn [acc k] (assoc acc k (get m k)))
+          {} [:filename :row :col :end-row :end-col]))
 
 (defn node->line [filename node t message]
-  (let [m (meta node)]
-    (merge (location m)
-           {:type t
-            :message message
-            :filename filename})))
+  (merge (location (meta node))
+         {:type t
+          :message message
+          :filename filename}))
 
 (defn- lint-unreachable-reader-conditional! [ctx k ts]
   (when (and (= :default (:k k))
