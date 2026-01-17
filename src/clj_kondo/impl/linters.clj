@@ -156,7 +156,7 @@
     (let [second-arg (-> call :expr :children (nth 2 nil))
           literal-string? (or (:lines second-arg)
                               (= :multi-line (tag second-arg)))
-          arg-type #(as-> (some-> (:arg-types call) deref) types
+          arg-type #(let [types (some-> (:arg-types call) deref)]
                       (when (= 2 (count types))
                         (tu/resolve-arg-type idacs (second types))))
           typed-string? #(some-> (arg-type) (types/match? :string))]
