@@ -193,7 +193,7 @@
              (not (identical? :off (-> call :config :linters :redundant-str-call :level)))
              (not (:clj-kondo.impl/generated (:expr call))))
         (findings/reg-finding! ctx
-                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                               (assoc (utils/location call)
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
       (when-let [expected-type ('{double :double, float :float, long :long, int :int
@@ -206,7 +206,7 @@
                (identical? expected-type (first tags))
                (not (:clj-kondo.impl/generated (:expr call))))
           (findings/reg-finding! ctx
-                                 (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                 (assoc (utils/location call)
                                         :type :redundant-primitive-coercion
                                         :message (str "Redundant " (:name called-fn)
                                                       " coercion - expression already has type "
@@ -217,7 +217,7 @@
              (some #(= :double %) tags)
              (not (identical? :off (-> call :config :linters :equals-float :level))))
         (findings/reg-finding! ctx
-                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                               (assoc (utils/location call)
                                       :type :equals-float
                                       :message "Equality comparison of floating point numbers")))
       (when (and
@@ -229,7 +229,7 @@
                    (contains? (get types/is-a-relations t) :seq)))
              (not (identical? :off (-> call :config :linters :not-empty? :level))))
         (findings/reg-finding! ctx
-                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                               (assoc (utils/location call)
                                       :type :not-empty?
                                       :message "Use (seq x) instead of (not (empty? x)) when x is a seq"))))))
 
@@ -506,7 +506,7 @@
         (when (:condition call)
           (findings/reg-finding!
            ctx (-> call
-                   (select-keys [:row :end-row :end-col :col :filename])
+                   utils/location
                    (assoc :type :condition-always-true
                           :message "Condition always true")))))
       (when arity-error?

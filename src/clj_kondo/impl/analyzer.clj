@@ -1063,8 +1063,8 @@
                       (assoc body :analyzed-arity arity))
                     bodies arities)]
     (cond->
-        ;; we return bodies so we don't have to run fn-arity twice over the bodies
-        {:bodies bodies}
+     ;; we return bodies so we don't have to run fn-arity twice over the bodies
+     {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1845,7 +1845,7 @@
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
           _ (analyze-expression** ctx-without-idx dispatch-val-node)]
-      (analyze-fn ctx-without-idx {:children (cons nil fn-tail)}))))
+      (analyze-fn ctx-without-idx (with-meta {:children (cons nil fn-tail)} (meta expr))))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
