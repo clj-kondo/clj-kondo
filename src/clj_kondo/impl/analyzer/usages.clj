@@ -156,9 +156,7 @@
                                             :quote? quote?
                                             :syntax-quote? syntax-quote?))
                    (:children expr))))
-         (let [syntax-quote?
-               (or syntax-quote?
-                   (= :syntax-quote t))]
+         (do
            (meta/lift-meta-content2 ctx expr true)
            (case t
              :token
