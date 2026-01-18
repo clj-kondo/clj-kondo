@@ -1386,7 +1386,7 @@ misses a value.
 
 *Keyword:* `:is-message-not-string`.
 
-*Description:* warn when `clojure.test/is` receives a non-string message argument.
+*Description:* warn when `clojure.test/is` receives a non-string message argument. This linter relies on the `:type-mismatch` linter being enabled to perform type checking.
 
 *Default level:* `:warning`.
 
