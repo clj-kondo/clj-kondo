@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2745](https://github.com/clj-kondo/clj-kondo/issues/2745): NEW linter: `:is-message-not-string` which warns when `clojure.test/is` receives a non-string message argument. This linter replaces the previous type-mismatch enforcement for `is` message arguments and can be disabled to allow non-string values. ([@jramosg](https://github.com/jramosg))
 - [#2756](https://github.com/clj-kondo/clj-kondo/issues/2756): Fix: ensure `def + defmethod` triggers `:def-fn` warning with valid source location ([@jramosg](https://github.com/jramosg))
 - `unused-excluded-var`: Add location metadata to excluded vars in `ns-unmap`. This fixes some findings with not location. ([@jramosg](https://github.com/jramosg))
 - [#2747](https://github.com/clj-kondo/clj-kondo/issues/2747): Fix: Gensym bindings in nested syntax quotes are now correctly recognized ([@jramosg](https://github.com/jramosg))when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
