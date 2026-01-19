@@ -1063,8 +1063,8 @@
                       (assoc body :analyzed-arity arity))
                     bodies arities)]
     (cond->
-        ;; we return bodies so we don't have to run fn-arity twice over the bodies
-        {:bodies bodies}
+     ;; we return bodies so we don't have to run fn-arity twice over the bodies
+     {:bodies bodies}
       (seq fixed-arities) (assoc :fixed-arities fixed-arities)
       varargs-min-arity (assoc :varargs-min-arity varargs-min-arity)
       (seq arglist-strs) (assoc :arglist-strs arglist-strs))))
@@ -1351,13 +1351,13 @@
         (findings/reg-finding!
          ctx
          (node->line (:filename ctx) var-name-node
-                           :dynamic-var-not-earmuffed
-                           (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
+                     :dynamic-var-not-earmuffed
+                     (str "Var is declared dynamic but name is not earmuffed: " var-name-str))))
       (when earmuffed?
         (findings/reg-finding! ctx
                                (node->line (:filename ctx) var-name-node
-                                                 :earmuffed-var-not-dynamic
-                                                 (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
+                                           :earmuffed-var-not-dynamic
+                                           (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
       (let [type (when-not dynamic?
                    (some-> (:arg-types ctx) deref first :tag))]
@@ -1845,7 +1845,7 @@
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
           _ (analyze-expression** ctx-without-idx dispatch-val-node)]
-      (analyze-fn ctx-without-idx {:children (cons nil fn-tail)}))))
+      (analyze-fn ctx-without-idx (with-meta {:children (cons nil fn-tail)} (meta expr))))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
@@ -2052,7 +2052,7 @@
         (reduce (fn [[indexed unindexed] percent]
                   (if-let [[_ pos] (re-find #"^%(\d+)\$" percent)]
                     [(max indexed (Integer/parseInt pos)) unindexed]
-                    [indexed (cond-> unindexed (not= (.charAt ^String percent 1) \<) inc)]))
+                    [indexed (cond-> unindexed (not= \< (.charAt ^String percent 1)) inc)]))
                 [0 0] percents)
         percent-count (max indexed unindexed)
         arg-count (count args)
@@ -2270,16 +2270,23 @@
     (when (= '*ns* (:value ns-expr))
       (let [t (tag sym-expr)]
         (when (identical? :quote t)
-          (let [sym (first (:children sym-expr))
-                sym (:value sym)]
+          (let [sym-node (first (:children sym-expr))
+                sym (:value sym-node)
+                sym-meta (meta sym-node)]
             (when (simple-symbol? sym)
               (let [nss (:namespaces ctx)
-                    ;; ns (get-in @nss [base-lang lang ns-name])
-                    ]
+                    excluded-meta (assoc-some sym-meta
+                                              :name (:name sym)
+                                              :name-row (:row sym-meta)
+                                              :name-col (:col sym-meta)
+                                              :name-end-row (:end-row sym-meta)
+                                              :name-end-col (:end-col sym-meta)
+                                              :filename (:filename ctx))]
                 (swap! nss update-in [base-lang lang ns-name]
                        (fn [ns]
                          (-> ns
-                             (update :clojure-excluded (fnil conj #{}) sym)
+                             (update :clojure-excluded (fnil conj #{}) 
+                                     (with-meta sym excluded-meta))
                              (update :vars dissoc sym)
                              (update :var-counts dissoc sym))))))))))
     (analyze-children ctx children)))
@@ -2533,8 +2540,8 @@
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
                     (or (when-let
-                            [[ns n]
-                             (config/lint-as config resolved-var-sym)]
+                         [[ns n]
+                          (config/lint-as config resolved-var-sym)]
                           [ns n true])
                         [resolved-namespace resolved-name false])
                     ;; See #1170, we deliberaly use resolved and not resolved-as
