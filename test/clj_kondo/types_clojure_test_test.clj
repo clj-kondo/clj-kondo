@@ -33,17 +33,6 @@
                         (is (= 1 1) \"should be equal\")"
                        {:linters {:type-mismatch {:level :error}}}))))
 
-  (testing "is requires string message in second argument"
-    (assert-submaps2
-     '({:file "<stdin>",
-        :row 2,
-        :col 26,
-        :level :error,
-        :message "Expected: string, received: positive integer."})
-     (lint! "(require '[clojure.test :refer [is]])
-             (is (= 1 1) 42)"
-            {:linters {:type-mismatch {:level :error}}})))
-
   (testing "is accepts any test expression"
     (is (empty? (lint! "(require '[clojure.test :refer [is]])
                         (is true)

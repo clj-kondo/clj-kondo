@@ -17,13 +17,23 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
- ## Unreleased
- 
- - [#2749](https://github.com/clj-kondo/clj-kondo/issues/2749): Fix false positive for throw in CLJS when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
- - [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
+## Unreleased
+
+- [#2741](https://github.com/clj-kondo/clj-kondo/issues/2741): New linter `:duplicate-require-option` which warns on duplicate `:exclude` clauses in `:require` and `:refer-clojure` options and consolidates the previously separate `:duplicate-refer` linter into this one. ([@jramosg](https://github.com/jramosg))
+
+## 2026.01.19
+
+- [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
 - [#2734](https://github.com/clj-kondo/clj-kondo/issues/2734): NEW linter: `:aliased-referred-var`, which warns when a var is both referred and accessed via an alias in the same namespace. ([@jramosg](https://github.com/jramosg))
+- [#2745](https://github.com/clj-kondo/clj-kondo/issues/2745): NEW linter: `:is-message-not-string` which warns when `clojure.test/is` receives a non-string message argument. This linter replaces the previous type-mismatch enforcement for `is` message arguments and can be disabled to allow non-string values. ([@jramosg](https://github.com/jramosg))
+- [#2756](https://github.com/clj-kondo/clj-kondo/issues/2756): Fix: ensure `def + defmethod` triggers `:def-fn` warning with valid source location ([@jramosg](https://github.com/jramosg))
+- `unused-excluded-var`: Add location metadata to excluded vars in `ns-unmap`. This fixes some findings with not location. ([@jramosg](https://github.com/jramosg))
+- [#2747](https://github.com/clj-kondo/clj-kondo/issues/2747): Fix: Gensym bindings in nested syntax quotes are now correctly recognized ([@jramosg](https://github.com/jramosg))when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
+- [#2746](https://github.com/clj-kondo/clj-kondo/issues/2746): Fix regression: primitive array class syntax (e.g., `byte/1`, `int/2`) now correctly recognized as class literals in type checking ([@jramosg](https://github.com/jramosg))
+- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg)) 
+- [#2749](https://github.com/clj-kondo/clj-kondo/issues/2749): Fix false positive for throw in CLJS when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
+- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
 - [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
-- [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735) and [#2741](https://github.com/clj-kondo/clj-kondo/issues/2741): NEW linter: `:duplicate-require-option` which warns on duplicate entries in `:refer`, `:refer-macros`, and `:exclude` clauses of `:require` and `:refer-clojure`. This consolidates the previously separate `:duplicate-refer` and `:duplicate-exclude` linters. ([@jramosg](https://github.com/jramosg))
 - Fix `str/replace` false positive and tighten comp ret type
 - [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
 - Add new type `inst` and type checking support for `inst-ms` and `inst-ms*` ([@jramosg](https://github.com/jramosg))

@@ -75,6 +75,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
     - [Missing test assertion](#missing-test-assertion)
+    - [Is message not string](#is-message-not-string)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
@@ -1384,6 +1385,41 @@ misses a value.
 ```
 
 *Example message:* `missing test assertion`.
+
+### Is message not string
+
+*Keyword:* `:is-message-not-string`.
+
+*Description:* warn when `clojure.test/is` receives a non-string message argument. This linter relies on the `:type-mismatch` linter being enabled to perform type checking.
+
+*Default level:* `:info`.
+
+*Example trigger:*
+
+``` clojure
+(require '[clojure.test :refer [is]])
+(is (= 1 1) 42)
+```
+
+*Example message:* `Test assertion message should be a string`.
+
+*Config:* to suppress the above warning:
+
+``` clojure
+{:linters {:is-message-not-string {:level :off}}}
+```
+
+You can also disable this linter inline:
+
+``` clojure
+(is (= 1 1) ^{:clj-kondo/ignore [:is-message-not-string]} 42)
+```
+
+or
+
+``` clojure
+(is (= 1 1) #_:clj-kondo/ignore 42)
+```
 
 ### Namespace name mismatch
 

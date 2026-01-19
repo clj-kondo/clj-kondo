@@ -1521,8 +1521,8 @@
   :message "Condition always true",
   :row 55}
  {:end-row 823,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :lang :clj,
   :filename
   "test-regression/checkouts/metabase/test/metabase/lib/aggregation_test.cljc",
@@ -1530,7 +1530,7 @@
   :end-col 78,
   :cljc true,
   :langs (:clj),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 819}
  {:end-row 2032,
   :type :redundant-primitive-coercion,
@@ -1921,14 +1921,14 @@
   :message "Format string contains no format specifiers",
   :row 123}
  {:end-row 497,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 27,
   :end-col 55,
   :langs (),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 493}
  {:end-row 1018,
   :type :unresolved-symbol,
@@ -1961,14 +1961,14 @@
   :message "Condition always true",
   :row 41}
  {:end-row 41,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
   :col 10,
   :end-col 42,
   :langs (),
-  :message "Expected: string, received: number.",
+  :message "Test assertion message should be a string",
   :row 41}
  {:end-row 42,
   :type :condition-always-true,
@@ -1981,14 +1981,14 @@
   :message "Condition always true",
   :row 42}
  {:end-row 42,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
   :col 10,
   :end-col 42,
   :langs (),
-  :message "Expected: string, received: number.",
+  :message "Test assertion message should be a string",
   :row 42}
  {:end-row 33,
   :type :unresolved-symbol,
@@ -2031,14 +2031,14 @@
   :message "Format string contains no format specifiers",
   :row 814}
  {:end-row 245,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
   :col 11,
   :end-col 99,
   :langs (),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 245}
  {:end-row 359,
   :type :unresolved-symbol,
@@ -2081,14 +2081,14 @@
   :message "Unresolved symbol: partial=",
   :row 408}
  {:end-row 319,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/warehouses/models/database_test.clj",
   :col 17,
   :end-col 35,
   :langs (),
-  :message "Expected: string, received: vector.",
+  :message "Test assertion message should be a string",
   :row 319}
  {:end-row 606,
   :type :unresolved-symbol,
