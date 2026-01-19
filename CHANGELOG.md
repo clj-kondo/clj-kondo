@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2755](https://github.com/clj-kondo/clj-kondo/issues/2755): NEW linter: `:cond-to-if` which warns on `cond` with a single condition followed by `:else` (or `true`, `:default`), suggesting replacement with `if`. ([@jramosg](https://github.com/jramosg))
 - [#2745](https://github.com/clj-kondo/clj-kondo/issues/2745): NEW linter: `:is-message-not-string` which warns when `clojure.test/is` receives a non-string message argument. This linter replaces the previous type-mismatch enforcement for `is` message arguments and can be disabled to allow non-string values. ([@jramosg](https://github.com/jramosg))
 - [#2756](https://github.com/clj-kondo/clj-kondo/issues/2756): Fix: ensure `def + defmethod` triggers `:def-fn` warning with valid source location ([@jramosg](https://github.com/jramosg))
 - `unused-excluded-var`: Add location metadata to excluded vars in `ns-unmap`. This fixes some findings with not location. ([@jramosg](https://github.com/jramosg))
