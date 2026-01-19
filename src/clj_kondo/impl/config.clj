@@ -151,7 +151,7 @@
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
               :redundant-str-call {:level :info}
-              :is-message-not-string {:level :warning}
+              :is-message-not-string {:level :info}
               :redundant-primitive-coercion {:level :info}
               :redundant-format {:level :info}
               :warn-on-reflection {:level :off

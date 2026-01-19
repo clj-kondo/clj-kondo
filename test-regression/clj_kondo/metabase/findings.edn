@@ -1510,7 +1510,7 @@
   :row 55}
  {:end-row 823,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :lang :clj,
   :filename
   "test-regression/checkouts/metabase/test/metabase/lib/aggregation_test.cljc",
@@ -1910,7 +1910,7 @@
   :row 123}
  {:end-row 497,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
   :col 27,
@@ -1950,7 +1950,7 @@
   :row 41}
  {:end-row 41,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
   :col 10,
@@ -1970,7 +1970,7 @@
   :row 42}
  {:end-row 42,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
   :col 10,
@@ -2020,7 +2020,7 @@
   :row 814}
  {:end-row 245,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
   :col 11,
@@ -2070,7 +2070,7 @@
   :row 408}
  {:end-row 319,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/metabase/test/metabase/warehouses/models/database_test.clj",
   :col 17,

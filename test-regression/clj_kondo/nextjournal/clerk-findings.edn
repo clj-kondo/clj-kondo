@@ -70,7 +70,7 @@
   :row 67}
  {:end-row 81,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
   :col 9,
@@ -80,7 +80,7 @@
   :row 81}
  {:end-row 86,
   :type :is-message-not-string,
-  :level :warning,
+  :level :info,
   :filename
   "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
   :col 9,
