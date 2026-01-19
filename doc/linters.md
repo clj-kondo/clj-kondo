@@ -38,7 +38,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
-    - [Duplicate require option](#duplicate-require-option)
+    - [Duplicate require item](#duplicate-require-item)
     - [Duplicate set key](#duplicate-set-key)
     - [Duplicate field name](#duplicate-field-name)
     - [Duplicate key args](#duplicate-key-args)
@@ -780,9 +780,9 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `duplicate require of clojure.string`
 
-### Duplicate require option
+### Duplicate require item
 
-*Keyword:* `:duplicate-require-option`.
+*Keyword:* `:duplicate-require-item`.
 
 *Description:* warns on var that has been specified more than once in a `:refer`, `:refer-macros`, or `:exclude` vector.
 

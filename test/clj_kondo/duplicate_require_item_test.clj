@@ -1,4 +1,4 @@
-(ns clj-kondo.duplicate-require-option-test
+(ns clj-kondo.duplicate-require-item-test
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
@@ -83,5 +83,5 @@
 
   (testing "can be disabled"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [map map]))"
-                       "{:linters {:duplicate-require-option {:level :off}
+                       "{:linters {:duplicate-require-item {:level :off}
                                    :unused-excluded-var {:level :off}}}")))))

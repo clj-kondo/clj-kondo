@@ -102,7 +102,7 @@
               :missing-else-branch {:level :warning}
               :if-nil-return {:level :off}
               :case-duplicate-test {:level :error}
-              :duplicate-require-option {:level :warning}
+              :duplicate-require-item {:level :warning}
               :case-quoted-test {:level :warning}
               :case-symbol-test {:level :off}
               :type-mismatch {:level :error}

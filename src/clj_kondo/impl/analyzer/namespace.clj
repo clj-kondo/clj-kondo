@@ -99,22 +99,22 @@
   (let [message-prefix (case option-type
                          :refer "Duplicate refer: "
                          :exclude "Duplicate exclude: ")]
-   (when-not (linter-disabled? ctx :duplicate-require-option)
-     (reduce (fn [seen node]
-               (if (utils/ignored? node)
-                 seen
-                 (let [v (:value node)]
-                   (if (contains? seen v)
-                     (do
-                       (findings/reg-finding!
-                        ctx
-                        (node->line (:filename ctx)
-                                    node
-                                    :duplicate-require-option
-                                    (str message-prefix v)))
-                       seen)
-                     (conj seen v)))))
-             #{} nodes))))
+    (when-not (linter-disabled? ctx :duplicate-require-item)
+      (reduce (fn [seen node]
+                (if (utils/ignored? node)
+                  seen
+                  (let [v (:value node)]
+                    (if (contains? seen v)
+                      (do
+                        (findings/reg-finding!
+                         ctx
+                         (node->line (:filename ctx)
+                                     node
+                                     :duplicate-require-item
+                                     (str message-prefix v)))
+                        seen)
+                      (conj seen v)))))
+              #{} nodes))))
 
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
