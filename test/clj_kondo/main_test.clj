@@ -328,17 +328,29 @@ foo/foo ;; this does use the private var
 (deftest cond-test
   (doseq [lang [:clj :cljs :cljc]]
     (testing (str "lang: " lang)
-      (assert-submaps
+      (assert-submaps2
        '({:row 2,
           :col 29,
           :level :info
           :message "Unused excluded var: cond"}
+         {:row 7,
+          :col 1,
+          :level :info,
+          :message "Use if instead of cond when there is only one condition"}
          {:row 9,
           :col 3,
           :level :warning}
+         {:row 14,
+          :col 1,
+          :level :info,
+          :message "Use if instead of cond when there is only one condition"}
          {:row 16,
           :col 3,
-          :level :warning})
+          :level :warning}
+         {:row 19,
+          :col 1,
+          :level :info,
+          :message "Use if instead of cond when there is only one condition"})
        (lint! (io/file "corpus" (str "cond_without_else." (name lang)))))
       (assert-submaps
        '({:file "<stdin>",
@@ -347,7 +359,38 @@ foo/foo ;; this does use the private var
           :level :error,
           :message "cond requires even number of forms"})
        (lint! "(cond 1 2 3)" "--lang" (name lang)))))
-  (assert-submaps
+  (assert-submaps2
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :info,
+      :message "Use if instead of cond when there is only one condition"})
+   (lint! "(cond x 1 :else 2)"))
+  (assert-submaps2
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :info,
+      :message "Use if instead of cond when there is only one condition"}
+     {:file "<stdin>",
+      :row 1,
+      :col 11,
+      :level :warning,
+      :message "use :else as the catch-all test expression in cond"})
+   (lint! "(cond x 1 true 2)"))
+  (assert-submaps2
+   '({:file "<stdin>",
+      :row 1,
+      :col 1,
+      :level :info,
+      :message "Use if instead of cond when there is only one condition"}
+     {:file "<stdin>",
+      :row 1,
+      :col 11,
+      :level :warning,
+      :message "use :else as the catch-all test expression in cond"})
+   (lint! "(cond x 1 :default 2)"))
+  (assert-submaps2
    '({:file "corpus/cond_without_else/core.cljc",
       :row 6,
       :col 21,
@@ -3998,4 +4041,13 @@ x"
   (redundant-let-test)
   (redundant-do-test)
   (exit-code-test)
-  (t/run-tests))
+  (t/run-tests)
+
+  (lint! "(ns baz
+  (:require [better.cond :as b]))
+
+(let [x 10]
+  (b/cond
+    (= x 1) true
+    :let [y (inc x)]      ;; binding is recognized
+    (= 11 y) (subs y 0))) ;; yay, type error because y is not a stringz"))
