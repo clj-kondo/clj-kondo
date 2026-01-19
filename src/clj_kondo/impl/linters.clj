@@ -186,8 +186,6 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
-      #_([clojure.test is] [cljs.test is])
-      #_(lint-test-is ctx (:expr call))
       nil)
 
     ;; special forms which are not fns
@@ -200,11 +198,28 @@
                              (str called-name)))
       (lint-missing-test-assertion ctx call))))
 
+(defn- lint-is-message-not-string! [ctx call called-fn tags]
+  (when (and
+         (= 'is (:name called-fn))
+         (utils/one-of (:ns called-fn) [clojure.test cljs.test])
+         (= 2 (count tags))
+         (not (utils/linter-disabled? ctx :is-message-not-string))
+         (not (:clj-kondo.impl/generated (:expr call))))
+    (let [second-arg (-> call :expr :children (nth 2 nil))
+          literal-string? (or (:lines second-arg)
+                              (= :multi-line (tag second-arg)))]
+      (when (and (not literal-string?)
+                 (not (some-> (second tags) (types/match? :string))))
+        (findings/reg-finding! ctx
+                               (merge (utils/location (meta second-arg))
+                                      (select-keys call [:filename])
+                                      {:type :is-message-not-string
+                                       :message "Test assertion message should be a string"}))))))
+
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
-      ;; (prn (:name called-fn) :tags tags )
       (types/lint-arg-types ctx called-fn arg-types tags call)
       (when (and
              (= 'str (:name called-fn))
@@ -214,9 +229,10 @@
              (not (identical? :off (-> call :config :linters :redundant-str-call :level)))
              (not (:clj-kondo.impl/generated (:expr call))))
         (findings/reg-finding! ctx
-                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                               (assoc (utils/location call)
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (lint-is-message-not-string! ctx call called-fn tags)
       (when-let [expected-type ('{double :double, float :float, long :long, int :int
                                   short :short, byte :byte, char :char, boolean :boolean}
                                 (:name called-fn))]
@@ -227,7 +243,7 @@
                (identical? expected-type (first tags))
                (not (:clj-kondo.impl/generated (:expr call))))
           (findings/reg-finding! ctx
-                                 (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                                 (assoc (utils/location call)
                                         :type :redundant-primitive-coercion
                                         :message (str "Redundant " (:name called-fn)
                                                       " coercion - expression already has type "
@@ -238,7 +254,7 @@
              (some #(= :double %) tags)
              (not (identical? :off (-> call :config :linters :equals-float :level))))
         (findings/reg-finding! ctx
-                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                               (assoc (utils/location call)
                                       :type :equals-float
                                       :message "Equality comparison of floating point numbers")))
       (when (and
@@ -250,7 +266,7 @@
                    (contains? (get types/is-a-relations t) :seq)))
              (not (identical? :off (-> call :config :linters :not-empty? :level))))
         (findings/reg-finding! ctx
-                               (assoc (select-keys call [:row :end-row :col :end-col :filename])
+                               (assoc (utils/location call)
                                       :type :not-empty?
                                       :message "Use (seq x) instead of (not (empty? x)) when x is a seq"))))))
 
@@ -528,7 +544,7 @@
         (when (:condition call)
           (findings/reg-finding!
            ctx (-> call
-                   (select-keys [:row :end-row :end-col :col :filename])
+                   utils/location
                    (assoc :type :condition-always-true
                           :message "Condition always true")))))
       (when arity-error?
@@ -612,8 +628,7 @@
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
-           (assoc ctx
-                  :filename filename)
+           (assoc ctx :filename filename)
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))
@@ -1091,5 +1106,4 @@
 
 ;;;; scratch
 
-(comment
-  )
+(comment)

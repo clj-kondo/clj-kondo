@@ -29809,17 +29809,17 @@
   :message
   "Var rethrow-with-location-of-node is referred but used via alias: utils",
   :row 1706}
- {:end-row nil,
+ {:end-row 19,
   :type :def-fn,
   :level :warning,
   :lang :clj,
   :filename "sci/impl/core_protocols.cljc",
-  :col nil,
-  :end-col nil,
+  :col 3,
+  :end-col 30,
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row nil}
+  :row 18}
  {:end-row 81,
   :protocol-ns sci.impl.types,
   :protocol-name IBox,

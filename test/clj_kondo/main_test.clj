@@ -66,7 +66,11 @@
       (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
-      (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
+      (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
+      (testing "def + defmethod triggered by def-fn"
+        (assert-submaps2
+         [{:row 1, :col 8, :level :warning, :message "Use defn instead of def + fn"}]
+         (lint! "(def x (defmethod greeting \"English\" [x] x))" "--lang" (name lang) "--config" (pr-str config)))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
@@ -3680,10 +3684,16 @@ foo/"))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) `fb/bar"))))
 
 (deftest ns-unmap-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 26
+      :level :warning
+      :message "Unused excluded var: inc"}
+     {:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
    (lint! "(ns foo) (ns-unmap *ns* 'inc) (inc 1)"
-          {:linters {:unresolved-symbol {:level :error}}}))
+          {:linters {:unresolved-symbol {:level :error}
+                     :unused-excluded-var {:level :warning}}}))
   (is (empty? (lint! "(doseq [sym ['foo 'bar 'baz]] (ns-unmap *ns* sym))"
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! (io/file "corpus" "issue_2259.clj")
