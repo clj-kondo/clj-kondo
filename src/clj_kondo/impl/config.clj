@@ -29,6 +29,7 @@
               :redundant-let {:level :warning}
               :redundant-let-binding {:level :off}
               :cond-else {:level :warning}
+              :cond-to-if {:level :info}
               :syntax {:level :error}
               :file {:level :error}
               :missing-test-assertion {:level :warning}

@@ -11,13 +11,14 @@
 (set! *warn-on-reflection* true)
 
 (deftest macroexpand-test
-  (assert-submaps
+  (assert-submaps2
    '({:file "corpus/macroexpand.clj", :row 16, :col 7, :level :error, :message "Expected: number, received: keyword."}
      {:file "corpus/macroexpand.clj", :row 17, :col 7, :level :error, :message "Expected: number, received: string."}
      {:file "corpus/macroexpand.clj", :row 20, :col 1, :level :error, :message #"No sym and val provided"}
      {:file "corpus/macroexpand.clj", :row 20, :col 1, :level :error, :message "foo/weird-macro is called with 0 args but expects 1 or more"}
      {:file "corpus/macroexpand.clj", :row 31, :col 48, :level :warning, :message "unused binding tree"}
      {:file "corpus/macroexpand.clj", :row 39, :col 1, :level :warning, :message "Missing catch or finally in try"}
+     {:file "corpus/macroexpand.clj", :row 46, :col 3, :level :info, :message "Use if instead of cond when there is only one condition"}
      {:file "corpus/macroexpand.clj", :row 49, :col 20, :level :error, :message "Expected: string, received: number."}
      {:file "corpus/macroexpand.clj", :row 64, :col 1, :level :error, :message "quux/with-mixin is called with 4 args but expects 1"}
      {:file "corpus/macroexpand.clj", :row 64, :col 13, :level :error, :message "Unresolved symbol: a"}
@@ -27,7 +28,6 @@
                                    :unused-binding {:level :warning}
                                    :type-mismatch {:level :error}}}
                         "--config-dir" (.getPath (io/file "corpus" ".clj-kondo")))]
-     ;;(prn-seq results)
      results)))
 
 (deftest preserve-arity-linting-test
@@ -522,3 +522,6 @@ my-ns/special-map \"
     (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2636" "src" "usage.clj")]
                      :config (edn/read-string (slurp (fs/file "corpus" "issue-2636" ".clj-kondo" "config.edn")))
                      :config-dir (fs/file "corpus" "issue-2636" ".clj-kondo")}))))
+
+(comment 
+  )

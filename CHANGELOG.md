@@ -17,6 +17,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
+## Unreleased
+
+- [#2755](https://github.com/clj-kondo/clj-kondo/issues/2755): NEW linter: `:cond-to-if` which warns on `cond` with a single condition followed by `:else` (or `true`, `:default`), suggesting replacement with `if`. ([@jramosg](https://github.com/jramosg))
+
 ## 2026.01.19
 
 - [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))

@@ -593,11 +593,11 @@
                                    (emit-non-match! ctx s a t))
                                  (recur check-ctx rest-args-spec rest-args rest-tags))
                     (keyword? s)
-                    (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
-                          :else
-                          (do (when-not (match? t s)
-                                (emit-non-match! ctx s a t))
-                              (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
+                    (if (empty? all-args)
+                      (emit-more-input-expected! ctx call (last args))
+                      (do (when-not (match? t s)
+                            (emit-non-match! ctx s a t))
+                          (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
     (catch Exception e
       (if (= "true" (System/getenv "CLJ_KONDO_DEV"))
         (throw e)

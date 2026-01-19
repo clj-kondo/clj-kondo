@@ -98,10 +98,9 @@
 
 (defn walk
   [inner outer form]
-  (cond
-    (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node form)
+  (if (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node form)
     (outer (update form :children #(mapv inner %)))
-    :else (outer form)))
+    (outer form)))
 
 (defn prewalk
   [f form]

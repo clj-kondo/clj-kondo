@@ -15,6 +15,15 @@
 
 (set! *warn-on-reflection* true)
 
+(defn- condition-value [condition]
+  (or (:value condition)
+      (:k condition)))
+
+(defn- constant-condition-truthy? [condition]
+  (and (constant? condition)
+       (let [v (condition-value condition)]
+         (not (or (nil? v) (false? v))))))
+
 (defn lint-cond-constants! [ctx conditions]
   (loop [[condition & rest-conditions] conditions]
     (when condition
@@ -71,6 +80,17 @@
                  "cond requires even number of forms"))
     true))
 
+
+(defn- lint-cond-to-if! [ctx conditions expr]
+  (when (and (not (utils/linter-disabled? ctx :cond-to-if))
+             (= 2 (count conditions)))
+    (let [default (second conditions)]
+      (when (constant-condition-truthy? default)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :cond-to-if
+                     "Use if instead of cond when there is only one condition"))))))
+
 (defn lint-cond [ctx expr]
   (let [conditions
         (->> expr :children
@@ -79,6 +99,7 @@
     (when-not (lint-cond-even-number-of-forms! ctx expr)
       (when (seq conditions)
         (lint-cond-constants! ctx conditions)
+        (lint-cond-to-if! ctx conditions expr)
         #_(lint-cond-as-case! filename expr conditions)))))
 
 (defn expected-test-assertion? [callstack idx]
@@ -516,7 +537,8 @@
                        (lint-redundant-nested-call call))]]
       (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
                                                                                                                             :fixed-arities fixed-arities
-                                                                                                                            :arity arity} (:expr call))
+                                                                                                                            :arity arity} 
+                                       (:expr call))
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)

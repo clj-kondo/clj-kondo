@@ -17,6 +17,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Condition always true](#condition-always-true)
+    - [Cond to if](#cond-to-if)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
@@ -298,6 +299,18 @@ doesn't check for literally `true` values of vars since this is often a dev/prod
 *Example trigger:* `(if odd? :odd :even)`.
 
 *Example message:* `Condition always true`.
+
+### Cond to if
+
+*Keyword:* `:cond-to-if`.
+
+*Description:* warn on `cond` with a single condition followed by `:else` (or `true`, `:default`), suggesting replacement with `if`.
+
+*Default level:* `:info`.
+
+*Example trigger:* `(cond x 1 :else 2)`.
+
+*Example message:* `Use if instead of cond when there is only one condition`.
 
 ### Conflicting-alias
 
