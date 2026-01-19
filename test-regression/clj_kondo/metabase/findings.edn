@@ -1,4 +1,14 @@
-[{:filename
+[{:end-row 39,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/actions/http_action.clj",
+  :col 7,
+  :end-col 31,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 34}
+ {:filename
   "test-regression/checkouts/metabase/src/metabase/activity_feed/api.clj",
   :row 149,
   :col 73,
@@ -16,6 +26,16 @@
   :langs (),
   :message "Unresolved excluded var: set!",
   :row 8}
+ {:end-row 299,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/analyze/fingerprint/insights.clj",
+  :col 5,
+  :end-col 78,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 297}
  {:end-row 998,
   :type :redundant-format,
   :level :info,
@@ -36,6 +56,16 @@
   :langs (),
   :message "Condition always true",
   :row 43}
+ {:end-row 49,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
+  :col 5,
+  :end-col 17,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 46}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
   :row 386,
@@ -334,6 +364,16 @@
   :langs (),
   :message "#'hiccup.core/h is deprecated since 2.0",
   :row 226}
+ {:end-row 240,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 3,
+  :end-col 40,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 238}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -354,6 +394,16 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 4}
+ {:end-row 101,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/util.clj",
+  :col 5,
+  :end-col 29,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 73}
  {:end-row 201,
   :type :deprecated-var,
   :level :warning,
@@ -374,6 +424,26 @@
   :langs (),
   :message "Unused excluded var: hash",
   :row 2}
+ {:end-row 333,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :col 5,
+  :end-col 101,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 331}
+ {:end-row 336,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :col 5,
+  :end-col 101,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 334}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
   :row 555,
@@ -451,6 +521,16 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 113}
+ {:end-row 1009,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/postgres.clj",
+  :col 7,
+  :end-col 17,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 1005}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -567,6 +647,30 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: home-cols",
   :row 560}
+ {:end-row 58,
+  :type :cond-to-if,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/metadata/composed_provider.cljc",
+  :col 5,
+  :end-col 20,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Use if instead of cond when there is only one condition",
+  :row 48}
+ {:end-row 52,
+  :type :cond-to-if,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/metadata/composed_provider.cljc",
+  :col 15,
+  :end-col 76,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Use if instead of cond when there is only one condition",
+  :row 52}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -613,6 +717,18 @@
   :langs (),
   :message "Unused excluded var: replace",
   :row 2}
+ {:end-row 21,
+  :type :cond-to-if,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/util/match/impl.cljc",
+  :col 3,
+  :end-col 99,
+  :cljc true,
+  :langs (:cljs),
+  :message "Use if instead of cond when there is only one condition",
+  :row 11}
  {:end-row 20,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -624,6 +740,16 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 20}
+ {:end-row 112,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/notification/payload/core.clj",
+  :col 5,
+  :end-col 17,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 107}
  {:end-row 565,
   :type :redundant-let-binding,
   :level :warning,
@@ -634,6 +760,18 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 565}
+ {:end-row 177,
+  :type :cond-to-if,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/parameters/shared.cljc",
+  :col 3,
+  :end-col 17,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Use if instead of cond when there is only one condition",
+  :row 172}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -764,6 +902,16 @@
   :langs (),
   :message "Unused excluded var: alias",
   :row 4}
+ {:end-row 309,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_implicit_joins.clj",
+  :col 18,
+  :end-col 76,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 309}
  {:end-row 104,
   :type :redundant-let-binding,
   :level :warning,
@@ -1005,6 +1153,16 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: def",
   :row 2}
+ {:end-row 27,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/ordered_hierarchy.clj",
+  :col 3,
+  :end-col 53,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 25}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
   :protocol-name YAMLCodec,
@@ -1408,6 +1566,16 @@
   :langs (),
   :message "Condition always true",
   :row 93}
+ {:end-row 1056,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql/parameters/substitute_test.clj",
+  :col 21,
+  :end-col 46,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 1051}
  {:end-row 99,
   :type :equals-expected-position,
   :level :warning,
@@ -1795,6 +1963,16 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 1797}
+ {:end-row 391,
+  :type :cond-to-if,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_time_zone_functions_test.clj",
+  :col 16,
+  :end-col 40,
+  :langs (),
+  :message "Use if instead of cond when there is only one condition",
+  :row 386}
  {:end-row 1015,
   :type :unresolved-symbol,
   :level :error,
