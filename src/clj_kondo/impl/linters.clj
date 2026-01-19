@@ -27,18 +27,17 @@
 (defn lint-cond-constants! [ctx conditions]
   (loop [[condition & rest-conditions] conditions]
     (when condition
-      (let [v (condition-value condition)]
-        (when (constant-condition-truthy? condition)
-          (when (not= :else v)
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) condition :cond-else
-                         "use :else as the catch-all test expression in cond")))
-          (when (seq rest-conditions)
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx) (first rest-conditions)
-                         :unreachable-code "unreachable code")))))
+      (when (constant-condition-truthy? condition)
+        (when (not= :else (condition-value condition))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) condition :cond-else
+                       "use :else as the catch-all test expression in cond")))
+        (when (seq rest-conditions)
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) (first rest-conditions)
+                       :unreachable-code "unreachable code"))))
       (recur rest-conditions))))
 
 #_(defn lint-cond-as-case! [filename expr conditions]
