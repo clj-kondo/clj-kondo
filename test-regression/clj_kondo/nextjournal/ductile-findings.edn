@@ -201,14 +201,14 @@
   :level :info,
   :langs ()}
  {:end-row 19,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/ductile/test/integration/cron_test.clj",
   :col 18,
   :end-col 44,
   :langs (),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 19}
  {:filename
   "test-regression/checkouts/ductile/test/integration/edi_test.clj",
@@ -300,14 +300,14 @@
   :level :info,
   :langs ()}
  {:end-row 38,
-  :type :type-mismatch,
-  :level :error,
+  :type :is-message-not-string,
+  :level :info,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/truck_booking/queue_test.clj",
   :col 11,
   :end-col 70,
   :langs (),
-  :message "Expected: string, received: boolean.",
+  :message "Test assertion message should be a string",
   :row 38}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
