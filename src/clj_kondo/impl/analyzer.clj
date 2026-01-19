@@ -2052,7 +2052,7 @@
         (reduce (fn [[indexed unindexed] percent]
                   (if-let [[_ pos] (re-find #"^%(\d+)\$" percent)]
                     [(max indexed (Integer/parseInt pos)) unindexed]
-                    [indexed (cond-> unindexed (not= (.charAt ^String percent 1) \<) inc)]))
+                    [indexed (cond-> unindexed (not= \< (.charAt ^String percent 1)) inc)]))
                 [0 0] percents)
         percent-count (max indexed unindexed)
         arg-count (count args)
