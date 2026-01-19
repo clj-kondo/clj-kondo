@@ -29541,6 +29541,17 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: set!",
   :row 5}
+ {:end-row 6,
+  :type :duplicate-require-item,
+  :level :warning,
+  :lang :clj,
+  :filename "sci/core.cljc",
+  :col 69,
+  :end-col 76,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Duplicate exclude: ns-name",
+  :row 6}
  {:end-row 4,
   :type :unused-excluded-var,
   :level :info,

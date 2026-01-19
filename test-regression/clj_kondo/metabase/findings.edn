@@ -520,6 +520,18 @@
   :message "Unused excluded var: ->>",
   :row 4}
  {:end-row 5,
+  :type :duplicate-require-item,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 53,
+  :end-col 60,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Duplicate exclude: replace",
+  :row 5}
+ {:end-row 5,
   :type :unresolved-excluded-var,
   :level :info,
   :lang :clj,

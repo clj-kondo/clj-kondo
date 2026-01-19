@@ -95,20 +95,26 @@
                      :consistent-alias
                      (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
-(defn- lint-duplicate-refers! [ctx refers]
-  (when-not (linter-disabled? ctx :duplicate-refer)
-    (reduce (fn [seen {v :value, :as refer-node}]
-              (if (contains? seen v)
-                (do
-                  (findings/reg-finding!
-                   ctx
-                   (node->line (:filename ctx)
-                               refer-node
-                               :duplicate-refer
-                               (str "Duplicate refer: " v)))
-                  seen)
-                (conj seen v)))
-            #{} refers)))
+(defn- lint-duplicate-require-options! [ctx nodes option-type]
+  (let [message-prefix (case option-type
+                         :refer "Duplicate refer: "
+                         :exclude "Duplicate exclude: ")]
+    (when-not (linter-disabled? ctx :duplicate-require-item)
+      (reduce (fn [seen node]
+                (if (utils/ignored? node)
+                  seen
+                  (let [v (:value node)]
+                    (if (contains? seen v)
+                      (do
+                        (findings/reg-finding!
+                         ctx
+                         (node->line (:filename ctx)
+                                     node
+                                     :duplicate-require-item
+                                     (str message-prefix v)))
+                        seen)
+                      (conj seen v)))))
+              #{} nodes))))
 
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
@@ -215,7 +221,7 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
-                           (lint-duplicate-refers! ctx opt-expr-children)
+                           (lint-duplicate-require-options! ctx opt-expr-children :refer)
                            (when (:analyze-var-usages? ctx)
                              (run! #(namespace/reg-var-usage! ctx current-ns-name
                                                               (let [m (meta %)]
@@ -257,9 +263,12 @@
                        (update m :referred conj (with-meta opt
                                                   (meta opt-expr))))
                 :exclude
-                (recur
-                 (nnext children)
-                 (update m :excluded into (set opt)))
+                (do
+                  (lint-duplicate-require-options! ctx (:children opt-expr)
+                                                   :exclude)
+                  (recur
+                   (nnext children)
+                   (update m :excluded into (set opt))))
                 :rename
                 (let [opt (zipmap (keys opt) (map #(with-meta (sexpr %) (meta %))
                                                   (take-nth 2 (rest (:children opt-expr)))))]
@@ -629,18 +638,26 @@
         sexpr-clauses (map sexpr (nnext (:children expr)))
         refer-clojure-clauses
         (apply merge-with into
-               (for [?refer-clojure sexpr-clauses
+               (for [?refer-clojure-clause clauses
+                     :let [?refer-clojure (sexpr ?refer-clojure-clause)]
                      :when (= :refer-clojure (first ?refer-clojure))
-                     [k v] (partition 2 (rest ?refer-clojure))
+                     :let [options (-> ?refer-clojure-clause :children rest)
+                           sexpr-options (rest ?refer-clojure)]
+                     [[k v] [_ v-node]] (map vector
+                                             (partition 2 sexpr-options)
+                                             (partition 2 options))
                      :let [r (case k
                                :exclude
-                               {:excluded (set v)}
+                               {:excluded (set v)
+                                :exclude-nodes (:children v-node)}
                                :rename
                                {:renamed v
                                 :excluded (set (keys v))}
                                :only
                                {:only (set v)})]]
                  r))
+        _ (when-let [exclude-nodes (:exclude-nodes refer-clojure-clauses)]
+            (lint-duplicate-require-options! ctx exclude-nodes :exclude))
         refer-clj {:referred-vars
                    (into {} (map (fn [[original-name new-name]]
                                    [new-name {:ns 'clojure.core
@@ -650,13 +667,13 @@
         refer-cljs-globals
         (when (identical? :cljs lang)
           (let [refer-globals (reduce merge {}
-                                     (for [?refer-clojure sexpr-clauses
-                                           :when (= :refer-global (first ?refer-clojure))
-                                           :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
-                                       (if rename
-                                         (merge (set/map-invert rename) (let [onlies (remove rename only)]
-                                                                          (zipmap onlies onlies)))
-                                         (zipmap only only))))]
+                                      (for [?refer-clojure sexpr-clauses
+                                            :when (= :refer-global (first ?refer-clojure))
+                                            :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
+                                        (if rename
+                                          (merge (set/map-invert rename) (let [onlies (remove rename only)]
+                                                                           (zipmap onlies onlies)))
+                                          (zipmap only only))))]
             {:referred-globals refer-globals}))
         _ (when (seq (:clojure-excluded refer-clj))
             (lint-refer-clojure-vars ctx (:clojure-excluded refer-clj)))
