@@ -40,23 +40,23 @@
                  (set (rest fst-sexpr)))]
       (when init
         (when-let
-            [case-expr
-             (let [c (first
-                      (reduce
-                       (fn [acc sexpr]
-                         (if (=? sexpr)
-                           (let [new-acc
-                                 (set/intersection acc
-                                                   (set (rest sexpr)))]
-                             (if (= 1 (count new-acc))
-                               new-acc
-                               (reduced nil)))
-                           (if (= :else sexpr)
-                             acc
-                             (reduced nil))))
-                       init
-                       rest-sexprs))]
-               c)]
+         [case-expr
+          (let [c (first
+                   (reduce
+                    (fn [acc sexpr]
+                      (if (=? sexpr)
+                        (let [new-acc
+                              (set/intersection acc
+                                                (set (rest sexpr)))]
+                          (if (= 1 (count new-acc))
+                            new-acc
+                            (reduced nil)))
+                        (if (= :else sexpr)
+                          acc
+                          (reduced nil))))
+                    init
+                    rest-sexprs))]
+            c)]
           (findings/reg-finding!
            (node->line filename expr :warning :cond-as-case
                        (format "cond can be written as (case %s ...)"
@@ -165,8 +165,6 @@
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
        [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
-      #_([clojure.test is] [cljs.test is])
-      #_(lint-test-is ctx (:expr call))
       nil)
 
     ;; special forms which are not fns
@@ -179,11 +177,28 @@
                              (str called-name)))
       (lint-missing-test-assertion ctx call))))
 
+(defn- lint-is-message-not-string! [ctx call called-fn tags]
+  (when (and
+         (= 'is (:name called-fn))
+         (utils/one-of (:ns called-fn) [clojure.test cljs.test])
+         (= 2 (count tags))
+         (not (utils/linter-disabled? ctx :is-message-not-string))
+         (not (:clj-kondo.impl/generated (:expr call))))
+    (let [second-arg (-> call :expr :children (nth 2 nil))
+          literal-string? (or (:lines second-arg)
+                              (= :multi-line (tag second-arg)))]
+      (when (and (not literal-string?)
+                 (not (some-> (second tags) (types/match? :string))))
+        (findings/reg-finding! ctx
+                               (merge (utils/location (meta second-arg))
+                                      (select-keys call [:filename])
+                                      {:type :is-message-not-string
+                                       :message "Test assertion message should be a string"}))))))
+
 (defn lint-arg-types! [ctx idacs call called-fn]
   (when-let [arg-types (:arg-types call)]
     (let [arg-types @arg-types
           tags (map #(tu/resolve-arg-type idacs %) arg-types)]
-      ;; (prn (:name called-fn) :tags tags )
       (types/lint-arg-types ctx called-fn arg-types tags call)
       (when (and
              (= 'str (:name called-fn))
@@ -196,6 +211,7 @@
                                (assoc (utils/location call)
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
+      (lint-is-message-not-string! ctx call called-fn tags)
       (when-let [expected-type ('{double :double, float :float, long :long, int :int
                                   short :short, byte :byte, char :char, boolean :boolean}
                                 (:name called-fn))]
@@ -499,8 +515,8 @@
                        (not (utils/linter-disabled? call :redundant-nested-call))
                        (lint-redundant-nested-call call))]]
       (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
-                                                                                                                       :fixed-arities fixed-arities
-                                                                                                                       :arity arity} (:expr call))
+                                                                                                                            :fixed-arities fixed-arities
+                                                                                                                            :arity arity} (:expr call))
       (when (and (not call?)
                  (identical? :fn (:type called-fn)))
         (when (:condition call)
@@ -544,15 +560,15 @@
                                                  (str fn-sym))}))
       (when-let [deprecated (:deprecated called-fn)]
         (when-not
-            (or
+         (or
              ;; recursive call
-             recursive?
-             (utils/linter-disabled? call :deprecated-var)
-             (config/deprecated-var-excluded
-              ctx
-              (:config call)
-              fn-sym
-              caller-ns-sym in-def))
+          recursive?
+          (utils/linter-disabled? call :deprecated-var)
+          (config/deprecated-var-excluded
+           ctx
+           (:config call)
+           fn-sym
+           caller-ns-sym in-def))
           (findings/reg-finding! ctx
                                  {:filename filename
                                   :row row
@@ -590,8 +606,7 @@
       (let [ctx (assoc ctx :filename filename)]
         (when call?
           (lint-specific-calls!
-           (assoc ctx
-                  :filename filename)
+           (assoc ctx :filename filename)
            call called-fn)
           (when-not (or arity-error? skip-arity-check?)
             (lint-arg-types! ctx idacs call called-fn))))
@@ -710,10 +725,10 @@
               config (:config v)
               ctx (assoc ctx :config config)]
           (when-not
-              (or (contains? used-referred-vars k)
-                  (config/unused-referred-var-excluded config var-ns k)
-                  (contains? refer-all-nss var-ns)
-                  (:cljs-macro-self-require (meta k)))
+           (or (contains? used-referred-vars k)
+               (config/unused-referred-var-excluded config var-ns k)
+               (contains? refer-all-nss var-ns)
+               (:cljs-macro-self-require (meta k)))
             (let [filename (:filename v)
                   referred-ns (export-ns-sym var-ns)]
               (findings/reg-finding!
@@ -1069,5 +1084,4 @@
 
 ;;;; scratch
 
-(comment
-  )
+(comment)
