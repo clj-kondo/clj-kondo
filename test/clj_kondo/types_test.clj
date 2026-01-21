@@ -60,7 +60,7 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: seq."}
+      :message "Expected: set or nil, received: lazy seq."}
      {:file "<stdin>",
       :row 3,
       :col 28,
@@ -90,7 +90,7 @@
       :row 1,
       :col 9,
       :level :error,
-      :message "Expected: vector, received: seq."})
+      :message "Expected: vector, received: lazy seq."})
    (lint! "(subvec (map inc [1 2 3]) 10 20)"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
@@ -358,7 +358,7 @@
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 12, :level :error,
-      :message "Expected: associative collection or string or set, received: seq."})
+      :message "Expected: associative collection or string or set, received: lazy seq."})
    (lint! "(contains? (map inc [1 2 3]) 1)"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "resolve types via cache"
@@ -790,7 +790,7 @@
 (deftest rseq-test
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 7, :level :error,
-      :message "Expected: vector or sorted map, received: seq."})
+      :message "Expected: vector or sorted map, received: lazy seq."})
    (lint! "(rseq (map inc [1 2 3]))"
           {:linters {:type-mismatch {:level :error}}}))
   (is (empty? (lint! "(rseq (sorted-map :a 1)) (rseq [1 2 3])"
@@ -1083,7 +1083,7 @@
       (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config)))))
 
   (testing "throw accepts any type in cljs"
-    (is (empty? (lint! "(throw 1)" config "--lang" "cljs"))))) 
+    (is (empty? (lint! "(throw 1)" config "--lang" "cljs")))))
 
 (deftest do-test
   (is (assert-submaps2
@@ -1366,7 +1366,7 @@
       :row 1
       :col 7
       :level :error
-      :message "Expected: function, received: seq."})
+      :message "Expected: function, received: lazy seq."})
    (lint! "(comp (map inc (range)))" config)))
 
 (deftest cast-test
@@ -1586,6 +1586,98 @@
       :level :error
       :message "Expected: sequential collection, received: set."})
    (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
+
+(deftest lazy-seq-type-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "range with 0 args returns lazy-seq"
+      (is (empty? (lint! "(def xs (range)) (seq xs)" config))))
+
+    (testing "range with args returns seq (not lazy-seq)"
+      (is (empty? (lint! "(def xs (range 10)) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (range 0 10)) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (range 0 10 2)) (seq xs)" config))))
+
+    (testing "lazy-seq functions return lazy-seq"
+      (is (empty? (lint! "(def xs (map inc [1 2 3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (filter odd? [1 2 3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (remove even? [1 2 3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (take 5 (range))) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (take-while pos? [1 2 -3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (drop 5 (range 10))) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (drop-while neg? [-1 0 1])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (drop-last [1 2 3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (iterate inc 0)) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (cycle [1 2 3])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (concat [1 2] [3 4])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (mapcat identity [[1 2] [3 4]])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (partition 2 [1 2 3 4])) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (dedupe [1 1 2 2 3])) (seq xs)" config))))
+
+    (testing "repeat returns seq (not lazy-seq)"
+      (is (empty? (lint! "(def xs (repeat 5)) (seq xs)" config)))
+      (is (empty? (lint! "(def xs (repeat 3 5)) (seq xs)" config))))
+
+    (testing "lazy-seq is-a seq and seqable"
+      (is (empty? (lint! "(first (range))" config)))
+      (is (empty? (lint! "(rest (range))" config)))
+      (is (empty? (lint! "(cons 1 (range))" config)))
+      (is (empty? (lint! "(count (range))" config)))
+      (is (empty? (lint! "(seq (range))" config)))
+      (is (empty? (lint! "(first (range 10))" config)))
+      (is (empty? (lint! "(rest (range 10))" config)))
+      (is (empty? (lint! "(cons 1 (range 10))" config)))
+      (is (empty? (lint! "(count (range 10))" config)))
+      (is (empty? (lint! "(seq (range 10))" config))))))
+
+(deftest realized?-type-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "realized? accepts ipending types (lazy-seq)"
+      (is (empty? (lint! "(def xs (range)) (realized? xs)" config)))
+      (is (empty? (lint! "(def xs (map inc [1 2 3])) (realized? xs)" config)))
+      (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (realized? xs)" config)))
+      (is (empty? (lint! "(def xs (iterate inc 0)) (realized? xs)" config))))
+
+    (testing "realized? accepts does not accept seq types that are not lazy-seq"
+      (assert-submaps2
+       [{:file "<stdin>"
+         :row 1
+         :col 32
+         :level :error
+         :message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: seq."}]
+       (lint! "(def xs (range 10)) (realized? xs)" config))
+      (assert-submaps2
+       [{:file "<stdin>",
+         :row 1,
+         :col 32,
+         :level :error,
+         :message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: seq."}]
+       (lint! "(def xs (repeat 5)) (realized? xs)" config)))
+
+    (testing "realized? type mismatch with non-seq types"
+      (assert-submaps2
+       '({:message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: vector."
+          :row 1
+          :col 12
+          :level :error})
+       (lint! "(realized? [1 2 3])" config))
+      (assert-submaps2
+       '({:message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: positive integer."
+          :row 1
+          :col 12
+          :level :error})
+       (lint! "(realized? 42)" config))
+      (assert-submaps2
+       '({:message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: string."
+          :row 1
+          :col 12
+          :level :error})
+       (lint! "(realized? \"foo\")" config)))
+
+    (testing "realized? returns boolean"
+      (assert-submaps2
+       '({:message "Expected: number, received: boolean."})
+       (lint! "(def xs (range)) (inc (realized? xs))" config)))))
 
 ;;;; Scratch
 
