@@ -548,6 +548,10 @@
   (try
     (let [config (:config ctx)
           called-ns (or called-ns (:resolved-ns call))
+          called-ns (if (and (= 'clojure.core called-ns)
+                             (= :cljs (some :lang [call ctx])))
+                      'cljs.core
+                      called-ns)
           called-name (or called-name (:name call))
           arity (:arity call)]
       (when-let [args-spec
