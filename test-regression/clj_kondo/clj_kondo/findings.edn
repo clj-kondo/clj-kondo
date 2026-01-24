@@ -29542,7 +29542,7 @@
   :filename "sci/impl/deftype.cljc",
   :methods [getVal],
   :col 3,
-types  :end-col 13,
+  :end-col 13,
   :cljc true,
   :langs (:clj :cljs),
   :message "Missing protocol method(s): setVal",
