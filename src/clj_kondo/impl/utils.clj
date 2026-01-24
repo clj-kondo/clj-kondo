@@ -336,7 +336,7 @@
     (and result
          (= 'clojure.core (:ns result))
          (= 'cljs.core fn-ns))
-    (assoc  :ns 'cljs.core)))
+    (assoc :ns 'cljs.core)))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
@@ -401,7 +401,7 @@
                            (not= fn-name imported-var))))
             (resolve-call idacs call call-lang imported-ns imported-var
                           unresolved? refer-alls (conj seen seenv))))
-         ;; if we cannot find the imported var here, we fall back on called-fn
+        ;; if we cannot find the imported var here, we fall back on called-fn
         called-fn)
        called-fn))))
 
