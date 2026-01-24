@@ -328,6 +328,16 @@
                       (get-in idacs [:clj :defs ns])
                       (get-in idacs [:cljc :defs ns]))))
 
+(defn- fix-cljs-core-ns
+  "Fix :ns field for cljs.core functions that are incorrectly marked as clojure.core.
+  This happens when cljs.core macros are loaded from cljc cache into [:clj :defs cljs.core]."
+  [result fn-ns]
+  (cond-> result
+    (and result
+         (= 'clojure.core (:ns result))
+         (= 'cljs.core fn-ns))
+    (assoc  :ns 'cljs.core)))
+
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
   (let [call-lang (:lang call)
@@ -347,13 +357,7 @@
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                            ;; maybe a macro?
-                           ;; Fix :ns field when looking up from [:clj :defs fn-ns] for cljs.core
-                           ;; because cljs.core macros stored there have :ns 'clojure.core
-                           (when-let [result (get-in idacs [:clj :defs fn-ns fn-name])]
-                             (if (and (= 'clojure.core (:ns result))
-                                      (= 'cljs.core fn-ns))
-                               (assoc result :ns 'cljs.core)
-                               result))
+                           (fix-cljs-core-ns (get-in idacs [:clj :defs fn-ns fn-name]) fn-ns)
                            (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
       [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
@@ -362,12 +366,7 @@
       [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                         ;; could be a macro
-                        ;; Fix :ns field when looking up from [:clj :defs fn-ns] for cljs.core
-                        (when-let [result (get-in idacs [:clj :defs fn-ns fn-name])]
-                          (if (and (= 'clojure.core (:ns result))
-                                   (= 'cljs.core fn-ns))
-                            (assoc result :ns 'cljs.core)
-                            result))
+                        (fix-cljs-core-ns (get-in idacs [:clj :defs fn-ns fn-name]) fn-ns)
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn stderr [& msgs]
