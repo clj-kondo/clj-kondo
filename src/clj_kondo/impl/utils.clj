@@ -347,7 +347,13 @@
                            ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                            ;; maybe a macro?
-                           (get-in idacs [:clj :defs fn-ns fn-name])
+                           ;; Fix :ns field when looking up from [:clj :defs fn-ns] for cljs.core
+                           ;; because cljs.core macros stored there have :ns 'clojure.core
+                           (when-let [result (get-in idacs [:clj :defs fn-ns fn-name])]
+                             (if (and (= 'clojure.core (:ns result))
+                                      (= 'cljs.core fn-ns))
+                               (assoc result :ns 'cljs.core)
+                               result))
                            (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
       [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
@@ -356,7 +362,12 @@
       [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                         ;; could be a macro
-                        (get-in idacs [:clj :defs fn-ns fn-name])
+                        ;; Fix :ns field when looking up from [:clj :defs fn-ns] for cljs.core
+                        (when-let [result (get-in idacs [:clj :defs fn-ns fn-name])]
+                          (if (and (= 'clojure.core (:ns result))
+                                   (= 'cljs.core fn-ns))
+                            (assoc result :ns 'cljs.core)
+                            result))
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn stderr [& msgs]
@@ -391,7 +402,7 @@
                            (not= fn-name imported-var))))
             (resolve-call idacs call call-lang imported-ns imported-var
                           unresolved? refer-alls (conj seen seenv))))
-        ;; if we cannot find the imported var here, we fall back on called-fn
+         ;; if we cannot find the imported var here, we fall back on called-fn
         called-fn)
        called-fn))))
 
@@ -430,7 +441,6 @@
 (def windows? (-> (System/getProperty "os.name")
                   (str/lower-case)
                   (str/includes? "win")))
-
 
 (defn unixify-path
   "Convert dir separators in `s`, when on Windows, to forward slashes.
