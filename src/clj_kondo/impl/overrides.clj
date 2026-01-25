@@ -43,7 +43,7 @@
         (update-in '[:clj :defs clojure.core throw] (fn [var]
                                                       (-> var
                                                           (assoc
-                                                           :ns 'cljs.core
+                                                           :ns 'clojure.core
                                                            :name 'throw
                                                            :macro true
                                                            :fixed-arities #{1})))))
@@ -129,7 +129,7 @@
         (update-in '[:clj :defs cljs.core throw] (fn [var]
                                                    (-> var
                                                        (assoc
-                                                        :ns 'clojure.core
+                                                        :ns 'cljs.core
                                                         :name 'throw
                                                         :macro true
                                                         :fixed-arities #{1})))))))
