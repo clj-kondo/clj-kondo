@@ -8,30 +8,36 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym node->line
-                                           sexpr tag]]
+                                           tag]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
+(defn- condition-value [condition]
+  (or (:value condition)
+      (:k condition)))
+
+(defn- constant-condition-truthy? [condition]
+  (and (constant? condition)
+       (let [v (condition-value condition)]
+         (not (or (nil? v) (false? v))))))
+
 (defn lint-cond-constants! [ctx conditions]
   (loop [[condition & rest-conditions] conditions]
     (when condition
-      (let [v (sexpr condition)]
-        (when-not (or (nil? v) (false? v))
-          (when (and (constant? condition)
-                     (not (or (nil? v) (false? v))))
-            (when (not= :else v)
-              (findings/reg-finding!
-               ctx
-               (node->line (:filename ctx) condition :cond-else
-                           "use :else as the catch-all test expression in cond")))
-            (when (seq rest-conditions)
-              (findings/reg-finding!
-               ctx
-               (node->line (:filename ctx) (first rest-conditions)
-                           :unreachable-code "unreachable code"))))))
+      (when (constant-condition-truthy? condition)
+        (when (not= :else (condition-value condition))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) condition :cond-else
+                       "use :else as the catch-all test expression in cond")))
+        (when (seq rest-conditions)
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx) (first rest-conditions)
+                       :unreachable-code "unreachable code"))))
       (recur rest-conditions))))
 
 #_(defn lint-cond-as-case! [filename expr conditions]

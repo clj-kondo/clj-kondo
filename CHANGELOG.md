@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Performance improvement: refactor `lint-cond-constants!` to eliminate `sexpr` usage ([@jramosg](https://github.com/jramosg))
 - [#2762](https://github.com/clj-kondo/clj-kondo/issues/2762): Fix false positive: `throw` with string in CLJS no longer warns about type mismatch ([@jramosg](https://github.com/jramosg))
 
 
