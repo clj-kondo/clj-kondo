@@ -344,9 +344,9 @@
                         ;; an exception to this would be :refer :all, but this doesn't exist in CLJS
                         (when (not (and unknown-ns? unresolved?))
                           (or
-                            ;; cljs func in another cljc file
+                           ;; cljs func in another cljc file
                            (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                            ;; maybe a macro?
+                           ;; maybe a macro?
                            (get-in idacs [:clj :defs fn-ns fn-name])
                            (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
@@ -355,7 +355,7 @@
       ;; calling function in a CLJS conditional from a CLJC file
       [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                         ;; could be a macro
+                        ;; could be a macro
                         (get-in idacs [:clj :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
