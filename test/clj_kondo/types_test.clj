@@ -1083,7 +1083,10 @@
       (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config)))))
 
   (testing "throw accepts any type in cljs"
-    (is (empty? (lint! "(throw 1)" config "--lang" "cljs"))))) 
+    (is (empty? (lint! "(throw 1)" config "--lang" "cljs")))
+    (is (empty? (lint! "(throw \"dude\")" config "--lang" "cljs")))
+    (testing "with .cljs extension"
+      (is (empty? (lint! "(throw \"dude\")" config "--filename" "foo.cljs"))))))
 
 (deftest do-test
   (is (assert-submaps2
@@ -1589,5 +1592,4 @@
 
 ;;;; Scratch
 
-(comment
-  )
+(comment)

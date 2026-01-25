@@ -431,7 +431,6 @@
                   (str/lower-case)
                   (str/includes? "win")))
 
-
 (defn unixify-path
   "Convert dir separators in `s`, when on Windows, to forward slashes.
    Using forward slashes in paths make paths platform agnostic as Java does understand / as a path separator on Windows.
