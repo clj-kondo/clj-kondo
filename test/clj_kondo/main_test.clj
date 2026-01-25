@@ -2689,6 +2689,11 @@ foo"))))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
+      :col 49,
+      :level :warning,
+      :message "Duplicate require option: :refer. Only the last value will be used."}
+     {:file "<stdin>",
+      :row 1,
       :col 56,
       :level :warning,
       :message "use alias or :refer [capitalize join]"})
