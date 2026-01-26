@@ -33374,13 +33374,6 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
- {:filename "src/clj_kondo/impl/linters.clj",
-  :row 1025,
-  :col 38,
-  :type :aliased-referred-var,
-  :message "Var constant? is referred but used via alias: utils",
-  :level :info,
-  :langs ()}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,
