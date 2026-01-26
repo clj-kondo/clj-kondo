@@ -1331,7 +1331,8 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "Invalid function body."})
    (lint! (io/file "corpus" "schema")
-          '{:linters {:unresolved-symbol {:level :error}}}))
+          '{:linters {:unresolved-symbol {:level :error}
+                      :shadowed-defmethod {:level :off}}}))
   (is (empty? (lint! "(ns foo (:require [schema.core :refer [defschema]])) (defschema foo nil) foo"
                      '{:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(ns yyyy (:require [schema.core :as s]))

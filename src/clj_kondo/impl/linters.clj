@@ -15,6 +15,9 @@
 
 (set! *warn-on-reflection* true)
 
+(def ^:private shadowed-defmethod-msg
+  "Shadowed defmethod: %s for dispatch value %s")
+
 (defn- condition-value [condition]
   (or (:value condition)
       (:k condition)))
@@ -567,7 +570,7 @@
       (when-let [deprecated (:deprecated called-fn)]
         (when-not
          (or
-             ;; recursive call
+          ;; recursive call
           recursive?
           (utils/linter-disabled? call :deprecated-var)
           (config/deprecated-var-excluded
@@ -1013,6 +1016,40 @@
         :end-col (:end-col m)
         :ns un
         :name (:name m)}))))
+
+(defn lint-shadowed-defmethods!
+  "Lints for shadowed defmethods.
+  - In same namespace: second+ definitions shadow the first
+  - Across namespaces: all definitions are flagged since load order is 
+   non-deterministic"
+  [ctx]
+  (letfn [(group-defmethods [namespaces]
+            (reduce
+             (fn [acc ns]
+               (reduce
+                (fn [acc* [[mm-name dispatch-val] metadata]]
+                  (if (constant? (:dispatch-val-node metadata))
+                    (let [lang (:lang metadata :clj)]
+                      (update acc* [mm-name dispatch-val lang]
+                              (fnil conj [])
+                              (assoc metadata :ns-name (:name ns))))
+                    acc*))
+                acc (:defmethods ns [])))
+             {} namespaces))]
+    (when-not (utils/linter-disabled? ctx :shadowed-defmethod)
+      (let [namespaces (namespace/list-namespaces ctx)
+            defmethod-groups (group-defmethods namespaces)]
+        (doseq [[[mm-name dispatch-val] defmethods] defmethod-groups
+                :when (> (count defmethods) 1)
+                :let [ns-names (set (map :ns-name defmethods))
+                      same-ns? (= 1 (count ns-names))
+                      msg (format shadowed-defmethod-msg mm-name dispatch-val)
+                      shadowed-defmethods (cond->> defmethods
+                                            same-ns? rest)]
+                dm shadowed-defmethods]
+          (findings/reg-finding! ctx (assoc (utils/location dm)
+                                            :type :shadowed-defmethod
+                                            :message msg)))))))
 
 (defn lint-class-usage [ctx idacs]
   (when-let [jm (:java-member-definitions idacs)]

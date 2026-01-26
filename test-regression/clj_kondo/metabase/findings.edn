@@ -451,6 +451,28 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 113}
+ {:end-row 107,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/postgres.clj",
+  :col 1,
+  :end-col 59,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/display-name for dispatch value :postgres",
+  :row 107}
+ {:end-row 411,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql/query_processor.clj",
+  :col 1,
+  :end-col 28,
+  :langs (),
+  :message
+  "Shadowed defmethod: date for dispatch value [:sql :week-of-year-iso]",
+  :row 408}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -531,6 +553,16 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: var",
   :row 5}
+ {:end-row 105,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/equality.cljc",
+  :col 1,
+  :end-col 43,
+  :langs (),
+  :message "Shadowed defmethod: = for dispatch value :default",
+  :row 100}
  {:end-row 2,
   :type :unresolved-excluded-var,
   :level :info,
@@ -567,6 +599,28 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: home-cols",
   :row 560}
+ {:end-row 217,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/metadata/calculation.cljc",
+  :col 1,
+  :end-col 41,
+  :langs (),
+  :message
+  "Shadowed defmethod: type-of-method for dispatch value :default",
+  :row 215}
+ {:end-row 223,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/metadata/calculation.cljc",
+  :col 1,
+  :end-col 37,
+  :langs (),
+  :message
+  "Shadowed defmethod: type-of-method for dispatch value :lib.type-of/type-is-type-of-first-arg",
+  :row 221}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -579,6 +633,28 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
+ {:end-row 57,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema/expression.cljc",
+  :col 1,
+  :end-col 34,
+  :langs (),
+  :message
+  "Shadowed defmethod: type-of-method for dispatch value :default",
+  :row 54}
+ {:end-row 63,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/schema/expression.cljc",
+  :col 1,
+  :end-col 18,
+  :langs (),
+  :message
+  "Shadowed defmethod: type-of-method for dispatch value :lib.type-of/type-is-type-of-first-arg",
+  :row 61}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -1388,6 +1464,28 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 3514}
+ {:end-row 17,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/common/table_rows_sample_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/field-count-tests]",
+  :row 15}
+ {:end-row 22,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/common/table_rows_sample_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:redshift :user/field-count-tests]",
+  :row 20}
  {:end-row 82,
   :type :unresolved-symbol,
   :level :error,
@@ -1725,6 +1823,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 821}
+ {:end-row 11,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/add_timezone_info_test.clj",
+  :col 1,
+  :end-col 100,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:user/timezone-driver :set-timezone]",
+  :row 11}
  {:end-row 160,
   :type :unresolved-symbol,
   :level :error,
@@ -1735,6 +1844,28 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 160}
+ {:end-row 15,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/format_rows_test.clj",
+  :col 1,
+  :end-col 100,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:user/timezone-driver :set-timezone]",
+  :row 15}
+ {:end-row 21,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/optimize_temporal_filters_test.clj",
+  :col 1,
+  :end-col 100,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:user/timezone-driver :set-timezone]",
+  :row 21}
  {:end-row 22,
   :type :redundant-let-binding,
   :level :warning,
@@ -1765,6 +1896,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 51}
+ {:end-row 70,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/preprocess_test.clj",
+  :col 1,
+  :end-col 32,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/escape-alias for dispatch value :user/custom-escape-spaces-to-underscores",
+  :row 67}
  {:end-row 537,
   :type :unresolved-symbol,
   :level :error,
@@ -1775,6 +1917,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 537}
+ {:end-row 479,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/util/add_alias_info_test.clj",
+  :col 1,
+  :end-col 32,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/escape-alias for dispatch value :user/custom-escape-spaces-to-underscores",
+  :row 476}
  {:end-row 42,
   :type :unresolved-symbol,
   :level :error,
@@ -1785,6 +1938,116 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 42}
+ {:end-row 578,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
+  :col 1,
+  :end-col 20,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :default",
+  :row 576}
+ {:end-row 598,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
+  :col 1,
+  :end-col 37,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :sqlite",
+  :row 594}
+ {:end-row 604,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
+  :col 1,
+  :end-col 54,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :mongo",
+  :row 600}
+ {:end-row 610,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
+  :col 1,
+  :end-col 38,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :oracle",
+  :row 606}
+ {:end-row 941,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
+  :col 1,
+  :end-col 6,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :default",
+  :row 939}
+ {:end-row 961,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
+  :col 1,
+  :end-col 37,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :sqlite",
+  :row 957}
+ {:end-row 967,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
+  :col 1,
+  :end-col 54,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :mongo",
+  :row 963}
+ {:end-row 973,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
+  :col 1,
+  :end-col 38,
+  :langs (),
+  :message
+  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :oracle",
+  :row 969}
+ {:end-row 1445,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_bucketing_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
+  :row 1443}
+ {:end-row 1450,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_bucketing_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
+  :row 1448}
  {:end-row 1797,
   :type :unresolved-symbol,
   :level :error,
@@ -1805,6 +2068,50 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 1015}
+ {:end-row 187,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
+  :row 185}
+ {:end-row 192,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
+  :row 190}
+ {:end-row 716,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
+  :row 714}
+ {:end-row 721,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
+  :row 719}
  {:end-row 212,
   :type :unresolved-symbol,
   :level :error,
@@ -1825,6 +2132,28 @@
   :langs (),
   :message "Write expected value first",
   :row 599}
+ {:end-row 62,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/share_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
+  :row 60}
+ {:end-row 67,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/share_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
+  :row 65}
  {:end-row 394,
   :type :unresolved-symbol,
   :level :error,
@@ -1845,6 +2174,17 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 22}
+ {:end-row 87,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/server/streaming_response_test.clj",
+  :col 1,
+  :end-col 6,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/connection-properties for dispatch value :user/test-driver",
+  :row 85}
  {:end-row 121,
   :type :unresolved-symbol,
   :level :error,
@@ -1908,6 +2248,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
+ {:end-row 13,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/util/js.cljs",
+  :col 1,
+  :end-col 24,
+  :langs (),
+  :message "Shadowed defmethod: = for dispatch value :default",
+  :row 12}
  {:end-row 497,
   :type :is-message-not-string,
   :level :info,
@@ -2018,6 +2368,28 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 814}
+ {:end-row 12,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/metadata_from_qp_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/field-count-tests]",
+  :row 10}
+ {:end-row 17,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/metadata_from_qp_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:redshift :user/field-count-tests]",
+  :row 15}
  {:end-row 245,
   :type :is-message-not-string,
   :level :info,
@@ -2048,6 +2420,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 101}
+ {:end-row 60,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
+  :col 1,
+  :end-col 7,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/connection-properties for dispatch value :user/test-driver",
+  :row 58}
  {:end-row 120,
   :type :redundant-format,
   :level :info,
