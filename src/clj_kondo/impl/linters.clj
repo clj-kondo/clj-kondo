@@ -1020,30 +1020,36 @@
 (defn lint-shadowed-defmethods!
   "Lints for shadowed defmethods.
   - In same namespace: second+ definitions shadow the first
-  - Across namespaces: all definitions are flagged since load order is non-deterministic"
+  - Across namespaces: all definitions are flagged since load order is 
+   non-deterministic"
   [ctx]
-  (when-not (utils/linter-disabled? ctx :shadowed-defmethod)
-    (let [namespaces (namespace/list-namespaces ctx)
-          defmethod-groups (reduce
-                            (fn [acc ns]
-                              (reduce
-                               (fn [acc* [[mm-name dispatch-val] metadata]]
-                                 (update acc* [mm-name dispatch-val]
-                                         (fnil conj [])  ;; FIXED: Need (fnil conj [])
-                                         (assoc metadata :ns-name (:name ns))))
-                               acc (:defmethods ns [])))
-                            {} namespaces)]
-      (doseq [[[mm-name dispatch-val] defmethods] defmethod-groups
-              :when (> (count defmethods) 1)
-              :let [namespaces-with-defmethod (set (map :ns-name defmethods))
-                    same-ns? (= 1 (count namespaces-with-defmethod))
-                    shadowed-defmethods (cond->> defmethods
-                                          same-ns? rest)]
-              dm shadowed-defmethods
-              :let [msg (format shadowed-defmethod-msg mm-name dispatch-val)]]
-        (findings/reg-finding! ctx (assoc (utils/location dm)
-                                          :type :shadowed-defmethod
-                                          :message msg)))))) 
+  (letfn [(group-defmethods [namespaces]
+            (reduce
+             (fn [acc ns]
+               (reduce
+                (fn [acc* [[mm-name dispatch-val] metadata]]
+                  (if (constant? (:dispatch-val-node metadata))
+                    (let [lang (:lang metadata :clj)]
+                      (update acc* [mm-name dispatch-val lang]
+                              (fnil conj [])
+                              (assoc metadata :ns-name (:name ns))))
+                    acc*))
+                acc (:defmethods ns [])))
+             {} namespaces))]
+    (when-not (utils/linter-disabled? ctx :shadowed-defmethod)
+      (let [namespaces (namespace/list-namespaces ctx)
+            defmethod-groups (group-defmethods namespaces)]
+        (doseq [[[mm-name dispatch-val] defmethods] defmethod-groups
+                :when (> (count defmethods) 1)
+                :let [ns-names (set (map :ns-name defmethods))
+                      same-ns? (= 1 (count ns-names))
+                      msg (format shadowed-defmethod-msg mm-name dispatch-val)
+                      shadowed-defmethods (cond->> defmethods
+                                            same-ns? rest)]
+                dm shadowed-defmethods]
+          (findings/reg-finding! ctx (assoc (utils/location dm)
+                                            :type :shadowed-defmethod
+                                            :message msg)))))))
 
 (defn lint-class-usage [ctx idacs]
   (when-let [jm (:java-member-definitions idacs)]

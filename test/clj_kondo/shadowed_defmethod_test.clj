@@ -6,6 +6,9 @@
   (:import [java.nio.file Files]
            [java.nio.file.attribute FileAttribute]))
 
+(def ^:private config {:linters {:shadowed-defmethod {:level :warning}
+                                 :unresolved-symbol {:level :off}}})
+
 (deftest shadowed-defmethod-same-namespace-test
   (testing "Detects shadowed defmethod in same namespace"
     (assert-submaps2
@@ -228,16 +231,75 @@
         (let [results (lint! [ns1-file ns2-file]
                              '{:linters {:shadowed-defmethod {:level :warning}
                                          :unresolved-symbol {:level :off}}})]
-          ;; Should warn on all 3 defmethods: cross-namespace shadowing flags ALL occurrences
           (assert-submaps2
-           [{:file (.getPath ns1-file), :row 3, :col 1, :level :warning,
+           [{:file (.getPath ns1-file)
+             :row 3
+             :col 1
+             :level :warning
              :message "Shadowed defmethod: mm for dispatch value :foo"}
-            {:file (.getPath ns1-file), :row 4, :col 1, :level :warning,
+            {:file (.getPath ns1-file)
+             :row 4
+             :col 1
+             :level :warning
              :message "Shadowed defmethod: mm for dispatch value :foo"}
-            {:file (.getPath ns2-file), :row 3, :col 1, :level :warning,
+            {:file (.getPath ns2-file)
+             :row 3
+             :col 1
+             :level :warning
              :message "Shadowed defmethod: mm for dispatch value :foo"}]
            results))
         (finally
           (io/delete-file ns1-file true)
           (io/delete-file ns2-file true)
           (io/delete-file (.toFile tmp-dir) true))))))
+
+(deftest shadowed-defmethod-cljc-test
+  (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
+        cljc-file (io/file (.toFile tmp-dir) "test.cljc")]
+    (testing "CLJC defmethods should not be flagged as shadowed"
+      (spit cljc-file "(ns test)
+(defmulti mm :type)
+(defmethod mm :foo [x] x)
+")
+      (is (empty? (lint! [cljc-file] config))
+          "CLJC reader conditional branches should not trigger shadowed defmethod warning")
+
+      (testing "with reader conditionals"
+        (spit cljc-file "(ns test)
+      (defmulti mm :type)
+      #?(:clj (defmethod mm :foo [x] :clj-impl)
+         :cljs (defmethod mm :foo [x] :cljs-impl))
+      ")
+        (is (empty? (lint! [cljc-file] config))
+            "CLJC reader conditional branches should not trigger shadowed defmethod warning"))
+
+      (testing "in same reader branch should still be flagged"
+        (spit cljc-file "(ns test)
+       (defmulti mm :type)
+       #?(:clj
+          (do
+            (defmethod mm :foo [x] :first)
+            (defmethod mm :foo [x] :second)))
+       ")
+        (assert-submaps2
+         [{:file (.getPath cljc-file)
+           :row 6
+           :col 13
+           :level :warning
+           :message "Shadowed defmethod: mm for dispatch value :foo"}]
+         (lint! [cljc-file] config))))
+
+    (io/delete-file cljc-file true)
+    (io/delete-file (.toFile tmp-dir) true)))
+
+(deftest shadowed-defmethod-variable-dispatch-value-test
+  (testing "Defmethods with variable dispatch values (e.g., in doseq) should not warn"
+    (is (empty?
+         (lint! "(ns test)
+(defmulti mm identity)
+(doseq [x [:a :b]]
+  (defmethod mm x [_] :first))
+(doseq [x [:a :c]]
+  (defmethod mm x [_] :second))
+"
+                config)))))

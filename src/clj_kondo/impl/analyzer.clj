@@ -1841,16 +1841,17 @@
     (let [[method-name-node dispatch-val-node & fn-tail] children
           ctx-without-idx (dissoc ctx :idx :len)
           dispatch-val-str (pr-str (sexpr dispatch-val-node))
-          method-name (sexpr method-name-node)
-          ns-name (-> ctx :ns :name)
           _ (analyze-usages2 (assoc ctx-without-idx
                                     :defmethod true,
                                     :dispatch-val-str dispatch-val-str)
                              method-name-node)
           _ (analyze-expression** ctx-without-idx dispatch-val-node)
+          method-name (:value method-name-node) 
+          ns-name (-> ctx :ns :name)
           _ (when (and method-name ns-name)
-              (namespace/reg-defmethod! ctx-without-idx ns-name method-name 
-                                        dispatch-val-str expr))]
+              (namespace/reg-defmethod!
+               ctx-without-idx ns-name method-name dispatch-val-node
+               dispatch-val-str expr))]
       (analyze-fn ctx-without-idx (with-meta {:children (cons nil fn-tail)} (meta expr))))))
 
 (defn analyze-areduce [ctx expr]

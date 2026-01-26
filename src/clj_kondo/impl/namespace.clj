@@ -869,11 +869,14 @@
            (fn [ns]
              (update ns :protocol-impls (fnil conj []) protocol-impl)))))
 
-(defn reg-defmethod! [{:keys [base-lang lang namespaces filename]}
-                      ns-sym multimethod-sym dispatch-val-str expr]
+(defn reg-defmethod! [{:keys [lang] :as ctx} ns-sym multimethod-sym 
+                      dispatch-val-node dispatch-val-str expr]
   (let [key [multimethod-sym dispatch-val-str]
-        metadata (assoc (meta expr) :filename filename)]
-    (swap! namespaces update-in [base-lang lang ns-sym]
+        metadata (assoc (meta expr)
+                        :filename (:filename ctx)
+                        :lang lang
+                        :dispatch-val-node dispatch-val-node)]
+    (swap! (:namespaces ctx) update-in [(:base-lang ctx) lang ns-sym]
            (fn [ns]
              (update ns :defmethods (fnil conj [])
                      [key metadata])))))
