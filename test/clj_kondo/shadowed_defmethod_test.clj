@@ -13,14 +13,14 @@
   (testing "Detects shadowed defmethod in same namespace"
     (assert-submaps2
      [{:file "<stdin>", :row 7, :col 1, :level :warning,
-       :message "Shadowed defmethod: ig/init-key for dispatch value :user/executor"}]
+       :message "Shadowed defmethod: ig/init-key for dispatch value :executor"}]
      (lint! "(ns system)
 
-(defmethod ig/init-key ::executor [_ {:keys [core-pool-size]}]
+(defmethod ig/init-key :executor [_ {:keys [core-pool-size]}]
   (Executors/newScheduledThreadPool core-pool-size
                                     (.factory (Thread/ofVirtual))))
 
-(defmethod ig/init-key ::executor [_ ^ScheduledExecutorService executor]
+(defmethod ig/init-key :executor [_ ^ScheduledExecutorService executor]
   (.shutdown executor))
 "
             '{:linters {:shadowed-defmethod {:level :warning}
