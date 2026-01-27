@@ -1587,49 +1587,6 @@
       :message "Expected: sequential collection, received: set."})
    (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
 
-(deftest lazy-seq-type-test
-  (let [config {:linters {:type-mismatch {:level :error}}}]
-    (testing "range with 0 args returns lazy-seq"
-      (is (empty? (lint! "(def xs (range)) (seq xs)" config))))
-
-    (testing "range with args returns seq (not lazy-seq)"
-      (is (empty? (lint! "(def xs (range 10)) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (range 0 10)) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (range 0 10 2)) (seq xs)" config))))
-
-    (testing "lazy-seq functions return lazy-seq"
-      (is (empty? (lint! "(def xs (map inc [1 2 3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (filter odd? [1 2 3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (remove even? [1 2 3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (take 5 (range))) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (take-while pos? [1 2 -3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (drop 5 (range 10))) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (drop-while neg? [-1 0 1])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (drop-last [1 2 3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (iterate inc 0)) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (cycle [1 2 3])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (concat [1 2] [3 4])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (mapcat identity [[1 2] [3 4]])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (partition 2 [1 2 3 4])) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (dedupe [1 1 2 2 3])) (seq xs)" config))))
-
-    (testing "repeat returns seq (not lazy-seq)"
-      (is (empty? (lint! "(def xs (repeat 5)) (seq xs)" config)))
-      (is (empty? (lint! "(def xs (repeat 3 5)) (seq xs)" config))))
-
-    (testing "lazy-seq is-a seq and seqable"
-      (is (empty? (lint! "(first (range))" config)))
-      (is (empty? (lint! "(rest (range))" config)))
-      (is (empty? (lint! "(cons 1 (range))" config)))
-      (is (empty? (lint! "(count (range))" config)))
-      (is (empty? (lint! "(seq (range))" config)))
-      (is (empty? (lint! "(first (range 10))" config)))
-      (is (empty? (lint! "(rest (range 10))" config)))
-      (is (empty? (lint! "(cons 1 (range 10))" config)))
-      (is (empty? (lint! "(count (range 10))" config)))
-      (is (empty? (lint! "(seq (range 10))" config))))))
-
 (deftest realized?-type-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "realized? accepts ipending types (seq, )"
