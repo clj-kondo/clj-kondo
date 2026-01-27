@@ -20,6 +20,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - Add new type `:ipending`, type checking for `realized?`, and return type for `repeat` with two args ([@jramosg](https://github.com/jramosg))
+- Performance improvement: refactor `lint-cond-constants!` to eliminate `sexpr` usage ([@jramosg](https://github.com/jramosg))
+- [#2762](https://github.com/clj-kondo/clj-kondo/issues/2762): Fix false positive: `throw` with string in CLJS no longer warns about type mismatch ([@jramosg](https://github.com/jramosg))
 
 ## 2026.01.19
 

@@ -1083,7 +1083,10 @@
       (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config)))))
 
   (testing "throw accepts any type in cljs"
-    (is (empty? (lint! "(throw 1)" config "--lang" "cljs")))))
+    (is (empty? (lint! "(throw 1)" config "--lang" "cljs")))
+    (is (empty? (lint! "(throw \"dude\")" config "--lang" "cljs")))
+    (testing "with .cljs extension"
+      (is (empty? (lint! "(throw \"dude\")" config "--filename" "foo.cljs"))))))
 
 (deftest do-test
   (is (assert-submaps2
@@ -1595,7 +1598,7 @@
       (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (iterate inc 0)) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (repeat 5 1)) (realized? xs)" config))))
-    
+
     (testing "realized? rejects non-ipending types"
       (assert-submaps2
        '({:file "<stdin>"
