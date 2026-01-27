@@ -1589,7 +1589,7 @@
 
 (deftest realized?-type-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
-    (testing "realized? accepts ipending types (seq, )"
+    (testing "realized? accepts ipending types"
       (is (empty? (lint! "(def xs (range)) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (map inc [1 2 3])) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (realized? xs)" config)))
