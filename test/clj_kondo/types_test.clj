@@ -1595,9 +1595,10 @@
     (testing "realized? accepts ipending types"
       (is (empty? (lint! "(def xs (range)) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (map inc [1 2 3])) (realized? xs)" config)))
-      (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (realized? xs)" config)))
-      (is (empty? (lint! "(def xs (iterate inc 0)) (realized? xs)" config)))
-      (is (empty? (lint! "(def xs (repeat 5 1)) (realized? xs)" config))))
+      (is (empty? (lint! "(def xs (repeat 5 1)) (realized? xs)" config)))
+      (is (empty? (lint! "(def d (delay (println \"Hello\"))) (realized? d)" config)))
+      (is (empty? (lint! "(def f (future (println \"Hello\"))) (realized? f)" config)))
+      (is (empty? (lint! "(def p (promise)) (realized? p)" config))))
 
     (testing "realized? rejects non-ipending types"
       (assert-submaps2
