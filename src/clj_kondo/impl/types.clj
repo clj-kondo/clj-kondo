@@ -162,7 +162,7 @@
    :ratio "ratio"
    :seqable "seqable collection"
    :seq "seq"
-   :ipending "pending (unrealized lazy seq, delay, future, or promise)"
+   :ipending "pending (lazy seq, delay, future, or promise)"
    :vector "vector"
    :stack "stack (list, vector, etc.)"
    :associative "associative collection"

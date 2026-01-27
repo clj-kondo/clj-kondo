@@ -1606,7 +1606,7 @@
           :row 1
           :col 12
           :level :error
-          :message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: positive integer."})
+          :message "Expected: pending (lazy seq, delay, future, or promise), received: positive integer."})
        (lint! "(realized? 1)" config)))))
 
 (comment
