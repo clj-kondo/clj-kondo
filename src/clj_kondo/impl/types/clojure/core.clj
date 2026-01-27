@@ -626,7 +626,8 @@
    ;; 2999
    'repeat {:arities {1 {:args [:any]
                          :ret :seq}
-                      2 {:args [:nat-int :any]}}}
+                      2 {:args [:nat-int :any]
+                         :ret :seq}}}
    ;; 3006 'replicate (deprecated)
    ;; 3013
    'iterate {:arities {2 {:args [:ifn :any]
@@ -1127,6 +1128,8 @@
    ;; 7498 'with-redefs-fn
    ;; 7518 'with-redefs
    ;; 7533 'realized?
+   'realized? {:arities {1 {:args [:ipending]
+                            :ret :boolean}}}
    ;; 7538 'cond->
    ;; 7555 'cond->>
    ;; 7572 'as->
@@ -1264,6 +1267,19 @@
   (supers java.io.File)
   ;; => #{java.lang.Object java.io.Serializable java.lang.Comparable}
   (make-array Integer/TYPE 3)
-   ;; => #object["[I" 0x54dee272 "[I@54dee272"]
-
+  ;; => #object["[I" 0x54dee272 "[I@54dee272"]
+  (type (concat [1] [2 3]))
+  ;; => clojure.lang.LazySeq
+  (type (mapcat (fn [x] [x x]) [1 2 3]))
+  ;; => clojure.lang.LazySeq
+  (instance? clojure.lang.IPending (range))
+  ;; => true
+  (instance? clojure.lang.IPending (range 1 2))
+  ;; => false
+  (type (dedupe [1 2 3]))
+  ;; => clojure.lang.LazySeq
+  (type (partition 1 [0 1]))
+  ;; => clojure.lang.LazySeq
+  (instance? clojure.lang.LazySeq (repeat 5))
+  ;; => false
   )

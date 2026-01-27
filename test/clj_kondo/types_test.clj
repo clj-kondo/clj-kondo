@@ -1590,6 +1590,25 @@
       :message "Expected: sequential collection, received: set."})
    (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
 
-;;;; Scratch
+(deftest realized?-type-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "realized? accepts ipending types"
+      (is (empty? (lint! "(def xs (range)) (realized? xs)" config)))
+      (is (empty? (lint! "(def xs (map inc [1 2 3])) (realized? xs)" config)))
+      (is (empty? (lint! "(def xs (repeat 5 1)) (realized? xs)" config)))
+      (is (empty? (lint! "(def d (delay (println \"Hello\"))) (realized? d)" config)))
+      (is (empty? (lint! "(def f (future (println \"Hello\"))) (realized? f)" config)))
+      (is (empty? (lint! "(def p (promise)) (realized? p)" config))))
 
-(comment)
+    (testing "realized? rejects non-ipending types"
+      (assert-submaps2
+       '({:file "<stdin>"
+          :row 1
+          :col 12
+          :level :error
+          :message "Expected: pending (lazy seq, delay, future, or promise), received: positive integer."})
+       (lint! "(realized? 1)" config)))))
+
+(comment
+  ;;;; Scratch
+  )
