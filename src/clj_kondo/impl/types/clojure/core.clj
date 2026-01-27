@@ -236,7 +236,7 @@
                                             :last :seqable}]
                                :ret :any}}}
    ;; 675 'vary-meta
-   'lazy-seq {:arities {:varargs {:ret :lazy-seq}}}
+   'lazy-seq {:arities {:varargs {:ret :seq}}}
    ;; 692 'chunk-buffer
    ;; 695 'chunk-append
    ;; 698 'chunk
@@ -248,7 +248,7 @@
    'chunked-seq? any->boolean
    ;; 718
    'concat {:arities {:varargs {:args [{:op :rest :spec :seqable}]
-                                :ret :lazy-seq}}}
+                                :ret :seq}}}
    ;; 746 'delay
    ;; 755
    'delay? any->boolean
@@ -563,7 +563,7 @@
                       :ret :transducer}
                    :varargs {:args '[:ifn :seqable [{:op :rest
                                                      :spec :seqable}]]
-                             :ret :lazy-seq}}}
+                             :ret :seq}}}
    ;; 2776 'declare
    ;; 2781 'cat
    ;; 2783
@@ -571,17 +571,17 @@
                          :ret :transducer}
                       :varargs {:args '[:ifn :seqable [{:op :rest
                                                         :spec :seqable}]]
-                                :ret :lazy-seq}}}
+                                :ret :seq}}}
    ;; 2793
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
-                         :ret :lazy-seq}}}
+                         :ret :seq}}}
    ;; 2826
    'remove {:arities {1 {:args [:ifn]
                          :ret :transducer}
                       2 {:args [:ifn :seqable]
-                         :ret :lazy-seq}}}
+                         :ret :seq}}}
    ;; 2836 'reduced
    ;; 2842
    'reduced? any->boolean
@@ -591,22 +591,22 @@
    'take {:arities {1 {:args [:nat-int]
                        :ret :transducer}
                     2 {:args [:nat-int :seqable]
-                       :ret :lazy-seq}}}
+                       :ret :seq}}}
    ;; 2888
    'take-while {:arities {1 {:args [:ifn]
                              :ret :transducer}
                           2 {:args [:ifn :seqable]
-                             :ret :lazy-seq}}}
+                             :ret :seq}}}
    ;; 2909
    'drop {:arities {1 {:args [:nat-int]
                        :ret :transducer}
                     2 {:args [:nat-int :seqable]
-                       :ret :lazy-seq}}}
+                       :ret :seq}}}
    ;; 2934
    'drop-last {:arities {1 {:args [:seqable]
-                            :ret :lazy-seq}
+                            :ret :seq}
                          2 {:args [:nat-int :seqable]
-                            :ret :lazy-seq}}}
+                            :ret :seq}}}
    ;; 2941
    'take-last {:arities {2 {:args [:nat-int :seqable]
                             :ret :seq}}}
@@ -614,10 +614,9 @@
    'drop-while {:arities {1 {:args [:ifn]
                              :ret :transducer}
                           2 {:args [:ifn :seqable]
-                             :ret :lazy-seq}}}
+                             :ret :seq}}}
    ;; 2979
-   'cycle {:arities {1 {:args [:seqable]
-                        :ret :lazy-seq}}}
+   'cycle seqable->seq
    ;; 2985
    'split-at {:arities {2 {:args [:nat-int :seqable]
                            :ret :vector}}}
@@ -632,9 +631,9 @@
    ;; 3006 'replicate (deprecated)
    ;; 3013
    'iterate {:arities {2 {:args [:ifn :any]
-                          :ret :lazy-seq}}}
+                          :ret :seq}}}
    ;; 3019
-   'range {:arities {0 {:ret :lazy-seq}
+   'range {:arities {0 {:ret :seq}
                      1 {:args [:number]
                         :ret :seq}
                      2 {:args [:number :number]
@@ -662,11 +661,11 @@
    ;; 3174 'nthrest
    ;; 3184
    'partition {:arities {2 {:args [:int :seqable]
-                            :ret :lazy-seq}
+                            :ret :seq}
                          3 {:args [:int :int :seqable]
-                            :ret :lazy-seq}
+                            :ret :seq}
                          4 {:args [:int :int :seqable :seqable]
-                            :ret :lazy-seq}}}
+                            :ret :seq}}}
    ;; 3210 'eval
    ;; 3216 'doseq
    ;; 3274 'await
@@ -1142,7 +1141,7 @@
    'dedupe {:arities {0 {:args []
                          :ret :transducer}
                       1 {:args [:seqable]
-                         :ret :lazy-seq}}}
+                         :ret :seq}}}
    ;; 7673 'random-sample
    ;; 7682 'Eduction
    ;; 7682 '->Eduction

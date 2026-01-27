@@ -46,7 +46,6 @@
     :transducer
     :list
     :seq
-    :lazy-seq
     :ipending
     :sorted-map
     :boolean
@@ -96,7 +95,6 @@
    :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
-   :lazy-seq #{:seq :seqable :sequential :coll}
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
@@ -117,26 +115,24 @@
    :double #{:float :number}
    :number #{:neg-int :pos-int :nat-int :int :long :short :double :byte :ratio :float}
    :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
-           :sequential :ifn :stack :ilookup :lazy-seq}
+           :sequential :ifn :stack :ilookup}
    :seqable #{:coll :vector :set :sorted-set :map :associative
               :char-sequence :string :nil
-              :list :seq :sequential :ifn :stack :sorted-map :ilookup :array
-              :lazy-seq}
+              :list :seq :sequential :ifn :stack :sorted-map :ilookup :array}
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector
           :associative :seqable :coll :sequential :stack :sorted-map :var
           :ideref :ilookup}
    :fn #{:transducer}
-   :seq #{:list :stack :lazy-seq}
-   :lazy-seq #{:stack :ipending}
-   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative
-            :ilookup :lazy-seq}
-   :sequential #{:seq :list :vector :ifn :associative :stack :ilookup :lazy-seq}
+   :seq #{:list :stack :ipending}
+   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
+   :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :set #{:sorted-set}
    :ideref #{:atom :var :ifn}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
-              :vector :sequential :stack :array}})
+              :vector :sequential :stack :array}
+   :ipending #{:seq :seqable :sequential :coll}})
 
 (def misc-types #{:boolean :atom :regex :char :class :inst})
 
@@ -166,7 +162,6 @@
    :ratio "ratio"
    :seqable "seqable collection"
    :seq "seq"
-   :lazy-seq "lazy seq"
    :ipending "pending (unrealized lazy seq, delay, future, or promise)"
    :vector "vector"
    :stack "stack (list, vector, etc.)"

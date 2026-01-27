@@ -60,7 +60,7 @@
       :row 2,
       :col 28,
       :level :error,
-      :message "Expected: set or nil, received: lazy seq."}
+      :message "Expected: set or nil, received: seq."}
      {:file "<stdin>",
       :row 3,
       :col 28,
@@ -90,7 +90,7 @@
       :row 1,
       :col 9,
       :level :error,
-      :message "Expected: vector, received: lazy seq."})
+      :message "Expected: vector, received: seq."})
    (lint! "(subvec (map inc [1 2 3]) 10 20)"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
@@ -358,7 +358,7 @@
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 12, :level :error,
-      :message "Expected: associative collection or string or set, received: lazy seq."})
+      :message "Expected: associative collection or string or set, received: seq."})
    (lint! "(contains? (map inc [1 2 3]) 1)"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "resolve types via cache"
@@ -790,7 +790,7 @@
 (deftest rseq-test
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 7, :level :error,
-      :message "Expected: vector or sorted map, received: lazy seq."})
+      :message "Expected: vector or sorted map, received: seq."})
    (lint! "(rseq (map inc [1 2 3]))"
           {:linters {:type-mismatch {:level :error}}}))
   (is (empty? (lint! "(rseq (sorted-map :a 1)) (rseq [1 2 3])"
@@ -1366,7 +1366,7 @@
       :row 1
       :col 7
       :level :error
-      :message "Expected: function, received: lazy seq."})
+      :message "Expected: function, received: seq."})
    (lint! "(comp (map inc (range)))" config)))
 
 (deftest cast-test
@@ -1632,54 +1632,22 @@
 
 (deftest realized?-type-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
-    (testing "realized? accepts ipending types (lazy-seq)"
+    (testing "realized? accepts ipending types (seq, )"
       (is (empty? (lint! "(def xs (range)) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (map inc [1 2 3])) (realized? xs)" config)))
       (is (empty? (lint! "(def xs (lazy-seq [1 2 3])) (realized? xs)" config)))
-      (is (empty? (lint! "(def xs (iterate inc 0)) (realized? xs)" config))))
-
-    (testing "realized? accepts does not accept seq types that are not lazy-seq"
+      (is (empty? (lint! "(def xs (iterate inc 0)) (realized? xs)" config)))
+      (is (empty? (lint! "(def xs (repeat 5 1)) (realized? xs)" config))))
+    
+    (testing "realized? rejects non-ipending types"
       (assert-submaps2
-       [{:file "<stdin>"
-         :row 1
-         :col 32
-         :level :error
-         :message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: seq."}]
-       (lint! "(def xs (range 10)) (realized? xs)" config))
-      (assert-submaps2
-       [{:file "<stdin>",
-         :row 1,
-         :col 32,
-         :level :error,
-         :message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: seq."}]
-       (lint! "(def xs (repeat 5)) (realized? xs)" config)))
-
-    (testing "realized? type mismatch with non-seq types"
-      (assert-submaps2
-       '({:message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: vector."
+       '({:file "<stdin>"
           :row 1
           :col 12
-          :level :error})
-       (lint! "(realized? [1 2 3])" config))
-      (assert-submaps2
-       '({:message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: positive integer."
-          :row 1
-          :col 12
-          :level :error})
-       (lint! "(realized? 42)" config))
-      (assert-submaps2
-       '({:message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: string."
-          :row 1
-          :col 12
-          :level :error})
-       (lint! "(realized? \"foo\")" config)))
-
-    (testing "realized? returns boolean"
-      (assert-submaps2
-       '({:message "Expected: number, received: boolean."})
-       (lint! "(def xs (range)) (inc (realized? xs))" config)))))
-
-;;;; Scratch
+          :level :error
+          :message "Expected: pending (unrealized lazy seq, delay, future, or promise), received: positive integer."})
+       (lint! "(realized? 1)" config)))))
 
 (comment
+  ;;;; Scratch
   )

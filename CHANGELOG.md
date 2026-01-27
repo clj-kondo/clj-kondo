@@ -19,7 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- Add new type `:lazy-seq` and `:ipending` for better lazy sequence type checking. Lazy sequence functions like `range`, `map`, `filter`, etc. now return `:lazy-seq` type, and `realized?` has type spec that accepts `:ipending` types. ([@jramosg](https://github.com/jramosg))
+- Add new type `:ipending`, type checking for `realized?`, and return type for `repeat` with two args ([@jramosg](https://github.com/jramosg))
 
 ## 2026.01.19
 
