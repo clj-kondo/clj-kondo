@@ -57,12 +57,14 @@
 
 (def gettable #{:ilookup :nil :set :map :string :array})
 
-(def transducing-mapping-fn
-  {:arities {1 {:args [:ifn]
-                :ret :transducer}
-             :varargs {:args '[:ifn :seqable [{:op :rest
-                                               :spec :seqable}]]
-                       :ret :seq}}})
+(def ^:private mapping-fn-varargs
+  {:varargs {:args '[:ifn :seqable [{:op :rest
+                                     :spec :seqable}]]
+             :ret :seq}})
+
+(def ^:private transducing-mapping-fn {:arities {1 {:args [:ifn]
+                                                    :ret :transducer}
+                                                 :varargs mapping-fn-varargs}})
 
 (def clojure-core
   {;;; Special forms (https://clojure.org/reference/special_forms)
@@ -1067,9 +1069,7 @@
    ;; 7000 'future-cancel
    ;; 7006 'future-cancelled?
    ;; 7012
-   'pmap {:arities {:varargs {:args '[:ifn :seqable [{:op :rest
-                                                      :spec :seqable}]]
-                              :ret :seq}}}
+   'pmap {:arities mapping-fn-varargs}
    ;; 7037 'pcalls
    ;; 7044 'pvalues
    ;; 7069 '*clojure-version*
