@@ -1590,6 +1590,24 @@
       :message "Expected: sequential collection, received: set."})
    (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
 
+(deftest pmap-test
+  (is (empty? (lint! "(pmap inc [1 2 3])" config)))
+  (is (empty? (lint! "(pmap + [1 2] [3 4])" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 1
+      :level :error
+      :message "clojure.core/pmap is called with 1 arg but expects 2 or more"})
+   (lint! "(pmap inc)" config))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 7
+      :level :error
+      :message "Expected: function, received: seq."})
+   (lint! "(comp (pmap inc [1 2 3]))" config)))
+
 (deftest future-type-test
   (testing "future returns future type"
     (is (empty? (lint! "(let [f (future 42)] (deref f))" config)))
