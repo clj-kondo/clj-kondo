@@ -49,6 +49,7 @@
     :sorted-map
     :boolean
     :atom
+    :future
     :regex
     :char
     :seqable-or-transducer
@@ -97,6 +98,7 @@
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
+   :future #{:ideref}
    :var #{:ideref :ifn}
    :array #{:seqable :ilookup}})
 
@@ -128,11 +130,11 @@
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :set #{:sorted-set}
-   :ideref #{:atom :var :ifn}
+   :ideref #{:atom :future :var :ifn}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
               :vector :sequential :stack :array}})
 
-(def misc-types #{:boolean :atom :regex :char :class :inst})
+(def misc-types #{:boolean :atom :future :regex :char :class :inst})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -170,6 +172,7 @@
    :char "character"
    :boolean "boolean"
    :atom "atom"
+   :future "future"
    :ideref "deref"
    :fn "function"
    :ifn "function"
@@ -253,6 +256,8 @@
     (class) :class
     (Class java.lang.Class) :nilable/class
     (Date java.util.Date) :nilable/inst
+    (Future java.util.concurrent.Future) :nilable/future
+    (future) :future
     nil))
 
 (defn number->tag [v]
