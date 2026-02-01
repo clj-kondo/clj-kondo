@@ -57,10 +57,9 @@
 
 (def gettable #{:ilookup :nil :set :map :string :array})
 
-(def ^:private mapping-fn-varargs
-  {:varargs {:args '[:ifn :seqable [{:op :rest
-                                     :spec :seqable}]]
-             :ret :seq}})
+(def ^:private mapping-fn-varargs {:args '[:ifn :seqable [{:op :rest
+                                                           :spec :seqable}]]
+                                   :ret :seq})
 
 (def ^:private transducing-mapping-fn {:arities {1 {:args [:ifn]
                                                     :ret :transducer}
@@ -85,7 +84,7 @@
    ;; 'finally
    ;; 'monitor-enter
    ;; 'monitor-exit
-
+   
    ;;; Public vars as of 1.10.0
    ;;; defined in src/clj/clojure/core.clj
    ;; 16
@@ -1078,7 +1077,7 @@
    'future-cancelled? {:arities {1 {:args [:future]
                                     :ret :boolean}}}
    ;; 7012 
-   'pmap {:arities mapping-fn-varargs}
+   'pmap {:arities {:varargs mapping-fn-varargs}}
    ;; 7037 'pcalls
    ;; 7044 'pvalues
    ;; 7069 '*clojure-version*
@@ -1169,7 +1168,7 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
-
+   
    ;;; defined in src/clj/clojure/core_deftype.clj
    ;; 13 'namespace-munge
    ;; 20 'definterface
@@ -1190,7 +1189,7 @@
    ;; 780 'extend
    ;; 848 'extend-type
    ;; 880 'extend-protocol
-
+   
    ;;; defined in src/clj/clojure/core_print.clj
    ;; 16 '*print-length*
    ;; 27 '*print-level*
@@ -1204,7 +1203,7 @@
    ;; 465 'StackTraceElement->vec
    ;; 471 'Throwable->map
    ;; 559 'PrintWriter-on
-
+   
    ;;; defined in src/clj/clojure/core_proxy.clj
    ;; 20 'method-sig
    ;; 37 'proxy-name
@@ -1217,11 +1216,11 @@
    ;; 389 'proxy-call-with-super
    ;; 396 'proxy-super
    ;; 403 'bean
-
+   
    ;;; defined in src/clj/clojure/genclass.clj
    ;; 507 'gen-class
    ;; 688 'gen-interface
-
+   
    ;;; defined in src/clj/clojure/gvec.clj
    ;; 18 '->VecNode
    ;; 20 'EMPTY-NODE
@@ -1229,7 +1228,7 @@
    ;; 59 '->VecSeq
    ;; 170 '->Vec
    ;; 523 'vector-of
-
+   
    ;;; Added in 1.11.0
    ;; 1137 'abs
    ;; 4392 'seq-to-map-for-destructuring
@@ -1243,7 +1242,7 @@
    ;; 8079 'parse-boolean
    ;; 8090 'NaN?
    ;; 8099 'infinite?
-
+   
    ;;; Added in 1.12.0
    ;; 6357 '*repl*
    ;; 6853 'stream-reduce!
