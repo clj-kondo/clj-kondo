@@ -1016,7 +1016,9 @@
    ;; 6359 'condp
    ;; 6530
    'future? any->boolean
-   ;; 6536 'future-done?
+   ;; 6536
+   'future-done? {:arities {1 {:args [:future]
+                               :ret :boolean}}}
    ;; 6543 'letfn
    ;; 6556
    'fnil {:arities {2 {:args [:ifn :any]
@@ -1063,10 +1065,17 @@
                           :ret :vector}}}
    ;; 6942 'slurp
    ;; 6954 'spit
-   ;; 6963 'future-call
+   ;; 6963
+   'future-call {:arities {1 {:args [:ifn]
+                              :ret :future}}}
    ;; 6990 'future
-   ;; 7000 'future-cancel
-   ;; 7006 'future-cancelled?
+   'future {:arities {:varargs {:ret :future}}}
+   ;; 7000
+   'future-cancel {:arities {1 {:args [:future]
+                                :ret :boolean}}}
+   ;; 7006
+   'future-cancelled? {:arities {1 {:args [:future]
+                                    :ret :boolean}}}
    ;; 7012 'pmap
    ;; 7037 'pcalls
    ;; 7044 'pvalues
@@ -1264,6 +1273,10 @@
   (supers java.io.File)
   ;; => #{java.lang.Object java.io.Serializable java.lang.Comparable}
   (make-array Integer/TYPE 3)
-   ;; => #object["[I" 0x54dee272 "[I@54dee272"]
+  ;; => #object["[I" 0x54dee272 "[I@54dee272"]
 
+  (future-cancel (future (Thread/sleep 10000)))
+  ;; => true
+
+  ;; scratch 
   )
