@@ -1590,6 +1590,53 @@
       :message "Expected: sequential collection, received: set."})
    (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
 
+(deftest future-type-test
+  (testing "future returns future type"
+    (is (empty? (lint! "(let [f (future 42)] (deref f))" config)))
+    (assert-submaps2
+    '({:file "<stdin>",
+       :row 1,
+       :col 27,
+       :level :error,
+       :message "Expected: number, received: future."})
+     (lint! "(let [f (future 42)] (inc f))" config)))
+  (testing "future-call returns future type"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (deref f))" config)))
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] @f)" config))))
+  (testing "future-done? accepts future"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (future-done? f))" config))))
+  (testing "future-cancel accepts future and returns boolean"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (future-cancel f))" config)))
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (if (future-cancel f) :ok :not-ok))" config))))
+  (testing "future-cancelled? accepts future and returns boolean"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (future-cancelled? f))" config)))
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (if (future-cancelled? f) :ok :not-ok))" config))))
+  (testing "future? returns boolean"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (if (future? f) :ok :not-ok))" config))))
+  (testing "type errors with wrong types"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 26,
+        :level :error,
+        :message "Expected: future, received: positive integer."})
+     (lint! "(let [x 1] (future-done? x))" config))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 34,
+        :level :error,
+        :message "Expected: future, received: atom."})
+     (lint! "(let [a (atom 1)] (future-cancel a))" config)))
+  (testing "java.util.concurrent.Future type hint"
+    (is (empty? (lint! "(defn foo [^java.util.concurrent.Future f] (future-done? f))" config)))
+    (is (empty? (lint! "(defn foo [^java.util.concurrent.Future f] @f)" config)))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :level :error,
+        :message "Expected: atom, received: future or nil."})
+     (lint! "(defn foo [^java.util.concurrent.Future f] (swap! f inc))" config))))
+
 ;;;; Scratch
 
 (comment)
