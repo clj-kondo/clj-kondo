@@ -1674,6 +1674,19 @@
           :message "Expected: pending (lazy seq, delay, future, or promise), received: positive integer."})
        (lint! "(realized? 1)" config)))))
 
+(deftest ipending-future-type-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "future is an ipending type"
+      (is (empty? (lint! "(def f (future 42)) (realized? f)" config))
+          "future should be accepted as ipending by realized?"))
+
+    (testing "future-call also returns ipending"
+      (is (empty? (lint! "(def f (future-call (fn [] 42))) (realized? f)" config))
+          "future-call result should be accepted as ipending"))
+
+    (testing "Type-hinted future"
+      (is (empty? (lint! "(defn foo [^java.util.concurrent.Future f] (realized? f))" config))))))
+
 (comment
   ;;;; Scratch
   )
