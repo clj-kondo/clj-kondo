@@ -99,7 +99,7 @@
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
-   :future #{:ideref}
+   :future #{:ideref :ipending}
    :var #{:ideref :ifn}
    :array #{:seqable :ilookup}})
 
@@ -131,10 +131,11 @@
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :set #{:sorted-set}
-   :ideref #{:atom :future :var :ifn}
+   :ideref #{:atom :future :var :ifn :ipending}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
               :vector :sequential :stack :array}
-   :ipending #{:seq :seqable :sequential :coll}})
+   :ipending #{:seq :seqable :sequential :coll :future :ideref}
+   :future #{:ipending}})
 
 (def misc-types #{:boolean :atom :future :regex :char :class :inst})
 
