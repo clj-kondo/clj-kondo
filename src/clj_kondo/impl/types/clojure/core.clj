@@ -57,6 +57,14 @@
 
 (def gettable #{:ilookup :nil :set :map :string :array})
 
+(def ^:private mapping-fn-varargs {:args '[:ifn :seqable [{:op :rest
+                                                           :spec :seqable}]]
+                                   :ret :seq})
+
+(def ^:private transducing-mapping-fn {:arities {1 {:args [:ifn]
+                                                    :ret :transducer}
+                                                 :varargs mapping-fn-varargs}})
+
 (def clojure-core
   {;;; Special forms (https://clojure.org/reference/special_forms)
    ;; 'def
@@ -76,7 +84,7 @@
    ;; 'finally
    ;; 'monitor-enter
    ;; 'monitor-exit
-
+   
    ;;; Public vars as of 1.10.0
    ;;; defined in src/clj/clojure/core.clj
    ;; 16
@@ -559,19 +567,11 @@
                            :ret :boolean}}}
    ;; 2712 'dotimes
    ;; 2727
-   'map {:arities {1 {:args [:ifn]
-                      :ret :transducer}
-                   :varargs {:args '[:ifn :seqable [{:op :rest
-                                                     :spec :seqable}]]
-                             :ret :seq}}}
+   'map transducing-mapping-fn
    ;; 2776 'declare
    ;; 2781 'cat
    ;; 2783
-   'mapcat {:arities {1 {:args [:ifn]
-                         :ret :transducer}
-                      :varargs {:args '[:ifn :seqable [{:op :rest
-                                                        :spec :seqable}]]
-                                :ret :seq}}}
+   'mapcat transducing-mapping-fn
    ;; 2793
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
@@ -1017,7 +1017,9 @@
    ;; 6359 'condp
    ;; 6530
    'future? any->boolean
-   ;; 6536 'future-done?
+   ;; 6536
+   'future-done? {:arities {1 {:args [:future]
+                               :ret :boolean}}}
    ;; 6543 'letfn
    ;; 6556
    'fnil {:arities {2 {:args [:ifn :any]
@@ -1064,11 +1066,19 @@
                           :ret :vector}}}
    ;; 6942 'slurp
    ;; 6954 'spit
-   ;; 6963 'future-call
+   ;; 6963
+   'future-call {:arities {1 {:args [:ifn]
+                              :ret :future}}}
    ;; 6990 'future
-   ;; 7000 'future-cancel
-   ;; 7006 'future-cancelled?
-   ;; 7012 'pmap
+   'future {:arities {:varargs {:ret :future}}}
+   ;; 7000
+   'future-cancel {:arities {1 {:args [:future]
+                                :ret :boolean}}}
+   ;; 7006
+   'future-cancelled? {:arities {1 {:args [:future]
+                                    :ret :boolean}}}
+   ;; 7012 
+   'pmap {:arities {:varargs mapping-fn-varargs}}
    ;; 7037 'pcalls
    ;; 7044 'pvalues
    ;; 7069 '*clojure-version*
@@ -1161,7 +1171,7 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
-
+   
    ;;; defined in src/clj/clojure/core_deftype.clj
    ;; 13 'namespace-munge
    ;; 20 'definterface
@@ -1182,7 +1192,7 @@
    ;; 780 'extend
    ;; 848 'extend-type
    ;; 880 'extend-protocol
-
+   
    ;;; defined in src/clj/clojure/core_print.clj
    ;; 16 '*print-length*
    ;; 27 '*print-level*
@@ -1196,7 +1206,7 @@
    ;; 465 'StackTraceElement->vec
    ;; 471 'Throwable->map
    ;; 559 'PrintWriter-on
-
+   
    ;;; defined in src/clj/clojure/core_proxy.clj
    ;; 20 'method-sig
    ;; 37 'proxy-name
@@ -1209,11 +1219,11 @@
    ;; 389 'proxy-call-with-super
    ;; 396 'proxy-super
    ;; 403 'bean
-
+   
    ;;; defined in src/clj/clojure/genclass.clj
    ;; 507 'gen-class
    ;; 688 'gen-interface
-
+   
    ;;; defined in src/clj/clojure/gvec.clj
    ;; 18 '->VecNode
    ;; 20 'EMPTY-NODE
@@ -1221,7 +1231,7 @@
    ;; 59 '->VecSeq
    ;; 170 '->Vec
    ;; 523 'vector-of
-
+   
    ;;; Added in 1.11.0
    ;; 1137 'abs
    ;; 4392 'seq-to-map-for-destructuring
@@ -1235,7 +1245,7 @@
    ;; 8079 'parse-boolean
    ;; 8090 'NaN?
    ;; 8099 'infinite?
-
+   
    ;;; Added in 1.12.0
    ;; 6357 '*repl*
    ;; 6853 'stream-reduce!
@@ -1268,18 +1278,9 @@
   ;; => #{java.lang.Object java.io.Serializable java.lang.Comparable}
   (make-array Integer/TYPE 3)
   ;; => #object["[I" 0x54dee272 "[I@54dee272"]
-  (type (concat [1] [2 3]))
-  ;; => clojure.lang.LazySeq
-  (type (mapcat (fn [x] [x x]) [1 2 3]))
-  ;; => clojure.lang.LazySeq
-  (instance? clojure.lang.IPending (range))
+
+  (future-cancel (future (Thread/sleep 10000)))
   ;; => true
-  (instance? clojure.lang.IPending (range 1 2))
-  ;; => false
-  (type (dedupe [1 2 3]))
-  ;; => clojure.lang.LazySeq
-  (type (partition 1 [0 1]))
-  ;; => clojure.lang.LazySeq
-  (instance? clojure.lang.LazySeq (repeat 5))
-  ;; => false
+
+  ;; scratch 
   )
