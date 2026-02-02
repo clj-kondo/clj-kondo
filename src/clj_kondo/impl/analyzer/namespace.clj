@@ -110,6 +110,22 @@
                 (conj seen v)))
             #{} refers)))
 
+(defn- lint-duplicate-require-keys! [ctx option-exprs]
+  (when-not (linter-disabled? ctx :duplicate-require-key)
+    (loop [children option-exprs
+           seen-keys #{}]
+      (when-let [child-expr (first children)]
+        (let [child-k (:k child-expr)]
+          (when (and child-k (seen-keys child-k))
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx)
+                         child-expr
+                         :duplicate-require-key
+                         (str "Duplicate require option: " child-k ". Only the last value will be used."))))
+          (recur (nnext children)
+                 (if child-k (conj seen-keys child-k) seen-keys)))))))
+
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
   (utils/handle-ignore ctx libspec-expr)
@@ -174,6 +190,7 @@
             libspec-expr
             :self-requiring-namespace
             (str "Namespace is requiring itself: " current-ns-name))))
+        (lint-duplicate-require-keys! ctx option-exprs)
         (loop [children option-exprs
                m {:as nil
                   :referred #{}
@@ -650,13 +667,13 @@
         refer-cljs-globals
         (when (identical? :cljs lang)
           (let [refer-globals (reduce merge {}
-                                     (for [?refer-clojure sexpr-clauses
-                                           :when (= :refer-global (first ?refer-clojure))
-                                           :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
-                                       (if rename
-                                         (merge (set/map-invert rename) (let [onlies (remove rename only)]
-                                                                          (zipmap onlies onlies)))
-                                         (zipmap only only))))]
+                                      (for [?refer-clojure sexpr-clauses
+                                            :when (= :refer-global (first ?refer-clojure))
+                                            :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
+                                        (if rename
+                                          (merge (set/map-invert rename) (let [onlies (remove rename only)]
+                                                                           (zipmap onlies onlies)))
+                                          (zipmap only only))))]
             {:referred-globals refer-globals}))
         _ (when (seq (:clojure-excluded refer-clj))
             (lint-refer-clojure-vars ctx (:clojure-excluded refer-clj)))

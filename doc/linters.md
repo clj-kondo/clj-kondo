@@ -795,6 +795,24 @@ Explanation by Bozhidar Batsov:
 
 *Example message:* `Duplicate refer: union`
 
+### Duplicate require key
+
+*Keyword:* `:duplicate-require-key`.
+
+*Description:* warns when the same key (like `:refer`, `:as`, `:exclude`, etc.) appears multiple times in a single require clause. Clojure silently uses only the last occurrence, which can lead to unexpected behavior.
+
+*Example trigger:*
+
+``` clojure
+(ns foo
+  (:require [clojure.set :refer [union] :refer [difference]]))
+```
+
+*Example message:* `Duplicate require option: :refer. Only the last value will be used.`
+
+*Rationale:* When duplicate keys appear in a require clause, Clojure uses only the last value, making earlier occurrences unreachable. This is often unintentional and can be confusing. For example, in the code above, `union` becomes unreachable while `difference` is accessible.
+
+
 ### Duplicate set key
 
 *Keyword:* `:duplicate-set-key`.
