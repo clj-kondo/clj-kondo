@@ -553,16 +553,6 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: var",
   :row 5}
- {:end-row 105,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/equality.cljc",
-  :col 1,
-  :end-col 43,
-  :langs (),
-  :message "Shadowed defmethod: = for dispatch value :default",
-  :row 100}
  {:end-row 2,
   :type :unresolved-excluded-var,
   :level :info,
@@ -599,28 +589,6 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: home-cols",
   :row 560}
- {:end-row 217,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/metadata/calculation.cljc",
-  :col 1,
-  :end-col 41,
-  :langs (),
-  :message
-  "Shadowed defmethod: type-of-method for dispatch value :default",
-  :row 215}
- {:end-row 223,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/metadata/calculation.cljc",
-  :col 1,
-  :end-col 37,
-  :langs (),
-  :message
-  "Shadowed defmethod: type-of-method for dispatch value :lib.type-of/type-is-type-of-first-arg",
-  :row 221}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -633,28 +601,6 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
- {:end-row 57,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/schema/expression.cljc",
-  :col 1,
-  :end-col 34,
-  :langs (),
-  :message
-  "Shadowed defmethod: type-of-method for dispatch value :default",
-  :row 54}
- {:end-row 63,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/schema/expression.cljc",
-  :col 1,
-  :end-col 18,
-  :langs (),
-  :message
-  "Shadowed defmethod: type-of-method for dispatch value :lib.type-of/type-is-type-of-first-arg",
-  :row 61}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -1938,94 +1884,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 42}
- {:end-row 578,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
-  :col 1,
-  :end-col 20,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :default",
-  :row 576}
- {:end-row 598,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
-  :col 1,
-  :end-col 37,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :sqlite",
-  :row 594}
- {:end-row 604,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
-  :col 1,
-  :end-col 54,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :mongo",
-  :row 600}
- {:end-row 610,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/alternative_date_test.clj",
-  :col 1,
-  :end-col 38,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :oracle",
-  :row 606}
- {:end-row 941,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
-  :col 1,
-  :end-col 6,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :default",
-  :row 939}
- {:end-row 961,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
-  :col 1,
-  :end-col 37,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :sqlite",
-  :row 957}
- {:end-row 967,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
-  :col 1,
-  :end-col 54,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :mongo",
-  :row 963}
- {:end-row 973,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/cast_test.clj",
-  :col 1,
-  :end-col 38,
-  :langs (),
-  :message
-  "Shadowed defmethod: binary-dates-expected-rows-iso for dispatch value :oracle",
-  :row 969}
  {:end-row 1445,
   :type :shadowed-defmethod,
   :level :warning,
@@ -2248,16 +2106,6 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
- {:end-row 13,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/test/util/js.cljs",
-  :col 1,
-  :end-col 24,
-  :langs (),
-  :message "Shadowed defmethod: = for dispatch value :default",
-  :row 12}
  {:end-row 497,
   :type :is-message-not-string,
   :level :info,
