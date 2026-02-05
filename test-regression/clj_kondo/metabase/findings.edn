@@ -1410,28 +1410,6 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 3514}
- {:end-row 17,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/common/table_rows_sample_test.clj",
-  :col 1,
-  :end-col 8,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/field-count-tests]",
-  :row 15}
- {:end-row 22,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/common/table_rows_sample_test.clj",
-  :col 1,
-  :end-col 9,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:redshift :user/field-count-tests]",
-  :row 20}
  {:end-row 82,
   :type :unresolved-symbol,
   :level :error,
@@ -1769,17 +1747,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 821}
- {:end-row 11,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/add_timezone_info_test.clj",
-  :col 1,
-  :end-col 100,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:user/timezone-driver :set-timezone]",
-  :row 11}
  {:end-row 160,
   :type :unresolved-symbol,
   :level :error,
@@ -1790,28 +1757,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 160}
- {:end-row 15,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/format_rows_test.clj",
-  :col 1,
-  :end-col 100,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:user/timezone-driver :set-timezone]",
-  :row 15}
- {:end-row 21,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/optimize_temporal_filters_test.clj",
-  :col 1,
-  :end-col 100,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:user/timezone-driver :set-timezone]",
-  :row 21}
  {:end-row 22,
   :type :redundant-let-binding,
   :level :warning,
@@ -1842,17 +1787,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 51}
- {:end-row 70,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor/preprocess_test.clj",
-  :col 1,
-  :end-col 32,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/escape-alias for dispatch value :user/custom-escape-spaces-to-underscores",
-  :row 67}
  {:end-row 537,
   :type :unresolved-symbol,
   :level :error,
@@ -1863,17 +1797,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 537}
- {:end-row 479,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor/util/add_alias_info_test.clj",
-  :col 1,
-  :end-col 32,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/escape-alias for dispatch value :user/custom-escape-spaces-to-underscores",
-  :row 476}
  {:end-row 42,
   :type :unresolved-symbol,
   :level :error,
@@ -1884,28 +1807,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 42}
- {:end-row 1445,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_bucketing_test.clj",
-  :col 1,
-  :end-col 9,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
-  :row 1443}
- {:end-row 1450,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_bucketing_test.clj",
-  :col 1,
-  :end-col 8,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
-  :row 1448}
  {:end-row 1797,
   :type :unresolved-symbol,
   :level :error,
@@ -1926,28 +1827,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 1015}
- {:end-row 187,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
-  :col 1,
-  :end-col 9,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
-  :row 185}
- {:end-row 192,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
-  :col 1,
-  :end-col 8,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
-  :row 190}
  {:end-row 716,
   :type :shadowed-defmethod,
   :level :warning,
@@ -1957,7 +1836,7 @@
   :end-col 9,
   :langs (),
   :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:metabase.driver/driver :metabase.query-processor-test.filter-test/empty-results-wrong-because-of-issue-5419]",
   :row 714}
  {:end-row 721,
   :type :shadowed-defmethod,
@@ -1968,7 +1847,7 @@
   :end-col 8,
   :langs (),
   :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :metabase.query-processor-test.filter-test/empty-results-wrong-because-of-issue-5419]",
   :row 719}
  {:end-row 212,
   :type :unresolved-symbol,
@@ -1990,28 +1869,6 @@
   :langs (),
   :message "Write expected value first",
   :row 599}
- {:end-row 62,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/share_test.clj",
-  :col 1,
-  :end-col 9,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/empty-results-wrong-because-of-issue-5419]",
-  :row 60}
- {:end-row 67,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/query_processor_test/share_test.clj",
-  :col 1,
-  :end-col 8,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :user/empty-results-wrong-because-of-issue-5419]",
-  :row 65}
  {:end-row 394,
   :type :unresolved-symbol,
   :level :error,
@@ -2032,17 +1889,6 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 22}
- {:end-row 87,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/server/streaming_response_test.clj",
-  :col 1,
-  :end-col 6,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/connection-properties for dispatch value :user/test-driver",
-  :row 85}
  {:end-row 121,
   :type :unresolved-symbol,
   :level :error,
@@ -2216,28 +2062,6 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 814}
- {:end-row 12,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/metadata_from_qp_test.clj",
-  :col 1,
-  :end-col 8,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:driver/driver :user/field-count-tests]",
-  :row 10}
- {:end-row 17,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/metadata_from_qp_test.clj",
-  :col 1,
-  :end-col 9,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/database-supports? for dispatch value [:redshift :user/field-count-tests]",
-  :row 15}
  {:end-row 245,
   :type :is-message-not-string,
   :level :info,
@@ -2268,17 +2092,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 101}
- {:end-row 60,
-  :type :shadowed-defmethod,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
-  :col 1,
-  :end-col 7,
-  :langs (),
-  :message
-  "Shadowed defmethod: driver/connection-properties for dispatch value :user/test-driver",
-  :row 58}
  {:end-row 120,
   :type :redundant-format,
   :level :info,
