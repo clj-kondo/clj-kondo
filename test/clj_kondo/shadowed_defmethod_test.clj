@@ -331,3 +331,31 @@
         (io/delete-file ns1-file true)
         (io/delete-file ns2-file true)
         (io/delete-file (.toFile tmp-dir) true)))))
+
+(deftest shadowed-defmethod-auto-resolved-keywords-test
+  (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
+        ns1-file (io/file (.toFile tmp-dir) "test1.clj")
+        ns2-file (io/file (.toFile tmp-dir) "test2.clj")]
+    (try
+      (testing "auto-resolved keywords (::keyword) in different namespaces should not shadow"
+        (spit ns1-file "(ns metabase.driver.common.table-rows-sample-test
+  (:require [metabase.driver :as driver]))
+
+(defmethod driver/database-supports? [::driver/driver ::field-count-tests]
+  [_driver _feature _database]
+  true)
+")
+        (spit ns2-file "(ns metabase.warehouse-schema.metadata-from-qp-test
+  (:require [metabase.driver :as driver]))
+
+(defmethod driver/database-supports? [::driver/driver ::field-count-tests]
+  [_driver _feature _database]
+  true)
+")
+        (let [results (lint! [ns1-file ns2-file] config)]
+          (is (empty? results)
+              "auto-resolved keywords in different namespaces resolve to different dispatch values")))
+      (finally
+        (io/delete-file ns1-file true)
+        (io/delete-file ns2-file true)
+        (io/delete-file (.toFile tmp-dir) true)))))
