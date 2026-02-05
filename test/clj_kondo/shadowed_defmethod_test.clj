@@ -1,10 +1,9 @@
 (ns clj-kondo.shadowed-defmethod-test
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
-   [clojure.java.io :as io]
-   [clojure.test :refer [deftest is testing]])
-  (:import [java.nio.file Files]
-           [java.nio.file.attribute FileAttribute]))
+   [clojure.string :as str]
+   [clojure.test :refer [deftest is testing]]))
 
 (def ^:private config {:linters {:shadowed-defmethod {:level :warning}
                                  :unresolved-symbol {:level :off}}})
@@ -150,44 +149,39 @@
 
 (deftest shadowed-defmethod-different-namespaces-test
   (testing "Detects shadowed defmethod across different namespaces - warns on both"
-    (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
-          ns1-file (io/file (.toFile tmp-dir) "ns1.clj")
-          ns2-file (io/file (.toFile tmp-dir) "ns2.clj")]
-      (spit ns1-file "(ns ns1)
+    (fs/with-temp-dir [tmp-dir {}]
+      (let [ns1-file (fs/file tmp-dir "ns1.clj")
+            ns2-file (fs/file tmp-dir "ns2.clj")]
+        (spit ns1-file "(ns ns1)
 
 (defmethod mm :foo [x] 1)
 ")
-      (spit ns2-file "(ns ns2)
+        (spit ns2-file "(ns ns2)
 
 (defmethod mm :foo [x] 2)
 ")
-      (let [results (lint! [ns1-file ns2-file]
-                           '{:linters {:shadowed-defmethod {:level :warning}
-                                       :unresolved-symbol {:level :off}}})]
-        (assert-submaps2
-         [{:file (.getPath ns1-file)
-           :row 3
-           :col 1
-           :level :warning
-           :message "Shadowed defmethod: mm for dispatch value :foo"}
-          {:file (.getPath ns2-file)
-           :row 3
-           :col 1
-           :level :warning
-           :message "Shadowed defmethod: mm for dispatch value :foo"}]
-         results))
-
-      (io/delete-file ns1-file true)
-      (io/delete-file ns2-file true)
-      (io/delete-file (.toFile tmp-dir) true))))
+        (let [results (lint! [ns1-file ns2-file]
+                             '{:linters {:shadowed-defmethod {:level :warning}
+                                         :unresolved-symbol {:level :off}}})]
+          (assert-submaps2
+           [{:file (str ns1-file)
+             :row 3
+             :col 1
+             :level :warning
+             :message "Shadowed defmethod: mm for dispatch value :foo"}
+            {:file (str ns2-file)
+             :row 3
+             :col 1
+             :level :warning
+             :message "Shadowed defmethod: mm for dispatch value :foo"}]
+           results))))))
 
 (deftest shadowed-defmethod-three-namespaces-test
   (testing "Detects shadowed defmethod across three namespaces"
-    (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
-          ns1-file (io/file (.toFile tmp-dir) "ns1.clj")
-          ns2-file (io/file (.toFile tmp-dir) "ns2.clj")
-          ns3-file (io/file (.toFile tmp-dir) "ns3.clj")]
-      (try
+    (fs/with-temp-dir [tmp-dir {}]
+      (let [ns1-file (fs/file tmp-dir "ns1.clj")
+            ns2-file (fs/file tmp-dir "ns2.clj")
+            ns3-file (fs/file tmp-dir "ns3.clj")]
         (spit ns1-file "(ns ns1)
 
 (defmethod my-multi ::exec [x] 1)
@@ -203,22 +197,15 @@
         (let [results (lint! [ns1-file ns2-file ns3-file]
                              '{:linters {:shadowed-defmethod {:level :warning}
                                          :unresolved-symbol {:level :off}}})]
-          ;; At least 2 should be flagged (all 3 ideally, but current implementation may have limitations)
           (is (>= (count results) 2))
           (is (every? #(= "Shadowed defmethod: my-multi for dispatch value :ns1/exec" (:message %))
-                      results)))
-        (finally
-          (io/delete-file ns1-file true)
-          (io/delete-file ns2-file true)
-          (io/delete-file ns3-file true)
-          (io/delete-file (.toFile tmp-dir) true))))))
+                      results)))))))
 
 (deftest shadowed-defmethod-mixed-same-and-cross-namespace-test
   (testing "Combination of same-namespace and cross-namespace shadowing"
-    (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
-          ns1-file (io/file (.toFile tmp-dir) "ns1.clj")
-          ns2-file (io/file (.toFile tmp-dir) "ns2.clj")]
-      (try
+    (fs/with-temp-dir [tmp-dir {}]
+      (let [ns1-file (fs/file tmp-dir "ns1.clj")
+            ns2-file (fs/file tmp-dir "ns2.clj")]
         (spit ns1-file "(ns ns1)
 
 (defmethod mm :foo [x] 1)
@@ -232,65 +219,59 @@
                              '{:linters {:shadowed-defmethod {:level :warning}
                                          :unresolved-symbol {:level :off}}})]
           (assert-submaps2
-           [{:file (.getPath ns1-file)
+           [{:file (str ns1-file)
              :row 3
              :col 1
              :level :warning
              :message "Shadowed defmethod: mm for dispatch value :foo"}
-            {:file (.getPath ns1-file)
+            {:file (str ns1-file)
              :row 4
              :col 1
              :level :warning
              :message "Shadowed defmethod: mm for dispatch value :foo"}
-            {:file (.getPath ns2-file)
+            {:file (str ns2-file)
              :row 3
              :col 1
              :level :warning
              :message "Shadowed defmethod: mm for dispatch value :foo"}]
-           results))
-        (finally
-          (io/delete-file ns1-file true)
-          (io/delete-file ns2-file true)
-          (io/delete-file (.toFile tmp-dir) true))))))
+           results))))))
 
 (deftest shadowed-defmethod-cljc-test
-  (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
-        cljc-file (io/file (.toFile tmp-dir) "test.cljc")]
-    (testing "CLJC defmethods should not be flagged as shadowed"
-      (spit cljc-file "(ns test)
+  (testing "CLJC defmethods handling"
+    (fs/with-temp-dir [tmp-dir {}]
+      (let [cljc-file (fs/file tmp-dir "test.cljc")]
+        (testing "CLJC defmethods should not be flagged as shadowed"
+          (spit cljc-file "(ns test)
 (defmulti mm :type)
 (defmethod mm :foo [x] x)
 ")
-      (is (empty? (lint! [cljc-file] config))
-          "CLJC reader conditional branches should not trigger shadowed defmethod warning")
+          (is (empty? (lint! [cljc-file] config))
+              "CLJC reader conditional branches should not trigger shadowed defmethod warning"))
 
-      (testing "with reader conditionals"
-        (spit cljc-file "(ns test)
+        (testing "with reader conditionals"
+          (spit cljc-file "(ns test)
       (defmulti mm :type)
       #?(:clj (defmethod mm :foo [x] :clj-impl)
          :cljs (defmethod mm :foo [x] :cljs-impl))
       ")
-        (is (empty? (lint! [cljc-file] config))
-            "CLJC reader conditional branches should not trigger shadowed defmethod warning"))
+          (is (empty? (lint! [cljc-file] config))
+              "CLJC reader conditional branches should not trigger shadowed defmethod warning"))
 
-      (testing "in same reader branch should still be flagged"
-        (spit cljc-file "(ns test)
+        (testing "in same reader branch should still be flagged"
+          (spit cljc-file "(ns test)
        (defmulti mm :type)
        #?(:clj
           (do
             (defmethod mm :foo [x] :first)
             (defmethod mm :foo [x] :second)))
        ")
-        (assert-submaps2
-         [{:file (.getPath cljc-file)
-           :row 6
-           :col 13
-           :level :warning
-           :message "Shadowed defmethod: mm for dispatch value :foo"}]
-         (lint! [cljc-file] config))))
-
-    (io/delete-file cljc-file true)
-    (io/delete-file (.toFile tmp-dir) true)))
+          (assert-submaps2
+           [{:file (str cljc-file)
+             :row 6
+             :col 13
+             :level :warning
+             :message "Shadowed defmethod: mm for dispatch value :foo"}]
+           (lint! [cljc-file] config)))))))
 
 (deftest shadowed-defmethod-variable-dispatch-value-test
   (testing "Defmethods with variable dispatch values (e.g., in doseq) should not warn"
@@ -304,40 +285,68 @@
 "
                 config)))))
 
-(deftest shadowed-defmethod-different-defmultis-same-name-test
-  (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
-        ns1-file (io/file (.toFile tmp-dir) "records.clj")
-        ns2-file (io/file (.toFile tmp-dir) "deftype.clj")]
-    (try
-      (testing "defmethods for different defmultis with same name should not be flagged as shadowed"
-        (spit ns1-file "(ns sci.impl.records
+(deftest shadowed-defmethod-different-defmultis-test
+  (testing "defmethods for defmultis in different namespaces"
+    (fs/with-temp-dir [tmp-dir {}]
+      (let [ns1-file (fs/file tmp-dir "records.clj")
+            ns2-file (fs/file tmp-dir "deftype.clj")]
+        (testing "defmethods for different defmultis with same name should not be flagged as shadowed"
+          (spit ns1-file "(ns sci.impl.records
   {:no-doc true})
 
 (defmulti to-string identity)
 (defmethod to-string :default [this]
   \"records impl\")
 ")
-        (spit ns2-file "(ns sci.impl.deftype
+          (spit ns2-file "(ns sci.impl.deftype
   {:no-doc true})
 
 (defmulti to-string identity)
 (defmethod to-string :default [this]
   \"deftype impl\")
 ")
-        (let [results (lint! [ns1-file ns2-file] config)]
-          (is (empty? results)
-              "defmethods for different defmultis should not be flagged as shadowed")))
-      (finally
-        (io/delete-file ns1-file true)
-        (io/delete-file ns2-file true)
-        (io/delete-file (.toFile tmp-dir) true)))))
+          (let [results (lint! [ns1-file ns2-file] config)]
+            (is (empty? results)
+                "defmethods for different defmultis should not be flagged as shadowed")))
+
+        (testing "defmethods in different namespaces for same defmulti"
+          (spit ns1-file "(ns sci.impl.records
+  {:no-doc true})
+
+(defmulti to-string identity)
+(defmethod to-string :default [this]
+  \"records impl\")
+")
+          (spit ns2-file "(ns sci.impl.deftype
+  (:require [sci.impl.records :as records]))
+
+(defmethod records/to-string :default [this]
+  \"deftype impl\")
+")
+          (let [results (lint! [ns1-file ns2-file] config)]
+            (is (= 2 (count results))
+                "Both defmethods should be flagged since across namespaces")
+            (is (every? #(and (= :warning (:level %))
+                              (= 1 (:col %))
+                              (= ":default" (last (re-find #"dispatch value (.+)$" (:message %)))))
+                        results)
+                "All results should be shadowed defmethod warnings for :default dispatch value")
+            (is (some #(and (= (str ns1-file) (:file %))
+                            (= 5 (:row %))
+                            (str/includes? (:message %) "to-string"))
+                      results)
+                "First file should be flagged")
+            (is (some #(and (= (str ns2-file) (:file %))
+                            (= 4 (:row %))
+                            (str/includes? (:message %) "records/to-string"))
+                      results)
+                "Second file should be flagged with qualified name")))))))
 
 (deftest shadowed-defmethod-auto-resolved-keywords-test
-  (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
-        ns1-file (io/file (.toFile tmp-dir) "test1.clj")
-        ns2-file (io/file (.toFile tmp-dir) "test2.clj")]
-    (try
-      (testing "auto-resolved keywords (::keyword) in different namespaces should not shadow"
+  (testing "auto-resolved keywords (::keyword) in different namespaces"
+    (fs/with-temp-dir [tmp-dir {}]
+      (let [ns1-file (fs/file tmp-dir "test1.clj")
+            ns2-file (fs/file tmp-dir "test2.clj")]
         (spit ns1-file "(ns metabase.driver.common.table-rows-sample-test
   (:require [metabase.driver :as driver]))
 
@@ -354,8 +363,4 @@
 ")
         (let [results (lint! [ns1-file ns2-file] config)]
           (is (empty? results)
-              "auto-resolved keywords in different namespaces resolve to different dispatch values")))
-      (finally
-        (io/delete-file ns1-file true)
-        (io/delete-file ns2-file true)
-        (io/delete-file (.toFile tmp-dir) true)))))
+              "auto-resolved keywords in different namespaces resolve to different dispatch values"))))))
