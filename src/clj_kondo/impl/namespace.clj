@@ -291,19 +291,20 @@
            nil))))))
 
 (defn reg-var-usage!
-  [{:keys [base-lang lang namespaces] :as ctx}
+  [{:keys [base-lang lang namespaces dependencies] :as ctx}
    ns-sym usage]
-  (when-not (:interop? usage)
-    (let [path [base-lang lang ns-sym]
-          usage (assoc usage
-                       :config (:config ctx)
-                       :unresolved-symbol-disabled?
-                       ;; TODO: can we do this via the ctx only?
-                       (or (:unresolved-symbol-disabled? usage)
-                           (linter-disabled? ctx :unresolved-symbol)))]
-      (swap! namespaces update-in path
-             (fn [ns]
-               (update ns :used-vars (fnil conj []) usage))))))
+  (when-not dependencies
+    (when-not (:interop? usage)
+      (let [path [base-lang lang ns-sym]
+            usage (assoc usage
+                         :config (:config ctx)
+                         :unresolved-symbol-disabled?
+                         ;; TODO: can we do this via the ctx only?
+                         (or (:unresolved-symbol-disabled? usage)
+                             (linter-disabled? ctx :unresolved-symbol)))]
+        (swap! namespaces update-in path
+               (fn [ns]
+                 (update ns :used-vars (fnil conj []) usage)))))))
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
@@ -351,11 +352,12 @@
   nil)
 
 (defn reg-used-binding!
-  [{:keys [base-lang lang namespaces filename] :as ctx} ns-sym binding usage]
+  [{:keys [base-lang lang namespaces filename dependencies] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
-  (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
-         conj binding)
+  (when-not dependencies
+    (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
+           conj binding))
   nil)
 
 (defn reg-required-namespaces!
