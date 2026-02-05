@@ -1031,24 +1031,29 @@
                   (if (constant? (:dispatch-val-node metadata))
                     (let [lang (:lang metadata :clj)
                           defmulti-ns (:defmulti-ns metadata)
-                          group-key [defmulti-ns mm-name dispatch-val lang]]
+                          mm-name-unqualified (symbol (name mm-name))
+                          group-key [defmulti-ns mm-name-unqualified dispatch-val lang]]
                       (update acc* group-key
                               (fnil conj [])
-                              (assoc metadata :ns-name (:name ns))))
+                              (assoc metadata 
+                                     :ns-name (:name ns)
+                                     :mm-name mm-name)))
                     acc*))
                 acc (:defmethods ns [])))
              {} namespaces))]
     (when-not (utils/linter-disabled? ctx :shadowed-defmethod)
       (let [namespaces (namespace/list-namespaces ctx)
             defmethod-groups (group-defmethods namespaces)]
-        (doseq [[[_ mm-name dispatch-val _] defmethods] defmethod-groups
+        (doseq [[group-key defmethods] defmethod-groups
                 :when (> (count defmethods) 1)
-                :let [ns-names (set (map :ns-name defmethods))
+                :let [[_ _ dispatch-val _] group-key
+                      ns-names (set (map :ns-name defmethods))
                       same-ns? (= 1 (count ns-names))
-                      msg (format shadowed-defmethod-msg mm-name dispatch-val)
                       shadowed-defmethods (cond->> defmethods
                                             same-ns? rest)]
-                dm shadowed-defmethods]
+                dm shadowed-defmethods
+                :let [mm-name (:mm-name dm)
+                      msg (format shadowed-defmethod-msg mm-name dispatch-val)]]
           (findings/reg-finding! ctx (assoc (utils/location dm)
                                             :type :shadowed-defmethod
                                             :message msg)))))))
