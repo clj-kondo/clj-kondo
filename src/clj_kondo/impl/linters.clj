@@ -1029,8 +1029,10 @@
                (reduce
                 (fn [acc* [[mm-name dispatch-val] metadata]]
                   (if (constant? (:dispatch-val-node metadata))
-                    (let [lang (:lang metadata :clj)]
-                      (update acc* [mm-name dispatch-val lang]
+                    (let [lang (:lang metadata :clj)
+                          defmulti-ns (:defmulti-ns metadata)
+                          group-key [defmulti-ns mm-name dispatch-val lang]]
+                      (update acc* group-key
                               (fnil conj [])
                               (assoc metadata :ns-name (:name ns))))
                     acc*))
@@ -1039,7 +1041,7 @@
     (when-not (utils/linter-disabled? ctx :shadowed-defmethod)
       (let [namespaces (namespace/list-namespaces ctx)
             defmethod-groups (group-defmethods namespaces)]
-        (doseq [[[mm-name dispatch-val] defmethods] defmethod-groups
+        (doseq [[[defmulti-ns mm-name dispatch-val _lang] defmethods] defmethod-groups
                 :when (> (count defmethods) 1)
                 :let [ns-names (set (map :ns-name defmethods))
                       same-ns? (= 1 (count ns-names))

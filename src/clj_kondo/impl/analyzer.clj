@@ -1380,7 +1380,9 @@
                                                             (:arglist-strs arity)))
                                         :varargs-min-arity (:varargs-min-arity arity)
                                         :arities (:arities init-meta)
-                                        :type type))))
+                                        :type type)))
+        (when defmulti?
+          (namespace/reg-defmulti! ctx (-> ctx :ns :name) var-name)))
     (docstring/lint-docstring! ctx doc-node docstring)
     (or def-init
         ;; this was something else than core/def
