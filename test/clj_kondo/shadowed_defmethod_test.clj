@@ -303,3 +303,31 @@
   (defmethod mm x [_] :second))
 "
                 config)))))
+
+(deftest shadowed-defmethod-different-defmultis-same-name-test
+  (let [tmp-dir (Files/createTempDirectory "clj-kondo-test" (into-array FileAttribute []))
+        ns1-file (io/file (.toFile tmp-dir) "records.clj")
+        ns2-file (io/file (.toFile tmp-dir) "deftype.clj")]
+    (try
+      (testing "defmethods for different defmultis with same name should not be flagged as shadowed"
+        (spit ns1-file "(ns sci.impl.records
+  {:no-doc true})
+
+(defmulti to-string identity)
+(defmethod to-string :default [this]
+  \"records impl\")
+")
+        (spit ns2-file "(ns sci.impl.deftype
+  {:no-doc true})
+
+(defmulti to-string identity)
+(defmethod to-string :default [this]
+  \"deftype impl\")
+")
+        (let [results (lint! [ns1-file ns2-file] config)]
+          (is (empty? results)
+              "defmethods for different defmultis should not be flagged as shadowed")))
+      (finally
+        (io/delete-file ns1-file true)
+        (io/delete-file ns2-file true)
+        (io/delete-file (.toFile tmp-dir) true)))))
