@@ -174,7 +174,7 @@
                                    filename (let [thing (if (meta var-sym) var-sym expr)]
                                               thing)
                                    :syntax
-                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym))))
+                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
      (when-not (:skip-reg-var ctx)
        (let [;; don't use reg-finding! in swap since contention can cause it to fire multiple times
              [old-namespaces _]
@@ -193,10 +193,10 @@
                                  (update :vars assoc
                                          var-sym
                                          (assoc
-                                          (merge metadata (select-keys
-                                                           prev-var
-                                                           [:row :col :end-row :end-col]))
-                                          :top-ns top-ns))
+                                           (merge metadata (select-keys
+                                                            prev-var
+                                                            [:row :col :end-row :end-col]))
+                                           :top-ns top-ns))
                                  (assoc :classfiles
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
@@ -466,11 +466,11 @@
     (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
-       (or
-        (some #(config/unresolved-namespace-excluded excluded %)
-              ns-groups)
+          (or
+           (some #(config/unresolved-namespace-excluded excluded %)
+                 ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-        (config/unresolved-symbol-excluded ctx config callstack :dummy))
+           (config/unresolved-symbol-excluded ctx config callstack :dummy))
         (let [unresolved-ns (vary-meta unresolved-ns
                                        ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
                                        ;; we must include the filename here
@@ -710,9 +710,9 @@
                     (when alias?
                       (reg-used-alias! ctx ns-name ns-sym))
                     (cond->
-                     {:ns ns*
-                      :name var-name
-                      :interop? (and cljs? (boolean interop))}
+                        {:ns ns*
+                         :name var-name
+                         :interop? (and cljs? (boolean interop))}
                       alias?
                       (assoc :alias ns-sym)
                       core?
@@ -891,6 +891,6 @@
              (update ns :defmethods (fnil conj [])
                      [key metadata])))))
 
-;;;; Scratch
-
-(comment)
+(comment
+  ;;;; Scratch
+  )
