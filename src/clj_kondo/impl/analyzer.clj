@@ -1838,11 +1838,42 @@
                                              :fixed-arities #{1})))
       (analyze-protocol-impls ctx defined-by defined-by->lint-as ns-name (nnext children)))))
 
+
+;; pulled out from lint-keyword-call!
+(defn- resolve-keyword
+  [ctx kw namespaced?]
+  (let [ns (:ns ctx)
+        ?resolved-ns (if namespaced?
+                       (if-let [kw-ns (namespace kw)]
+                         (or (get (:qualify-ns ns) (symbol kw-ns))
+                             ;; because we couldn't resolve the namespaced
+                             ;; keyword, we print it as is
+                             (str ":" (namespace kw)))
+                         ;; if the keyword is namespace, but there is no
+                         ;; namespace, it's the current ns
+                         (:name ns))
+                       (namespace kw))]
+    (if ?resolved-ns
+      (keyword (str ?resolved-ns) (name kw))
+      kw)))
+
+(defn- resolve-dispatch-val
+  "Resolves auto-qualified keywords in dispatch value to their full form."
+  [ctx node]
+  (let [walk-dispatch-val
+        (fn walk [n]
+          (cond
+            (and (:k n) (:namespaced? n)) (resolve-keyword ctx (:k n) true)
+            (= :vector (tag n))           (mapv walk (:children n))
+            :else                         (sexpr n)))]
+    (walk-dispatch-val node)))
+
 (defn analyze-defmethod [ctx expr]
   (when-let [children (next (:children expr))]
     (let [[method-name-node dispatch-val-node & fn-tail] children
           ctx-without-idx (dissoc ctx :idx :len)
-          dispatch-val-str (pr-str (sexpr dispatch-val-node))
+          resolved-dispatch-val (resolve-dispatch-val ctx-without-idx dispatch-val-node)
+          dispatch-val-str (pr-str resolved-dispatch-val)
           _ (analyze-usages2 (assoc ctx-without-idx
                                     :defmethod true,
                                     :dispatch-val-str dispatch-val-str)
@@ -3047,24 +3078,6 @@
       (with-meta (cons call analyzed)
         m)
       (cons call analyzed))))
-
-;; pulled out from lint-keyword-call!
-(defn- resolve-keyword
-  [ctx kw namespaced?]
-  (let [ns (:ns ctx)
-        ?resolved-ns (if namespaced?
-                       (if-let [kw-ns (namespace kw)]
-                         (or (get (:qualify-ns ns) (symbol kw-ns))
-                             ;; because we couldn't resolve the namespaced
-                             ;; keyword, we print it as is
-                             (str ":" (namespace kw)))
-                         ;; if the keyword is namespace, but there is no
-                         ;; namespace, it's the current ns
-                         (:name ns))
-                       (namespace kw))]
-    (if ?resolved-ns
-      (keyword (str ?resolved-ns) (name kw))
-      kw)))
 
 (defn lint-keyword-call! [ctx kw namespaced? arg-count expr]
   (let [callstack (:callstack ctx)
