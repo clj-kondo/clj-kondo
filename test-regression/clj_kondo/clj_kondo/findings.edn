@@ -32880,15 +32880,6 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
- {:end-row 877,
-  :type :unused-binding,
-  :level :warning,
-  :filename "src/clj_kondo/impl/namespace.clj",
-  :col 9,
-  :end-col 15,
-  :langs (),
-  :message "unused binding ns-ctx",
-  :row 877}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,

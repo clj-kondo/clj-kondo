@@ -874,13 +874,13 @@
 (defn reg-defmethod! [{:keys [lang] :as ctx} ns-sym multimethod-sym
                       dispatch-val-node dispatch-val-str expr]
   (let [key [multimethod-sym dispatch-val-str]
-        resolved-defmulti-ns (or (when-let [ns* (namespace multimethod-sym)]
-                                   (get-in @(:namespaces ctx)
-                                           [(:base-lang ctx) lang ns-sym :qualify-ns (symbol ns*)]))
-                                 (when (contains? (get-in @(:namespaces ctx)
-                                                          [(:base-lang ctx) lang ns-sym :defmultis] #{})
-                                                  multimethod-sym)
-                                   ns-sym))
+        ns-ctx (get-in @(:namespaces ctx) [(:base-lang ctx) lang ns-sym])
+        multimethod-sym-ns-sym (some-> (namespace multimethod-sym) symbol)
+        qualified-resolved (and multimethod-sym-ns-sym
+                                (get-in ns-ctx [:qualify-ns multimethod-sym-ns-sym]))
+        resolved-defmulti-ns (or qualified-resolved
+                                 (and ((:defmultis ns-ctx #{}) multimethod-sym)
+                                      ns-sym))
         metadata (assoc (meta expr)
                         :filename (:filename ctx)
                         :lang lang
