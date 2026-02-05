@@ -859,9 +859,6 @@
       (prn x)
       x)))
 
-;;;; Scratch
-
-(comment)
 
 (defn reg-protocol-impl! [{:keys [base-lang lang namespaces]} ns-name protocol-impl]
   (let [path [base-lang lang ns-name]]
@@ -872,17 +869,18 @@
 (defn reg-defmulti! [{:keys [base-lang lang namespaces]} ns-sym multimethod-sym]
   (let [path [base-lang lang ns-sym]]
     (swap! namespaces update-in path
-           (fn [ns]
-             (update ns :defmultis (fnil conj #{}) multimethod-sym)))))
+           (fn [ns] (update ns :defmultis (fnil conj #{}) multimethod-sym)))))
 
-(defn reg-defmethod! [{:keys [lang] :as ctx} ns-sym multimethod-sym 
+(defn reg-defmethod! [{:keys [lang] :as ctx} ns-sym multimethod-sym
                       dispatch-val-node dispatch-val-str expr]
   (let [key [multimethod-sym dispatch-val-str]
-        ns-ctx (get-in @(:namespaces ctx) [(:base-lang ctx) lang ns-sym])
-        resolved-defmulti-ns
-        (or (get-in ns-ctx [:qualify-ns (symbol (namespace multimethod-sym))])
-            (when ((:defmultis ns-ctx #{}) multimethod-sym)
-              ns-sym))
+        resolved-defmulti-ns (or (when-let [ns* (namespace multimethod-sym)]
+                                   (get-in @(:namespaces ctx)
+                                           [(:base-lang ctx) lang ns-sym :qualify-ns (symbol ns*)]))
+                                 (when (contains? (get-in @(:namespaces ctx)
+                                                          [(:base-lang ctx) lang ns-sym :defmultis] #{})
+                                                  multimethod-sym)
+                                   ns-sym))
         metadata (assoc (meta expr)
                         :filename (:filename ctx)
                         :lang lang
@@ -892,3 +890,7 @@
            (fn [ns]
              (update ns :defmethods (fnil conj [])
                      [key metadata])))))
+
+;;;; Scratch
+
+(comment)
