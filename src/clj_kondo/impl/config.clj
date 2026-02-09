@@ -53,6 +53,7 @@
                                :exclude-destructured-as false
                                :exclude-defmulti-args false}
               :shadowed-fn-param {:level :warning}
+              :shadowed-defmethod {:level :warning}
               :unsorted-required-namespaces {:level :off
                                              :sort :case-insensitive}
               :unsorted-imports {:level :off}

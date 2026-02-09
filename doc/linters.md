@@ -105,6 +105,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Single operand comparison](#single-operand-comparison)
     - [Shadowed fn param](#shadowed-fn-param)
     - [Shadowed var](#shadowed-var)
+    - [Shadowed defmethod](#shadowed-defmethod)
     - [Static field call](#static-field-call)
     - [Syntax](#syntax)
     - [Type mismatch](#type-mismatch)
@@ -1922,6 +1923,22 @@ Example warning: `require with :refer`.
                           :exclude [ns]
                           :suggest {name nom}}}}
 ```
+
+### Shadowed defmethod
+
+*Keyword:* `:shadowed-defmethod`.
+
+*Description:* warn when the same `defmethod` multimethod + dispatch value is defined multiple times. In the same namespace, the second definition shadows the first. Across namespaces, all definitions are flagged since load order is non-deterministic.
+
+*Default level:* `:warning`.
+
+*Example trigger:* 
+``` clojure
+(defmethod ig/init-key ::executor [_ config] ...)
+(defmethod ig/init-key ::executor [_ executor] ...)
+```
+
+*Example message:* `Shadowed defmethod: ig/init-key for dispatch value :my.ns/executor`
 
 ``` clojure
 (fn [name] name)

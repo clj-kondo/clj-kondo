@@ -451,6 +451,28 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 113}
+ {:end-row 107,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/postgres.clj",
+  :col 1,
+  :end-col 59,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/display-name for dispatch value :postgres",
+  :row 107}
+ {:end-row 411,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql/query_processor.clj",
+  :col 1,
+  :end-col 28,
+  :langs (),
+  :message
+  "Shadowed defmethod: date for dispatch value [:sql :week-of-year-iso]",
+  :row 408}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -1815,6 +1837,28 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 1015}
+ {:end-row 716,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
+  :col 1,
+  :end-col 9,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:metabase.driver/driver :metabase.query-processor-test.filter-test/empty-results-wrong-because-of-issue-5419]",
+  :row 714}
+ {:end-row 721,
+  :type :shadowed-defmethod,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/filter_test.clj",
+  :col 1,
+  :end-col 8,
+  :langs (),
+  :message
+  "Shadowed defmethod: driver/database-supports? for dispatch value [:mongo :metabase.query-processor-test.filter-test/empty-results-wrong-because-of-issue-5419]",
+  :row 719}
  {:end-row 212,
   :type :unresolved-symbol,
   :level :error,
