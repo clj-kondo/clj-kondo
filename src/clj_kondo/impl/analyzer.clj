@@ -1535,12 +1535,13 @@
         var-names (keep (fn [var-name-node]
                           (let [var-sym (->> var-name-node (meta/lift-meta-content2 ctx) :value)]
                             (current-namespace-var-name ctx var-name-node var-sym)))
-                        var-name-nodes)]
+                        var-name-nodes)
+        vars-ns-path [(:base-lang ctx) (:lang ctx) ns-name :vars]
+        vars (get-in @(:namespaces ctx) vars-ns-path {})]
     (doseq [var-name var-names
             :let [var-name-meta (meta var-name)]]
       (when-not (linter-disabled? ctx :redundant-declare)
-        (let [var-path [(:base-lang ctx) (:lang ctx) ns-name :vars var-name]
-              existing-var (get-in @(:namespaces ctx) var-path)]
+        (let [existing-var (vars var-name)]
           (when (and existing-var
                      (not (utils/ignored? existing-var)))
             (findings/reg-finding!
