@@ -4890,6 +4890,15 @@
   :langs (),
   :message "unused binding x",
   :row 1347}
+ {:end-row 1436,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 1,
+  :end-col 41,
+  :langs (),
+  :message "Redundant declare: list",
+  :row 1436}
  {:end-row 1456,
   :type :invalid-arity,
   :level :error,
@@ -5007,6 +5016,15 @@
   :langs (),
   :message "Missing else branch.",
   :row 1746}
+ {:end-row 1766,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 1,
+  :end-col 31,
+  :langs (),
+  :message "Redundant declare: with-meta",
+  :row 1766}
  {:end-row 1787,
   :type :unused-binding,
   :level :warning,
@@ -5223,6 +5241,15 @@
   :langs (),
   :message "Unused private var cljs.core/hash-iset",
   :row 3186}
+ {:end-row 3195,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 1,
+  :end-col 38,
+  :langs (),
+  :message "Redundant declare: name",
+  :row 3195}
  {:end-row 3197,
   :type :unused-private-var,
   :level :warning,
@@ -8085,6 +8112,15 @@
   :langs (),
   :message "Missing else branch.",
   :row 8884}
+ {:end-row 8896,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 1,
+  :end-col 14,
+  :langs (),
+  :message "Redundant declare: key",
+  :row 8896}
  {:end-row 8918,
   :type :unused-binding,
   :level :warning,
@@ -29579,6 +29615,17 @@
   :message
   "Redundant boolean coercion - expression already has type boolean",
   :row 1071}
+ {:end-row 1402,
+  :type :redundant-declare,
+  :level :warning,
+  :lang :clj,
+  :filename "sci/impl/analyzer.cljc",
+  :col 1,
+  :end-col 22,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Redundant declare: return-call",
+  :row 1402}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
