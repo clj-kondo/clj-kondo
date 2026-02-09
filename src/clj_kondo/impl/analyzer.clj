@@ -1547,7 +1547,7 @@
             (findings/reg-finding!
              ctx
              (node->line (:filename ctx) expr :redundant-declare
-                         (str "redundant declare of " var-name))))))
+                         (str "Redundant declare: " var-name))))))
       (namespace/reg-var! ctx ns-name
                           var-name
                           expr

@@ -1616,7 +1616,7 @@ The normal pattern of using `declare` is to forward-declare a var before it is d
 
 *Example trigger:* `(defn foo []) (declare foo)`.
 
-*Example message:* `redundant declare of foo`.
+*Example message:* `Redundant declare: foo`.
 
 *Config:*
 

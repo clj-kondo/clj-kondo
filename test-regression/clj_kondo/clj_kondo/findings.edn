@@ -1478,7 +1478,7 @@
   :end-col 19,
   :cljc true,
   :langs (:clj :cljs),
-  :message "redundant declare of specials",
+  :message "Redundant declare: specials",
   :row 1793}
  {:end-row 1839,
   :type :unused-binding,
@@ -15098,7 +15098,7 @@
   :col 1,
   :end-col 22,
   :langs (),
-  :message "redundant declare of read-symbol",
+  :message "Redundant declare: read-symbol",
   :row 593}
  {:end-row 620,
   :type :unused-binding,
@@ -16630,7 +16630,7 @@
   :col 1,
   :end-col 22,
   :langs (),
-  :message "redundant declare of read-symbol",
+  :message "Redundant declare: read-symbol",
   :row 568}
  {:end-row 601,
   :type :unused-binding,
@@ -18621,7 +18621,7 @@
   :col 1,
   :end-col 20,
   :langs (),
-  :message "redundant declare of gen-class",
+  :message "Redundant declare: gen-class",
   :row 5806}
  {:end-row 5954,
   :type :uninitialized-var,
@@ -23475,7 +23475,7 @@
   :col 1,
   :end-col 22,
   :langs (),
-  :message "redundant declare of read-symbol",
+  :message "Redundant declare: read-symbol",
   :row 568}
  {:end-row 601,
   :type :unused-binding,
@@ -26141,7 +26141,7 @@
   :col 1,
   :end-col 22,
   :langs (),
-  :message "redundant declare of read-symbol",
+  :message "Redundant declare: read-symbol",
   :row 597}
  {:end-row 624,
   :type :unused-binding,
@@ -27219,7 +27219,7 @@
   :col 1,
   :end-col 22,
   :langs (),
-  :message "redundant declare of read-symbol",
+  :message "Redundant declare: read-symbol",
   :row 562}
  {:end-row 595,
   :type :unused-binding,

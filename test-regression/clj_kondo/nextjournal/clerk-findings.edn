@@ -66,7 +66,7 @@
   :col 1,
   :end-col 25,
   :langs (),
-  :message "redundant declare of present+reset!",
+  :message "Redundant declare: present+reset!",
   :row 219}
  {:end-row 67,
   :type :redundant-fn-wrapper,

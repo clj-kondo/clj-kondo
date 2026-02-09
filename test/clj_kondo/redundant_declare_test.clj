@@ -7,12 +7,12 @@
   (testing "warns when declare is used after var is already defined"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 15, :level :warning,
-        :message "redundant declare of foo"})
+        :message "Redundant declare: foo"})
      (lint! "(defn foo []) (declare foo)"))
 
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 13, :level :warning,
-        :message "redundant declare of foo"})
+        :message "Redundant declare: foo"})
      (lint! "(def foo 1) (declare foo)")))
 
   (testing "no warning for normal forward declare pattern"
@@ -31,13 +31,13 @@
   (testing "multiple declares after def"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 13, :level :warning,
-        :message "redundant declare of foo"}
+        :message "Redundant declare: foo"}
        {:file "<stdin>", :row 1, :col 39, :level :warning,
-        :message "redundant declare of bar"})
+        :message "Redundant declare: bar"})
      (lint! "(def foo 1) (declare foo) (def bar 2) (declare bar)")))
 
   (testing "declare multiple vars where one is defined"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 13, :level :warning,
-        :message "redundant declare of foo"})
+        :message "Redundant declare: foo"})
      (lint! "(def foo 1) (declare foo bar)"))))
