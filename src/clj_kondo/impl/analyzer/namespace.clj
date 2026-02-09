@@ -487,7 +487,8 @@
     (when-not (linter-disabled? ctx :unresolved-excluded-var)
       (doseq [excluded-var excluded-vars
               :when (not (or (exists-in-core? excluded-var lang)
-                             (utils/ignored? excluded-var)))]
+                             (utils/ignored? excluded-var
+                                             :unresolved-excluded-var)))]
         (findings/reg-finding!
          ctx
          (node->line filename excluded-var
