@@ -18,8 +18,11 @@
   (testing "no warning for normal forward declare pattern"
     (is (empty? (lint! "(declare foo) (defn foo [])"))))
 
-  (testing "no warning for idempotent declare"
-    (is (empty? (lint! "(declare foo) (declare foo)"))))
+  (testing "warning for redundant duplicate declare"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 15, :level :warning,
+        :message "Redundant declare: foo"})
+     (lint! "(declare foo) (declare foo)")))
 
   (testing "no warning when linter is disabled"
     (is (empty? (lint! "(defn foo []) (declare foo)"

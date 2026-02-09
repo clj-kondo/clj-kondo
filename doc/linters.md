@@ -1624,7 +1624,7 @@ The normal pattern of using `declare` is to forward-declare a var before it is d
 {:linters {:redundant-declare {:level :off}}}
 ```
 
-Note: Multiple `declare` statements for the same var (before it's defined) are not considered redundant, as `declare` is idempotent.
+Note: Multiple `declare` statements for the same var are considered redundant. Only the first `declare` is necessary.
 
 ### Redundant format
 

@@ -1542,7 +1542,6 @@
         (let [var-path [(:base-lang ctx) (:lang ctx) ns-name :vars var-name]
               existing-var (get-in @(:namespaces ctx) var-path)]
           (when (and existing-var
-                     (not (:declared existing-var))
                      (not (utils/ignored? existing-var)))
             (findings/reg-finding!
              ctx
