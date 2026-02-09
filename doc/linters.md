@@ -87,6 +87,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Var same name except case](#var-same-name-except-case)
     - [Redundant do](#redundant-do)
     - [Redundant call](#redundant-call)
+    - [Redundant declare](#redundant-declare)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
     - [Redundant ignore](#redundant-ignore)
     - [Redundant nested call](#redundant-nested-call)
@@ -1602,6 +1603,28 @@ warn on additional vars.
 *Example trigger:* `(-> 1)`.
 
 *Example message:* `Single arg use of -> always returns the arg itself`.
+
+### Redundant declare
+
+*Keyword:* `:redundant-declare`.
+
+*Description:* warn when `declare` is used after a var is already defined in the same namespace.
+
+*Default level:* `:warning`.
+
+The normal pattern of using `declare` is to forward-declare a var before it is defined, allowing mutual recursion or other forward references. Using `declare` after a var is already defined (with `def`, `defn`, etc.) is redundant since the var already exists.
+
+*Example trigger:* `(defn foo []) (declare foo)`.
+
+*Example message:* `redundant declare of foo`.
+
+*Config:*
+
+```clojure
+{:linters {:redundant-declare {:level :off}}}
+```
+
+Note: Multiple `declare` statements for the same var (before it's defined) are not considered redundant, as `declare` is idempotent.
 
 ### Redundant format
 

@@ -1536,19 +1536,29 @@
                           (let [var-sym (->> var-name-node (meta/lift-meta-content2 ctx) :value)]
                             (current-namespace-var-name ctx var-name-node var-sym)))
                         var-name-nodes)]
-    (doseq [var-name var-names]
-      (let [var-name-meta (meta var-name)]
-        (namespace/reg-var! ctx ns-name
-                            var-name
-                            expr
-                            (assoc (meta expr)
-                                   :name-row (:row var-name-meta)
-                                   :name-col (:col var-name-meta)
-                                   :name-end-row (:end-row var-name-meta)
-                                   :name-end-col (:end-col var-name-meta)
-                                   :declared true
-                                   :defined-by defined-by
-                                   :defined-by->lint-as defined-by->lint-as))))))
+    (doseq [var-name var-names
+            :let [var-name-meta (meta var-name)]]
+      (when-not (linter-disabled? ctx :redundant-declare)
+        (let [var-path [(:base-lang ctx) (:lang ctx) ns-name :vars var-name]
+              existing-var (get-in @(:namespaces ctx) var-path)]
+          (when (and existing-var
+                     (not (:declared existing-var))
+                     (not (utils/ignored? existing-var)))
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) expr :redundant-declare
+                         (str "redundant declare of " var-name))))))
+      (namespace/reg-var! ctx ns-name
+                          var-name
+                          expr
+                          (assoc (meta expr)
+                                 :name-row (:row var-name-meta)
+                                 :name-col (:col var-name-meta)
+                                 :name-end-row (:end-row var-name-meta)
+                                 :name-end-col (:end-col var-name-meta)
+                                 :declared true
+                                 :defined-by defined-by
+                                 :defined-by->lint-as defined-by->lint-as)))))
 
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])

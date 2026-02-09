@@ -2,6 +2,7 @@
   {:no-doc true}
   (:require [clj-kondo.impl.var-info-gen]))
 
+^{:clj-kondo/ignore [:redundant-declare]}
 (declare clojure-core-syms cljs-core-syms)
 
 ;; in addition to what `special-form?` regards as special:
