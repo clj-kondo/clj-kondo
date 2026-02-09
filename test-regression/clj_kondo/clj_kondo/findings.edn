@@ -1469,6 +1469,17 @@
   :langs (:clj :cljs),
   :message "unused binding op",
   :row 1702}
+ {:end-row 1793,
+  :type :redundant-declare,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 1,
+  :end-col 19,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "redundant declare of specials",
+  :row 1793}
  {:end-row 1839,
   :type :unused-binding,
   :level :warning,
@@ -15080,6 +15091,15 @@
   :langs (),
   :message "Redundant let expression.",
   :row 569}
+ {:end-row 593,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "cljs/tools/reader.cljs",
+  :col 1,
+  :end-col 22,
+  :langs (),
+  :message "redundant declare of read-symbol",
+  :row 593}
  {:end-row 620,
   :type :unused-binding,
   :level :warning,
@@ -16603,6 +16623,15 @@
   :langs (),
   :message "Redundant let expression.",
   :row 545}
+ {:end-row 568,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "cljs/vendor/clojure/tools/reader.clj",
+  :col 1,
+  :end-col 22,
+  :langs (),
+  :message "redundant declare of read-symbol",
+  :row 568}
  {:end-row 601,
   :type :unused-binding,
   :level :warning,
@@ -18585,6 +18614,15 @@
   :langs (),
   :message "unused binding check-keys",
   :row 5764}
+ {:end-row 5806,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "clojure/core.clj",
+  :col 1,
+  :end-col 20,
+  :langs (),
+  :message "redundant declare of gen-class",
+  :row 5806}
  {:end-row 5954,
   :type :uninitialized-var,
   :level :warning,
@@ -23430,6 +23468,15 @@
   :langs (),
   :message "Redundant let expression.",
   :row 545}
+ {:end-row 568,
+  :type :redundant-declare,
+  :level :warning,
+  :filename "clojure/tools/reader.clj",
+  :col 1,
+  :end-col 22,
+  :langs (),
+  :message "redundant declare of read-symbol",
+  :row 568}
  {:end-row 601,
   :type :unused-binding,
   :level :warning,
@@ -26086,6 +26133,16 @@
   :langs (),
   :message "Redundant let expression.",
   :row 573}
+ {:end-row 597,
+  :type :redundant-declare,
+  :level :warning,
+  :filename
+  "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader.cljs",
+  :col 1,
+  :end-col 22,
+  :langs (),
+  :message "redundant declare of read-symbol",
+  :row 597}
  {:end-row 624,
   :type :unused-binding,
   :level :warning,
@@ -27154,6 +27211,16 @@
   :langs (),
   :message "Redundant let expression.",
   :row 539}
+ {:end-row 562,
+  :type :redundant-declare,
+  :level :warning,
+  :filename
+  "inlined/clj_kondo/impl/toolsreader/v1v2v2/clojure/tools/reader.clj",
+  :col 1,
+  :end-col 22,
+  :langs (),
+  :message "redundant declare of read-symbol",
+  :row 562}
  {:end-row 595,
   :type :unused-binding,
   :level :warning,

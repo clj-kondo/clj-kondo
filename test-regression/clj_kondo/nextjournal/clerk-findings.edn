@@ -58,6 +58,16 @@
   :langs (:cljs),
   :message "Var ordered-map is referred but used via alias: omap",
   :row 105}
+ {:end-row 219,
+  :type :redundant-declare,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/webserver.clj",
+  :col 1,
+  :end-col 25,
+  :langs (),
+  :message "redundant declare of present+reset!",
+  :row 219}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,

@@ -613,6 +613,16 @@
   :langs (),
   :message "Unused excluded var: replace",
   :row 2}
+ {:end-row 528,
+  :type :redundant-declare,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/models/serialization.clj",
+  :col 1,
+  :end-col 24,
+  :langs (),
+  :message "redundant declare of extract-query",
+  :row 528}
  {:end-row 20,
   :type :redundant-primitive-coercion,
   :level :warning,
