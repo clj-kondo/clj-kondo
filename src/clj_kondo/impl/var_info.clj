@@ -1,8 +1,15 @@
 (ns clj-kondo.impl.var-info
   {:no-doc true}
   (:require
-   [clj-kondo.impl.var-info-gen :refer [cljs-core-syms clojure-core-syms]]))
+   [clj-kondo.impl.var-info-gen :refer [cljs-core-syms
+                                        clojure-core-syms
+                                        default-fq-imports
+                                        default-import->qname
+                                        unused-values]]))
 
+(def default-fq-imports default-fq-imports)
+(def default-import->qname default-import->qname)
+(def unused-values unused-values)
 ;; in addition to what `special-form?` regards as special:
 (def special-forms '#{.. let fn loop})
 
