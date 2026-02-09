@@ -29,7 +29,9 @@
                        {:linters {:redundant-declare {:level :off}}}))))
 
   (testing "no warning when ignored inline"
-    (is (empty? (lint! "(defn foo []) ^{:clj-kondo/ignore [:redundant-declare]} (declare foo)"))))
+    (is (empty? (lint! "(defn foo []) ^{:clj-kondo/ignore [:redundant-declare]} (declare foo)")))
+    (is (empty? (lint! "(defn foo []) #_{:clj-kondo/ignore [:redundant-declare]} (declare foo)")))
+    (is (empty? (lint! "(defn foo []) #_:clj-kondo/ignore (declare foo)"))))
 
   (testing "multiple declares after def"
     (assert-submaps2
