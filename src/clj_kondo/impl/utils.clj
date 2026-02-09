@@ -521,9 +521,8 @@
 (defn ignored? [expr linter]
   (when-let [{:keys [linters]} (:clj-kondo/ignore (meta expr))]
     (or (identical? :all linters)
-        (some #(identical? linter (:k %)) linters)
-        (when-let [children (:children linters)]
-          (some #(identical? linter (:k %)) children)))))
+        (some #(identical? linter (:k %)) (:children linters))
+        (some #(identical? linter (:k %)) linters))))
 
 ;;;; Scratch
 
