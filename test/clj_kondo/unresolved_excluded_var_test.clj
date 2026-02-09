@@ -23,6 +23,17 @@
         :level :info
         :message "Unresolved excluded var: foo"})
      (lint! "(ns foo (:refer-clojure :exclude [#_{:clj-kondo/ignore [:invalid-arity]} foo]))")))
+  
+  (testing "linter specific ignore with inline metadata"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 73
+        :level :info
+        :message "Unresolved excluded var: foo"})
+     (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:invalid-arity]} foo]))"))
+    (is (empty?
+         (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:unresolved-excluded-var]} foo]))"))))
 
   (testing "clj"
     (assert-submaps2

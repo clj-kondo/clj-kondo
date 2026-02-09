@@ -94,7 +94,18 @@
         :col 74
         :level :info
         :message "Unused excluded var: comp"})
-     (lint! "(ns foo (:refer-clojure :exclude [#_{:clj-kondo/ignore [:invalid-arity]} comp]))"))))
+     (lint! "(ns foo (:refer-clojure :exclude [#_{:clj-kondo/ignore [:invalid-arity]} comp]))")))
+  
+  (testing "linter specific ignore with inline metadata"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 73
+        :level :info
+        :message "Unused excluded var: comp"})
+     (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:invalid-arity]} comp]))"))
+    (is (empty?
+         (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:unused-excluded-var]} comp]))")))))
 
 (deftest issue-2704-test
   (testing "defmulti defines var"
