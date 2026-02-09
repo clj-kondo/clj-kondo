@@ -1,7 +1,6 @@
 (ns clj-kondo.impl.var-info-gen
   "GENERATED, DO NOT EDIT."
   {:no-doc true})
-  (in-ns 'clj-kondo.impl.var-info)
 
   (def clojure-core-syms '#{*
 *'
