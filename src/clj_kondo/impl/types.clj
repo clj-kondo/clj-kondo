@@ -46,6 +46,7 @@
     :transducer
     :list
     :seq
+    :ipending
     :sorted-map
     :boolean
     :atom
@@ -98,7 +99,7 @@
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
-   :future #{:ideref}
+   :future #{:ideref :ipending}
    :var #{:ideref :ifn}
    :array #{:seqable :ilookup}})
 
@@ -125,14 +126,16 @@
           :associative :seqable :coll :sequential :stack :sorted-map :var
           :ideref :ilookup}
    :fn #{:transducer}
-   :seq #{:list :stack}
+   :seq #{:list :stack :ipending}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :set #{:sorted-set}
-   :ideref #{:atom :future :var :ifn}
+   :ideref #{:atom :future :var :ifn :ipending}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
-              :vector :sequential :stack :array}})
+              :vector :sequential :stack :array}
+   :ipending #{:seq :seqable :sequential :coll :future :ideref}
+   :future #{:ipending}})
 
 (def misc-types #{:boolean :atom :future :regex :char :class :inst})
 
@@ -162,6 +165,7 @@
    :ratio "ratio"
    :seqable "seqable collection"
    :seq "seq"
+   :ipending "pending (lazy seq, delay, future, or promise)"
    :vector "vector"
    :stack "stack (list, vector, etc.)"
    :associative "associative collection"
@@ -243,7 +247,6 @@
     (float) :float
     (Double java.lang.Double) :nilable/double
     (Float java.lang.Float) :nilable/float
-    (ratio?) :ratio
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
     (String java.lang.String) :nilable/string ;; as this is now way to
     ;; express non-nilable,

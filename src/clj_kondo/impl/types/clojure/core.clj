@@ -626,7 +626,8 @@
    ;; 2999
    'repeat {:arities {1 {:args [:any]
                          :ret :seq}
-                      2 {:args [:nat-int :any]}}}
+                      2 {:args [:nat-int :any]
+                         :ret :seq}}}
    ;; 3006 'replicate (deprecated)
    ;; 3013
    'iterate {:arities {2 {:args [:ifn :any]
@@ -1137,6 +1138,8 @@
    ;; 7498 'with-redefs-fn
    ;; 7518 'with-redefs
    ;; 7533 'realized?
+   'realized? {:arities {1 {:args [:ipending]
+                            :ret :boolean}}}
    ;; 7538 'cond->
    ;; 7555 'cond->>
    ;; 7572 'as->
