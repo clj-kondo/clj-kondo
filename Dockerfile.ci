@@ -8,6 +8,8 @@ ARG TARGETOS
 
 COPY ${TARGETOS}/${TARGETARCH}/clj-kondo /bin/clj-kondo
 
-RUN chmod +x /bin/clj-kondo
+RUN chmod +x /bin/clj-kondo && \
+    mkdir -p /usr/local/bin && \
+    ln -s /bin/clj-kondo /usr/local/bin/clj-kondo
 
 CMD ["clj-kondo"]
