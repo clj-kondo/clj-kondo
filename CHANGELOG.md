@@ -24,6 +24,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2762](https://github.com/clj-kondo/clj-kondo/issues/2762): Fix false positive: `throw` with string in CLJS no longer warns about type mismatch ([@jramosg](https://github.com/jramosg))
 - Add type support for `pmap` ([@jramosg](https://github.com/jramosg))
 - Type system: Add type support for future-related functions (`future`, `future-call`, `future-done?`, `future-cancel`, `future-cancelled?`) ([@jramosg](https://github.com/jramosg))
+- [#2773](https://github.com/clj-kondo/clj-kondo/issues/2773): Align executable path for images to be `/bin/clj-kondo` ([@harryzcy](https://github.com/harryzcy))
 
 ## 2026.01.19
 
