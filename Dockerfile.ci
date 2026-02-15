@@ -7,8 +7,8 @@ RUN apt-get update \
 ARG TARGETARCH
 ARG TARGETOS
 
-COPY ${TARGETOS}/${TARGETARCH}/clj-kondo /usr/local/bin/clj-kondo
+COPY ${TARGETOS}/${TARGETARCH}/clj-kondo /bin/clj-kondo
 
-RUN chmod +x /usr/local/bin/clj-kondo
+RUN chmod +x /bin/clj-kondo
 
 CMD ["clj-kondo"]
