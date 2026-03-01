@@ -14,6 +14,7 @@
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
+   [clojure.set :as set]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -189,6 +190,19 @@
 
 (def vconj (fnil conj []))
 
+(defn- merge-with'
+  "More efficient implementation of `clojure.core/merge-with` for two maps."
+  [f m1 m2]
+  (if (or (nil? m1) (nil? m2))
+    (or m1 m2 {})
+    (persistent!
+     (reduce-kv (fn [m1 k v]
+                  (let [v1 (get m1 k ::empty)]
+                    (assoc! m1 k (if (identical? v1 ::empty)
+                                   v
+                                   (f v1 v)))))
+                (transient m1) m2))))
+
 (defn deep-merge
   "deep merge that also mashes together sequentials"
   ([])
@@ -196,13 +210,15 @@
   ([a b]
    (cond (when-let [m (meta b)]
            (:replace m)) b
-         (and (map? a) (map? b)) (merge-with deep-merge a b)
+         (and (map? a) (map? b)) (merge-with' deep-merge a b)
+         ;; set/union pours smaller into bigger, hence more efficient than into
+         (and (set? a) (set? b)) (set/union a b)
          (and (or (sequential? a) (set? a))
               (or (sequential? b) (set? b))) (into a b)
          (false? b) b
          :else (or b a)))
   ([a b & more]
-   (apply merge-with deep-merge a b more)))
+   (reduce #(merge-with' deep-merge %1 %2) (list* a b more))))
 
 (defn constant?
   "returns true of expr represents a compile time constant"
