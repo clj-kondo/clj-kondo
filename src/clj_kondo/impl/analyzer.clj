@@ -1543,7 +1543,7 @@
       (when-not (linter-disabled? ctx :redundant-declare)
         (let [existing-var (get vars var-name)]
           (when (and existing-var
-                     (not (utils/ignored? existing-var)))
+                     (not (utils/ignored? existing-var :redundant-declare)))
             (findings/reg-finding!
              ctx
              (node->line (:filename ctx) expr :redundant-declare
