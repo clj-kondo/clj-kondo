@@ -105,7 +105,11 @@
         :message "Unused excluded var: comp"})
      (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:invalid-arity]} comp]))"))
     (is (empty?
-         (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:unused-excluded-var]} comp]))")))))
+         (lint! "(ns foo (:refer-clojure :exclude [^{:clj-kondo/ignore [:unused-excluded-var]} comp]))"))))
+
+  (testing "bare ^:clj-kondo/ignore suppresses all linters"
+    (is (empty?
+         (lint! "(ns foo (:refer-clojure :exclude [^:clj-kondo/ignore comp]))")))))
 
 (deftest issue-2704-test
   (testing "defmulti defines var"
