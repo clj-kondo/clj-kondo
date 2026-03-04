@@ -518,8 +518,13 @@
            :name var})
         (:callstack ctx)))
 
-(defn ignored? [expr]
-  (:clj-kondo/ignore (meta expr)))
+(defn ignored? [expr linter]
+  (when-let [{:keys [linters] :as ignore} (:clj-kondo/ignore (meta expr))]
+    (or (identical? :all linters)
+        (true? ignore)
+        (if linters
+          (some #(identical? linter (:k %)) (:children linters))
+          (some #(identical? linter %) ignore)))))
 
 ;;;; Scratch
 
