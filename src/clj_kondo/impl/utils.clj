@@ -190,18 +190,29 @@
 
 (def vconj (fnil conj []))
 
+(defn- transient+ [coll]
+  (cond-> coll
+    (instance? clojure.lang.IEditableCollection coll) transient))
+
+(defn- persistent+ [coll]
+  (cond-> coll
+    (instance? clojure.lang.ITransientCollection coll) persistent!))
+
+(defn- assoc+ [coll k v]
+  ((if (instance? clojure.lang.ITransientCollection coll) assoc! assoc) coll k v))
+
 (defn- merge-with'
   "More efficient implementation of `clojure.core/merge-with` for two maps."
   [f m1 m2]
   (if (or (nil? m1) (nil? m2))
     (or m1 m2 {})
-    (persistent!
+    (persistent+
      (reduce-kv (fn [m1 k v]
                   (let [v1 (get m1 k ::empty)]
-                    (assoc! m1 k (if (identical? v1 ::empty)
+                    (assoc+ m1 k (if (identical? v1 ::empty)
                                    v
                                    (f v1 v)))))
-                (transient m1) m2))))
+                (transient+ m1) m2))))
 
 (defn deep-merge
   "deep merge that also mashes together sequentials"
@@ -218,8 +229,6 @@
          (false? b) b
          :else (or b a)))
   ([a b & more]
-   (apply deep-merge (deep-merge a b) more)
-   #_
    (reduce #(merge-with' deep-merge %1 %2) (list* a b more))))
 
 (defn constant?
