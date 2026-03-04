@@ -33004,7 +33004,7 @@
   :langs (),
   :message "namespace clj-kondo.impl.utils is required but never used",
   :row 4}
- {:end-row 24,
+ {:end-row 25,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/impl/utils.clj",
@@ -33013,7 +33013,7 @@
   :langs (),
   :message "Unresolved var: node/tag",
   :row 24}
- {:end-row 37,
+ {:end-row 38,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/impl/utils.clj",
@@ -33021,4 +33021,4 @@
   :end-col 16,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 37})
+  :row 38})
