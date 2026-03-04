@@ -218,6 +218,8 @@
          (false? b) b
          :else (or b a)))
   ([a b & more]
+   (apply deep-merge (deep-merge a b) more)
+   #_
    (reduce #(merge-with' deep-merge %1 %2) (list* a b more))))
 
 (defn constant?
