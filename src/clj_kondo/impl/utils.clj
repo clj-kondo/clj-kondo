@@ -190,46 +190,47 @@
 
 (def vconj (fnil conj []))
 
-(defn- transient+ [coll]
-  (cond-> coll
-    (instance? clojure.lang.IEditableCollection coll) transient))
+(declare deep-merge)
 
-(defn- persistent+ [coll]
-  (cond-> coll
-    (instance? clojure.lang.ITransientCollection coll) persistent!))
+(defn- deep-assoc
+  "This code is extracted into a named function instead of being a lambda to avoid
+  re-creating the lambda object in each call to `deep-merge-maps`."
+  [m1 k v2]
+  (let [v1 (get m1 k ::empty)
+        new-v (if (identical? v1 ::empty)
+                v2
+                (deep-merge v1 v2))]
+    (if (identical? v1 new-v)
+      m1
+      (assoc m1 k new-v))))
 
-(defn- assoc+ [coll k v]
-  ((if (instance? clojure.lang.ITransientCollection coll) assoc! assoc) coll k v))
-
-(defn- merge-with'
+(defn- deep-merge-maps
   "More efficient implementation of `clojure.core/merge-with` for two maps."
-  [f m1 m2]
+  [m1 m2]
   (if (or (nil? m1) (nil? m2))
     (or m1 m2 {})
-    (persistent+
-     (reduce-kv (fn [m1 k v]
-                  (let [v1 (get m1 k ::empty)]
-                    (assoc+ m1 k (if (identical? v1 ::empty)
-                                   v
-                                   (f v1 v)))))
-                (transient+ m1) m2))))
+    (reduce-kv deep-assoc m1 m2)))
 
 (defn deep-merge
   "deep merge that also mashes together sequentials"
   ([])
   ([a] a)
   ([a b]
-   (cond (when-let [m (meta b)]
+   (cond (nil? b) a
+         (when-let [m (meta b)]
            (:replace m)) b
-         (and (map? a) (map? b)) (merge-with' deep-merge a b)
-         ;; set/union pours smaller into bigger, hence more efficient than into
-         (and (set? a) (set? b)) (set/union a b)
+         (and (map? a) (map? b)) (deep-merge-maps a b)
+         ;; we often get called on equal sets, let's optimize for that.
+         ;; set/union is better than `into` since it pours smaller into bigger.
+         (and (set? a) (set? b)) (if (= a b)
+                                   b
+                                   (set/union a b))
+         ;; Use reduce+conj instead of into to avoid transient roundtrips.
          (and (or (sequential? a) (set? a))
-              (or (sequential? b) (set? b))) (into a b)
-         (false? b) b
-         :else (or b a)))
+              (or (sequential? b) (set? b))) (reduce conj a b)
+         :else b))
   ([a b & more]
-   (reduce #(merge-with' deep-merge %1 %2) (list* a b more))))
+   (reduce deep-merge-maps (list* a b more))))
 
 (defn constant?
   "returns true of expr represents a compile time constant"
