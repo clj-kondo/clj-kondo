@@ -7,12 +7,12 @@
 (set! *warn-on-reflection* true)
 
 (defn- read-to-boundary
-  [reader & [allowed]]
-  (let [allowed? (set allowed)]
-    (r/read-until
-      reader
-      #(and (not (allowed? %))
-            (r/whitespace-or-boundary? %)))))
+  ([reader] (read-to-boundary reader #{}))
+  ([reader allowed?]
+   (r/read-until
+    reader
+    #(and (not (allowed? %))
+          (r/whitespace-or-boundary? %)))))
 
 (defn- read-to-char-boundary
   [reader]
@@ -26,9 +26,7 @@
   "Symbols allow for certain boundary characters that have
    to be handled explicitly."
   [reader value value-string]
-  (let [suffix (read-to-boundary
-                 reader
-                 [\' \:])]
+  (let [suffix (read-to-boundary reader #{\' \:})]
     (if (empty? suffix)
       (node/token-node value value-string)
       (let [s (str value-string suffix)]

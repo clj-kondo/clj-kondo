@@ -29500,7 +29500,7 @@
   :langs (),
   :message "Unresolved var: node/string-node",
   :row 10}
- {:end-row 33,
+ {:end-row 31,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/token.clj",
@@ -29508,7 +29508,7 @@
   :end-col 23,
   :langs (),
   :message "Unresolved var: node/token-node",
-  :row 33}
+  :row 31}
  {:end-row 12,
   :type :unresolved-var,
   :level :warning,
