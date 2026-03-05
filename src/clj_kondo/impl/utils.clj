@@ -556,6 +556,28 @@
           (some #(identical? linter (:k %)) (:children linters))
           (some #(identical? linter %) ignore)))))
 
+(let [not-found (Object.)]
+  (defn memoize'
+    "A more efficient version of `clojure.core/memoize` that is only restricted to
+  1- and 2-arity functions."
+    [f]
+    (let [mem (atom {})]
+      (fn
+        ([arg]
+         (let [val (get @mem arg not-found)]
+           (if (identical? val not-found)
+             (let [ret (f arg)]
+               (swap! mem assoc arg ret)
+               ret)
+             val)))
+        ([arg1 arg2]
+         (let [val (get (get @mem arg1) arg2 not-found)]
+           (if (identical? val not-found)
+             (let [ret (f arg1 arg2)]
+               (swap! mem update arg1 assoc arg2 ret)
+               ret)
+             val)))))))
+
 ;;;; Scratch
 
 (comment
