@@ -14,8 +14,9 @@
 
 (defn- merge-select-keys [m1 m2 m2-keys]
   (persistent! (reduce (fn [acc k]
-                         (cond-> acc
-                           (contains? m2 k) (assoc! k (get m2 k))))
+                         (let [v (get m2 k)]
+                           (cond-> acc
+                             (some? v) (assoc! k v))))
                        (transient m1) m2-keys)))
 
 (defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
