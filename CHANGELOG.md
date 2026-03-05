@@ -27,6 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2770](https://github.com/clj-kondo/clj-kondo/issues/2770): Fix: linter-specific ignores now correctly respect the specified linters instead of suppressing all linters for `:unused-excluded-var` and `:unresolved-excluded-var`
 - [#2773](https://github.com/clj-kondo/clj-kondo/issues/2773): Align executable path for images to be `/bin/clj-kondo` ([@harryzcy](https://github.com/harryzcy))
 - [#2779](https://github.com/clj-kondo/clj-kondo/issues/2779), [#2780](https://github.com/clj-kondo/clj-kondo/issues/2780), [#2781](https://github.com/clj-kondo/clj-kondo/issues/2781), [#2782](https://github.com/clj-kondo/clj-kondo/issues/2782), [#2783](https://github.com/clj-kondo/clj-kondo/issues/2783), [#2785](https://github.com/clj-kondo/clj-kondo/issues/2785), [#2786](https://github.com/clj-kondo/clj-kondo/issues/2786): Performance optimizations.
+- Performance: cache hook-fn lookups to avoid repeated SCI evaluation
 
 
 ## 2026.01.19
