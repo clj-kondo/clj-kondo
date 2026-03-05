@@ -3247,10 +3247,7 @@
                                      children
                                      (cycle [:key :val]))
                                 children)
-                     children (map (fn [c s]
-                                     (assoc c :id s))
-                                   children
-                                   (repeatedly gensym))
+                     children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
                                (update ctx
                                        :callstack #(cons [nil t] %)) children)]
