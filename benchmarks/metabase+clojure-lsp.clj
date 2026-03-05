@@ -42,7 +42,7 @@
 
 (time (clojure-lsp.api/analyze-project-only! {:project-root (clojure.java.io/file "/Users/borkdude/dev/metabase")}))
 
-(println (format "GC stats: %s collections, collected %.1fGB, spent %1.f seconds on GC"
+(println (format "GC stats: %s collections, collected %.1fGB, spent %.1f seconds on GC"
                  (count @gc-events)
                  (double (/ (reduce + (map first @gc-events)) 1e9))
                  (double (/ (reduce + (map second @gc-events)) 1e3))))
