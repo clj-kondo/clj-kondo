@@ -194,7 +194,7 @@
 
 (defn- deep-assoc
   "This code is extracted into a named function instead of being a lambda to avoid
-  re-creating the lambda object in each call to `deep-merge-maps`."
+  re-allocating the lambda object in each call to `merge-with*`."
   [m1 k v2]
   (let [v1 (get m1 k ::empty)
         new-v (if (identical? v1 ::empty)
@@ -204,8 +204,9 @@
       m1
       (assoc m1 k new-v))))
 
-(defn- deep-merge-maps
-  "More efficient implementation of `clojure.core/merge-with` for two maps."
+(defn- merge-with*
+  "More efficient implementation of `clojure.core/merge-with` for two maps with
+  `deep-merge` hardcoded as the combiner function."
   [m1 m2]
   (if (or (nil? m1) (nil? m2))
     (or m1 m2 {})
@@ -219,7 +220,7 @@
    (cond (nil? b) a
          (when-let [m (meta b)]
            (:replace m)) b
-         (and (map? a) (map? b)) (deep-merge-maps a b)
+         (and (map? a) (map? b)) (merge-with* a b)
          ;; we often get called on equal sets, let's optimize for that.
          ;; set/union is better than `into` since it pours smaller into bigger.
          (and (set? a) (set? b)) (if (= a b)
@@ -230,7 +231,7 @@
               (or (sequential? b) (set? b))) (reduce conj a b)
          :else b))
   ([a b & more]
-   (reduce deep-merge-maps (list* a b more))))
+   (reduce merge-with* (list* a b more))))
 
 (defn constant?
   "returns true of expr represents a compile time constant"
