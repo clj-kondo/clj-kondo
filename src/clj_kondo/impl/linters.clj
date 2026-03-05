@@ -341,7 +341,8 @@
   to call-specific linters."
   [ctx idacs]
   (let [config (:config ctx)
-        linted-namespaces (:linted-namespaces idacs)]
+        linted-namespaces (:linted-namespaces idacs)
+        namespaces @(:namespaces ctx)]
     ;; (prn :from-cache from-cache)
     (doseq [ns (namespace/list-namespaces ctx)
             :let [base-lang (:base-lang ns)]
@@ -356,7 +357,7 @@
                   caller-ns-sym (:ns call)
                   call-lang (:lang call)
                   ctx (assoc ctx :lang call-lang :base-lang base-lang)
-                  caller-ns (get-in @(:namespaces ctx)
+                  caller-ns (get-in namespaces
                                     [base-lang call-lang caller-ns-sym])
                   resolved-ns (:resolved-ns call)
                   refer-alls (:refer-alls caller-ns)
