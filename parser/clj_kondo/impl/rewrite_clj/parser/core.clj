@@ -220,7 +220,7 @@
     \{ (node/set-node (parse-delim reader \{ \}))
     \( (node/fn-node (parse-delim reader \( \)))
     \" (node/regex-node (parse-regex reader))
-    \^ (parse-meta reader)
+    \^ (parse-meta reader context)
     \' (node/var-node (parse-printables reader context :var 1 true))
     \= (node/eval-node (parse-printables reader context :eval 1 true))
     \_ (read-with-ignore-hint reader context)
