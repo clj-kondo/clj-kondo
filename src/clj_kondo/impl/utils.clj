@@ -14,6 +14,7 @@
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
    [clojure.java.io :as io]
    [clojure.pprint :as pprint]
+   [clojure.set :as set]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -189,20 +190,49 @@
 
 (def vconj (fnil conj []))
 
+(declare deep-merge)
+
+(defn- deep-assoc
+  "This code is extracted into a named function instead of being a lambda to avoid
+  re-allocating the lambda object in each call to `merge-with*`."
+  [m1 k v2]
+  (let [v1 (get m1 k ::empty)
+        new-v (if (identical? v1 ::empty)
+                v2
+                (deep-merge v1 v2))]
+    (if (identical? v1 new-v)
+      m1
+      (assoc m1 k new-v))))
+
+(defn- merge-with*
+  "More efficient implementation of `clojure.core/merge-with` for two maps with
+  `deep-merge` hardcoded as the combiner function."
+  [m1 m2]
+  (if (or (nil? m1) (nil? m2))
+    (or m1 m2 {})
+    (reduce-kv deep-assoc m1 m2)))
+
 (defn deep-merge
   "deep merge that also mashes together sequentials"
   ([])
   ([a] a)
   ([a b]
-   (cond (when-let [m (meta b)]
+   (cond (nil? b) a
+         (when-let [m (meta b)]
            (:replace m)) b
-         (and (map? a) (map? b)) (merge-with deep-merge a b)
+         (and (map? a) (map? b)) (merge-with* a b)
+         ;; we often get called on equal sets, let's optimize for that.
+         ;; set/union is better than `into` since it pours smaller into bigger.
+         (and (set? a) (set? b)) (if (= a b)
+                                   b
+                                   (set/union a b))
+         ;; Use reduce+conj instead of into to avoid transient roundtrips.
          (and (or (sequential? a) (set? a))
-              (or (sequential? b) (set? b))) (into a b)
-         (false? b) b
-         :else (or b a)))
+              (or (sequential? b) (set? b))) (reduce conj a b)
+         :else b))
   ([a b & more]
-   (apply merge-with deep-merge a b more)))
+   #_{:clj-kondo/ignore [:reduce-without-init]}
+   (reduce merge-with* (list* a b more))))
 
 (defn constant?
   "returns true of expr represents a compile time constant"
@@ -518,8 +548,13 @@
            :name var})
         (:callstack ctx)))
 
-(defn ignored? [expr]
-  (:clj-kondo/ignore (meta expr)))
+(defn ignored? [expr linter]
+  (when-let [{:keys [linters] :as ignore} (:clj-kondo/ignore (meta expr))]
+    (or (identical? :all linters)
+        (true? ignore)
+        (if linters
+          (some #(identical? linter (:k %)) (:children linters))
+          (some #(identical? linter %) ignore)))))
 
 (let [not-found (Object.)]
   (defn memoize'
