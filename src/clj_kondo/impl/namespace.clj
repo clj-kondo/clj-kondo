@@ -639,8 +639,8 @@
                         ns-sym))))))))))
 
 (defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym arity-info expr]
-  (let [discouraged-var-config
-        (get-in call-config [:linters :discouraged-var])]
+  (when-let [discouraged-var-config
+             (get-in call-config [:linters :discouraged-var])]
     (when-not (or (identical? :off (:level discouraged-var-config))
                   (empty? (dissoc discouraged-var-config :level)))
       (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
