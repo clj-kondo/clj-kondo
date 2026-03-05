@@ -488,6 +488,15 @@
   :langs (),
   :message "Single argument to str already is a string",
   :row 23}
+ {:end-row 28,
+  :type :reduce-without-init,
+  :level :warning,
+  :filename "cheshire/experimental.clj",
+  :col 8,
+  :end-col 78,
+  :langs (),
+  :message "Reduce called without explicit initial value.",
+  :row 28}
  {:end-row 8,
   :type :unused-import,
   :level :warning,
@@ -10574,6 +10583,17 @@
   :langs (:cljs),
   :message "Unresolved symbol: Throwable",
   :row 154}
+ {:end-row 175,
+  :type :reduce-without-init,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/module_graph.cljc",
+  :col 9,
+  :end-col 73,
+  :cljc true,
+  :langs (:clj),
+  :message "Reduce called without explicit initial value.",
+  :row 174}
  {:end-row 186,
   :type :unresolved-symbol,
   :level :error,
@@ -15820,6 +15840,17 @@
   :langs (:cljs),
   :message "Unresolved namespace Integer. Are you missing a require?",
   :row 40}
+ {:end-row 44,
+  :type :reduce-without-init,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/util.cljc",
+  :col 28,
+  :end-col 102,
+  :cljc true,
+  :langs (:clj),
+  :message "Reduce called without explicit initial value.",
+  :row 44}
  {:end-row 44,
   :type :unresolved-symbol,
   :level :error,
@@ -29469,7 +29500,7 @@
   :langs (),
   :message "Unresolved var: node/string-node",
   :row 10}
- {:end-row 33,
+ {:end-row 31,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/token.clj",
@@ -29477,7 +29508,7 @@
   :end-col 23,
   :langs (),
   :message "Unresolved var: node/token-node",
-  :row 33}
+  :row 31}
  {:end-row 12,
   :type :unresolved-var,
   :level :warning,
@@ -33004,7 +33035,7 @@
   :langs (),
   :message "namespace clj-kondo.impl.utils is required but never used",
   :row 4}
- {:end-row 24,
+ {:end-row 25,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/impl/utils.clj",
@@ -33012,8 +33043,8 @@
   :end-col 23,
   :langs (),
   :message "Unresolved var: node/tag",
-  :row 24}
- {:end-row 37,
+  :row 25}
+ {:end-row 38,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/impl/utils.clj",
@@ -33021,4 +33052,4 @@
   :end-col 16,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 37})
+  :row 38})
