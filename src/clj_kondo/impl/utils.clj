@@ -231,6 +231,7 @@
               (or (sequential? b) (set? b))) (reduce conj a b)
          :else b))
   ([a b & more]
+   #_{:clj-kondo/ignore [:reduce-without-init]}
    (reduce merge-with* (list* a b more))))
 
 (defn constant?
