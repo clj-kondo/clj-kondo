@@ -227,9 +227,9 @@
                  ;; regex creation is cached
                  ;; matches on regex are cached
                  #_{:clj-kondo/ignore [:discouraged-var]}
-                 (let [re-pattern-memo (memoize re-pattern)]
-                   (memoize (fn [pattern-str file-str]
-                              (re-find (re-pattern-memo pattern-str) file-str))))}
+                 (let [re-pattern-memo (utils/memoize' re-pattern)]
+                   (utils/memoize' (fn [pattern-str file-str]
+                                     (re-find (re-pattern-memo pattern-str) file-str))))}
             lang (or lang :clj)
             ;; primary file analysis and initial lint
             _ (core-impl/process-files (if parallel

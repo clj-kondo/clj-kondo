@@ -1543,7 +1543,7 @@
       (when-not (linter-disabled? ctx :redundant-declare)
         (let [existing-var (get vars var-name)]
           (when (and existing-var
-                     (not (utils/ignored? existing-var)))
+                     (not (utils/ignored? existing-var :redundant-declare)))
             (findings/reg-finding!
              ctx
              (node->line (:filename ctx) expr :redundant-declare
@@ -3253,10 +3253,7 @@
                                      children
                                      (cycle [:key :val]))
                                 children)
-                     children (map (fn [c s]
-                                     (assoc c :id s))
-                                   children
-                                   (repeatedly gensym))
+                     children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
                                (update ctx
                                        :callstack #(cons [nil t] %)) children)]

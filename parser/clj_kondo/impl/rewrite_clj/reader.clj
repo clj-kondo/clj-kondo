@@ -120,32 +120,40 @@
 
 (defn read-with-meta
   "Use the given function to read value, then attach row/col metadata."
-  [reader read-fn]
-  (loop [start-position (position reader :row :col)]
-    (when-let [entry (read-fn reader)]
-      (if (identical? reader entry)
-        (recur (position reader :row :col))
-        (let [end-position (position reader :end-row :end-col)
-              new-meta (merge start-position end-position (meta entry))]
-          (with-meta entry new-meta))))))
+  [reader read-fn context]
+  (loop []
+    (let [start-row (r/get-line-number reader)
+          start-col (r/get-column-number reader)]
+      (when-let [entry (read-fn reader context)]
+        (if (identical? reader entry)
+          (recur)
+          ;; conj is more efficient here than into because it doesn't perform
+          ;; transient/persistent conversion if the second argument is nil.
+          (let [new-meta (-> (conj {:row start-row
+                                    :col start-col
+                                    :end-row (r/get-line-number reader)
+                                    :end-col (r/get-column-number reader)}
+                                   (meta entry)))]
+            (with-meta entry new-meta)))))))
 
 (defn read-repeatedly
   "Call the given function on the given reader until it returns
    a non-truthy value."
-  [reader read-fn]
-  (->> (repeatedly #(read-fn reader))
-       (take-while identity)
-       (doall)))
+  [reader read-fn context]
+  (loop [acc []]
+    (if-let [x (read-fn reader context)]
+      (recur (conj acc x))
+      acc)))
 
 (defn read-n
   "Call the given function on the given reader until `n` values matching `p?` have been
    collected."
-  [reader node-tag read-fn p? n]
+  [reader node-tag read-fn context p? n]
   {:pre [(pos? n)]}
   (loop [c 0
          vs []]
     (if (< c n)
-      (if-let [v (read-fn reader)]
+      (if-let [v (read-fn reader context)]
         (recur
           (if (p? v) (inc c) c)
           (conj vs v))

@@ -12,21 +12,19 @@
 
 ;; ## Base Parser
 
-(def ^:dynamic ^:private *delimiter*
-  "Record information about the pair of delimiter that are being parsed.
-  This keeps track when parsing matching pairs of `{}`, `[]`, `()`.
-  Store a tuple of 4 values: [open (char), close (char), row (int), col (int)]
-  - The first item is the opening character, `{`, `[` or `(`.
-  - The second item is the closing character, `}`, `]` or `)`.
-  - The third item is the row on which the opening bracket was found.
-  - The fourth item is the column on which the opening bracket was found."
-  nil)
+;; Record information about the pair of delimiter that are being parsed.
+;; This keeps track when parsing matching pairs of `{}`, `[]`, `()`.
+;; - The first item is the opening character, `{`, `[` or `(`.
+;; - The second item is the closing character, `}`, `]` or `)`.
+;; - The third item is the row on which the opening bracket was found.
+;; - The fourth item is the column on which the opening bracket was found.
+(defrecord ReaderContext [open-delim close-delim row col])
 
 (defn- dispatch
-  [c]
-  (cond (nil? c)                   :eof
-        (reader/whitespace? c)     :whitespace
-        (= c (second *delimiter*)) :delimiter
+  [c context]
+  (cond (nil? c)                     :eof
+        (reader/whitespace? c)       :whitespace
+        (= c (:close-delim context)) :delimiter
         :else (get {\^ :meta      \# :sharp
                     \( :list      \[ :vector    \{ :map
                     \} :unmatched \] :unmatched \) :unmatched
@@ -36,11 +34,12 @@
                    c :token)))
 
 (defmulti ^:private parse-next*
-  (comp #'dispatch reader/peek))
+  (fn [reader context] (dispatch (reader/peek reader) context)))
 
 (defn parse-next
-  [reader]
-  (reader/read-with-meta reader parse-next*))
+  ([reader] (parse-next reader nil))
+  ([reader context]
+   (reader/read-with-meta reader parse-next* context)))
 
 ;; # Parser Helpers
 
@@ -48,18 +47,19 @@
   [reader open-delimiter close-delimiter]
   (let [{:keys [row col]} (reader/position reader :row :col)]
     (reader/ignore reader)
-    (->> #(binding [*delimiter* [open-delimiter close-delimiter row col]]
-            (parse-next %))
-         (reader/read-repeatedly reader))))
+    (reader/read-repeatedly reader parse-next
+                            (->ReaderContext open-delimiter close-delimiter
+                                             row col))))
 
 (defn- parse-printables
-  [reader node-tag n & [ignore?]]
+  [reader context node-tag n & [ignore?]]
   (when ignore?
     (reader/ignore reader))
   (reader/read-n
    reader
    node-tag
    parse-next
+   context
    (complement node/printable-only?)
    n))
 
@@ -68,11 +68,11 @@
 ;; ### Base
 
 (defmethod parse-next* :token
-  [reader]
+  [reader _]
   (parse-token reader))
 
 (defmethod parse-next* :delimiter
-  [reader]
+  [reader _]
   (reader/ignore reader))
 
 (def open->close
@@ -80,11 +80,11 @@
    \[ \]
    \{ \}})
 
-(defn- mismatched-paren [[open _ row col] reader]
+(defn- mismatched-paren [reader {:keys [open-delim row col] :as _context}]
   (let [{:keys [close-row close-col]} (reader/position reader :close-row :close-col)
         closer (r/read-char reader)
-        open-message (format "Mismatched bracket: found an opening %s and a closing %s on line %d" open closer close-row)
-        close-message (format "Mismatched bracket: found an opening %s on line %d and a closing %s" open row closer)
+        open-message (format "Mismatched bracket: found an opening %s and a closing %s on line %d" open-delim closer close-row)
+        close-message (format "Mismatched bracket: found an opening %s on line %d and a closing %s" open-delim row closer)
         opening {:row row
                  :col col
                  :message open-message}
@@ -92,7 +92,7 @@
                   :col close-col
                   :message close-message}]
     (swap! reader/*reader-exceptions* conj (ex-info "Syntax error" {:findings [opening closing]}))
-    (r/unread reader (get open->close open))
+    (r/unread reader (get open->close open-delim))
     reader))
 
 (defn- trailing-paren [reader]
@@ -104,59 +104,59 @@
     reader))
 
 (defmethod parse-next* :unmatched
-  [reader]
-  (if *delimiter*
-    (mismatched-paren *delimiter* reader)
+  [reader context]
+  (if context
+    (mismatched-paren reader context)
     (trailing-paren reader)))
 
 (defmethod parse-next* :eof
-  [reader]
-  (when-let [[open close row col] *delimiter*]
+  [reader context]
+  (when-let [{:keys [open-delim close-delim row col]} context]
     (let [opening {:row row
                    :col col
-                   :message (format "Found an opening %s with no matching %s" open close)}
+                   :message (format "Found an opening %s with no matching %s" open-delim close-delim)}
           closing (assoc (reader/position reader :row :col)
-                         :message (format "Expected a %s to match %s from line %d" close open row))]
+                         :message (format "Expected a %s to match %s from line %d" close-delim open-delim row))]
       (swap! reader/*reader-exceptions* conj (ex-info "Syntax error"
                                                       {:findings [opening closing]}))
-      (r/unread reader close)
+      (r/unread reader close-delim)
       reader)))
 
 ;; ### Whitespace
 
 (defmethod parse-next* :whitespace
-  [reader]
+  [reader _]
   (reader/read-while reader reader/whitespace?)
   reader)
 
 (defmethod parse-next* :comment
-  [reader]
+  [reader _]
   (reader/read-include-linebreak reader)
   reader)
 
 ;; ### Special Values
 
 (defmethod parse-next* :keyword
-  [reader]
+  [reader _]
   (parse-keyword reader))
 
 (defmethod parse-next* :string
-  [reader]
+  [reader _]
   (parse-string reader))
 
 ;; ### Meta
 
 (def lconj (fnil conj '()))
 
-(defn parse-meta [reader]
+(defn parse-meta [reader context]
   (reader/ignore reader)
-  (let [meta-node (parse-next reader)
-        value-node (parse-next reader)]
+  (let [meta-node (parse-next reader context)
+        value-node (parse-next reader context)]
     (update value-node :meta lconj meta-node)))
 
 (defmethod parse-next* :meta
-  [reader]
-  (parse-meta reader))
+  [reader context]
+  (parse-meta reader context))
 
 ;; ### Reader Specialities
 
@@ -182,11 +182,11 @@
   (prn x)
   x)
 
-(defn- read-with-ignore-hint [reader]
-  (let [[node] (parse-printables reader :uneval 1 true)
+(defn- read-with-ignore-hint [reader context]
+  (let [[node] (parse-printables reader context :uneval 1 true)
         im (ignore-meta [node])]
     (cond im
-          (vary-meta (parse-next reader)
+          (vary-meta (parse-next reader context)
                      into im)
           (and node
                (= :reader-macro (node/tag node))
@@ -204,13 +204,13 @@
             (if (or (not features)
                     (every? children features)
                     (contains? children :default))
-              (parse-next reader)
+              (parse-next reader context)
               (vary-meta node assoc :clj-kondo/uneval (set (remove children features)))))
           :else
-          (parse-next reader))))
+          (parse-next reader context))))
 
 (defmethod parse-next* :sharp
-  [reader]
+  [reader context]
   (reader/ignore reader)
   (case (reader/peek reader)
     nil (u/throw-reader reader "Unexpected EOF.")
@@ -220,19 +220,19 @@
     \{ (node/set-node (parse-delim reader \{ \}))
     \( (node/fn-node (parse-delim reader \( \)))
     \" (node/regex-node (parse-regex reader))
-    \^ (parse-meta reader)
-    \' (node/var-node (parse-printables reader :var 1 true))
-    \= (node/eval-node (parse-printables reader :eval 1 true))
-    \_ (read-with-ignore-hint reader)
+    \^ (parse-meta reader context)
+    \' (node/var-node (parse-printables reader context :var 1 true))
+    \= (node/eval-node (parse-printables reader context :eval 1 true))
+    \_ (read-with-ignore-hint reader context)
     ;; begin patch patch
-    \: (nm/parse-namespaced-map reader parse-next)
+    \: (nm/parse-namespaced-map reader #(parse-next % context))
     ;; end patch
     \? (do
          ;; we need to examine the next character, so consume one (known \?)
          (reader/next reader)
          ;; we will always have a reader-macro-node as the result
          (node/reader-macro-node
-          (let [read1 (fn [] (parse-printables reader :reader-macro 1))]
+          (let [read1 (fn [] (parse-printables reader context :reader-macro 1))]
             (cons (case (reader/peek reader)
                     ;; the easy case, just emit a token
                     \( (node/token-node (symbol "?"))
@@ -245,42 +245,42 @@
                     (do (reader/unread reader \?)
                         (first (read1))))
                   (read1)))))
-    (node/reader-macro-node (parse-printables reader :reader-macro 2))))
+    (node/reader-macro-node (parse-printables reader context :reader-macro 2))))
 
 (defmethod parse-next* :deref
-  [reader]
-  (node/deref-node (parse-printables reader :deref 1 true)))
+  [reader context]
+  (node/deref-node (parse-printables reader context :deref 1 true)))
 
 ;; ## Quotes
 
 (defmethod parse-next* :quote
-  [reader]
-  (node/quote-node (parse-printables reader :quote 1 true)))
+  [reader context]
+  (node/quote-node (parse-printables reader context :quote 1 true)))
 
 (defmethod parse-next* :syntax-quote
-  [reader]
-  (node/syntax-quote-node (parse-printables reader :syntax-quote 1 true)))
+  [reader context]
+  (node/syntax-quote-node (parse-printables reader context :syntax-quote 1 true)))
 
 (defmethod parse-next* :unquote
-  [reader]
+  [reader context]
   (reader/ignore reader)
   (let [c (reader/peek reader)]
     (if (= \@ c)
       (node/unquote-splicing-node
-       (parse-printables reader :unquote 1 true))
+       (parse-printables reader context :unquote 1 true))
       (node/unquote-node
-       (parse-printables reader :unquote 1)))))
+       (parse-printables reader context :unquote 1)))))
 
 ;; ### Seqs
 
 (defmethod parse-next* :list
-  [reader]
+  [reader _]
   (node/list-node (parse-delim reader \( \))))
 
 (defmethod parse-next* :vector
-  [reader]
+  [reader _]
   (node/vector-node (parse-delim reader \[ \])))
 
 (defmethod parse-next* :map
-  [reader]
+  [reader _]
   (node/map-node (parse-delim reader \{ \})))
