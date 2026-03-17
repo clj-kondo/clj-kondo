@@ -1,7 +1,7 @@
 (ns clj-kondo.core-test
   (:require
    [clj-kondo.core :as clj-kondo]
-   [clj-kondo.impl.core :refer [path-separator]]
+   [clj-kondo.impl.core :refer [path-separator format-output]]
    [clj-kondo.test-utils :refer [assert-submaps assert-submaps2
                                  file-path file-separator]]
    [clojure.edn :as edn]
