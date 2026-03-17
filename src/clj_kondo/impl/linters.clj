@@ -177,6 +177,23 @@
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call))
       (lint-if-nil-return ctx (:expr call)))
+    (when (and (= 'nil? called-name)
+               (utils/one-of called-ns [clojure.core cljs.core])
+               (not (utils/linter-disabled? call :not-nil?)))
+      (let [cs (:callstack call)
+            parent (second cs)
+            effective-parent (or parent (nth cs 2 nil))
+            reg! #(findings/reg-finding! ctx
+                                         (assoc (utils/location call)
+                                                :type :not-nil?
+                                                :message %))]
+        (cond
+          (utils/one-of parent [[clojure.core not] [cljs.core not]])
+          (reg! "Use (some? x) instead of (not (nil? x))")
+          (utils/one-of effective-parent [[clojure.core when-not] [cljs.core when-not]])
+          (reg! "Use (when (some? x) ...) instead of (when-not (nil? x) ...)")
+          (utils/one-of parent [[clojure.core if-not] [cljs.core if-not]])
+          (reg! "Use (if (some? x) ...) instead of (if-not (nil? x) ...)"))))
     (when (contains? var-info/unused-values
                      (symbol (let [cns (str called-ns)]
                                (if (= "cljs.core" cns) "clojure.core" cns))
