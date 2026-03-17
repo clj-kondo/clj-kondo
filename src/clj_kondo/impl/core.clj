@@ -405,6 +405,7 @@
     default-language))
 
 (def path-separator (System/getProperty "path.separator"))
+(def path-separator-pat (re-pattern path-separator))
 
 (defn classpath? [f]
   (str/includes? f path-separator))
@@ -453,7 +454,7 @@
                   1
 
                   (classpath? path)
-                  (files-count (str/split path (re-pattern path-separator)) ctx)
+                  (files-count (str/split path path-separator-pat) ctx)
 
                   :else 0))))
        (reduce + 0)))
@@ -523,8 +524,7 @@
                                    default-language)} dev?))
           (classpath? path)
           (run! #(process-file ctx % default-language canonical? filename-fallback use-import-dir)
-                (str/split path
-                           (re-pattern path-separator)))
+                (str/split path path-separator-pat))
           :else
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx
