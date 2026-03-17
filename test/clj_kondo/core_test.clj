@@ -162,6 +162,40 @@
     (is (= 1 (:end-row first-and-only-finding)))
     (is (= 10 (:end-col first-and-only-finding)))))
 
+(deftest format-output-test
+  (let [finding {:filename "src/foo.clj"
+                 :row 10
+                 :end-row 12
+                 :col 3
+                 :end-col 15
+                 :level :warning
+                 :message "Unused binding x"
+                 :type :unused-binding}]
+    (testing "pattern with all template variables"
+      (let [fmt (format-output {:output {:pattern "{{filename}}:{{row}}:{{col}} {{LEVEL}} {{message}} [{{type}}]"}})]
+        (is (= "src/foo.clj:10:3 WARNING Unused binding x [:unused-binding]"
+               (fmt finding)))))
+    (testing "pattern with subset of variables"
+      (let [fmt (format-output {:output {:pattern "{{filename}}({{row}},{{col}}): {{level}}: {{message}}"}})]
+        (is (= "src/foo.clj(10,3): warning: Unused binding x"
+               (fmt finding)))))
+    (testing "pattern with end-row and end-col"
+      (let [fmt (format-output {:output {:pattern "{{row}}-{{end-row}}:{{col}}-{{end-col}}"}})]
+        (is (= "10-12:3-15"
+               (fmt finding)))))
+    (testing "default format without pattern"
+      (let [fmt (format-output {:output {}})]
+        (is (= "src/foo.clj:10:3: warning: Unused binding x"
+               (fmt finding)))))
+    (testing "default format with show-rule-name"
+      (let [fmt (format-output {:output {:show-rule-name-in-message true}})]
+        (is (= "src/foo.clj:10:3: warning: Unused binding x [:unused-binding]"
+               (fmt finding)))))
+    (testing "default format with langs"
+      (let [fmt (format-output {:output {:langs true}})]
+        (is (= "src/foo.clj:10:3: warning: Unused binding x [clj, cljs]"
+               (fmt (assoc finding :langs [:clj :cljs]))))))))
+
 (deftest findings-serialization-test
   (let [{:keys [findings]}
         (with-in-str "(ns test (:require [\"@material-ui/core\" :default mui]))"
