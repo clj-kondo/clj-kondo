@@ -20,20 +20,24 @@
 
 (def cache-version "v1")
 
+(def ^:private template-re #"\{\{(filename|row|end-row|col|end-col|level|LEVEL|message|type)\}\}")
+
 (defn format-output [config]
   (let [output-cfg (:output config)]
     (if-let [^String pattern (-> output-cfg :pattern)]
       (fn [{:keys [filename row end-row col end-col level message type] :as _finding}]
-        (-> pattern
-            (str/replace "{{filename}}" filename)
-            (str/replace "{{row}}" (str row))
-            (str/replace "{{end-row}}" (str end-row))
-            (str/replace "{{col}}" (str col))
-            (str/replace "{{end-col}}" (str end-col))
-            (str/replace "{{level}}" (name level))
-            (str/replace "{{LEVEL}}" (str/upper-case (name level)))
-            (str/replace "{{message}}" message)
-            (str/replace "{{type}}" (str type))))
+        (str/replace pattern template-re
+                     (fn [[_ k]]
+                       (case k
+                         "filename" filename
+                         "row" (str row)
+                         "end-row" (str end-row)
+                         "col" (str col)
+                         "end-col" (str end-col)
+                         "level" (name level)
+                         "LEVEL" (str/upper-case (name level))
+                         "message" message
+                         "type" (str type)))))
       (fn [{:keys [filename row col level message type langs] :as _finding}]
         (str filename ":"
              row ":"
