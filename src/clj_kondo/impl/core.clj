@@ -3,7 +3,9 @@
   {:no-doc true}
   (:require
    [babashka.fs :as fs]
+   [clj-kondo.impl.analysis.aot :as aot]
    [clj-kondo.impl.analysis.java :as java]
+   [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -249,10 +251,17 @@
   [ctx ^java.io.File jar-file canonical? use-import-dir?]
   (with-open [jar (JarFile. jar-file)]
     (let [cfg-dir (:config-dir ctx)
-          entries (enumeration-seq (.entries jar))
+          all-entries (enumeration-seq (.entries jar))
+          ;; Collect __init.class entries for AOT-only namespace detection
+          init-entries (atom {}) ;; {ns-path-prefix -> JarEntry}
+          source-ns-prefixes (atom #{})
           entries (filter (fn [^JarFile$JarFileEntry x]
                             (let [nm (.getName x)]
                               (when-not (.isDirectory x)
+                                ;; Track __init.class entries
+                                (when (str/ends-with? nm "__init.class")
+                                  (let [prefix (subs nm 0 (- (count nm) (count "__init.class")))]
+                                    (swap! init-entries assoc prefix x)))
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
                                   (when (and (java/analyze-class-defs? ctx)
@@ -270,27 +279,53 @@
                                                                                (str jar-file))
                                                                              ":" nm)
                                                               :file jar-file})))
-                                (source-file? nm)))) entries)]
-      ;; Important that we close the `JarFile` so this has to be strict see GH
-      ;; issue #542. Maybe it makes sense to refactor loading source using
-      ;; transducers so we don't have to load the entire source of a jar file in
-      ;; memory at once?
-      (into [] (keep (fn [^JarFile$JarFileEntry entry]
-                       (let [entry-name (.getName entry)
-                             source (slurp (.getInputStream jar entry))]
-                         (if (and cfg-dir
-                                  (str/includes? entry-name "clj-kondo.exports"))
-                           ;; never lint exported hook code
-                           (when (:copy-configs ctx)
-                             ;; only copy when copy-configs is true
-                             (copy-config-entry ctx entry-name source cfg-dir use-import-dir?))
-                           {:uri (->uri (str (.getCanonicalPath jar-file)) entry-name nil)
-                            :filename (str (when canonical?
-                                             (str (.getCanonicalPath jar-file) ":"))
-                                           entry-name)
-                            :source source
-                            :group-id jar-file}))))
-            entries))))
+                                ;; Track source file ns prefixes
+                                (when (source-file? nm)
+                                  (let [prefix (str/replace nm #"\.(clj|cljs|cljc)$" "")]
+                                    (swap! source-ns-prefixes conj prefix)))
+                                (source-file? nm)))) all-entries)
+          ;; Important that we close the `JarFile` so this has to be strict see GH
+          ;; issue #542. Maybe it makes sense to refactor loading source using
+          ;; transducers so we don't have to load the entire source of a jar file in
+          ;; memory at once?
+          sources (into [] (keep (fn [^JarFile$JarFileEntry entry]
+                                   (let [entry-name (.getName entry)
+                                         source (slurp (.getInputStream jar entry))]
+                                     (if (and cfg-dir
+                                              (str/includes? entry-name "clj-kondo.exports"))
+                                       ;; never lint exported hook code
+                                       (when (:copy-configs ctx)
+                                         ;; only copy when copy-configs is true
+                                         (copy-config-entry ctx entry-name source cfg-dir use-import-dir?))
+                                       {:uri (->uri (str (.getCanonicalPath jar-file)) entry-name nil)
+                                        :filename (str (when canonical?
+                                                         (str (.getCanonicalPath jar-file) ":"))
+                                                       entry-name)
+                                        :source source
+                                        :group-id jar-file}))))
+                        entries)]
+      ;; Process AOT-only namespaces: __init.class with no corresponding source.
+      ;; entries has been fully consumed by into above, so init-entries and
+      ;; source-ns-prefixes are populated.
+      (when-let [cache-dir (:cache-dir ctx)]
+        (doseq [[prefix ^JarFile$JarFileEntry init-entry] @init-entries
+                :when (not (contains? @source-ns-prefixes prefix))]
+          (try
+            (let [ns-vars (aot/extract-ns-vars jar init-entry)]
+              (when (seq ns-vars)
+                (let [ns-name (->> (vals ns-vars)
+                                   (keep :ns)
+                                   first)]
+                  (when ns-name
+                    (cache/with-thread-lock
+                      (cache/with-cache cache-dir 6
+                        (cache/to-cache (:config-dir ctx) cache-dir
+                                        :clj ns-name ns-vars)))))))
+            (catch Exception e
+              (when (:debug ctx)
+                (utils/stderr "[clj-kondo] Error extracting AOT vars from"
+                              (.getName init-entry) ":" (.getMessage e)))))))
+      sources)))
 
 ;;;; dir processing
 
@@ -391,7 +426,7 @@
       (.execute es
                 (bound-fn []
                   (analyze-task ctx deque dev?)
-                (.countDown latch))))
+                  (.countDown latch))))
     (.await latch)
     (.shutdown es)))
 
@@ -645,7 +680,7 @@
                       deprecated (:deprecated v)
                       deprecated (deprecated-val deprecated)]
                   (cond-> {:filename filename
-                          lang (format-vars vars)}
+                           lang (format-vars vars)}
                     deprecated (assoc :deprecated deprecated))))
               namespaces)))
 
