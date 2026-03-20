@@ -49,18 +49,16 @@
 (defn read-string-data
   [reader]
   (ignore reader)
-  (let [buf (StringBuffer.)]
-    (loop [escape? false
-           lines []]
-      (if-let [c (r/read-char reader)]
-        (cond (and (not escape?) (= c \"))
-              (flush-into lines buf)
+  (loop [escape? false, lines [], buf (StringBuilder.)]
+    (if-let [c (r/read-char reader)]
+      (cond (and (not escape?) (= c \"))
+            (conj lines (str buf))
 
-              (= c \newline)
-              (recur escape? (flush-into lines buf))
+            (= c \newline)
+            (recur escape? (conj lines (str buf)) (StringBuilder.))
 
-              :else
-              (do
-                (.append buf c)
-                (recur (and (not escape?) (= c \\)) lines)))
-        (throw-reader reader "Unexpected EOF while reading string.")))))
+            :else
+            (do
+              (.append buf (char c))
+              (recur (and (not escape?) (= c \\)) lines buf)))
+      (throw-reader reader "Unexpected EOF while reading string."))))
