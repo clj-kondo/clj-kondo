@@ -198,9 +198,16 @@
 
 (defn sync-cache [idacs config-dir cache-dir]
   (if cache-dir
-    (with-thread-lock
-      (with-cache cache-dir 6
-        (sync-cache* idacs config-dir cache-dir)))
+    (try
+      (with-thread-lock
+        (with-cache cache-dir 6
+          (sync-cache* idacs config-dir cache-dir)))
+      (catch Exception e
+        (if (str/includes? (ex-message e) "locked")
+          (do (binding [*out* *err*]
+                (println "[clj-kondo] WARNING: cache is locked by another process; skipping cache sync."))
+              idacs)
+          (throw e))))
     (sync-cache* idacs config-dir cache-dir)))
 
 ;;;; Scratch
