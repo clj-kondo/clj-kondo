@@ -16,30 +16,30 @@
 (defn boundary?
   "Check whether a given char is a token boundary."
   [c]
-  (contains?
-    #{\" \: \; \' \@ \^ \` \~
-      \( \) \[ \] \{ \} \\ nil}
-    c))
+  ;; Note: indexOf here is more efficient that a hashset of characters.
+  (or (nil? c) (> (.indexOf "\":;'@^`~()[]{}\\" (int c)) -1)))
 
 (defn comma?
   [^java.lang.Character c]
-  (= \, c))
+  (identical? \, c))
 
 (defn whitespace?
   [^java.lang.Character c]
-  (and c
-       (or (comma? c)
-           (Character/isWhitespace c))))
+  (cond (nil? c) false
+        (identical? \, c) true
+        :else (Character/isWhitespace c)))
 
 (defn linebreak?
   [^java.lang.Character c]
-  (contains? #{\newline \return} c))
+  (or (identical? c \newline) (identical? c \return)))
 
 (defn space?
   [^java.lang.Character c]
   (and c
        (Character/isWhitespace c)
-       (not (contains? #{\newline \return \,} c))))
+       (not (identical? c \newline))
+       (not (identical? c \return))
+       (not (identical? c \,))))
 
 (defn whitespace-or-boundary?
   [c]
@@ -59,7 +59,7 @@
       (if-let [c (r/read-char reader)]
         (if (p? c)
           (do
-            (.append buf c)
+            (.append buf (char c))
             (recur))
           (do
             (r/unread reader c)
