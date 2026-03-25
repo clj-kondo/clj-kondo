@@ -39,13 +39,6 @@
         (recur (conj char-seq c)))
       (apply str char-seq))))
 
-(defn flush-into
-  "Flush buffer and add string to the given vector."
-  [lines ^StringBuffer buf]
-  (let [s (str buf)]
-    (.setLength buf 0)
-    (conj lines s)))
-
 (defn read-string-data
   [reader]
   (ignore reader)
