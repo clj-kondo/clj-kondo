@@ -15,8 +15,7 @@
     (with-meta x m)))
 
 (defn expand-> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
+  (let [children (:children expr)
         [c & cforms] (rest children)
         ret (loop [x c, forms cforms]
               (if forms
@@ -34,8 +33,7 @@
     ret))
 
 (defn expand->> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
+  (let [children (:children expr)
         [c & cforms] (rest children)]
     (loop [x c, forms cforms]
       (if forms
@@ -173,9 +171,9 @@
     {:varargs? varargs?
      :args args}))
 
-(defn expand-fn [{:keys [:children] :as expr}]
-  (let [{:keys [:row :col] :as m} (meta expr)
-        {:keys [:args :varargs?]} (fn-args children)
+(defn expand-fn [{:keys [children] :as expr}]
+  (let [{:keys [row col] :as m} (meta expr)
+        {:keys [args varargs?]} (fn-args children)
         fn-body (with-meta (list-node children)
                   (assoc m
                          :row row

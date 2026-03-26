@@ -20,7 +20,8 @@ baz.qux/some-fn
 (deftest interop-alias-test
   (is (empty? (lint! (io/file "corpus" "aliased_namespaces" "interop.cljc")
                      {:linters {:aliased-namespace-symbol {:level :warning}
-                                :unused-namespace {:level :off}}}))))
+                                :unused-namespace {:level :off}
+                                :unused-excluded-var {:level :off}}}))))
 
 (deftest multiple-aliases-test
   (let [path (io/file "corpus" "aliased_namespaces" "multiple_aliases.clj")]
@@ -66,3 +67,13 @@ baz.qux/some-fn
                         '[:where [(clojure.string/join \",\" [1 2 3])]]"
                      {:linters {:aliased-namespace-symbol {:level :warning}}
                       :analysis {:symbols true}}))))
+
+(deftest cljs-test
+  (assert-submaps2
+   '({:file "corpus/aliased_namespaces/issue_2614.cljs",
+      :row 4,
+      :col 2,
+      :level :warning,
+      :message "An alias is defined for clojure.string: str"})
+   (lint! (io/file "corpus" "aliased_namespaces" "issue_2614.cljs")
+          {:linters {:aliased-namespace-symbol {:level :warning}}})))

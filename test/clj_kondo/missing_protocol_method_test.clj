@@ -172,6 +172,7 @@
 
 (defprotocol InlineValue (sqlize [_]))
 
+(ns other)
 (require '[protocols :as p])
 
 (extend-protocol p/InlineValue

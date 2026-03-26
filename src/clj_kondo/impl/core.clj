@@ -23,7 +23,7 @@
 (defn format-output [config]
   (let [output-cfg (:output config)]
     (if-let [^String pattern (-> output-cfg :pattern)]
-      (fn [{:keys [:filename :row :end-row :col :end-col :level :message :type] :as _finding}]
+      (fn [{:keys [filename row end-row col end-col level message type] :as _finding}]
         (-> pattern
             (str/replace "{{filename}}" filename)
             (str/replace "{{row}}" (str row))
@@ -34,7 +34,7 @@
             (str/replace "{{LEVEL}}" (str/upper-case (name level)))
             (str/replace "{{message}}" message)
             (str/replace "{{type}}" (str type))))
-      (fn [{:keys [:filename :row :col :level :message :type langs] :as _finding}]
+      (fn [{:keys [filename row col level message type langs] :as _finding}]
         (str filename ":"
              row ":"
              col ": "
@@ -257,7 +257,12 @@
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
                                   (when (and (java/analyze-class-defs? ctx)
-                                             (not (str/includes? nm "$"))
+                                             (let [idx (str/index-of nm "$")]
+                                               (or (not idx)
+                                                   (when-let [^Character c (nth nm (inc idx) nil)]
+                                                     (and (Character/isUpperCase c)
+                                                          (Character/isLetter c)
+                                                          (not (str/includes? (subs nm idx) "_"))))))
                                              (not (str/ends-with? nm "__init.class")))
                                     (java/reg-class-def! ctx {:jar jar
                                                               :entry x
@@ -319,8 +324,9 @@
     seen?))
 
 (defn excluded? [ctx filename]
-  (when-let [pat (some-> ctx :config :exclude-files re-pattern)]
-    (re-find pat (fs/unixify filename))))
+  (let [re-find (:re-find-memo ctx)]
+    (when-let [pat (-> ctx :config :exclude-files)]
+      (re-find pat (fs/unixify filename)))))
 
 (defn sources-from-dir
   [ctx dir canonical? use-import-dir?]
@@ -368,7 +374,7 @@
   (loop []
     (when-let [group (.pollFirst deque)]
       (try
-        (doseq [{:keys [:filename :source :lang :uri]} group]
+        (doseq [{:keys [filename source lang uri]} group]
           (ana/analyze-input ctx filename uri source lang dev?))
         (catch Exception e (binding [*out* *err*]
                              (prn e))))
@@ -400,6 +406,7 @@
     default-language))
 
 (def path-separator (System/getProperty "path.separator"))
+(def path-separator-pat (re-pattern path-separator))
 
 (defn classpath? [f]
   (str/includes? f path-separator))
@@ -448,12 +455,12 @@
                   1
 
                   (classpath? path)
-                  (files-count (str/split path (re-pattern path-separator)) ctx)
+                  (files-count (str/split path path-separator-pat) ctx)
 
                   :else 0))))
        (reduce + 0)))
 
-(defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
+(defn schedule [ctx {:keys [filename source lang uri] :as m} dev?]
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
@@ -518,8 +525,7 @@
                                    default-language)} dev?))
           (classpath? path)
           (run! #(process-file ctx % default-language canonical? filename-fallback use-import-dir)
-                (str/split path
-                           (re-pattern path-separator)))
+                (str/split path path-separator-pat))
           :else
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx
@@ -704,10 +710,11 @@
           []
           (group-by :message findings)))
 
-(defn filter-findings [config findings]
+(defn filter-findings [ctx config findings]
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
-        remove-output (not-empty (-> config :output :exclude-files))]
+        remove-output (not-empty (-> config :output :exclude-files))
+        re-find (:re-find-memo ctx)]
     (for [[[_filename _row _col type cljc] findings] findings
           :when (or
                  ;; always pass when not .cljc
@@ -716,10 +723,12 @@
                  (and (not= :redundant-do type)
                       (not= :redundant-call type)
                       (not= :redundant-let type)
+                      (not= :redundant-let-binding type)
                       (not= :single-logical-operand type)
                       (not= :redundant-nested-call type)
                       (not= :redundant-ignore type)
-                      (not= :redundant-fn-wrapper type))
+                      (not= :redundant-fn-wrapper type)
+                      (not= :unused-excluded-var type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
           f (collapse-cljc-findings findings)
@@ -732,11 +741,11 @@
                   true)
           :when (if filter-output
                   (some (fn [pattern]
-                          (re-find (re-pattern pattern) filename))
+                          (re-find pattern filename))
                         filter-output)
                   true)
           :when (not-any? (fn [pattern]
-                            (re-find (re-pattern pattern) filename))
+                            (re-find pattern filename))
                           remove-output)]
       f)))
 

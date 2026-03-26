@@ -51,7 +51,7 @@
 (defn x []
   (eval \"WOW\")
   (println \"OK\")
-  (printf \"NICE\n\"))"
+  (printf \"NICE %s\n\" \"!\"))"
                             conf)))
           ns-groups '[{:pattern "^x\\.core.*$"
                        :name    core-namespaces}

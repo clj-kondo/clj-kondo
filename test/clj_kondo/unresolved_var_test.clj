@@ -100,16 +100,22 @@ bar/x (bar/y)
 (deftest libs-test
   (let [cache (str (fs/create-temp-dir))
         deps '{:deps {;; org.clojure/clojure {:mvn/version "1.9.0"}
-                      org.clojure/core.async {:mvn/version "0.4.474"}}
+                      org.clojure/core.async {:mvn/version "1.9.829-alpha2"}}
                :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
                            "clojars" {:url "https://repo.clojars.org/"}}}
         jar (-> (deps/resolve-deps deps nil)
                 (get-in ['org.clojure/core.async :paths 0]))]
     (core/run! {:lint [jar] :cache-dir cache})
     (assert-submaps
-     '({:file "<stdin>", :row 1, :col 39, :level :error, :message "clojure.core.async/<!! is called with 0 args but expects 1"})
-     (lint! "(require '[clojure.core.async :as a]) (a/<!!)" {:linters {:unresolved-symbol {:level :error}
-                                                                       :unresolved-var {:level :error}}}
+     '({:file "<stdin>", :row 1, :col 39, :level :error, :message "clojure.core.async/<!! is called with 0 args but expects 1"}
+       {:file "<stdin>",
+        :row 1,
+        :col 47,
+        :level :error,
+        :message
+        "clojure.core.async/<! is called with 0 args but expects 1"})
+     (lint! "(require '[clojure.core.async :as a]) (a/<!!) (a/<!)" {:linters {:unresolved-symbol {:level :error}
+                                                                              :unresolved-var {:level :error}}}
             "--cache" cache))))
 
 (deftest issue-2239-test

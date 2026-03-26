@@ -514,3 +514,11 @@ my-ns/special-map \"
     (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2571" "src" "usage.clj")]
                      :config (edn/read-string (slurp (fs/file "corpus" "issue-2571" ".clj-kondo" "config.edn")))
                      :config-dir (fs/file "corpus" "issue-2571" ".clj-kondo")}))))
+
+(deftest issue-2636-requiring-resolve
+  (assert-submaps2
+   []
+   (:findings
+    (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2636" "src" "usage.clj")]
+                     :config (edn/read-string (slurp (fs/file "corpus" "issue-2636" ".clj-kondo" "config.edn")))
+                     :config-dir (fs/file "corpus" "issue-2636" ".clj-kondo")}))))

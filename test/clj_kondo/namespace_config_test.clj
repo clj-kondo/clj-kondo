@@ -10,9 +10,24 @@
   (fs/delete-tree (fs/file "corpus" "namespace_config" ".clj-kondo" ".cache"))
   (fs/delete-tree (fs/file "corpus" "namespace_config" ".clj-kondo" "inline-configs"))
   (assert-submaps2
-   [{:file "corpus/namespace_config/src/macro_usages.clj", :row 4, :col 12, :level :error, :message "Unresolved symbol: a"}]
+   [{:file "corpus/namespace_config/src/macro_usages.clj", :row 5, :col 12, :level :error, :message "Unresolved symbol: a"}
+    {:file "corpus/namespace_config/src/macro_usages.clj",
+     :row 6,
+     :col 3,
+     :level :error,
+     :message "Unresolved symbol: a"}
+    {:file "corpus/namespace_config/src/macro_usages.clj",
+     :row 8,
+     :col 20,
+     :level :error,
+     :message "Unresolved symbol: a"}
+    {:file "corpus/namespace_config/src/macro_usages.clj",
+     :row 9,
+     :col 3,
+     :level :error,
+     :message "Unresolved symbol: a"}]
    (lint! (io/file "corpus" "namespace_config" "src" "macro_usages.clj")
-          {:linters {:unresolved-symbol {:level :error}}}
+          {:linters {:unresolved-symbol {:level :error :report-duplicates true}}}
           "--config-dir" (str (fs/file "corpus" "namespace_config" ".clj-kondo"))
           "--cache" "true"))
   (assert-submaps2
@@ -20,8 +35,14 @@
      :row 5,
      :col 6,
      :level :error,
+     :message "Expected: number, received: keyword."}
+    {:file "corpus/namespace_config/src/macros2.cljc",
+     :row 5,
+     :col 6,
+     :level :error,
      :message "Expected: number, received: keyword."}]
-   (lint! (io/file "corpus" "namespace_config" "src" "macros.clj")
+   (lint! [(io/file "corpus" "namespace_config" "src" "macros.clj")
+           (io/file "corpus" "namespace_config" "src" "macros2.cljc")]
           {:linters {:unresolved-symbol {:level :error}
                      :type-mismatch {:level :error}}}
           "--config-dir" (str (fs/file "corpus" "namespace_config" ".clj-kondo"))

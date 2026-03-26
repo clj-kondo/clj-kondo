@@ -37,7 +37,8 @@ Other API functions:
 - `sexpr`: turns a node into a Clojure s-expression. Useful for analyzing concrete values.
 - `reg-keyword!`: indicates that a keyword's analysis should be marked as a
   definition. Expects the keyword node and either `true` or the fully-qualified
-  function that registered it. This can be used to implement keyword navigation for `clojure-lsp`.
+  function that registered it. Returns a new keyword node that must be in the transformed body.
+  This can be used to implement keyword navigation for `clojure-lsp`.
 - `tag`: returns node's tag, can be used as a dispatch function for multimethods, if you want your hook to be opened for extension.
 - `reg-finding!`: registers a finding. Expects a map with:
   - `:message`: the lint message
@@ -646,7 +647,7 @@ Here are some example hooks from libraries.
 
 - coffi: [defcfn](https://github.com/IGJoshua/coffi/blob/master/resources/clj-kondo.exports/org.suskalo/coffi/hooks/coffi.clj)
 
-More examples of hooks can be found in the [config](https://github.com/clj-kondo/config) project.
+More examples of hooks can be found in the [configs](https://github.com/clj-kondo/configs) project.
 
 ### Disrecommend usage of function or macro
 

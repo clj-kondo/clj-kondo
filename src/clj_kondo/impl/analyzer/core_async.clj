@@ -11,15 +11,15 @@
          (= :vector (tag fst-child)))
       ;; analyze syntax like: ([v ch] 'do_something_with_v_or_ch)
       ;; NOTE: this syntax also supports destructuring:
-      ;; (async/alt!! (doto (async/chan) (async/put! {:a 1}))  ([{:keys [:a]} ch] [a ch]))
+      ;; (async/alt!! (doto (async/chan) (async/put! {:a 1}))  ([{:keys [a]} ch] [a ch]))
       (let [bindings (extract-bindings ctx fst-child)
             ctx (update ctx :bindings into bindings)]
         (mapcat #(analyze-expression** ctx %) rest-children))
       (analyze-expression** ctx expr))))
 
 (defn analyze-alt! [ctx expr]
-  (let [{:keys [:analyze-expression**
-                :extract-bindings]} ctx
+  (let [{:keys [analyze-expression**
+                extract-bindings]} ctx
         children (next (:children expr))
         pairs (partition-all 2 children)]
     (for [[k v] pairs

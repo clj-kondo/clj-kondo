@@ -12,40 +12,46 @@
       (:context ctx)
       (select-keys (:context ctx) selector))))
 
+(defn- merge-select-keys [m1 m2 m2-keys]
+  (persistent! (reduce (fn [acc k]
+                         (let [v (get m2 k)]
+                           (cond-> acc
+                             (some? v) (assoc! k v))))
+                       (transient m1) m2-keys)))
+
 (defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
   (let [analysis (:analysis ctx)]
     (when analysis
       (let [to-ns (export-ns-sym to-ns)]
         (swap! analysis update :var-usages conj
-               (assoc-some
-                (merge
-                 {:filename filename
-                  :row row
-                  :col col
-                  :from from-ns
-                  :to to-ns
-                  :name var-name}
-                 (select-some metadata
-                              [:private :macro
-                               :fixed-arities
-                               :varargs-min-arity
-                               :deprecated
-                               :refer
-                               :alias
-                               :defmethod
-                               :dispatch-val-str
-                               :name-row
-                               :name-col
-                               :name-end-row
-                               :name-end-col
-                               :end-row
-                               :end-col
-                               :derived-location
-                               :derived-name-location]))
-                :arity arity
-                :lang lang
-                :from-var in-def
-                :context (select-context (:analysis-context ctx) ctx)))))))
+               (-> (merge-select-keys
+                    {:filename filename
+                     :row row
+                     :col col
+                     :from from-ns
+                     :to to-ns
+                     :name var-name}
+                    metadata
+                    [:private :macro
+                     :fixed-arities
+                     :varargs-min-arity
+                     :deprecated
+                     :refer
+                     :alias
+                     :defmethod
+                     :dispatch-val-str
+                     :name-row
+                     :name-col
+                     :name-end-row
+                     :name-end-col
+                     :end-row
+                     :end-col
+                     :derived-location
+                     :derived-name-location])
+                   (assoc-some :arity arity)
+                   (assoc-some :lang lang)
+                   (assoc-some :from-var in-def)
+                   (assoc-some :context (select-context (:analysis-context ctx) ctx))))))))
 
 (defn reg-symbol! [ctx filename from-ns symbol lang metadata]
   (when (:analyze-symbols? ctx)
@@ -113,7 +119,7 @@
                                                   (utils/format-callstack ctx)))
               :lang (when (= :cljc base-lang) lang))))))
 
-(defn reg-namespace! [{:keys [:analysis-ns-meta :analysis :base-lang :lang] :as _ctx}
+(defn reg-namespace! [{:keys [analysis-ns-meta analysis base-lang lang] :as _ctx}
                       filename row col ns-name in-ns? metadata]
   (when analysis
     (swap! analysis update :namespace-definitions conj
@@ -130,7 +136,7 @@
             :in-ns (when in-ns? in-ns?) ;; don't include when false
             :lang (when (= :cljc base-lang) lang)))))
 
-(defn reg-namespace-usage! [{:keys [:analysis :base-lang :lang] :as _ctx}
+(defn reg-namespace-usage! [{:keys [analysis base-lang lang] :as _ctx}
                             filename row col from-ns to-ns alias metadata]
   (when analysis
     (let [to-ns (export-ns-sym to-ns)]
@@ -145,7 +151,7 @@
               :lang (when (= :cljc base-lang) lang)
               :alias alias)))))
 
-(defn reg-local! [{:keys [:analysis] :as ctx} filename binding]
+(defn reg-local! [{:keys [analysis] :as ctx} filename binding]
   (when (and analysis
              (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :locals conj
@@ -153,7 +159,7 @@
                        :filename filename
                        :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))))))
 
-(defn reg-local-usage! [{:keys [:analysis] :as ctx} filename binding usage]
+(defn reg-local-usage! [{:keys [analysis] :as ctx} filename binding usage]
   (when (and analysis
              (not (:clj-kondo.impl/generated binding)))
     (swap! analysis update :local-usages conj

@@ -7,6 +7,7 @@
    [clj-kondo.impl.types.clojure.core :refer [clojure-core cljs-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
+   [clj-kondo.impl.types.clojure.test :refer [clojure-test]]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils :refer
     [tag sexpr]]
@@ -19,12 +20,15 @@
     :char-sequence
     :seqable
     :int
+    :long
+    :short
     :number
     :pos-int
     :nat-int
     :neg-int
     :double
     :byte
+    :ratio
     :vector
     :sequential
     :associative
@@ -35,6 +39,7 @@
     :map
     :nil
     :set
+    :sorted-set
     :fn
     :keyword
     :symbol
@@ -44,66 +49,92 @@
     :sorted-map
     :boolean
     :atom
+    :future
     :regex
     :char
     :seqable-or-transducer
     :throwable
     :any
     :float
-    :var})
+    :var
+    :ilookup
+    :array
+    :inst
+    :class})
 
 (def built-in-specs
   {'clojure.core clojure-core
    'cljs.core cljs-core
    'clojure.set clojure-set
-   'clojure.string clojure-string})
+   'clojure.string clojure-string
+   'clojure.test clojure-test})
 
 (def is-a-relations
   {:string #{:char-sequence :seqable}
    :char-sequence #{:seqable}
    :int #{:number}
+   :long #{:number}
+   :short #{:number}
    :pos-int #{:int :nat-int :number}
    :nat-int #{:int :number}
    :neg-int #{:int :number}
    :double #{:number}
+   :float #{:number}
    :byte #{:number}
-   :vector #{:seqable :sequential :associative :coll :ifn :stack}
-   :map #{:seqable :associative :coll :ifn}
+   :ratio #{:number}
+   :vector #{:seqable :sequential :associative :coll :ifn :stack :ilookup}
+   :map #{:seqable :associative :coll :ifn :ilookup}
    :nil #{:seqable}
    :coll #{:seqable}
-   :set #{:seqable :coll :ifn}
+   :set #{:seqable :coll :ifn :ilookup}
+   :sorted-set #{:set :seqable :coll :ifn :ilookup}
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
-   :associative #{:seqable :coll :ifn}
+   :associative #{:seqable :coll :ifn :ilookup}
    :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
-   :sorted-map #{:map :seqable :associative :coll :ifn}
+   :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
    :atom #{:ideref}
-   :var #{:ideref :ifn}})
+   :future #{:ideref}
+   :var #{:ideref :ifn}
+   :array #{:seqable :ilookup}})
 
 (def could-be-relations
   {:char-sequence #{:string}
-   :int #{:neg-int :nat-int :pos-int}
-   :number #{:neg-int :pos-int :nat-int :int :double :byte}
-   :coll #{:map :sorted-map :vector :set :list  :associative :seq :sequential :ifn :stack}
-   :seqable #{:coll :vector :set :map :associative
+   ;; Subtypes and widening primitive conversions (int can widen to float/double)
+   :int #{:neg-int :nat-int :pos-int :long :short :float :double :number}
+   :long #{:int :neg-int :nat-int :pos-int :short :float :double :number}
+   :short #{:int :long :neg-int :nat-int :pos-int :float :double :number}
+   :pos-int #{:long :short :float :double :number}
+   :nat-int #{:pos-int :long :short :float :double :number}
+   :neg-int #{:long :short :float :double :number}
+   :byte #{:int :long :short :float :double :number}
+   :float #{:double :number}
+   :double #{:float :number}
+   :number #{:neg-int :pos-int :nat-int :int :long :short :double :byte :ratio :float}
+   :coll #{:map :sorted-map :vector :set :sorted-set :list :associative :seq
+           :sequential :ifn :stack :ilookup}
+   :seqable #{:coll :vector :set :sorted-set :map :associative
               :char-sequence :string :nil
-              :list :seq :sequential :ifn :stack :sorted-map}
+              :list :seq :sequential :ifn :stack :sorted-map :ilookup :array}
    :associative #{:map :vector :sequential :stack :sorted-map}
-   :ifn #{:fn :transducer :symbol :keyword :map :set :vector :associative :seqable :coll
-          :sequential :stack :sorted-map :var :ideref :ifn}
+   :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector
+          :associative :seqable :coll :sequential :stack :sorted-map :var
+          :ideref :ilookup}
    :fn #{:transducer}
-   :nat-int #{:pos-int}
    :seq #{:list :stack}
-   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative}
-   :sequential #{:seq :list :vector :ifn :associative :stack}
+   :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
+   :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
-   :ideref #{:atom :var :ifn}})
+   :set #{:sorted-set}
+   :ideref #{:atom :future :var :ifn}
+   :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
+              :vector :sequential :stack :array}})
 
-(def misc-types #{:boolean :atom :regex :char})
+(def misc-types #{:boolean :atom :future :regex :char :class :inst})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -120,11 +151,15 @@
    :string "string"
    :number "number"
    :int "integer"
+   :long "long"
+   :short "short"
    :double "double"
+   :float "float"
    :pos-int "positive integer"
    :nat-int "natural integer"
    :neg-int "negative integer"
    :byte "byte"
+   :ratio "ratio"
    :seqable "seqable collection"
    :seq "seq"
    :vector "vector"
@@ -137,6 +172,7 @@
    :char "character"
    :boolean "boolean"
    :atom "atom"
+   :future "future"
    :ideref "deref"
    :fn "function"
    :ifn "function"
@@ -145,11 +181,16 @@
    :transducer "transducer"
    :seqable-or-transducer "seqable or transducer"
    :set "set"
+   :sorted-set "sorted set"
    :char-sequence "char sequence"
    :sequential "sequential collection"
    :throwable "throwable"
    :sorted-map "sorted map"
-   :var "var"})
+   :var "var"
+   :ilookup "ILookup"
+   :array "array"
+   :class "class"
+   :inst "instant"})
 
 (defn label [k]
   (cond
@@ -192,14 +233,17 @@
     (byte) :byte
     (Byte java.lang.Byte) :nilable/byte
     (Number java.lang.Number) :nilable/number
-    (int long) :int
-    (Integer java.lang.Integer Long java.lang.Long) :nilable/int #_(if out? :any-nilable-int :any-nilable-int) ;; or :any-nilable-int? , see 2451 main-test
-    (float double) #{:double
-                     ;; can be auto-cast to
-                     :float
-                     ;; can be auto-cast to
-                     :int}
-    (Float Double java.lang.Float java.lang.Double) #{:double :float :int :nil}
+    (int) :int
+    (Integer java.lang.Integer) :nilable/int
+    (long) :long
+    (Long java.lang.Long) :nilable/long
+    (short) :short
+    (Short java.lang.Short) :nilable/short
+    (double) :double
+    (float) :float
+    (Double java.lang.Double) :nilable/double
+    (Float java.lang.Float) :nilable/float
+    (ratio?) :ratio
     (CharSequence java.lang.CharSequence) :nilable/char-sequence
     (String java.lang.String) :nilable/string ;; as this is now way to
     ;; express non-nilable,
@@ -209,6 +253,11 @@
     (Character java.lang.Character) :nilable/char
     (Seqable clojure.lang.Seqable) :seqable
     (java.util.List) :nilable/list
+    (class) :class
+    (Class java.lang.Class) :nilable/class
+    (Date java.util.Date) :nilable/inst
+    (Future java.util.concurrent.Future) :nilable/future
+    (future) :future
     nil))
 
 (defn number->tag [v]
@@ -216,6 +265,7 @@
         (cond (pos-int? v) :pos-int
               (nat-int? v) :nat-int
               (neg-int? v) :neg-int)
+        (ratio? v) :ratio
         (double? v) :double
         :else :number))
 
@@ -314,7 +364,7 @@
                 {:call (assoc call*
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
-                                         nm))}
+                                                        nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
                   (if (:req t)
@@ -323,18 +373,29 @@
                     (when-let [v (:val t)]
                       {:tag (get v nm)}))))))))))
 
+(defn- array-class-literal? [sym]
+  (when (and (symbol? sym) (namespace sym))
+    (re-matches #"\d+" (name sym))))
+
 (defn tag-from-usage
-  [ctx usage _expr]
+  [ctx usage expr]
   ;; Note, we need to return maps here because we are adding row and col later on.
   (when-not (:unresolved? usage)
     (let [called-ns (:resolved-ns usage)
           called-name (:name usage)
           conf (config/type-mismatch-config (:config ctx) called-ns called-name)
           tag (:type conf)]
-      (if tag
-        {:tag tag}
-        {:usage (or tag
-                    (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
+      (cond
+        tag {:tag tag}
+
+        ;; Check if this is an array class literal
+        ;; (Clojure 1.12+) would emit those as :class tags (type String/1) => java.lang.Class
+        (and (identical? :clj (:lang ctx))
+             (array-class-literal? (:value expr)))
+        {:tag :class}
+
+        :else {:usage (or tag
+                          (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."
@@ -346,12 +407,12 @@
           (when-let [t (:tag maybe-tag)]
             (keyword t))))))
 
-(defn spec-from-list-expr [{:keys [:calls-by-id] :as ctx} expr]
+(defn spec-from-list-expr [{:keys [calls-by-id] :as ctx} expr]
   (when-let [id (:id expr)]
     (when-let [call (get @calls-by-id id)]
       (ret-tag-from-call ctx call expr))))
 
-(defn expr->tag [{:keys [:bindings :lang :quoted] :as ctx} expr]
+(defn expr->tag [{:keys [bindings lang quoted] :as ctx} expr]
   (let [t (tag expr)
         quoted? (or quoted (identical? :edn lang))
         ret (case t
@@ -554,5 +615,4 @@
   (match? :seqable :vector)
   (match? :map :associative)
   (match? :map :nilable/associative)
-  (label :nilable/set)
-  )
+  (label :nilable/set))

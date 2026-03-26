@@ -21,7 +21,7 @@
 (defn print!
   "Prints the result from `run!` to `*out*`. Returns `nil`. Alpha,
   subject to change."
-  [{:keys [:config :findings :summary :analysis :report-level]}]
+  [{:keys [config findings summary analysis report-level]}]
   (let [output-cfg (:output config)
         report-level? (if report-level
                         (let [report-level (keyword report-level)]
@@ -38,7 +38,7 @@
             (when (report-level? (:level finding))
               (println (format-fn finding))))
           (when (:summary output-cfg)
-            (let [{:keys [:error :warning :duration]} summary]
+            (let [{:keys [error warning duration]} summary]
               (printf "linting took %sms, " duration)
               (printf "errors: %s" error)
               (when (report-level? :warning)
@@ -221,7 +221,15 @@
                  ;; config, for e.g. the clj-kondo playground
                  ;; TODO: :__dangerously-allow-string-hooks should not be able to come in via lib configs
                  :allow-string-hooks (-> config :hooks :__dangerously-allow-string-hooks__)
-                 :debug debug}
+                 :debug debug
+                 :re-find-memo
+                 ;; memoized version of re-find that takes a pattern string and a match string
+                 ;; regex creation is cached
+                 ;; matches on regex are cached
+                 #_{:clj-kondo/ignore [:discouraged-var]}
+                 (let [re-pattern-memo (utils/memoize' re-pattern)]
+                   (utils/memoize' (fn [pattern-str file-str]
+                                     (re-find (re-pattern-memo pattern-str) file-str))))}
             lang (or lang :clj)
             ;; primary file analysis and initial lint
             _ (core-impl/process-files (if parallel
@@ -251,6 +259,7 @@
                     (l/lint-unused-imports! ctx)
                     (l/lint-unresolved-namespaces! ctx)
                     (l/lint-discouraged-namespaces! ctx)
+                    (l/lint-unused-excluded-vars! ctx)
                     (l/lint-class-usage ctx idacs)
                     (l/lint-protocol-impls! ctx idacs)
                     ;; redundant ignore should go last!
@@ -271,7 +280,7 @@
                                     (assoc :analysis @analysis)))))
             all-findings @findings
             grouped-findings (group-by (juxt :filename :row :col :type :cljc) all-findings)
-            all-findings (core-impl/filter-findings config grouped-findings)
+            all-findings (core-impl/filter-findings ctx config grouped-findings)
             all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col :message) all-findings))
             summary (core-impl/summarize all-findings)
             duration (- (System/currentTimeMillis) start-time)

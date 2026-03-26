@@ -140,18 +140,11 @@
                :message "Mismatched bracket: found an opening ( on line 1 and a closing }"}]
              @(:findings (analyze "(}")))))
     (testing "unclosed delimiter"
-      (is (= [{:type :syntax
-               :level :error
-               :filename "test.clj"
-               :row 1
-               :col 1
-               :message "Found an opening ( with no matching )"}
-              {:type :syntax, :level :error, :filename "test.clj"
-               :row 1
-               :col 9
-               :message "Expected a ) to match ( from line 1"}]
+      (is (= [{:row 1, :col 7, :end-row 1, :end-col 9, :message "Function name must be simple symbol but got: []", :type :syntax, :filename "test.clj", :level :error}
+              {:type :syntax, :message "Invalid function body.", :row 1, :end-row 1, :end-col 9, :col 1, :filename "test.clj", :level :error}
+              {:type :syntax, :filename "test.clj", :row 1, :col 1, :message "Found an opening ( with no matching )", :level :error}
+              {:type :syntax, :filename "test.clj", :row 1, :col 9, :message "Expected a ) to match ( from line 1", :level :error}]
              @(:findings (analyze "(defn []")))))
-
     (testing "invalid tokens"
       (is (= [{:type :syntax
                :level :error

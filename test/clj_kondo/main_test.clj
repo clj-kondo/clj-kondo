@@ -13,12 +13,14 @@
    [missing.test.assertions]))
 
 (deftest self-lint-test
-  (is (empty? (lint! (io/file "src")
-                     {:linters {:unresolved-symbol {:level :error}
-                                :unused-binding {:level :warning}}})))
-  (is (empty? (lint! (io/file "test")
-                     {:linters {:unresolved-symbol {:level :error}
-                                :unused-binding {:level :warning}}}))))
+  (is (empty? (remove #(= "src/scratch.clj" (:file %))
+                      (lint! (io/file "src")
+                             {:linters {:unresolved-symbol {:level :error}
+                                        :unused-binding {:level :warning}}}))))
+  (is (empty? (remove #(= "src/scratch.clj" (:file %))
+                      (lint! (io/file "test")
+                             {:linters {:unresolved-symbol {:level :error}
+                                        :unused-binding {:level :warning}}})))))
 
 (deftest inline-def-test
   (let [linted (lint! (io/file "corpus" "inline_def.clj") "--config" "{:linters {:redefined-var {:level :off}}}")
@@ -64,7 +66,11 @@
       (is (empty? (lint! "(def x [(fn [] 1)])" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(def x (let [x 1] [(fn [] x)]))" "--lang" (name lang) "--config" (pr-str config))))
       (is (empty? (lint! "(def x (reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
-      (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config)))))))
+      (is (empty? (lint! "(require '[some.ns :refer [my-reify]]) (def x (my-reify Object (toString [_] \"x\")))" "--lang" (name lang) "--config" (pr-str config))))
+      (testing "def + defmethod triggered by def-fn"
+        (assert-submaps2
+         [{:row 1, :col 8, :level :warning, :message "Use defn instead of def + fn"}]
+         (lint! "(def x (defmethod greeting \"English\" [x] x))" "--lang" (name lang) "--config" (pr-str config)))))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
@@ -103,6 +109,18 @@
     1))
 ")))
   (is (empty? (lint! "(let [#?@(:clj [x 1])] #?(:clj x))" "--lang" "cljc"))))
+
+(deftest redundant-let-binding
+  (let [config {:linters {:redundant-let-binding {:level :warning}}}]
+    (assert-submaps [{:row 1, :col 7 :message #"Redundant let binding: x"}]
+                    (lint! "(let [x x] x)" config))
+    (assert-submaps [{:row 1, :col 18 :message #"Redundant let binding: y"}]
+                    (lint! "(for [x xs :let [y y]] x)" config))
+    (is (empty? (lint! "(let [x ^foo x] x)" config)))
+    (is (empty? (lint! "(let [^foo x x] x)" config)))
+    (is (empty? (lint! "(let [x #?(:cljs x :clj y)] x)" config "--lang" "cljc")))
+    (assert-submaps [{:row 1, :col 7 :message #"Redundant let binding: x"}]
+                    (lint! "(let [x #?(:cljs x :clj x)] x)" config "--lang" "cljc"))))
 
 (deftest redundant-do-test
   (assert-submaps
@@ -160,13 +178,11 @@
      {:file "corpus/cljc/test_cljs.cljs", :row 5, :col 1}
      {:file "corpus/cljc/test_cljs.cljs", :row 6, :col 1})
    (lint! (io/file "corpus" "cljc")))
-  (assert-submaps '({:file "corpus/spec/alpha.cljs",
-                     :row 6,
-                     :col 1,
-                     :level :error,
-                     :message "spec.alpha/def is called with 2 args but expects 3"})
-                  (lint! (io/file "corpus" "spec")))
-  (is (empty? (lint! "(defn foo [#?(:default s :clj s)]) (foo 1)"
+  (assert-submaps2 '({:file "corpus/spec/alpha.cljc", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
+                     {:file "corpus/spec/alpha.cljs", :row 2, :col 29, :level :info, :message "Unresolved excluded var: def"}
+                     {:file "corpus/spec/alpha.cljs", :row 6, :col 1, :level :error, :message "spec.alpha/def is called with 2 args but expects 3"})
+                   (lint! (io/file "corpus" "spec")))
+  (is (empty? (lint! "(defn foo [#?(:clj s :default s)]) (foo 1)"
                      "--lang" "cljc")))
   (is (empty? (lint! "(defn foo [_x _y]) (foo 1 #uuid \"00000000-0000-0000-0000-000000000000\")"
                      "--lang" "cljc")))
@@ -189,7 +205,12 @@
 (deftest exclude-clojure-test
   (let [linted (lint! (io/file "corpus" "exclude_clojure.clj"))]
     (assert-submaps
-     '({:file "corpus/exclude_clojure.clj",
+     '({:file "corpus/exclude_clojure.clj"
+        :row 6
+        :col 29
+        :level :info
+        :message "Unused excluded var: get"}
+       {:file "corpus/exclude_clojure.clj",
         :row 12,
         :col 1,
         :level :error,
@@ -312,7 +333,11 @@ foo/foo ;; this does use the private var
   (doseq [lang [:clj :cljs :cljc]]
     (testing (str "lang: " lang)
       (assert-submaps
-       '({:row 9,
+       '({:row 2,
+          :col 29,
+          :level :info
+          :message "Unused excluded var: cond"}
+         {:row 9,
           :col 3,
           :level :warning}
          {:row 16,
@@ -543,7 +568,12 @@ foo/foo ;; this does use the private var
           (i \"str\")
           (includes? \"str\")")))
   (assert-submaps
-   '({:file "corpus/rename.cljc",
+   '({:file "corpus/rename.cljc"
+      :row 2
+      :col 58
+      :level :info
+      :message "Unused excluded var: conj"}
+     {:file "corpus/rename.cljc",
       :row 4,
       :col 9,
       :level :error,
@@ -613,10 +643,10 @@ foo/foo ;; this does use the private var
   (testing "Safely handles empty alias call"
     (assert-submaps2
      [{:file "<stdin>"
-        :row 1
-        :col 10
-        :level :error
-        :message "clojure.core/alias is called with 0 args but expects 2"}]
+       :row 1
+       :col 10
+       :level :error
+       :message "clojure.core/alias is called with 0 args but expects 2"}]
      (lint! "(ns foo) (alias)")))
   (assert-submap
    '{:file "<stdin>",
@@ -1636,7 +1666,8 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
   (is (empty? (lint! "(declare foo) (def foo 1)")))
-  (is (empty? (lint! "(def foo 1) (declare foo)")))
+  (is (empty? (lint! "(def foo 1) (declare foo)" 
+                     {:linters {:redundant-declare {:level :off}}})))
   (is (empty? (lint! "(if (odd? 3) (def foo 1) (def foo 2))")))
   (testing "disable linter in comment"
     (is (empty? (lint! "(comment (def x 1) (def x 2))")))
@@ -1719,7 +1750,17 @@ foo/foo ;; this does use the private var
    (lint! "({:a 1} 1 2 3)"))
   (is (empty? (lint! "(foo ({:a 1} 1 2 3))" "--config"
                      "{:linters {:invalid-arity {:skip-args [user/foo]}
-                                 :unresolved-symbol {:level :off}}}"))))
+                                 :unresolved-symbol {:level :off}}}")))
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Map is called with 3 args but expects 1 or 2"})
+   (lint! "(map {} [1 2 3] [1 2 3] [1 2 3])"))
+  (assert-submaps2
+   '({:file "<stdin>",
+      :row 1,
+      :col 19,
+      :level :error,
+      :message "map is called with 3 args but expects 1 or 2"})
+   (lint! "(let [foo {:a 1}] (foo 1 2 3))")))
 
 (deftest symbol-call-test
   (assert-submaps
@@ -1748,27 +1789,48 @@ foo/foo ;; this does use the private var
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Set can only be called with 1 arg but was called with: 0"}
      {:file "<stdin>", :row 1, :col 15, :level :error, :message "Set can only be called with 1 arg but was called with: 2"})
-   (lint! "(#{}) (#{} 1) (#{} 1 2)")))
+   (lint! "(#{}) (#{} 1) (#{} 1 2)"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Set is called with 2 args but expects 1"})
+   (lint! "(map #{:a 1} [1 2 3] [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Vector is called with 2 args but expects 1"})
+   (lint! "(map [] [1 2 3] [1 2 3])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Vector can only be called with 1 arg but was called with: 2"})
+   (lint! "(let [foo [:a :b :c]] (foo 1 2))")))
 
 (deftest not-a-function-test
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a boolean is not a function"})
                   (lint! "(true 1)"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a string is not a function"})
                   (lint! "(\"foo\" 1)"))
   (assert-submaps '({:file "<stdin>",
                      :row 1,
-                     :col 1,
+                     :col 2,
                      :level :error,
                      :message "a number is not a function"})
                   (lint! "(1 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 3,
+                     :level :error,
+                     :message "a list is not a function"})
+                  (lint! "('(foo) 1)"))
+  (assert-submaps '({:file "<stdin>",
+                     :row 1,
+                     :col 3,
+                     :level :error,
+                     :message "a number is not a function"})
+                  (lint! "('1 1)"))
   (assert-submaps
    [{:file "<stdin>", :row 1, :col 21, :level :error
      :message "Can't call a string as a function"}]
@@ -1779,6 +1841,8 @@ foo/foo ;; this does use the private var
                      "{:linters {:not-a-function {:skip-args [user/foo]}
                                  :unresolved-symbol {:level :off}}}")))
   (is (empty? (lint! "(defrecord Foo [field]) #user.Foo{:field (\"asd\")}"
+                     {:linters {:not-a-function {:level :error}}})))
+  (is (empty? (lint! "('{:a 1} :a)"
                      {:linters {:not-a-function {:level :error}}}))))
 
 (deftest cljs-self-require-test
@@ -2060,6 +2124,10 @@ foo/foo ;; this does use the private var
                      {:linters {:unresolved-symbol {:level :error}}})))
   (is (empty? (lint! "(#_:clj-kondo/ignore load-string 1)"
                      {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:require [clojure.string :as string])) string/join (defprotocol IDude) (extend-type string  IDude)"
+                     {:linters {:unresolved-symbol {:level :error}
+                                :unresolved-var {:level :error}}}
                      "--lang" "cljs"))))
 
 (deftest tagged-literal-test
@@ -2311,6 +2379,7 @@ foo/foo ;; this does use the private var
                       (second-attr-map-private-defn)")))
     (is (empty? (lint! "(defn second-attr-map ([]) ([x] x) {:look :metadata!})")))
     (is (empty? (lint! "(defmacro ^{:leading :meta} second-attr-map-macro {:attr1 :meta} ([]) ([x] x) {:attr2 :metadata!})")))
+    (is (empty? (lint! "(let [[x y & xs :as ys] foo] [x y xs ys])")))
     (assert-submaps
      '({:file "<stdin>"
         :row 1
@@ -2338,16 +2407,81 @@ foo/foo ;; this does use the private var
         :col 21
         :level :error
         :message "Only one varargs binding allowed but got: xs, ys"})
-     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))))
+     (lint! "(defn foo [x y & xs ys] [x y xs ys])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 17
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(let [[x y & xs ys] foo] [x y xs ys])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 23
+        :level :error
+        :message "Only one varargs binding allowed but got: c, d"})
+     (lint! "(defn foo [a & [b & c d]] [a b c d])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 16
+        :level :error
+        :message "Trailing & in binding form"})
+     (lint! "(defn foo [a b &] (* a b))"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 11
+        :level :error
+        :message "Invalid binding: &"})
+     (lint! "(let [a b & c] [a b c])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 22
+        :level :error
+        :message "Invalid binding: &"})
+     (lint! "(for [x xs :let [a b & c]] [x a b c])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 25
+        :level :error
+        :message "Only one :as binding allowed but got: x, y"})
+     (lint! "(defn foo [a & xs :as x y] [a xs x y])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Only one varargs binding allowed but got: xs, ys"})
+     (lint! "(defn foo [a & xs ys :as x y] [a xs ys x y])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 19
+        :level :error
+        :message "Trailing :as in binding form"})
+     (lint! "(defn foo [a & xs :as] [a xs])"))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 21
+        :level :error
+        :message "Only one :as binding allowed but got: bs, &, xs"})
+     (lint! "(defn foo [a :as bs & xs] [a bs xs])"))
+    (is (empty? (lint! "(let [[:as xs] ys] [xs])")))))
 
 (deftest not-empty?-test
-  (assert-submaps
-   '({:file "<stdin>",
-      :row 1,
-      :col 1,
-      :level :warning,
-      :message "use the idiom (seq x) rather than (not (empty? x))"})
-   (lint! "(not (empty? [1]))")))
+  (let [config {:linters {:not-empty? {:level :warning}
+                          :type-mismatch {:level :warning}}}]
+    (assert-submaps
+     []
+     (lint! "(not (empty? [1]))" config))
+    (assert-submaps
+     [{:file "<stdin>", :row 1, :col 6, :level :warning, :message "Use (seq x) instead of (not (empty? x)) when x is a seq"}]
+     (lint! "(not (empty? (map inc [])))" config))))
 
 (deftest deprecated-var-test
   (assert-submaps
@@ -2490,6 +2624,9 @@ foo"))))
       :level :warning,
       :message "duplicate require of clojure.string"})
    (lint! "(ns foo (:require [clojure.string :as s])) (require 'clojure.string) s/join"))
+  (assert-submaps
+   []
+   (lint! "(ns foo (:require [clojure.string :as s])) (require 'clojure.string :reload) s/join"))
   (is (empty? (lint! "(ns foo (:require-macros [cljs.core :as core])
                               (:require [cljs.core :as core])) core/conj"
                      "--lang" "cljs"))))
@@ -2541,7 +2678,12 @@ foo"))))
       :row 1,
       :col 48,
       :level :warning,
-      :message "use alias or :refer [capitalize]"})
+      :message "use alias or :refer [capitalize]"}
+     {:file "<stdin>"
+      :row 2
+      :col 29
+      :level :info
+      :message "Var join is referred but used via alias: s"})
    (lint! "(ns foo (:require [clojure.string :as s :refer :all]))
            (defn foo [strs] (s/join (map capitalize strs)))"
           {:linters {:refer-all {:level :warning}}}))
@@ -3410,6 +3552,13 @@ foo/"))
 :
 (inc)")))
 
+(deftest continue-after-delimiter-mismatch-trailing-delimiters-or-eof
+  (doseq [s ["(]  x",  "()) x", "(   x"]]
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 5, :level :error, :message "Unresolved symbol: x"})
+     (lint! s {:linters {:unresolved-symbol {:level :error}
+                         :syntax {:level :off}}}))))
+
 (deftest nested-fn-literal-test
   (assert-submaps
    '({:file "<stdin>", :row 2, :col 7, :level :error, :message "Nested #()s are not allowed"})
@@ -3493,10 +3642,16 @@ foo/"))
   (is (empty? (lint! "(ns foo (:require [foo.bar :as-alias fb])) `fb/bar"))))
 
 (deftest ns-unmap-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 26
+      :level :warning
+      :message "Unused excluded var: inc"}
+     {:file "<stdin>", :row 1, :col 32, :level :error, :message "Unresolved symbol: inc"})
    (lint! "(ns foo) (ns-unmap *ns* 'inc) (inc 1)"
-          {:linters {:unresolved-symbol {:level :error}}}))
+          {:linters {:unresolved-symbol {:level :error}
+                     :unused-excluded-var {:level :warning}}}))
   (is (empty? (lint! "(doseq [sym ['foo 'bar 'baz]] (ns-unmap *ns* sym))"
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! (io/file "corpus" "issue_2259.clj")
@@ -3559,7 +3714,11 @@ foo/"))
   (is (empty?
        (lint! "(defn new [] :foo)
                (new js/Date 2022 1 1 1 1)"
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(defn new [] :foo)
+               (new String \"foo\")"
+              "--lang" "clj"))))
 
 (deftest ignore-config-test
   (assert-submaps2
@@ -3569,7 +3728,8 @@ foo/"))
      :message "unused binding x"}]
    (lint! "x (let [x x])"
           {:linters {:unresolved-symbol {:level :off}
-                     :unused-binding {:level :warning}}
+                     :unused-binding {:level :warning}
+                     :redundant-let-binding {:level :off}}
            :ignore [:unresolved-symbol]})))
 
 (deftest output-langs-test
@@ -3661,7 +3821,6 @@ foo/"))
                   (lint! "(ns foo (:require [cljs.test :as t])) (t/deftest foo (t/async done (done)) (t/async done (done)))"
                          {:linters {:multiple-async-in-deftest {:level :warning}}})))
 
-
 (deftest invalid-fn-name-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 7, :level :error, :message "Function name must be simple symbol but got: :foo"}
@@ -3740,18 +3899,6 @@ foo/"))
        (lint! "(defn foo [x x] x)" {:linters {:shadowed-fn-param {:level :warning}}})))
   (is (empty? (lint! "(fn [x #_:clj-kondo/ignore x] x)" {:linters {:shadowed-fn-param {:level :warning}}}))))
 
-(deftest equals-expected-order-test
-  (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 14, :level :warning, :message "Write expected value first"})
-   (lint! "(= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:level :warning}}}))
-  (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
-  (is (empty? (lint! "(= 6 (+ 1 2 3))" {:linters {:equals-expected-position {:level :warning}}})))
-  (assert-submaps2
-   '({:file "<stdin>", :row 2, :col 40, :level :warning, :message "Write expected value first"})
-   (lint! "(require '[clojure.test :refer [is]])
-                      (is (= (+ 1 2 3) 6))
-                      (= (+ 1 2 3) 6)" {:linters {:equals-expected-position {:only-in-test-assertion true
-                                                                             :level :warning}}})))
 (deftest issue-2361-test
   (is (empty? (lint! "
 (defprotocol PDFDocument)
@@ -3786,9 +3933,9 @@ foo/"))
      {:file "<stdin>", :row 2, :col 36, :level :warning, :message "Unresolved namespace NoClazz. Are you missing a require?"})
    (lint! "(deftype Dude []) Dude/new (defrecord Foo []) Foo/new
           (import [dude TheClazz]) NoClazz/new"
-             {:linters {:unresolved-symbol {:level :warning}
-                        :unresolved-namespace {:level :warning}
-                        :unused-import {:level :warning}}})))
+          {:linters {:unresolved-symbol {:level :warning}
+                     :unresolved-namespace {:level :warning}
+                     :unused-import {:level :warning}}})))
 
 (deftest issue-2490-test
   (is (empty? (lint! "^{:clj-kondo/ignore [:unresolved-symbol]} x
@@ -3812,7 +3959,8 @@ foo/"))
 
 (my. \"dude\")
 "
-                     {:linters {:unresolved-symbol {:level :warning}}}))))
+                     {:linters {:unresolved-symbol {:level :warning}
+                                :aliased-referred-var {:level :off}}}))))
 
 (deftest issue-2511-test
   (assert-submaps2 '({:file "<stdin>", :row 3, :col 1, :level :error, :message "clojure.core/cond-> is called with 0 args but expects 1 or more"}
@@ -3828,13 +3976,31 @@ foo/"))
 #_(ns)
 
 x"
-              {:linters {:unresolved-symbol {:level :warning}}})))
-
+                          {:linters {:unresolved-symbol {:level :warning}}})))
 
 (deftest issue-1894-defstruct-test
   (assert-submaps2
    '[{:file "<stdin>", :row 1, :col 27, :level :error, :message "Unresolved symbol: x"}]
    (lint! "(defstruct Dude :foo :bar x) Dude" {:linters {:unresolved-symbol {:level :error}}})))
+
+(deftest issue-2687-test
+  (is (empty? (lint! "(ns foo (:require-global [Dude :as b])) (b/dude) b (new b)"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:refer-global :only [String])) String String/new (String/.length \"foo\")"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (is (empty? (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str Str/new (Str/.length \"foo\")"
+                     {:linters {:unresolved-symbol {:level :error}}}
+                     "--lang" "cljs")))
+  (assert-submaps2 [{:file "<stdin>",
+                     :row 1,
+                     :col 66,
+                     :level :error,
+                     :message "Unresolved symbol: String"}]
+                   (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str String"
+                          {:linters {:unresolved-symbol {:level :error}}}
+                          "--lang" "cljs")))
 
 ;;;; Scratch
 

@@ -109,7 +109,7 @@
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
-  [{:keys [:base-lang :lang :namespaces]} ns]
+  [{:keys [base-lang lang namespaces]} ns]
   (let [{ns-name :name} ns
         path [base-lang lang ns-name]]
     (get-in (swap! namespaces update-in
@@ -138,7 +138,7 @@
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
-  ([{:keys [:base-lang :lang :filename :namespaces :top-level? :top-ns] :as ctx}
+  ([{:keys [base-lang lang filename namespaces top-level? top-ns] :as ctx}
     ns-sym var-sym expr metadata]
    (let [m (meta expr)
          expr-row (:row m)
@@ -291,33 +291,34 @@
            nil))))))
 
 (defn reg-var-usage!
-  [{:keys [:base-lang :lang :namespaces] :as ctx}
+  [{:keys [base-lang lang namespaces dependencies] :as ctx}
    ns-sym usage]
-  (when-not (:interop? usage)
-    (let [path [base-lang lang ns-sym]
-          usage (assoc usage
-                       :config (:config ctx)
-                       :unresolved-symbol-disabled?
-                       ;; TODO: can we do this via the ctx only?
-                       (or (:unresolved-symbol-disabled? usage)
-                           (linter-disabled? ctx :unresolved-symbol)))]
-      (swap! namespaces update-in path
-             (fn [ns]
-               (update ns :used-vars (fnil conj []) usage))))))
+  (when-not dependencies
+    (when-not (:interop? usage)
+      (let [path [base-lang lang ns-sym]
+            usage (assoc usage
+                         :config (:config ctx)
+                         :unresolved-symbol-disabled?
+                         ;; TODO: can we do this via the ctx only?
+                         (or (:unresolved-symbol-disabled? usage)
+                             (linter-disabled? ctx :unresolved-symbol)))]
+        (swap! namespaces update-in path
+               (fn [ns]
+                 (update ns :used-vars (fnil conj []) usage)))))))
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
-  [{:keys [:base-lang :lang :namespaces]} ns-sym required-ns-sym]
+  [{:keys [base-lang lang namespaces]} ns-sym required-ns-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
          conj required-ns-sym))
 
 (defn reg-proxied-namespaces!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym proxied-ns-syms]
+  [{:keys [base-lang lang namespaces]} ns-sym proxied-ns-syms]
   (swap! namespaces update-in [base-lang lang ns-sym :proxied-namespaces]
          into proxied-ns-syms))
 
 (defn reg-alias!
-  [{:keys [:base-lang :lang :namespaces]} ns-sym alias-sym aliased-ns-sym]
+  [{:keys [base-lang lang namespaces]} ns-sym alias-sym aliased-ns-sym]
   (swap! namespaces
          (fn [n]
            (-> n
@@ -338,28 +339,29 @@
     (let [binding (if (:mark-bindings-used? ctx)
                     (assoc binding :clj-kondo/mark-used true)
                     binding)
-          {:keys [:base-lang :lang :namespaces]} ctx]
+          {:keys [base-lang lang namespaces]} ctx]
       (swap! namespaces update-in [base-lang lang ns-sym :bindings]
              conj binding)))
   nil)
 
 (defn reg-destructuring-default!
-  [{:keys [:base-lang :lang :namespaces :ns]} default binding]
+  [{:keys [base-lang lang namespaces ns]} default binding]
   (swap! namespaces
          update-in [base-lang lang (:name ns) :destructuring-defaults]
          conj (assoc default :binding binding))
   nil)
 
 (defn reg-used-binding!
-  [{:keys [:base-lang :lang :namespaces :filename] :as ctx} ns-sym binding usage]
+  [{:keys [base-lang lang namespaces filename dependencies] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
-  (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
-         conj binding)
+  (when-not dependencies
+    (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
+           conj binding))
   nil)
 
 (defn reg-required-namespaces!
-  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym analyzed-require-clauses]
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym analyzed-require-clauses]
   (lint-conflicting-aliases! ctx (:required analyzed-require-clauses))
   (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
   (let [path [base-lang lang ns-sym]
@@ -371,7 +373,7 @@
   nil)
 
 (defn reg-imports!
-  [{:keys [:base-lang :lang :namespaces] :as ctx} ns-sym imports]
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym imports]
   (swap! namespaces update-in [base-lang lang ns-sym]
          (fn [ns]
            ;; TODO:
@@ -394,7 +396,7 @@
   [ctx ns-sym sym {:keys [base-lang lang config
                           callstack] :as sym-info}]
   (when-not (or (:unresolved-symbol-disabled? sym-info)
-                (config/unresolved-symbol-excluded config
+                (config/unresolved-symbol-excluded ctx config
                                                    callstack sym)
                 (let [symbol-name (name sym)]
                   (or (and
@@ -421,25 +423,25 @@
   nil)
 
 (defn reg-used-referred-var!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+  [{:keys [base-lang lang namespaces] :as _ctx}
    ns-sym var]
   (swap! namespaces update-in [base-lang lang ns-sym :used-referred-vars]
          conj var))
 
 (defn reg-referred-all-var!
-  [{:keys [:base-lang :lang :namespaces] :as _ctx}
+  [{:keys [base-lang lang namespaces] :as _ctx}
    ns-sym referred-all-ns-sym var-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :refer-alls referred-all-ns-sym :referred]
          conj var-sym))
 
-(defn list-namespaces [{:keys [:namespaces]}]
+(defn list-namespaces [{:keys [namespaces]}]
   (for [[_base-lang m] @namespaces
         [_lang nss] m
         [_ns-name ns] nss]
     ns))
 
 (defn reg-used-import!
-  [{:keys [:base-lang :lang :namespaces] :as ctx}
+  [{:keys [base-lang lang namespaces] :as ctx}
    name-sym ns-sym package class-name expr opts]
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
@@ -461,16 +463,16 @@
                                   :name-end-col (or (:end-col name-meta) (:end-col loc))))))
 
 (defn reg-unresolved-namespace!
-  [{:keys [:base-lang :lang :namespaces :config :callstack :filename] :as _ctx} ns-sym unresolved-ns]
+  [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
-    (let [ns-groups (cons unresolved-ns (config/ns-groups config unresolved-ns filename))
+    (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
           (or
            (some #(config/unresolved-namespace-excluded excluded %)
                  ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-           (config/unresolved-symbol-excluded config callstack :dummy))
+           (config/unresolved-symbol-excluded ctx config callstack :dummy))
         (let [unresolved-ns (vary-meta unresolved-ns
                                        ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
                                        ;; we must include the filename here
@@ -499,7 +501,7 @@
   (let [config (:config ctx)
         level (-> config :linters :shadowed-var :level)]
     (when-not (identical? :off level)
-      (when-let [{:keys [:ns :name]}
+      (when-let [{:keys [ns name]}
                  (let [ns-name (:name (:ns ctx))
                        lang (:lang ctx)
                        ns (get-namespace ctx (:base-lang ctx) lang ns-name)]
@@ -591,13 +593,13 @@
   ;; * it's generated by clj-kondo
   ;; * current lang is cljs and the "interop" symbol is treated as a var:
   ;;   clojure.lang.Var -> clojure.lang/Var
-  (when-not (or (contains? (:aliases (:ns ctx)) ns-sym)
-                (linter-disabled? ctx :aliased-namespace-symbol)
-                (config/aliased-namespace-symbol-excluded? (:config ctx) ns-sym)
-                (and (= :cljs (:lang ctx))
-                     (not= name-sym (:value expr))))
-    (let [expr (or (some-> expr :children first)
-                   expr)]
+  (let [expr (or (some-> expr :children first)
+                 expr)]
+    (when-not (or (contains? (:aliases (:ns ctx)) ns-sym)
+                  (linter-disabled? ctx :aliased-namespace-symbol)
+                  (config/aliased-namespace-symbol-excluded? (:config ctx) ns-sym)
+                  (and (= :cljs (:lang ctx))
+                       (not= name-sym (:value expr))))
       (when-not (generated? expr)
         (when-let [ns->aliases (:ns->aliases (:ns ctx))]
           (when-let [existing (ns->aliases ns-sym)]
@@ -637,40 +639,42 @@
                         ns-sym))))))))))
 
 (defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym arity-info expr]
-  (let [discouraged-var-config
-        (get-in call-config [:linters :discouraged-var])]
+  (when-let [discouraged-var-config
+             (get-in call-config [:linters :discouraged-var])]
     (when-not (or (identical? :off (:level discouraged-var-config))
                   (empty? (dissoc discouraged-var-config :level)))
       (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
                              (map #(symbol (str %) (str fn-name))
-                                  (config/ns-groups call-config resolved-ns filename)))]
-        (doseq [fn-lookup-sym candidates]
-          (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
-            (when-not (or (identical? :off (:level cfg))
-                          (:clj-kondo.impl/generated expr))
-              (let [arities (:arities cfg)
-                    arity (:arity arity-info)]
-                (when (and (or (not arity-info)
-                               (not arities)
-                               (not arity)
-                               (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
-                                                        arity)
-                                                      (let [varargs-min-arity (:varargs-min-arity arity-info)]
-                                                        (when (and varargs-min-arity (>= arity varargs-min-arity))
-                                                          :varargs)))]
-                                 (contains? (set arities) called-arity)))
-                           (let [langs (:langs cfg)]
-                             (or (not langs)
-                                 (contains? (set langs) (:lang ctx)))))
-                  (findings/reg-finding! ctx {:filename filename
-                                              :level (:level cfg)
-                                              :row row
-                                              :end-row end-row
-                                              :col col
-                                              :end-col end-col
-                                              :type :discouraged-var
-                                              :message (or (:message cfg)
-                                                           (str "Discouraged var: " fn-sym))}))))))))))
+                                  (config/ns-groups ctx call-config resolved-ns filename)))]
+        (run!
+         (fn [fn-lookup-sym]
+           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
+             (when-not (or (identical? :off (:level cfg))
+                           (:clj-kondo.impl/generated expr))
+               (let [arities (:arities cfg)
+                     arity (:arity arity-info)]
+                 (when (and (or (not arity-info)
+                                (not arities)
+                                (not arity)
+                                (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
+                                                         arity)
+                                                       (let [varargs-min-arity (:varargs-min-arity arity-info)]
+                                                         (when (and varargs-min-arity (>= arity varargs-min-arity))
+                                                           :varargs)))]
+                                  (contains? (set arities) called-arity)))
+                            (let [langs (:langs cfg)]
+                              (or (not langs)
+                                  (contains? (set langs) (:lang ctx)))))
+                   (findings/reg-finding! ctx {:filename filename
+                                               :level (:level cfg)
+                                               :row row
+                                               :end-row end-row
+                                               :col col
+                                               :end-col end-col
+                                               :type :discouraged-var
+                                               :message (or (:message cfg)
+                                                            (str "Discouraged var: " fn-sym))}))))))
+         candidates)))))
 
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
@@ -729,7 +733,9 @@
                                              name* (symbol (last splitted))]
                                          [name*
                                           package]))))
-                               (find (:imports ns) ns-sym))]
+                               (find (:imports ns) ns-sym)
+                               (when cljs?
+                                 (find (:referred-globals ns) ns-sym)))]
                   (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
                   (when call? (findings/warn-reflection ctx expr))
                   {:interop? true
@@ -804,19 +810,15 @@
                            (if cljs?
                              ;; CLJS allows imported classes to be used like this: UtcDateTime.fromTimestamp
                              (let [fs (first-segment name-sym)]
-                               (find (:imports ns) fs))
+                               (or (find (:imports ns) fs)
+                                   (when cljs?
+                                     (find (:referred-globals ns) fs))))
                              (find (:imports ns) name-sym)))]
               (reg-used-import! ctx name-sym ns-name package name-sym* expr {:call call?})
               (when call? (findings/warn-reflection ctx expr))
               {:ns package
                :interop? true
                :name name-sym*})
-            (when cljs?
-              (when-let [ns* (get (:qualify-ns ns) name-sym)]
-                (when (some-> (meta ns*) :raw-name string?)
-                  (reg-used-alias! ctx ns-name name-sym)
-                  {:ns ns*
-                   :name name-sym})))
             (let [clojure-excluded? (contains? (:clojure-excluded ns)
                                                name-sym)]
               (if (or
@@ -831,20 +833,25 @@
                        :cljs 'cljs.core)
                  :name name-sym
                  :resolved-core? true}
-                (let [referred-all-ns (some (fn [[k {:keys [:excluded]}]]
-                                              (when-not (contains? excluded name-sym)
-                                                k))
-                                            (:refer-alls ns))]
-                  (if (and (not referred-all-ns)
-                           (class-name? name-sym))
-                    (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
-                        (when call? (findings/warn-reflection ctx expr))
-                        {:interop? true})
-                    {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
-                     :name (or (::original-name ctx) name-sym)
-                     :unresolved? true
-                     :allow-forward-reference? (:in-comment ctx)
-                     :clojure-excluded? clojure-excluded?})))))))))))
+                (or (when cljs?
+                      (when-let [ns* (get (:qualify-ns ns) name-sym)]
+                        (reg-used-alias! ctx ns-name name-sym)
+                        {:ns ns*
+                         :name name-sym}))
+                    (let [referred-all-ns (some (fn [[k {:keys [excluded]}]]
+                                                  (when-not (contains? excluded name-sym)
+                                                    k))
+                                                (:refer-alls ns))]
+                      (if (and (not referred-all-ns)
+                               (class-name? name-sym))
+                        (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
+                            (when call? (findings/warn-reflection ctx expr))
+                            {:interop? true})
+                        {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
+                         :name (or (::original-name ctx) name-sym)
+                         :unresolved? true
+                         :allow-forward-reference? (:in-comment ctx)
+                         :clojure-excluded? clojure-excluded?}))))))))))))
 
 #_
 (do

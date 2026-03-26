@@ -7,7 +7,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils]))
 
-(defn analyze-fdef [{:keys [:analyze-children :ns] :as ctx} expr]
+(defn analyze-fdef [{:keys [analyze-children ns] :as ctx} expr]
   (let [[sym-expr & body] (next (:children expr))
         ns-nm (-> ns :name)]
     (keys/lint-map-keys ctx {:children body} {:known-key? #{:args :ret :fn}})

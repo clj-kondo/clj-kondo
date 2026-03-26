@@ -11,7 +11,7 @@ vector-zip {1 {:ret :vector}}
 up {1 {:ret #{:vector :nil}}}
 seq-zip {1 {:ret :vector}}
 right {1 {:ret #{:vector :nil}}}
-lefts {1 {:ret :seq}}
+lefts {1 {:ret #{:nil :seq}}}
 xml-zip {1 {:ret :vector}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.repl.deps.transit.json  ===
@@ -114,7 +114,7 @@ split-at-newline {1 {:ret :vector}}
 group-by* {2 {:ret :seq}}
 insert-decimal {2 {:ret #{:string}}}
 realize-parameter {2 {:ret :vector}}
-get-sub-section {1 {:ret :seq}}
+get-sub-section {1 {:ret #{:nil :seq}}}
 execute-format {2 {:ret :nil}}
 inc-s {1 {:args (:nilable/string)}}
 unzip-map {1 {:ret :vector}}
@@ -208,9 +208,9 @@ append? {1 {:ret :boolean}}
 namespace-doc {1 {:ret :associative}}
 special-doc {1 {:ret :associative}}
 stack-element-str {1 {:ret :string}}
-dir-fn {1 {:ret #{:list :seq}}}
+dir-fn {1 {:ret #{:list :nil :seq}}}
 thread-stopper {0 {:ret :fn}, 1 {:ret :fn}}
-apropos {1 {:ret #{:list :seq}}}
+apropos {1 {:ret #{:list :nil :seq}}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.inspector.transit.json  ===
 atom? {1 {:ret :boolean}}
@@ -306,7 +306,7 @@ declared-methods {1 {:ret :set}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.core.transit.json  ===
 +' {0 {:ret :nat-int}}
-sort-by {2 {:ret #{:list :seq}}, 3 {:ret #{:list :seq}}}
+sort-by {2 {:ret #{:list :nil :seq}}, 3 {:ret #{:list :nil :seq}}}
 is-runtime-annotation? {1 {:ret :boolean}}
 tree-seq {3 {:ret :seq}}
 keep-indexed {1 {:ret :fn}}
@@ -339,7 +339,7 @@ get-super-and-interfaces {1 {:ret #{:vector}}}
 remove-tap {1 {:ret :nil}}
 inst? {1 {:ret :boolean}}
 range {0 {:ret :seq}}
-sort {1 {:ret #{:list :seq}}, 2 {:ret #{:list :seq}}}
+sort {1 {:ret #{:list :nil :seq}}, 2 {:ret #{:list :nil :seq}}}
 generate-class {1 {:ret :vector}}
 map-indexed {1 {:ret :fn}}
 comp {2 {:ret :fn}}
@@ -366,7 +366,7 @@ protocol? {1 {:ret :boolean}}
 into {0 {:ret :vector}}
 long {1 {:args (:nilable/number)}}
 double {1 {:args (:nilable/number)}}
-nfirst {1 {:ret :seq}}
+nfirst {1 {:ret #{:nil :seq}}}
 method-sig {1 {:ret :vector}}
 hash-ordered-coll {1 {:ret :int}}
 deref-as-map {1 {:ret {:type :map, :val {:status {:row 447, :end-row 457, :col 6, :end-col 14, :tag #{{:tag :keyword, :row 454, :col 7, :end-row 454, :end-col 15} {:tag :keyword, :row 457, :col 7, :end-row 457, :end-col 13} {:tag :keyword, :row 451, :col 7, :end-row 451, :end-col 14}}}, :val {:row 459, :end-row 459, :col 11, :end-col 14}}, :row 446, :col 5, :end-row 459, :end-col 15}}}
@@ -399,14 +399,14 @@ parse-double {1 {:ret #{:double :int :float :nil}, :args (:nilable/string)}}
 assoc-in {3 {:ret #{:associative}}}
 memoize {1 {:ret :fn}}
 simple-keyword? {1 {:ret #{:nil :boolean}}}
-nnext {1 {:ret :seq}}
+nnext {1 {:ret #{:nil :seq}}}
 neg-int? {1 {:ret #{:nil :boolean}}}
 drop {1 {:ret :fn}}
 split-at {2 {:ret :vector}}
 random-sample {1 {:ret :transducer}, 2 {:ret :seq}}
 update {3 {:ret :associative}, 4 {:ret :associative}, 5 {:ret :associative}, 6 {:ret :associative}, :varargs {:ret :associative, :min-arity 6}}
 group-by-sig {1 {:ret :seq}}
-list* {1 {:ret :seq}}
+list* {1 {:ret #{:nil :seq}}}
 update-in {:varargs {:ret #{:associative}, :min-arity 3}}
 *' {0 {:ret :pos-int}}
 mix-collection-hash {2 {:ret :int, :args (:int :int)}}

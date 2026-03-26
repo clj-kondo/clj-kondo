@@ -19,18 +19,114 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2768](https://github.com/clj-kondo/clj-kondo/issues/2768): NEW linter: `:redundant-declare` which warns when `declare` is used after a var is already defined ([@jramosg](https://github.com/jramosg))
+- Performance improvement: refactor `lint-cond-constants!` to eliminate `sexpr` usage ([@jramosg](https://github.com/jramosg))
+- [#2762](https://github.com/clj-kondo/clj-kondo/issues/2762): Fix false positive: `throw` with string in CLJS no longer warns about type mismatch ([@jramosg](https://github.com/jramosg))
+- Add type support for `pmap` ([@jramosg](https://github.com/jramosg))
+- Type system: Add type support for future-related functions (`future`, `future-call`, `future-done?`, `future-cancel`, `future-cancelled?`) ([@jramosg](https://github.com/jramosg))
+- [#2770](https://github.com/clj-kondo/clj-kondo/issues/2770): Fix: linter-specific ignores now correctly respect the specified linters instead of suppressing all linters for `:unused-excluded-var` and `:unresolved-excluded-var`
+- [#2773](https://github.com/clj-kondo/clj-kondo/issues/2773): Align executable path for images to be `/bin/clj-kondo` ([@harryzcy](https://github.com/harryzcy))
+- [#2779](https://github.com/clj-kondo/clj-kondo/issues/2779), [#2780](https://github.com/clj-kondo/clj-kondo/issues/2780), [#2781](https://github.com/clj-kondo/clj-kondo/issues/2781), [#2782](https://github.com/clj-kondo/clj-kondo/issues/2782), [#2783](https://github.com/clj-kondo/clj-kondo/issues/2783), [#2785](https://github.com/clj-kondo/clj-kondo/issues/2785), [#2786](https://github.com/clj-kondo/clj-kondo/issues/2786), [#2794](https://github.com/clj-kondo/clj-kondo/issues/2794): Performance optimizations.
+- Performance: cache hook-fn lookups to avoid repeated SCI evaluation
+- [#2621](https://github.com/clj-kondo/clj-kondo/issues/2621): load imports from symlinked config dir ([@walterl](https://github.com/walterl))
+
+
+## 2026.01.19
+
+- [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
+- [#2734](https://github.com/clj-kondo/clj-kondo/issues/2734): NEW linter: `:aliased-referred-var`, which warns when a var is both referred and accessed via an alias in the same namespace. ([@jramosg](https://github.com/jramosg))
+- [#2745](https://github.com/clj-kondo/clj-kondo/issues/2745): NEW linter: `:is-message-not-string` which warns when `clojure.test/is` receives a non-string message argument. This linter replaces the previous type-mismatch enforcement for `is` message arguments and can be disabled to allow non-string values. ([@jramosg](https://github.com/jramosg))
+- [#2756](https://github.com/clj-kondo/clj-kondo/issues/2756): Fix: ensure `def + defmethod` triggers `:def-fn` warning with valid source location ([@jramosg](https://github.com/jramosg))
+- `unused-excluded-var`: Add location metadata to excluded vars in `ns-unmap`. This fixes some findings with not location. ([@jramosg](https://github.com/jramosg))
+- [#2747](https://github.com/clj-kondo/clj-kondo/issues/2747): Fix: Gensym bindings in nested syntax quotes are now correctly recognized ([@jramosg](https://github.com/jramosg))when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
+- [#2746](https://github.com/clj-kondo/clj-kondo/issues/2746): Fix regression: primitive array class syntax (e.g., `byte/1`, `int/2`) now correctly recognized as class literals in type checking ([@jramosg](https://github.com/jramosg))
+- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg)) 
+- [#2749](https://github.com/clj-kondo/clj-kondo/issues/2749): Fix false positive for throw in CLJS when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
+- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
+- [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
+- Fix `str/replace` false positive and tighten comp ret type
+- [#2729](https://github.com/clj-kondo/clj-kondo/issues/2729): Check for arity mismatch for bound vectors, sets & maps, not just literals ([@tomdl89](https://github.com/tomdl89))
+- Add new type `inst` and type checking support for `inst-ms` and `inst-ms*` ([@jramosg](https://github.com/jramosg))
+
+## 2026.01.12
+
+- [#2712](https://github.com/clj-kondo/clj-kondo/issues/2712): NEW linter: `:redundant-format` to warn when format strings contain no format specifiers ([@jramosg](https://github.com/jramosg))
+- [#2709](https://github.com/clj-kondo/clj-kondo/issues/2709): NEW linter: `:redundant-primitive-coercion` to warn when primitive coercion functions are applied to expressions already of that type ([@hugod](https://github.com/hugod))
+- [#2600](https://github.com/clj-kondo/clj-kondo/issues/2600): NEW linter: `unused-excluded-var` to warn on unused vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
+- [#2459](https://github.com/clj-kondo/clj-kondo/issues/2459): NEW linter: `:destructured-or-always-evaluates` to warn on s-expressions in `:or` defaults in map destructuring ([@jramosg](https://github.com/jramosg))
+- Change second arg for assoc-in, get-in and update-in to be sequential, not just seqable ([@tomdl89](https://github.com/tomdl89))
+- `:condition-always-true` finding was adding full context into findigns ([@jramosg](https://github.com/jramosg))
+- [#2340](https://github.com/clj-kondo/clj-kondo/issues/2340): Extend `:condition-always-true` linter to check first argument of `clojure.test/is` ([@jramosg](https://github.com/jramosg))
+- [#2719](https://github.com/clj-kondo/clj-kondo/issues/2719): Fix: `comp` args are now properly type checked ([@tomdl89](https://github.com/tomdl89))
+- [#2692](https://github.com/clj-kondo/clj-kondo/issues/2692): Lint quoted forms which are not functions ([@tomdl89](https://github.com/tomdl89))
+- [#2691](https://github.com/clj-kondo/clj-kondo/issues/2691): Fix: `:refer-clojure :exclude` now properly ignores elements with `#_` (e.g. `#_:clj-kondo/ignore comp2`) [@jramosg](https://github.com/jramosg).
+- [#2713](https://github.com/clj-kondo/clj-kondo/issues/2713): Fix regression: getting unused binding warning in `~'~` unquote expressions ([@jramosg](https://github.com/jramosg))
+- [#2711](https://github.com/clj-kondo/clj-kondo/issues/2711): Unused value inside `defmethod` ([@jramosg](https://github.com/jramosg))
+- Add type checking support for `sorted-map-by`, `sorted-set`, and `sorted-set-by` functions ([@jramosg](https://github.com/jramosg))
+- Add new type `array` and type checking support for the next functions: `to-array`, `alength`, `aget`, `aset` and `aclone` ([@jramosg](https://github.com/jramosg))
+- Add new type `class` and type checking support for class-related functions: `instance?`, `cast`, `class`, `make-array`, `bases` and `supers` ([@jramosg](https://github.com/jramosg))
+- Add type checking support for clojure.test functions and macros ([@jramosg](https://github.com/jramosg))
+- Fix [#2695](https://github.com/clj-kondo/clj-kondo/issues/2696): false positive `:unquote-not-syntax-quoted` in leiningen's `defproject`
+- Leiningen's `defproject` behavior can now be configured using `leiningen.core.project/defproject`
+- Fix [#2699](https://github.com/clj-kondo/clj-kondo/issues/2699): fix false positive unresolved string var with extend-type on CLJS
+- Rename `:refer-clojure-exclude-unresolved-var` linter to `unresolved-excluded-var` for consistency
+- Upgrade to GraalVM 25
+
+## 2025.12.23
+
+- [#2654](https://github.com/clj-kondo/clj-kondo/issues/2654): NEW linter: `redundant-let-binding`, defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
+- [#2653](https://github.com/clj-kondo/clj-kondo/issues/2653): NEW linter: `:unquote-not-syntax-quoted` to warn on `~` and `~@` usage outside syntax-quote (`` ` ``) ([@jramosg](https://github.com/jramosg))
+- [#2613](https://github.com/clj-kondo/clj-kondo/issues/2613): NEW linter: `:refer-clojure-exclude-unresolved-var` to warn on non-existing vars in `:refer-clojure :exclude` ([@jramosg](https://github.com/jramosg))
+- [#2668](https://github.com/clj-kondo/clj-kondo/issues/2668): Lint `&` syntax errors in let bindings and lint for trailing `&` ([@tomdl89](https://github.com/tomdl89))
+- [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): `duplicate-key-in-assoc` changed to `duplicate-key-args`, and now lints `dissoc`, `assoc!` and `dissoc!` too ([@tomdl89](https://github.com/tomdl89))
+- [#2651](https://github.com/clj-kondo/clj-kondo/issues/2651): resume linting after paren mismatches
+- [clojure-lsp#2651](https://github.com/clojure-lsp/clojure-lsp/issues/2157): Fix inner class name for java-class-definitions.
+- [clojure-lsp#2651](https://github.com/clojure-lsp/clojure-lsp/issues/2157): Include inner class java-class-definition analysis.
+- Bump `babashka/fs`
+- [#2532](https://github.com/clj-kondo/clj-kondo/issues/2532): Disable `:duplicate-require` in `require` + `:reload` / `:reload-all`
+- [#2432](https://github.com/clj-kondo/clj-kondo/issues/2432): Don't warn for `:redundant-fn-wrapper` in case of inlined function
+- [#2599](https://github.com/clj-kondo/clj-kondo/issues/2599): detect invalid arity for invoking collection as higher order function
+- [#2661](https://github.com/clj-kondo/clj-kondo/issues/2661): Fix false positive `:unexpected-recur` when `recur` is used inside `clojure.core.match/match` ([@jramosg](https://github.com/jramosg))
+- [#2617](https://github.com/clj-kondo/clj-kondo/issues/2617): Add types for `repeatedly` ([@jramosg](https://github.com/jramosg))
+- Add `:ratio` type support for `numerator` and `denominator` functions ([@jramosg](https://github.com/jramosg))
+- [#2676](https://github.com/clj-kondo/clj-kondo/issues/2676): Report unresolved namespace for namespaced maps with unknown aliases ([@jramosg](https://github.com/jramosg))
+- [#2683](https://github.com/clj-kondo/clj-kondo/issues/2683): data argument of `ex-info` may be nil since clojure 1.12
+- Bump built-in ClojureScript analysis info
+- Fix [#2687](https://github.com/clj-kondo/clj-kondo/issues/2687): support new `:refer-global` and `:require-global` ns options in CLJS
+- Fix [#2554](https://github.com/clj-kondo/clj-kondo/issues/2544): support inline configs in `.cljc` files
+
+## 2025.10.23
+
+- [#2590](https://github.com/clj-kondo/clj-kondo/issues/2590): NEW linter: `duplicate-key-in-assoc`, defaults to `:warning`
+- [#2639](https://github.com/clj-kondo/clj-kondo/issues/2639): NEW `:equals-nil` linter to detect `(= nil x)` or `(= x nil)` patterns and suggest `(nil? x)` instead ([@conao3](https://github.com/conao3))
+- [#2633](https://github.com/clj-kondo/clj-kondo/issues/2633): support new `defparkingop` macro in core.async alpha
+- [#2635](https://github.com/clj-kondo/clj-kondo/pull/2635): Add `:interface` flag to `:flags` set in `:java-class-definitions` analysis output to distinguish Java interfaces from classes ([@hugoduncan](https://github.com/hugoduncan))
+- [#2636](https://github.com/clj-kondo/clj-kondo/issues/2636): set global SCI context so hooks can use `requiring-resolve` etc.
+- [#2641](https://github.com/clj-kondo/clj-kondo/issues/2641): fix linting of `def` body, no results due to laziness bug
+- [#1743](https://github.com/clj-kondo/clj-kondo/issues/1743): change `:not-empty?` to only warn on objects that are already seqs
+- Performance optimization for `:ns-groups` (thanks [@severeoverfl0w](https://github.com/severeoverfl0w))
+- Flip `:self-requiring-namespace` level from `:off` to `:warning`
+
+## 2025.09.22
+
+- Remove `dbg` from `data_readers.clj` since this breaks when using together with CIDER
+
+## 2025.09.19
+
 - [#1894](https://github.com/clj-kondo/clj-kondo/issues/1894): support `destruct` syntax
-- [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
-- Require clojure `1.10.3` is the minimum clojure version
+- [#2624](https://github.com/clj-kondo/clj-kondo/issues/2624): lint argument types passed to `get` and `get-in` (especially to catch swapped arguments to get in threading macros) ([@borkdude](https://github.com/borkdude), [@Uthar](https://github.com/Uthar))
 - [#2564](https://github.com/clj-kondo/clj-kondo/issues/2564): detect calling set with wrong number of arguments
+- [#2603](https://github.com/clj-kondo/clj-kondo/issues/2603): warn on `:inline-def` with nested `deftest`
+- [#2588](https://github.com/clj-kondo/clj-kondo/issues/2588): false positive type mismatch about `symbol` accepting var
+- [#2615](https://github.com/clj-kondo/clj-kondo/issues/2615): emit `inline-configs` `config.edn` in a git-diff-friendly way ([@lread](https://github.com/lread))
+- Require clojure `1.10.3` is the minimum clojure version
 - [#2257](https://github.com/clj-kondo/clj-kondo/issues/2257): support ignore hint on invalid symbol
 - Sort findings on filename, row, column and now additionally on message too
 - [#2602](https://github.com/clj-kondo/clj-kondo/issues/2602): Sort auto-imported configs to avoid differences based on OS or file system
-- [#2603](https://github.com/clj-kondo/clj-kondo/issues/2603): warn on `:inline-def` with nested `deftest`
 - [#2606](https://github.com/clj-kondo/clj-kondo/issues/2606): make it easy for users to know how inline-config files should be version controlled ([@lread](https://github.com/lread))
 - [#2610](https://github.com/clj-kondo/clj-kondo/issues/2610): ignores may show up unordered due to macros
-- [#2615](https://github.com/clj-kondo/clj-kondo/issues/2615): emit `inline-configs` `config.edn` in a git-diff-friendly way ([@lread](https://github.com/lread))
-- [#2621](https://github.com/clj-kondo/clj-kondo/issues/2621): load imports from symlinked config dir ([@walterl](https://github.com/walterl))
+- [#2614](https://github.com/clj-kondo/clj-kondo/issues/2614): aliased-namespace-symbol doesn't work for CLJS call
+- Regressions tests for specific open source codebases such as metabase, clerk, ...
 
 ## 2025.07.28
 

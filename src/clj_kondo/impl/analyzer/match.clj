@@ -4,7 +4,7 @@
             [clj-kondo.impl.utils :as utils]))
 
 (defn reg-used-binding!
-  [{:keys [:base-lang :lang :namespaces :ns]} binding]
+  [{:keys [base-lang lang namespaces ns]} binding]
   (swap! namespaces update-in [base-lang lang (:name ns) :used-bindings]
          conj
          ;; don't report this binding as unused nor used
@@ -97,4 +97,6 @@
             ctx (if bindings
                   (utils/ctx-with-bindings ctx bindings)
                   ctx)]
-        (common/analyze-expression** ctx ret)))))
+        (common/analyze-expression**
+         (utils/ctx-with-linter-disabled ctx :unexpected-recur)
+         ret)))))

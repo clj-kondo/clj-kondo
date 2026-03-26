@@ -99,3 +99,22 @@ x/bar ;; <- no warning")))
           '{:linters
             {:discouraged-var {clojure.string/join {:message "Do not use join"}}
              :unresolved-namespace {:exclude [clojure.string]}}})))
+
+(deftest fully-qualified-map-missing-require-test
+  (testing "unresolved namespace warnings for namespaced maps"
+    (assert-submaps2
+     '({:row 1 
+        :col 2
+        :level :warning
+        :message "Unresolved namespace assimp. Are you missing a require?"}
+       {:row 1
+        :col 67
+        :level :warning 
+        :message "Unresolved namespace shader. Are you missing a require?"})
+     (lint! "[#::assimp{:model-to-load [\"assets/cube.glb\"] :tex-unit-offset 0} #::shader{:use ::barycentric-shader}]")))
+  (testing "no warnings when namespaces are required"
+    (is (empty? (lint! "(ns foo (:require [assimp :as assimp] [shader :as shader]))
+                      [#::assimp{:model-to-load [\"assets/cube.glb\"] :tex-unit-offset 0}
+                       #::shader{:use ::barycentric-shader}]"))))
+  (testing "no warnings for current namespace shorthand"
+    (is (empty? (lint! "{:id #::{:param-mapping-id :id}}")))))

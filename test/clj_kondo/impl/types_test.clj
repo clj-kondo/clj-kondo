@@ -57,4 +57,9 @@
 
 (comment
   (get types/could-be-relations :coll)
+  (require '[clj-kondo.core] :reload-all)
+  (-> (with-in-str
+        "(get nil [])"
+        (clj-kondo.core/run! {:lint ["-"]}))
+      :findings)
   )

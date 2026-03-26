@@ -31,7 +31,7 @@
 
 (defn lift-meta-content2
   ([ctx node] (lift-meta-content2 ctx node false))
-  ([{:keys [:analyze-meta? :lang] :as ctx} node only-usage?]
+  ([{:keys [analyze-meta? lang] :as ctx} node only-usage?]
    (if-let [meta-list (:meta node)]
      (let [meta-list (if (identical? :cljc (:base-lang ctx))
                        (keep #(utils/select-lang ctx % lang) meta-list)

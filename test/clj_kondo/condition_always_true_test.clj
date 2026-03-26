@@ -226,3 +226,76 @@
   :dude :dude
   true nil)"
                           config)))
+
+(deftest is-test
+  (testing "constants"
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 43,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[clojure.test :refer [is]]) (is 42)"
+            config))
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 43,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[clojure.test :refer [is]]) (is \"hello\")"
+            config))
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 43,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[clojure.test :refer [is]]) (is :keyword)"
+            config)))
+  (testing "functions"
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 43,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[clojure.test :refer [is]]) (is inc)"
+            config))
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 43,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[clojure.test :refer [is]]) (is odd?)"
+            config)))
+  (testing "var"
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 43,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[clojure.test :refer [is]]) (is #'inc)"
+            config)))
+  (testing "valid calls - no warnings"
+    (is (empty?
+         (lint! "(require '[clojure.test :refer [is]]) (is (odd? 3))"
+                config)))
+    (is (empty?
+         (lint! "(require '[clojure.test :refer [is]]) (is (some? nil))"
+                config)))
+    (is (empty?
+         (lint! "(require '[clojure.test :refer [is]]) (is true)"
+                config))))
+  (testing "cljs.test with function"
+    (assert-submaps2
+     [{:file "<stdin>",
+       :row 1,
+       :col 40,
+       :level :warning,
+       :message "Condition always true"}]
+     (lint! "(require '[cljs.test :refer [is]]) (is inc)"
+            {:linters {:condition-always-true {:level :warning}}
+             :lang :cljs}))))
