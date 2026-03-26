@@ -39,28 +39,19 @@
         (recur (conj char-seq c)))
       (apply str char-seq))))
 
-(defn flush-into
-  "Flush buffer and add string to the given vector."
-  [lines ^StringBuffer buf]
-  (let [s (str buf)]
-    (.setLength buf 0)
-    (conj lines s)))
-
 (defn read-string-data
   [reader]
   (ignore reader)
-  (let [buf (StringBuffer.)]
-    (loop [escape? false
-           lines []]
-      (if-let [c (r/read-char reader)]
-        (cond (and (not escape?) (= c \"))
-              (flush-into lines buf)
+  (loop [escape? false, lines [], buf (StringBuilder.)]
+    (if-let [c (r/read-char reader)]
+      (cond (and (not escape?) (= c \"))
+            (conj lines (str buf))
 
-              (= c \newline)
-              (recur escape? (flush-into lines buf))
+            (= c \newline)
+            (recur escape? (conj lines (str buf)) (StringBuilder.))
 
-              :else
-              (do
-                (.append buf c)
-                (recur (and (not escape?) (= c \\)) lines)))
-        (throw-reader reader "Unexpected EOF while reading string.")))))
+            :else
+            (do
+              (.append buf (char c))
+              (recur (and (not escape?) (= c \\)) lines buf)))
+      (throw-reader reader "Unexpected EOF while reading string."))))
