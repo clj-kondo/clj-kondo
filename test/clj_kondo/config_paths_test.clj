@@ -3,8 +3,7 @@
    [babashka.fs :as fs]
    [clj-kondo.test-utils :refer [lint! assert-submaps2 native?]]
    [clojure.java.io :as io]
-   [clojure.test :refer [deftest testing is]])
-  (:import [java.nio.file Files]))
+   [clojure.test :refer [deftest testing is]]))
 
 (deftest re-frame-test
   (assert-submaps2
@@ -19,8 +18,8 @@
 (deftest home-config-test
   (when-not native?
     (let [old-home (System/getProperty "user.home")
-          home-dir (str (Files/createTempDirectory "clj_kondo" (into-array java.nio.file.attribute.FileAttribute [])))
-          project-cfg-dir (str (Files/createTempDirectory "clj_kondo" (into-array java.nio.file.attribute.FileAttribute [])))
+          home-dir (str (fs/create-temp-dir {:prefix "clj_kondo"}))
+          project-cfg-dir (str (fs/create-temp-dir {:prefix "clj_kondo"}))
           prog "
 (ns x {:clj-kondo/config '{:linters {:unused-binding {:level :warning}}}}
   (:require foo.foo))
@@ -41,6 +40,34 @@
             (is (empty? (lint! prog "--config-dir" project-cfg-dir)))))
         (finally
           (System/setProperty "user.home" old-home))))))
+
+(deftest symlinked-config-test
+  (when-not native?
+    (let [tmp-dir (str (fs/create-temp-dir {:prefix "clj_kondo"}))
+          cfg-dir (io/file tmp-dir ".clj-kondo")
+          ;; Create the actual config outside .clj-kondo
+          real-lib-dir (io/file tmp-dir "real-configs" "acme" "lib")]
+      (fs/create-dirs real-lib-dir)
+      (fs/create-dirs cfg-dir)
+      (spit (io/file real-lib-dir "config.edn")
+            "{:linters {:unresolved-symbol {:exclude [(acme.lib.example/awful-macro [x y z])]}}}")
+      ;; Symlink acme -> real config dir
+      (fs/create-sym-link (fs/path cfg-dir "acme")
+                          (fs/path tmp-dir "real-configs" "acme"))
+      (testing "configs from symlinked dirs are loaded"
+        ;; With the symlinked config, x/y/z are excluded for awful-macro, leaving only 'a' on row 7
+        (let [results (lint! (io/file "corpus" "acme" "lib" "example.clj")
+                             {:linters {:unresolved-symbol {:level :error}}}
+                             "--config-dir" (.getPath cfg-dir))]
+          (assert-submaps2
+           '({:row 7, :level :error, :message "Unresolved symbol: a"})
+           (filter #(= 7 (:row %)) results)))
+        ;; Without the symlink, all symbols on row 7 are unresolved
+        (fs/delete (io/file cfg-dir "acme"))
+        (let [results (lint! (io/file "corpus" "acme" "lib" "example.clj")
+                             {:linters {:unresolved-symbol {:level :error}}}
+                             "--config-dir" (.getPath cfg-dir))]
+          (is (< 1 (count (filter #(= 7 (:row %)) results)))))))))
 
 (deftest auto-load-configs-test
   (let [config-file (io/file "corpus" ".clj-kondo" "config.edn")]
