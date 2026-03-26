@@ -2,7 +2,7 @@
 ;; To change dependencies, update deps.edn and run script/update-project.clj.
 ;; To change other things, edit project.template.clj and run script/update-project.clj.
 
-(defproject clj-kondo "2024.11.16-SNAPSHOT"
+(defproject clj-kondo "2026.01.20-SNAPSHOT"
   :description "A linter for Clojure that sparks joy."
   :url "https://github.com/clj-kondo/clj-kondo"
   :scm {:name "git"
@@ -10,22 +10,21 @@
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src" "parser" "inlined"]
-  :dependencies [[org.clojure/clojure "1.9.0"]
+  :dependencies [[org.clojure/clojure "1.10.3"]
                  [com.cognitect/transit-clj "1.0.333"]
-                 [io.replikativ/datalog-parser "0.2.29"]
+                 [io.replikativ/datalog-parser "0.2.30"]
                  [cheshire/cheshire "5.13.0"]
                  [nrepl/bencode "1.2.0"]
-                 [org.babashka/sci "0.9.44"]
-                 [babashka/fs "0.5.21"]
+                 [org.babashka/sci "0.10.47"]
+                 [babashka/fs "0.5.31"]
                  [org.ow2.asm/asm "9.7"]
                  [com.github.javaparser/javaparser-core "3.26.1"]]
   ;; :global-vars {*print-namespace-maps* false}
-  :profiles {:clojure-1.9.0 {:dependencies [[org.clojure/clojure "1.9.0"]]}
-             :clojure-1.10.2 {:dependencies [[org.clojure/clojure "1.10.2"]]}
+  :profiles {:clojure-1.10.3 {:dependencies [[org.clojure/clojure "1.10.3"]]}
              :test {:dependencies [[nubank/matcher-combinators "3.9.1"]
-                                   [org.clojure/clojurescript "1.11.132"]
+                                   [org.clojure/clojurescript "1.12.134"]
                                    [clj-commons/conch "0.9.2"]
-                                   [org.clojure/tools.deps.alpha "0.12.1048"]
+                                   [org.clojure/tools.deps "0.24.1523"]
                                    [jonase/eastwood "1.4.3"]
                                    [babashka/process "0.5.22"]
                                    [io.github.borkdude/deflet "0.1.0"]

@@ -32,7 +32,7 @@
    "project.clj.template"
    "project.clj"
    ".cirrus.yml"
-   ".github/worksflows/ci.yml"])
+   ".github/workflows/ci.yml"])
 
 ;; We might have to keep changing these from
 ;; time to time whenever the version is bumped
@@ -40,10 +40,7 @@
 ;; OR
 ;;
 ;; We could have them as environment variables
-(def current-graal-version "22.2.0")
-(def current-java-version "java11")
-
-(def valid-java-bumps ["java8" "java11"])
+(def current-graal-version "23")
 
 (def cl-options
   [["-g" "--graal VERSION" "graal version"]
@@ -79,17 +76,8 @@
   [args]
   (when (empty? args)
     (display-help))
-  (let [new-graal-version (:graal args)
-        new-java-version (:java args)]
-    (when (not (nil? new-graal-version))
-      (println "Performing Graal bump...")
-      (bump-current current-graal-version new-graal-version)
-      (show-error new-graal-version))
-    (when (not (nil? new-java-version))
-      (if (is-valid-bump? new-java-version valid-java-bumps)
-        (do
-          (println "Performing Java bump...")
-          (bump-current current-java-version new-java-version))
-        (show-error new-java-version)))))
+  (let [new-graal-version (:graal args)]
+    (println "Performing Graal bump...")
+    (bump-current current-graal-version new-graal-version)))
 
 (exec-script cl-args)

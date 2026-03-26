@@ -51,7 +51,7 @@
 (defn x []
   (eval \"WOW\")
   (println \"OK\")
-  (printf \"NICE\n\"))"
+  (printf \"NICE %s\n\" \"!\"))"
                             conf)))
           ns-groups '[{:pattern "^x\\.core.*$"
                        :name    core-namespaces}
@@ -105,3 +105,56 @@
 (js/fetch.foo)"
           '{:linters {:discouraged-var {js/fetch {:message "Use web.http/js-fetch instead"}}}}
           "--lang" "cljs")))
+
+(deftest arity-test
+  (assert-submaps2
+   [{:file "<stdin>",
+     :row 1,
+     :col 11,
+     :level :warning,
+     :message "Don't use lazy version of map"}
+    {:file "<stdin>",
+     :row 1,
+     :col 29,
+     :level :warning,
+     :message "Don't use lazy version of map"}]
+   (lint! "(map inc) (map inc [1 3 4]) (map vector [1 2 3] [1 2 3] [1 2 3] [1 2 3])"
+          '{:linters  {:discouraged-var {clojure.core/map {:message "Don't use lazy version of map"
+                                                           :arities #{2 :varargs}}}}})))
+
+(deftest langs-test
+  (let [config '{:ns-groups [{:name core :pattern "(clojure|cljs)\\.core"}]
+                 :linters  {:discouraged-var {core/juxt {:message "I love juxt but don't use it in CLJS"
+                                                         :langs #{:cljs}}}}}]
+    (assert-submaps2
+     [{:file "foo.cljs",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "I love juxt but don't use it in CLJS"}
+      {:file "foo.cljs",
+       :row 1,
+       :col 13,
+       :level :warning,
+       :message "I love juxt but don't use it in CLJS"}]
+     (lint! "(juxt :foo) juxt" config "--filename" "foo.cljs"))
+    (assert-submaps2
+     []
+     (lint! "(juxt :foo) juxt" config "--filename" "foo.clj"))
+    (assert-submaps2
+     [{:file "foo.cljc",
+       :row 1,
+       :col 1,
+       :level :warning,
+       :message "I love juxt but don't use it in CLJS"}
+      {:file "foo.cljc",
+       :row 1,
+       :col 13,
+       :level :warning,
+       :message "I love juxt but don't use it in CLJS"}
+      {:file "foo.cljc",
+       :row 1,
+       :col 37,
+       :level :warning,
+       :message "I love juxt but don't use it in CLJS"}]
+     (lint! "(juxt :foo) juxt #?(:clj juxt :cljs juxt)" config "--filename" "foo.cljc"))))

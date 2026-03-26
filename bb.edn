@@ -16,4 +16,5 @@
                                :github/repo "https://github.com/clj-kondo/clj-kondo"
                                :source-paths ["src/clj_kondo/core.clj"]}}
          extract:java-members {:doc "Extract information about Java members"
-                               :task (clojure "-X:extract" "clj-kondo.impl.extract-java-members/exec")}}}
+                               :task (clojure "-X:extract" "clj-kondo.impl.extract-java-members/exec")}
+         test:regression (clojure "-X:test:test-regression")}}

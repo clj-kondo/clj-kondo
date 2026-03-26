@@ -15,8 +15,7 @@
     (with-meta x m)))
 
 (defn expand-> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
+  (let [children (:children expr)
         [c & cforms] (rest children)
         ret (loop [x c, forms cforms]
               (if forms
@@ -34,8 +33,7 @@
     ret))
 
 (defn expand->> [_ctx expr]
-  (let [expr expr
-        children (:children expr)
+  (let [children (:children expr)
         [c & cforms] (rest children)]
     (loop [x c, forms cforms]
       (if forms
@@ -57,52 +55,54 @@
 (defn expand-cond->
   "Expands cond-> and cond->>"
   [ctx expr resolved-as-name]
-  (let [[_ start-expr & clauses] (:children expr)
-        thread-sym (case resolved-as-name
-                     cond-> 'clojure.core/->
-                     cond->> 'clojure.core/->>)
-        g (with-meta-of (token-node (gensym))
-            (with-meta start-expr (assoc (meta start-expr) :clj-kondo.impl/generated true)))
-        steps (map (fn [[t step]]
-                     (list-node [(token-node 'if)
-                                 t
-                                 (list-node
-                                  [(token-node thread-sym)
-                                   g
-                                   step])
-                                 g]))
-                   (partition 2 clauses))
-        ret (list-node [(token-node 'clojure.core/let)
-                        (vector-node
-                         (list* g start-expr
-                                (interleave (repeat g) (butlast steps))))
-                        (if (empty? steps) g (last steps))])
-        clauses-count (count clauses)]
-    (when (odd? clauses-count)
-      (findings/reg-finding! ctx
-                             (node->line
-                              (:filename ctx)
-                              expr
-                              :invalid-arity
-                              (str resolved-as-name " requires even number of clauses"))))
-    ret))
+  (let [[_ start-expr & clauses] (:children expr)]
+    (when start-expr
+      (let [thread-sym (case resolved-as-name
+                         cond-> 'clojure.core/->
+                         cond->> 'clojure.core/->>)
+            g (with-meta-of (token-node (gensym))
+                (with-meta start-expr (assoc (meta start-expr) :clj-kondo.impl/generated true)))
+            steps (map (fn [[t step]]
+                         (list-node [(token-node 'if)
+                                     t
+                                     (list-node
+                                      [(token-node thread-sym)
+                                       g
+                                       step])
+                                     g]))
+                       (partition 2 clauses))
+            ret (list-node [(token-node 'clojure.core/let)
+                            (vector-node
+                             (list* g start-expr
+                                    (interleave (repeat g) (butlast steps))))
+                            (if (empty? steps) g (last steps))])
+            clauses-count (count clauses)]
+        (when (odd? clauses-count)
+          (findings/reg-finding! ctx
+                                 (node->line
+                                  (:filename ctx)
+                                  expr
+                                  :invalid-arity
+                                  (str resolved-as-name " requires even number of clauses"))))
+        ret))))
 
 (defn expand-doto [_ctx expr]
-  (let [[_doto x & forms] (:children expr)
-        gx (with-meta-of (token-node (gensym "_"))
-             (with-meta x (assoc (meta x) :clj-kondo.impl/generated true)))
-        ret (list-node
-             (list* (token-node 'clojure.core/let) (vector-node [gx x])
-                    (conj (mapv (fn [f]
-                                 (with-meta-of
-                                   (let [t (tag f)]
-                                     (if (= :list t)
-                                       (let [fc (:children f)]
-                                         (list-node (list* (first fc) gx (next fc))))
-                                       (list-node [f gx])))
-                                   f)) forms)
-                          gx)))]
-    ret))
+  (when-let [children (next (:children expr))]
+    (let [[x & forms] children
+          gx (with-meta-of (token-node (gensym "_"))
+               (with-meta x (assoc (meta x) :clj-kondo.impl/generated true)))
+          ret (list-node
+               (list* (token-node 'clojure.core/let) (vector-node [gx x])
+                      (conj (mapv (fn [f]
+                                    (with-meta-of
+                                      (let [t (tag f)]
+                                        (if (= :list t)
+                                          (let [fc (:children f)]
+                                            (list-node (list* (first fc) gx (next fc))))
+                                          (list-node [f gx])))
+                                      f)) forms)
+                            gx)))]
+      ret)))
 
 (defn expand-dot-constructor
   [_ctx expr]
@@ -171,9 +171,9 @@
     {:varargs? varargs?
      :args args}))
 
-(defn expand-fn [{:keys [:children] :as expr}]
-  (let [{:keys [:row :col] :as m} (meta expr)
-        {:keys [:args :varargs?]} (fn-args children)
+(defn expand-fn [{:keys [children] :as expr}]
+  (let [{:keys [row col] :as m} (meta expr)
+        {:keys [args varargs?]} (fn-args children)
         fn-body (with-meta (list-node children)
                   (assoc m
                          :row row
@@ -191,19 +191,43 @@
                   fn-body])
       (assoc m :clj-kondo.impl/fn-has-first-arg has-first-arg?))))
 
-(defn expand-do-template [_ctx node]
+(defn expand-do-template [ctx node]
   (let [[_ argv expr & values] (:children node)
         c (count (:children argv))
         argv (:children argv)
         new-node
         (if (pos? c) ;; prevent infinite partition
           (list-node (list* (token-node 'do)
-                            (map (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
-                                 (partition c values))))
+                            (mapv (fn [a] (walk/postwalk-replace (zipmap argv a) expr))
+                                  (partition c values))))
           expr)
         new-node (walk/postwalk #(if (map? %)
                                    (assoc % :clj-kondo.impl/generated true)
                                    %) new-node)]
+    (cond
+      (zero? c)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   node
+                   :do-template
+                   "No args defined. Expected at least 1."))
+      (empty? values)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   node
+                   :do-template
+                   (str "No values provided. Expected: multiple of " c ".")))
+
+      :else
+      (when-not (zero? (mod (count values) (count argv)))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx)
+                     node
+                     :do-template
+                     (str "Incorrect number of values provided. Expected: multiple of " c ".")))))
     new-node))
 
 ;;;; Scratch

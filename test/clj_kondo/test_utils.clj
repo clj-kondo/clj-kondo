@@ -19,7 +19,7 @@
 
 (defmethod t/report :end-test-var [_m]
   (when-let [rc *report-counters*]
-    (when-let [{:keys [:fail :error]} @rc]
+    (when-let [{:keys [fail error]} @rc]
       (when (and (= "true" (System/getenv "CLJ_KONDO_FAIL_FAST"))
                  (or (pos? fail) (pos? error)))
         (println "=== Failing fast")
@@ -147,17 +147,14 @@
              [nil args]))
          config (str (deep-merge conf/default-config base-config config))
          res (with-out-str
-               (try
-                 (cond
-                   (instance? java.io.File input)
-                   (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
-                   (vector? input)
-                   (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
-                                                                  ["--config" config] args))
-                   :else (with-in-str input
-                           (apply main "--cache" "false" "--lint" "-"  "--config" config args)))
-                 (catch Throwable e
-                   (.printStackTrace e))))]
+               (cond
+                 (instance? java.io.File input)
+                 (apply main "--cache" "false" "--lint" (.getPath ^java.io.File input) "--config" config args)
+                 (vector? input)
+                 (apply main "--cache" "false" "--lint" (concat (map #(.getPath ^java.io.File %) input)
+                                                                ["--config" config] args))
+                 :else (with-in-str input
+                         (apply main "--cache" "false" "--lint" "-"  "--config" config args))))]
      ;; (println input)
      ;; (println res)
      (parse-output res))))
@@ -263,6 +260,11 @@
 
 (defn template [expr replacement-map]
   (walk/postwalk-replace replacement-map expr))
+
+(defn normalize-newlines [s]
+  (if (and s windows?)
+    (str/replace s "\r\n" "\n")
+    s))
 
 ;;;; Scratch
 

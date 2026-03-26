@@ -3,6 +3,7 @@
    [babashka.fs :as fs]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
+   [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest testing is]]))
@@ -403,7 +404,8 @@ my-ns/special-map \"
 
 (deftest resolve-in-hook-test
   (assert-submaps2
-   '({:file "corpus/issue-1996/src/my_test.clj", :row 8, :col 2, :level :warning, :message "Don't use with-redefs"})
+   '({:file "corpus/issue-1996/src/my_test.clj", :row 9, :col 4, :level :warning, :message "Don't use with-redefs"}
+     {:file "corpus/issue-1996/src/my_test.clj", :row 12, :col 5, :level :error, :message "Unresolved: dude"})
    (lint! (io/file "corpus" "issue-1996" "src")
           "--config-dir" (.getPath (io/file "corpus" "issue-1996" ".clj-kondo")))))
 
@@ -463,3 +465,60 @@ my-ns/special-map \"
    (lint! (fs/file "corpus" "issue-2433" "src" "foobar.clj")
           "--config" (slurp (fs/file "corpus" "issue-2433" ".clj-kondo" "config.edn"))
           "--config-dir" (fs/file "corpus" "issue-2433" ".clj-kondo"))))
+
+(deftest issue-2446-hooks-redundant-ignore-test
+  (assert-submaps2
+   [{:file "corpus/issue-2446/src/foobar.clj",
+     :row 16,
+     :col 21,
+     :level :warning,
+     :message "unused binding n"}]
+   (lint! (fs/file "corpus" "issue-2446" "src" "foobar.clj")
+          "--config" (slurp (fs/file "corpus" "issue-2446" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2446" ".clj-kondo"))))
+
+(deftest issue-2448-hooks-redundant-nested-call-test
+  (assert-submaps2
+   [{:file "corpus/issue-2448/src/foobar.clj",
+     :row 13,
+     :col 5,
+     :level :warning,
+     :message "Redundant nested call: or"}]
+   (lint! (fs/file "corpus" "issue-2448" "src" "foobar.clj")
+          "--config" (slurp (fs/file "corpus" "issue-2448" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2448" ".clj-kondo"))))
+
+(deftest issue-2466-reader-macro-roundtrip-test
+  (assert-submaps2
+   [{:file "corpus/issue-2466/src/foobar.clj",
+     :row 7,
+     :col 7,
+     :level :warning,
+     :message "Discouraged var: clojure.core/read-string"}]
+   (lint! (fs/file "corpus" "issue-2466" "src" "foobar.clj")
+          "--config" (slurp (fs/file "corpus" "issue-2466" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2466" ".clj-kondo"))))
+
+(deftest issue-2529-ns-in-macroexpand
+  (assert-submaps2
+   [{:file "corpus/issue-2529/src/foobar.cljc", :row 10, :col 1, :level :error, :message "cljs.core/inc is called with 3 args but expects 1"}
+    {:file "corpus/issue-2529/src/foobar.cljc", :row 10, :col 1, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"}]
+   (lint! (fs/file "corpus" "issue-2529" "src" "foobar.cljc")
+          "--config" (slurp (fs/file "corpus" "issue-2529" ".clj-kondo" "config.edn"))
+          "--config-dir" (fs/file "corpus" "issue-2529" ".clj-kondo"))))
+
+(deftest issue-2571-ns-in-macroexpand
+  (assert-submaps2
+   []
+   (:findings
+    (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2571" "src" "usage.clj")]
+                     :config (edn/read-string (slurp (fs/file "corpus" "issue-2571" ".clj-kondo" "config.edn")))
+                     :config-dir (fs/file "corpus" "issue-2571" ".clj-kondo")}))))
+
+(deftest issue-2636-requiring-resolve
+  (assert-submaps2
+   []
+   (:findings
+    (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2636" "src" "usage.clj")]
+                     :config (edn/read-string (slurp (fs/file "corpus" "issue-2636" ".clj-kondo" "config.edn")))
+                     :config-dir (fs/file "corpus" "issue-2636" ".clj-kondo")}))))

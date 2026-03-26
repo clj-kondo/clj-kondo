@@ -5,7 +5,7 @@
    [clj-kondo.test-utils :refer [lint!]]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [clojure.tools.deps.alpha :as deps]))
+   [clojure.tools.deps :as deps]))
 
 (def config
   '{:linters {:unresolved-namespace {:exclude [clojure.string]}
@@ -18,7 +18,9 @@
               :unused-value {:level :off}
               :unsorted-required-namespaces {:level :warning}
               :uninitialized-var {:level :off}
-              :type-mismatch {:namespaces {cljs.core {throw {:arities {1 {:args [:any]}}}}}}}
+              :type-mismatch {:namespaces {cljs.core {throw {:arities {1 {:args [:any]}}}}}}
+              :if-nil-return {:level :off}
+              :aliased-referred-var {:level :off}}
     :lint-as {day8.re-frame.tracing/fn-traced   clojure.core/fn
               day8.re-frame.tracing/defn-traced clojure.core/defn
               reagent.core/with-let             clojure.core/let

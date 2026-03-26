@@ -154,3 +154,30 @@
    (lint!! "(declare x y) (match [:name x y]
   [:name _ _]
   _)")))
+
+(deftest recur-in-match-test
+  (testing "recur in match inside if inside loop"
+    (is (empty? (lint!
+                 "(require '[clojure.core.match :refer [match]])
+(loop [[target & remaining] [{:hey \"a \"} {:hi \"b \"}]]
+  (if (> (count remaining) 0)
+    (match [target]
+      [{:hey _}]
+      (recur remaining)
+      [{:hi _}]
+      (do
+        (println \"hi \" target)
+        (recur remaining))
+      :else (println \"end \"))
+    (println \"end \")))"
+                 {:linters {:unexpected-recur {:level :error}}}))))
+  (testing "recur in match with alias"
+    (is (empty? (lint!
+                 "(require '[clojure.core.match :as m])
+(loop [[target & remaining] [{:hey \"a\"}]]
+  (if (> (count remaining) 0)
+    (m/match [target]
+      [{:hey _}] (recur remaining)
+      :else nil)
+    nil))"
+                 {:linters {:unexpected-recur {:level :error}}})))))

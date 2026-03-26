@@ -60,10 +60,10 @@ regressions.
 
 ### Linting diff
 
-A GitHub Action will automatically run `script/diff` on your PR.
+A GitHub Action will automatically run `clojure -X:test:test-regression` on your PR.
 This reports on the linting differences between clj-kondo master sources and your PR sources.
 
-It can be useful to run `script/diff` locally especially when implementing a new linter or changing an existing one.
+It can be useful to run it locally especially when implementing a new linter or changing an existing one.
 
 ### Force-push
 

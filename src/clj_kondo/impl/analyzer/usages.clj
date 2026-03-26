@@ -55,8 +55,8 @@
          ns-name (:name ns)
          keyword-val (:k expr)]
      (when (:analyze-keywords? ctx)
-       (let [{:keys [:destructuring-expr :keys-destructuring?
-                     :keys-destructuring-ns-modifier?]} opts
+       (let [{:keys [destructuring-expr keys-destructuring?
+                     keys-destructuring-ns-modifier?]} opts
              current-ns (some-> ns-name symbol)
              destructuring (when destructuring-expr (resolve-keyword ctx destructuring-expr
                                                                      current-ns))
@@ -86,7 +86,8 @@
                                           resolved-ns)
            (namespace/reg-unresolved-namespace! ctx ns-name
                                                 (with-meta (symbol (namespace symbol-val))
-                                                  (meta expr)))))))))
+                                                  (assoc (meta expr)
+                                                         :name (-> symbol-val name symbol))))))))))
 
 (defn analyze-namespaced-map [ctx ^NamespacedMapNode expr]
   (let [children (:children expr)
@@ -97,15 +98,22 @@
         the-ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)
         ns-keyword (-> expr :ns :k)
         ns-sym (kw->sym ns-keyword)
+        ns-sym (if (= '__current-ns__ ns-sym)
+                 (-> ctx :ns :name)
+                 ns-sym)
         aliased? (:aliased? expr)
-        resolved-ns (when aliased? (get (:qualify-ns the-ns) ns-sym))
+        resolved-ns (if aliased? (get (:qualify-ns the-ns) ns-sym)
+                        ns-sym)
         resolved (or resolved-ns ns-sym)]
     (when resolved-ns
-      (when-let [resolved-ns (get (:qualify-ns the-ns) ns-sym)]
-        (namespace/reg-used-alias! ctx ns-name ns-sym)
-        (namespace/reg-used-namespace! ctx
-                                       ns-name
-                                       resolved-ns)))
+      (when aliased? (namespace/reg-used-alias! ctx ns-name ns-sym))
+      (namespace/reg-used-namespace! ctx
+                                     ns-name
+                                     resolved-ns))
+    (when-not resolved-ns
+      (namespace/reg-unresolved-namespace! ctx
+                                           ns-name
+                                           (with-meta ns-sym (meta expr))))
     (let [children (:children m)
           keys (take-nth 2 children)
           vals (take-nth 2 (rest children))
@@ -118,7 +126,7 @@
 
 (defn analyze-usages2
   ([ctx expr] (analyze-usages2 ctx expr {}))
-  ([ctx expr {:keys [:quote? :syntax-quote?] :as opts}]
+  ([ctx expr {:keys [quote? syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
          syntax-quote-level (or (:syntax-quote-level ctx) 0)
@@ -129,15 +137,15 @@
          ;; nested syntax quotes are treated as normal quoted expressions by clj-kondo
          syntax-quote-tag? (= :syntax-quote t)
          unquote-tag? (one-of t [:unquote :unquote-splicing])
-         new-syntax-quote-level (cond syntax-quote-tag? (inc syntax-quote-level)
-                                      unquote-tag? (dec syntax-quote-level)
-                                      :else syntax-quote-level)
+         new-syntax-quote-level (if syntax-quote-tag? (inc syntax-quote-level)
+                                    syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
          ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
-               ctx)]
-     (if (and (= 1 syntax-quote-level) unquote-tag?)
+               ctx)
+         new-syntax-quote-level-pos? (pos? new-syntax-quote-level)]
+     (if (and new-syntax-quote-level-pos? unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
@@ -145,11 +153,11 @@
              (analyze-keyword ctx expr opts))
            (doall (mapcat
                    #(analyze-usages2 ctx %
-                                     (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
+                                     (assoc opts
+                                            :quote? quote?
+                                            :syntax-quote? syntax-quote?))
                    (:children expr))))
-         (let [syntax-quote?
-               (or syntax-quote?
-                   (= :syntax-quote t))]
+         (do
            (meta/lift-meta-content2 ctx expr true)
            (case t
              :token
@@ -159,7 +167,7 @@
                                   (namespace/normalize-sym-name ctx symbol-val)
                                   symbol-val)
                      expr-meta (meta expr)]
-                 (if-let [b (when (and simple? (not syntax-quote?))
+                 (if-let [b (when (and simple? (not new-syntax-quote-level-pos?))
                               (or (get (:bindings ctx) symbol-val)
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
@@ -172,17 +180,17 @@
                                                                       (str "Destructured :or refers to binding of same map: "
                                                                            symbol-val)))))
                      (namespace/reg-used-binding! ctx
-                                                    (-> ns :name)
-                                                    b
-                                                    (when (:analyze-locals? ctx)
-                                                      (assoc-some expr-meta
-                                                                  :name-row (:row expr-meta)
-                                                                  :name-col (:col expr-meta)
-                                                                  :name-end-row (:end-row expr-meta)
-                                                                  :name-end-col (:end-col expr-meta)
-                                                                  :name symbol-val
-                                                                  :filename (:filename ctx)
-                                                                  :str (:string-value expr)))))
+                                                  (-> ns :name)
+                                                  b
+                                                  (when (:analyze-locals? ctx)
+                                                    (assoc-some expr-meta
+                                                                :name-row (:row expr-meta)
+                                                                :name-col (:col expr-meta)
+                                                                :name-end-row (:end-row expr-meta)
+                                                                :name-end-col (:end-col expr-meta)
+                                                                :name symbol-val
+                                                                :filename (:filename ctx)
+                                                                :str (:string-value expr)))))
                    (let [{resolved-ns :ns
                           resolved-name :name
                           resolved-alias :alias
@@ -192,12 +200,13 @@
                           resolved-core? :resolved-core?
                           :as _m}
                          (let [v (namespace/resolve-name ctx false ns-name symbol-val expr)]
-                           (when-not syntax-quote?
+                           (when-not new-syntax-quote-level-pos?
                              (when-let [n (:unresolved-ns v)]
                                (namespace/reg-unresolved-namespace!
                                 ctx ns-name
                                 (with-meta n
-                                  (meta expr)))))
+                                  (assoc (meta expr)
+                                         :name (-> symbol-val name symbol))))))
                            (if (:unresolved? v)
                              (let [symbol-str (str symbol-val)]
                                (if (and (not= "." symbol-str)
@@ -241,12 +250,12 @@
                                       :top-ns (:top-ns ctx)
                                       :filename (:filename ctx)
                                       :unresolved-symbol-disabled?
-                                      (or syntax-quote?
+                                      (or new-syntax-quote-level-pos?
                                           ;; e.g. usage of clojure.core,
                                           ;; clojure.string, etc in (:require [...])
                                           (= symbol-val (get (:qualify-ns ns)
                                                              symbol-val)))
-                                      :private-access? (or syntax-quote?
+                                      :private-access? (or new-syntax-quote-level-pos?
                                                            (:private-access? ctx))
                                       :callstack (:callstack ctx)
                                       :config (:config ctx)
@@ -280,7 +289,7 @@
                                   (one-of core-sym [do fn fn* defn defn-
                                                     let when-let loop binding with-open
                                                     doseq try when when-not when-first
-                                                    when-some future]))]
+                                                    when-some future defmethod]))]
                          (when redundant?
                            (findings/reg-finding! ctx (assoc (meta expr)
                                                              :type :unused-value
@@ -306,7 +315,7 @@
                                     (one-of core-sym [do fn fn* defn defn-
                                                       let when-let loop binding with-open
                                                       doseq try when when-not when-first
-                                                      when-some future])
+                                                      when-some future defmethod])
                                     (when test?
                                       (one-of core-sym [deftest]))))]
                          (when redundant?
@@ -326,3 +335,4 @@
                      #(analyze-usages2 ctx %
                                        (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
                      (:children expr))))))))))
+

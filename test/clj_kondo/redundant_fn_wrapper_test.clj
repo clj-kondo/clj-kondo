@@ -5,10 +5,10 @@
 (deftest redundant-fn-wrapper-test
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Redundant fn wrapper"})
-   (lint! "#(inc %)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
+   (lint! "#(empty %)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Redundant fn wrapper"})
-   (lint! "#(inc %1)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
+   (lint! "#(empty %1)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
   (assert-submaps
     '({:file "<stdin>", :row 1, :col 6, :level :warning, :message "Redundant fn wrapper"})
     (lint! "(map #(:a %) uuids)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
@@ -39,4 +39,12 @@
   (is (empty?
        (lint! "(declare x) (.then x #(:foo %))"
               {:linters {:redundant-fn-wrapper {:level :warning}}}
-              "--lang" "cljs"))))
+              "--lang" "cljs")))
+  (is (empty?
+       (lint! "(fn [x] #?(:cljs (identity x) :clj (identity (* x 2))))"
+              {:linters {:redundant-fn-wrapper {:level :warning}}}
+              "--filename" "foo.cljc")))
+  (testing "inlined function"
+    (is (empty?
+         (lint! "(fn [x y] (+ x y))"
+                {:linters {:redundant-fn-wrapper {:level :warning}}})))))

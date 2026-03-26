@@ -46,6 +46,9 @@
   (testing "fix for #1023"
     (is (= #{} (types-utils/union-type)))))
 
+(deftest match-test
+  (is (not (types/match? :var :number))))
+
 (deftest lenient-match-test
   (is (types/match? ::unknown-type :string))
   (is (types/match? :string :nilable/any)))
@@ -54,4 +57,9 @@
 
 (comment
   (get types/could-be-relations :coll)
+  (require '[clj-kondo.core] :reload-all)
+  (-> (with-in-str
+        "(get nil [])"
+        (clj-kondo.core/run! {:lint ["-"]}))
+      :findings)
   )

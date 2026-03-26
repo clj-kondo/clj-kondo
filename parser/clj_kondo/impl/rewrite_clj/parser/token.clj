@@ -7,12 +7,12 @@
 (set! *warn-on-reflection* true)
 
 (defn- read-to-boundary
-  [reader & [allowed]]
-  (let [allowed? (set allowed)]
-    (r/read-until
-      reader
-      #(and (not (allowed? %))
-            (r/whitespace-or-boundary? %)))))
+  ([reader] (read-to-boundary reader #{}))
+  ([reader allowed?]
+   (r/read-until
+    reader
+    #(and (not (allowed? %))
+          (r/whitespace-or-boundary? %)))))
 
 (defn- read-to-char-boundary
   [reader]
@@ -26,14 +26,12 @@
   "Symbols allow for certain boundary characters that have
    to be handled explicitly."
   [reader value value-string]
-  (let [suffix (read-to-boundary
-                 reader
-                 [\' \:])]
+  (let [suffix (read-to-boundary reader #{\' \:})]
     (if (empty? suffix)
       (node/token-node value value-string)
       (let [s (str value-string suffix)]
         (node/token-node
-          (r/string->edn s)
+         (r/string->edn s)
           s)))))
 
 (defn parse-token
@@ -43,7 +41,7 @@
         token-col (rt/get-column-number reader)]
     (try
       (let [first-char (r/next reader)
-            s (->> (if (= first-char \\)
+            s (->> (if (= \\ first-char)
                      (read-to-char-boundary reader)
                      (read-to-boundary reader))
                    (str first-char))
@@ -54,9 +52,15 @@
       (catch Exception e
         (if (and r/*reader-exceptions*
                  (= :reader-exception (:type (ex-data e))))
-          (let [f {:row token-row
+          (let [msg (ex-message e)
+                invalid-symbol (when msg (second (re-matches #"Invalid symbol: (.*)\." msg)))
+                f {:row token-row
                    :col token-col
-                   :message (.getMessage e)}]
+                   :end-row (rt/get-line-number reader)
+                   :end-col (rt/get-column-number reader)
+                   :message (ex-message e)}]
             (swap! r/*reader-exceptions* conj (ex-info "Syntax error" {:findings [f]}))
-            reader)
+            (if invalid-symbol
+              (node/token-node (symbol invalid-symbol) invalid-symbol)
+              reader))
           (throw e))))))

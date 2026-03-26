@@ -13,9 +13,9 @@
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
-    :refer [node->line one-of tag sexpr vector-node
-            token-node string-from-token symbol-from-token
-            assoc-some]]
+    :refer [assoc-some linter-disabled? node->line one-of sexpr
+            string-from-token tag token-node vector-node]]
+   [clj-kondo.impl.var-info :refer [core-sym?]]
    [clojure.set :as set]
    [clojure.string :as str]))
 
@@ -95,6 +95,21 @@
                      :consistent-alias
                      (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
+(defn- lint-duplicate-refers! [ctx refers]
+  (when-not (linter-disabled? ctx :duplicate-refer)
+    (reduce (fn [seen {v :value, :as refer-node}]
+              (if (contains? seen v)
+                (do
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx)
+                               refer-node
+                               :duplicate-refer
+                               (str "Duplicate refer: " v)))
+                  seen)
+                (conj seen v)))
+            #{} refers)))
+
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
   (utils/handle-ignore ctx libspec-expr)
@@ -112,7 +127,7 @@
         lint-refers? (not (identical? :off (-> linters :refer :level)))
         unknown-require-option-config (-> linters :unknown-require-option)
         req-macros? (= :require-macros require-kw)]
-    (if-let [s (symbol-from-token libspec-expr)]
+    (if-let [s (utils/symbol-from-token libspec-expr)]
       (do
         (when (and (= s current-ns-name)
                    (not req-macros?)
@@ -183,7 +198,7 @@
                                    (str "require with " child-k)))))
                   (recur
                    (nnext children)
-                   (cond (and (not cljs-macros-self-require?) (sequential? opt))
+                   (cond (sequential? opt)
                          (let [;; undo referred-all when using :only with :use
                                m (if (and use? (= :only child-k))
                                    (do (findings/reg-finding!
@@ -200,6 +215,7 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
+                           (lint-duplicate-refers! ctx opt-expr-children)
                            (when (:analyze-var-usages? ctx)
                              (run! #(namespace/reg-var-usage! ctx current-ns-name
                                                               (let [m (meta %)]
@@ -218,7 +234,9 @@
                            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj ns-name)
                            (update m :referred into
                                    (map #(with-meta (sexpr %)
-                                           (meta %))) opt-expr-children))
+                                           (cond-> (meta %)
+                                             cljs-macros-self-require?
+                                             (assoc :cljs-macro-self-require true)))) opt-expr-children))
                          (= :all opt)
                          (assoc m :referred-all opt-expr)
                          :else m)))
@@ -285,11 +303,12 @@
                                 child-k))))
                     (recur (nnext children)
                            m))))
-            (let [{:keys [:as :referred :excluded :referred-all :renamed]} m
+            (let [{:keys [as referred excluded referred-all renamed]} m
                   referred (if (and referred-all
                                     (identical? :clj base-lang))
-                             (let [referred (cache/with-cache (:cache-dir ctx) 6
-                                              (cache/from-cache-1 (:cache-dir ctx) :clj ns-name))]
+                             (let [referred (cache/with-thread-lock
+                                              (cache/with-cache (:cache-dir ctx) 6
+                                                (cache/from-cache-1 (:cache-dir ctx) :clj ns-name)))]
                                (keep (fn [[k v]]
                                        (when-not (:class v)
                                          k))
@@ -302,10 +321,12 @@
                 :require-kw require-kw
                 :excluded excluded
                 :referred (concat (map (fn [r]
-                                         [r {:ns ns-name
-                                             :name r
-                                             :filename filename
-                                             :config config}])
+                                         [r (cond-> {:ns ns-name
+                                                     :name r
+                                                     :filename filename
+                                                     :config config}
+                                              (:cljs-macro-self-require (meta r))
+                                              (assoc :cljs-macro-self-require true))])
                                        referred)
                                   (map (fn [[original-name new-name]]
                                          [new-name {:ns ns-name
@@ -458,6 +479,23 @@
    :row row
    :col col})
 
+(defn- lint-refer-clojure-vars [{:keys [filename lang] :as ctx} excluded-vars]
+  (letfn [(exists-in-core? [excluded-var lang]
+            (if (= :cljc (:base-lang ctx))
+              (some #(core-sym? % excluded-var) [:clj :cljs])
+              (core-sym? lang excluded-var)))]
+    (when-not (linter-disabled? ctx :unresolved-excluded-var)
+      (doseq [excluded-var excluded-vars
+              :when (not (or (exists-in-core? excluded-var lang)
+                             (utils/ignored? excluded-var
+                                             :unresolved-excluded-var)))]
+        (findings/reg-finding!
+         ctx
+         (node->line filename excluded-var
+                     :unresolved-excluded-var
+                     (str "Unresolved excluded var: "
+                          excluded-var)))))))
+
 (defn analyze-ns-decl
   [ctx expr]
   (when (:analyze-keywords? ctx)
@@ -477,8 +515,8 @@
         fc (first children)
         docstring (when fc
                     (string-from-token fc))
-        doc-node (when docstring
-                   fc)
+        doc-node-raw (when docstring
+                       fc)
         meta-node (when fc
                     (let [t (tag fc)]
                       (if (= :map t)
@@ -497,14 +535,14 @@
         [doc-node docstring] (or (and meta-node-meta
                                       (:doc meta-node-meta)
                                       (docstring/docs-from-meta meta-node))
-                                 [doc-node docstring])
+                                 [doc-node-raw docstring])
         [doc-node docstring] (if docstring
                                [doc-node docstring]
                                (when (some-> metadata :doc str)
                                  (some docstring/docs-from-meta ns-name-metas)))
         global-config (:global-config ctx)
         ns-name (or
-                 (when-let [?name (sexpr ns-name-expr)]
+                 (when-let [?name (when ns-name-expr (sexpr ns-name-expr))]
                    (if (symbol? ?name) ?name
                        (findings/reg-finding!
                         ctx
@@ -515,7 +553,7 @@
                  'user)
         _ (when-not (= 'user ns-name)
             (reset! (:main-ns ctx) ns-name))
-        ns-groups (config/ns-groups global-config ns-name filename)
+        ns-groups (config/ns-groups ctx global-config ns-name filename)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
                        (apply config/merge-config!
                               (concat (map #(get config-in-ns %) ns-groups)
@@ -568,12 +606,14 @@
                          :underscore-in-namespace
                          (str "Avoid underscore in namespace name: " ns-name))))
 
-        clauses children
+        clauses (cond-> children
+                  doc-node-raw next
+                  meta-node next)
         _ (run! #(utils/handle-ignore ctx %) children)
         kw+libspecs (for [?require-clause clauses
                           :let [require-kw-node (-> ?require-clause :children first)
                                 require-kw (:k require-kw-node)
-                                require-kw (one-of require-kw [:require :require-macros :use])]
+                                require-kw (one-of require-kw [:require :require-macros :use :require-global])]
                           :when require-kw]
                       [require-kw-node (-> ?require-clause :children next)])
         analyzed-require-clauses
@@ -587,9 +627,10 @@
             (namespace/lint-unsorted-required-namespaces! ctx imports-raw :unsorted-imports))
         imports
         (apply merge (map #(analyze-import ctx ns-name %) imports-raw))
+        sexpr-clauses (map sexpr (nnext (:children expr)))
         refer-clojure-clauses
         (apply merge-with into
-               (for [?refer-clojure (nnext (sexpr expr))
+               (for [?refer-clojure sexpr-clauses
                      :when (= :refer-clojure (first ?refer-clojure))
                      [k v] (partition 2 (rest ?refer-clojure))
                      :let [r (case k
@@ -607,7 +648,30 @@
                                               :name original-name}])
                                  (:renamed refer-clojure-clauses)))
                    :clojure-excluded (:excluded refer-clojure-clauses)}
+        refer-cljs-globals
+        (when (identical? :cljs lang)
+          (let [refer-globals (reduce merge {}
+                                     (for [?refer-clojure sexpr-clauses
+                                           :when (= :refer-global (first ?refer-clojure))
+                                           :let [{:keys [only rename]} (apply hash-map (rest ?refer-clojure))]]
+                                       (if rename
+                                         (merge (set/map-invert rename) (let [onlies (remove rename only)]
+                                                                          (zipmap onlies onlies)))
+                                         (zipmap only only))))]
+            {:referred-globals refer-globals}))
+        _ (when (seq (:clojure-excluded refer-clj))
+            (lint-refer-clojure-vars ctx (:clojure-excluded refer-clj)))
         gen-class? (some #(= :gen-class (some-> % :children first :k)) clauses)
+        leftovers (for [clause clauses
+                        :let [valid-kw (-> clause :children first :k)
+                              valid-kw (one-of valid-kw [:require :require-macros :use
+                                                         :import :refer-clojure
+                                                         :load :gen-class
+                                                         :require-global :refer-global])]
+                        :when (not valid-kw)]
+                    clause)
+        _ (when (seq leftovers)
+            (namespace/lint-unknown-clauses ctx leftovers))
         ns (cond->
             (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                           :imports imports
@@ -615,7 +679,8 @@
                           :deprecated deprecated)
                    (merge-with into
                                analyzed-require-clauses
-                               refer-clj))
+                               refer-clj
+                               refer-cljs-globals))
              (or config-in-ns local-config) (assoc :config merged-config)
              (identical? :clj lang) (update :qualify-ns
                                             #(assoc % 'clojure.core 'clojure.core))
@@ -623,9 +688,8 @@
                                              #(assoc % 'cljs.core 'cljs.core
                                                      'clojure.core 'cljs.core)))]
     (when (:analysis ctx)
-      (when true #_(java/analyze-class-usages? ctx)
-        (doseq [[k v] imports]
-          (java/reg-class-usage! ctx (str v "." k) nil (assoc (meta k) :import true))))
+      (doseq [[k v] imports]
+        (java/reg-class-usage! ctx (str v "." k) nil (assoc (meta k) :import true)))
       (analysis/reg-namespace! ctx filename row col
                                ns-name false (assoc-some {}
                                                          :user-meta (when (:analysis-ns-meta ctx)
@@ -671,7 +735,10 @@
                                                (= 'quote (some-> children first
                                                                  utils/symbol-from-token)))
                                       (second children)))))
-                           children)]
+                           children)
+        ctx (if (some #{:reload :reload-all} (map :k non-quoted-children))
+              (utils/ctx-with-linter-disabled ctx :duplicate-require)
+              ctx)]
     (when-not (seq children)
       (findings/reg-finding!
        ctx (node->line (:filename ctx) require-node :syntax

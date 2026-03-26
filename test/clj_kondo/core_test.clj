@@ -60,7 +60,7 @@
       (is (nat-int? (:duration s)))
       (is (nat-int? (:files s)))))
   (testing "end locations are reported correctly"
-    (let [{:keys [:findings]}
+    (let [{:keys [findings]}
           (with-in-str
             "(x  )" (clj-kondo/run! {:lint ["-"]}))]
       (assert-submaps
@@ -154,7 +154,8 @@
   (let [res (with-in-str "#(if 1 2)"
               (clj-kondo/run!
                {:lint ["-"]
-                :config {:linters {:missing-else-branch {:level :warning}}}}))
+                :config {:linters {:missing-else-branch {:level :warning}}}
+                :repro true}))
         findings (:findings res)
         first-and-only-finding (first findings)]
     (is (= 1 (count findings)))
@@ -162,7 +163,7 @@
     (is (= 10 (:end-col first-and-only-finding)))))
 
 (deftest findings-serialization-test
-  (let [{:keys [:findings]}
+  (let [{:keys [findings]}
         (with-in-str "(ns test (:require [\"@material-ui/core\" :default mui]))"
           (clj-kondo/run!
            {:lint   ["-"]}))]
@@ -246,18 +247,19 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {})]
-      (is (= 7 (:files (:summary res))))
+      (is (= 8 (:files (:summary res))))
       (assert-submaps
-        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 7}
-          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 7}
-          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 7}
-          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 7}
-          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 7}
-          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 7}
-          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 7}}
+        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 8}
+          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 8}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 8}
+          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 8}
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 8}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 8}
+          {:filename "corpus/schema/defprotocol.clj" :uri #"file:/.*/corpus/schema/defprotocol.clj" :total-files 8}
+          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 8}}
         (set @calls))
       (is (every? #(and (int? (:total-files %))
-                        (<= (:total-files %) 7)) @calls))))
+                        (<= (:total-files %) 8)) @calls))))
 
   (testing "when lint is classpath"
     (let [calls (atom [])
@@ -291,18 +293,19 @@
                 (fn [entry-map]
                   (swap! calls conj entry-map))
                 {:parallel true})]
-      (is (= 7 (:files (:summary res))))
+      (is (= 8 (:files (:summary res))))
       (assert-submaps
-        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 7}
-          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 7}
-          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 7}
-          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 7}
-          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 7}
-          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 7}
-          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 7}}
+        #{{:filename "corpus/use.clj" :uri #"file:/.*/corpus/use.clj" :total-files 8}
+          {:filename "corpus/schema/defs.clj" :uri #"file:/.*/corpus/schema/defs.clj" :total-files 8}
+          {:filename "corpus/case.clj" :uri #"file:/.*/corpus/case.clj" :total-files 8}
+          {:filename "corpus/schema/defmethod.clj" :uri #"file:/.*/corpus/schema/defmethod.clj" :total-files 8}
+          {:filename "corpus/schema/calls.clj" :uri #"file:/.*/corpus/schema/calls.clj" :total-files 8}
+          {:filename "corpus/schema/defrecord.clj" :uri #"file:/.*/corpus/schema/defrecord.clj" :total-files 8}
+          {:filename "corpus/schema/defprotocol.clj" :uri #"file:/.*/corpus/schema/defprotocol.clj" :total-files 8}
+          {:filename "dirinjar.clj/arity.clj" :uri #"jar:file:/.*/corpus/withcljdir.jar!/dirinjar.clj/arity.clj" :total-files 8}}
         (set @calls))
       (is (every? #(and (int? (:total-files %))
-                        (<= (:total-files %) 7)) @calls)))))
+                        (<= (:total-files %) 8)) @calls)))))
 
 ;;;; Scratch
 

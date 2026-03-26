@@ -14,22 +14,25 @@ CLJ_KONDO_VERSION=$(cat resources/CLJ_KONDO_VERSION)
 
 export CLJ_KONDO_NATIVE=true
 
-lein with-profiles +clojure-1.10.2 "do" clean, uberjar
+lein with-profiles +clojure-1.10.3 "do" clean, uberjar
 
 args=( "-jar" "target/clj-kondo-$CLJ_KONDO_VERSION-standalone.jar"
        "-H:+ReportExceptionStackTraces"
        "--verbose"
        "--no-fallback"
-       "-J-Xmx3g" "$@")
+       "-march=compatibility"
+       "-O1"
+       "$@")
 
 if [ "$CLJ_KONDO_STATIC" = "true" ]; then
-    args+=("--static")
     if [ "$CLJ_KONDO_MUSL" = "true" ]; then
+        args+=("--static")
         args+=("--libc=musl"
                # see https://github.com/oracle/graal/issues/3398
                "-H:CCompilerOption=-Wl,-z,stack-size=2097152")
     else
         # see https://github.com/oracle/graal/issues/3737
+        args+=("-H:+UnlockExperimentalVMOptions")
         args+=("-H:+StaticExecutableWithDynamicLibC")
     fi
 fi

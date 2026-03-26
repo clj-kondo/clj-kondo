@@ -7,6 +7,7 @@ read -r -d '' config <<'EOF' || true
 {;; :analysis {:keywords true}
  :linters
   {:redundant-fn-wrapper {:level :warning}
+   :condition-always-true {:level :warning}
    :not-a-function
     {:skip-args [clojure.pprint/defdirectives
                  cljs.pprint/defdirectives

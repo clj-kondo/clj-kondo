@@ -136,6 +136,17 @@
                               (cache/with-cache test-cache-dir-path 0
                                 (+ 1 2 3))))
         (is (= 6 @fut))))
+    (testing "no issue when wrapped in thread-lock"
+      (let [fut (future
+                  (cache/with-thread-lock
+                    (cache/with-cache test-cache-dir-path 0
+                      (Thread/sleep 500)
+                      (+ 1 2 3))))]
+        (Thread/sleep 10)
+        (cache/with-thread-lock
+          (cache/with-cache test-cache-dir-path 0
+            (+ 1 2 3)))
+        (is (= 6 @fut))))
     (testing "retries"
       (let [fut (future
                   (cache/with-cache test-cache-dir-path 0

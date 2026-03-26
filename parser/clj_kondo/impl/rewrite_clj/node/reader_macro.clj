@@ -43,7 +43,8 @@
   (tag [_] :reader-macro)
   (printable-only?[_] false)
   (sexpr [this]
-    (list 'read-string (node/string this)))
+    (with-meta (list 'clojure.core/read-string (node/string this))
+      {:clj-kondo.impl/generated true}))
   (length [_]
     (inc (node/sum-lengths children)))
   (string [_]

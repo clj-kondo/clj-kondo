@@ -4,10 +4,11 @@
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.utils :as utils :refer [*ctx*]]
+   [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.pprint]
-   [sci.core :as sci])
+   [sci.core :as sci]
+   [sci.ctx-store :as store])
   (:refer-clojure :exclude [macroexpand]))
 
 (set! *warn-on-reflection* true)
@@ -28,7 +29,7 @@
                   (let [f (io/file cp-entry (str base-path "." ext))]
                     (when (.exists f) f)))
                 ["clj_kondo" "clj" "cljc"]))
-        (:classpath *ctx*)))
+        (:classpath utils/*ctx*)))
 
 #_(defmacro macroexpand [macro node]
     `(clj-kondo.hooks-api/-macroexpand (deref (var ~macro)) ~node))
@@ -42,6 +43,8 @@
    'string-node? api/string-node?
    'token-node api/token-node
    'token-node? api/token-node?
+   'quote-node api/quote-node
+   'quote-node? api/quote-node?
    'vector-node api/vector-node
    'vector-node? api/vector-node?
    'map-node api/map-node
@@ -56,6 +59,7 @@
    'ns-analysis api/ns-analysis
    'generated-node? api/generated-node?
    'resolve api/resolve
+   'env     api/env
    'set-node api/set-node
    'set-node? api/set-node?
    'node? api/node?
@@ -78,7 +82,7 @@
                        'java.lang.AssertionError java.lang.AssertionError}
              :imports {'Exception 'java.io.Exception
                        'System java.lang.System}
-             :load-fn (fn [{:keys [:namespace]}]
+             :load-fn (fn [{:keys [namespace]}]
                         (let [^String ns-str (namespace-munge (name namespace))
                               base-path (.replace ns-str "." "/")]
                           (if-let [f (find-file-on-classpath base-path)]
@@ -87,25 +91,14 @@
                             (binding [*out* *err*]
                               (println "WARNING: file" base-path "not found while loading hook")
                               nil))))}))
-
-(def sci-ctx
-  (initial-ctx))
+(def ^:private hook-resolve-cache
+  (volatile! {}))
 
 (defn reset-ctx! []
-  (alter-var-root #'sci-ctx (constantly (initial-ctx))))
+  (store/reset-ctx! (initial-ctx))
+  (vreset! hook-resolve-cache {}))
 
-(defn memoize-without-ctx
-  [f]
-  (let [mem (atom {})]
-    (fn [ctx & args]
-      (if-let [e (find @mem args)]
-        (val e)
-        (let [ret (apply f ctx args)]
-          (swap! mem assoc args ret)
-          ret)))))
-
-(def load-lock (Object.))
-
+(reset-ctx!)
 
 (defn walk
   [inner outer form]
@@ -129,7 +122,7 @@
                  (if-let [m (meta node)]
                    (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
                      (do (vreset! !!last-meta (assoc m :derived-location true))
-                         (utils/mark-generate node))
+                         node #_(utils/mark-generate node))
                      (-> (with-meta node
                            (merge @!!last-meta (meta node)))
                          utils/mark-generate))
@@ -150,75 +143,81 @@
 (defn macroexpand [macro node bindings]
   (let [call (api/sexpr node)
         args (rest call)
-        res (apply macro call bindings args)
+        res (apply macro call (cond-> bindings
+                                (identical? :cljs (:lang utils/*ctx*))
+                                (assoc :ns (select-keys (:ns utils/*ctx*) [:name]))) args)
         coerced (api/coerce res)
         annotated (annotate coerced (meta node))
         lifted (meta/lift-meta-content2 utils/*ctx* annotated)]
-    ;;
     lifted))
 
-(def hook-fn
-  (let [delayed-cfg
-        (fn [ctx config ns-sym var-sym]
-          (try (let [sym (symbol (str ns-sym)
-                                 (str var-sym))
-                     hook-cfg (:hooks config)
-                     filename (:filename ctx)]
-                 (when hook-cfg
-                   (if-let [x (or (get-in hook-cfg [:analyze-call sym])
-                                  (some (fn [group-sym]
-                                          (get-in hook-cfg [:analyze-call (symbol (str group-sym)
-                                                                                  (str var-sym))]))
-                                        (config/ns-groups config ns-sym filename)))]
-                     ;; we return a function of ctx, so we will never memoize on
-                     ;; ctx, which will hold on to all the linting state and
-                     ;; creates memory leaks for long lives processes (LSP /
-                     ;; VSCode), see #1036
-                     (sci/binding [sci/out *out*
-                                   sci/err *err*]
-                       (let [code (if (string? x)
-                                    (when (:allow-string-hooks ctx)
-                                      x)
-                                    ;; x is a function symbol
-                                    (let [ns (namespace x)]
-                                      (format "(require '%s %s)\n%s" ns
-                                              (if api/*reload* :reload "")
-                                              x)))]
-                         (binding [*ctx* ctx]
-                           ;; require isn't thread safe in SCI
-                           (locking load-lock (sci/eval-string* sci-ctx code)))))
-                     (when-let [x (or (get-in hook-cfg [:macroexpand sym])
-                                      (some (fn [group-sym]
-                                              (get-in hook-cfg [:macroexpand (symbol (str group-sym)
-                                                                                     (str var-sym))]))
-                                            (config/ns-groups config ns-sym filename)))]
-                       (sci/binding [sci/out *out*
-                                     sci/err *err*]
-                         (let [code (if (string? x)
-                                      (when (:allow-string-hooks ctx)
-                                        x)
-                                      ;; x is a function symbol
-                                      (let [ns (namespace x)]
-                                        (format "(require '%s %s)\n(deref (var %s))"
-                                                ns
-                                                (if api/*reload* :reload "")
-                                                x)))
-                               macro (binding [*ctx* ctx]
-                                       (locking load-lock
-                                         ;; require isn't thread safe in SCI
-                                         (sci/eval-string* sci-ctx code)))]
-                           (fn [{:keys [node]}]
-                             {:node (macroexpand macro node (:bindings *ctx*))})))))))
-               (catch Exception e
-                 (binding [*out* *err*]
-                   (println "WARNING: error while trying to read hook for"
-                            (str ns-sym "/" var-sym ":")
-                            (.getMessage e))
-                   (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                     (println e)))
-                 nil)))
-        memo-delayed-cfg (memoize-without-ctx delayed-cfg)
-        hook-fn' (fn [& args]
-                   (apply (if api/*reload* delayed-cfg memo-delayed-cfg)
-                          args))]
-    hook-fn'))
+(defn- hook-fn*
+  [ctx config ns-sym var-sym]
+  (let [sym (symbol (str ns-sym)
+                    (str var-sym))
+        hook-cfg (:hooks config)
+        filename (:filename ctx)]
+    (when hook-cfg
+      (if-let [x (or (get-in hook-cfg [:analyze-call sym])
+                      (some (fn [group-sym]
+                              (get-in hook-cfg [:analyze-call (symbol (str group-sym)
+                                                                      (str var-sym))]))
+                            (config/ns-groups ctx config ns-sym filename)))]
+        (sci/binding [sci/out *out*
+                      sci/err *err*]
+          (let [code (if (string? x)
+                       (when (:allow-string-hooks ctx)
+                         x)
+                       (let [ns (namespace x)]
+                         (format "(require '%s %s)\n%s" ns
+                                 (if api/*reload* :reload "")
+                                 x)))]
+            (binding [utils/*ctx* ctx]
+              (sci/eval-string* (store/get-ctx) code))))
+        (when-let [x (or (get-in hook-cfg [:macroexpand sym])
+                          (some (fn [group-sym]
+                                  (get-in hook-cfg [:macroexpand (symbol (str group-sym)
+                                                                         (str var-sym))]))
+                                (config/ns-groups ctx config ns-sym filename)))]
+          (sci/binding [sci/out *out*
+                        sci/err *err*]
+            (let [code (if (string? x)
+                         (when (:allow-string-hooks ctx)
+                           x)
+                         (let [ns (namespace x)]
+                           (format "(require '%s %s)\n(deref (var %s))"
+                                   ns
+                                   (if api/*reload* :reload "")
+                                   x)))
+                  macro (binding [utils/*ctx* ctx]
+                          (sci/eval-string* (store/get-ctx) code))]
+              (fn [{:keys [node]}]
+                {:node (macroexpand macro node
+                                    (:bindings utils/*ctx*))}))))))))
+
+(def ^:private hook-not-found (Object.))
+
+(defn hook-fn
+  [ctx config ns-sym var-sym]
+  (try
+    (let [hooks-cfg (:hooks config)
+          cache-val @hook-resolve-cache
+          ;; invalidate cache when hooks config changes
+          cache-val (if (identical? hooks-cfg (:hooks-cfg cache-val))
+                      cache-val
+                      {:hooks-cfg hooks-cfg})
+          k [ns-sym var-sym]
+          v (get cache-val k hook-not-found)]
+      (if (identical? v hook-not-found)
+        (let [ret (hook-fn* ctx config ns-sym var-sym)]
+          (vreset! hook-resolve-cache (assoc cache-val k ret))
+          ret)
+        v))
+    (catch Exception e
+      (binding [*out* *err*]
+        (println "WARNING: error while trying to read hook for"
+                 (str ns-sym "/" var-sym ":")
+                 (.getMessage e))
+        (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+          (println e)))
+      nil)))

@@ -12,3 +12,9 @@
 (t/deftest foo (def x 1))
 
 (defmacro foo [] (def x 1))
+
+(fn [] (def x 1))
+
+(defmulti foo :bar)
+
+(defmethod foo :default [_] (def x 1) 1)

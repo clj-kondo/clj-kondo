@@ -8,7 +8,9 @@
    [clojure.edn :as edn]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
-   [clojure.tools.deps.alpha :as deps]))
+   [clojure.tools.deps :as deps]
+   [matcher-combinators.matchers :as m]
+   [matcher-combinators.test :refer [match?]]))
 
 (defn analyze [lint]
   (let [config {:output {:canonical-paths true
@@ -26,54 +28,68 @@
                         :config config})))))
 
 (deftest jar-classes-test
-  (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
-               :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
-                           "clojars" {:url "https://repo.clojars.org/"}}}
-        jar (-> (deps/resolve-deps deps nil)
-                (get-in ['org.clojure/clojure :paths 0]))
-        {:keys [java-class-definitions java-class-usages java-member-definitions]} (analyze [jar])
-        rt-def (some #(when (= "clojure.lang.RT" (:class %))
-                        %) java-class-definitions)
-        rt-usage (some #(when (= "clojure.lang.RT" (:class %))
-                          %) java-class-usages)
-        keys-rt-member-def (some #(when (and (= "clojure.lang.RT" (:class %) )
-                                             (= "keys" (:name %)))
-                                    %) java-member-definitions)]
+  (testing "clojure"
+    (let [deps '{:deps {org.clojure/clojure {:mvn/version "1.10.3"}}
+                 :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+                             "clojars" {:url "https://repo.clojars.org/"}}}
+          jar (-> (deps/resolve-deps deps nil)
+                  (get-in ['org.clojure/clojure :paths 0]))
+          {:keys [java-class-definitions java-class-usages java-member-definitions]} (analyze [jar])
+          rt-def (some #(when (= "clojure.lang.RT" (:class %))
+                          %) java-class-definitions)
+          rt-usage (some #(when (= "clojure.lang.RT" (:class %))
+                            %) java-class-usages)
+          keys-rt-member-def (some #(when (and (= "clojure.lang.RT" (:class %))
+                                               (= "keys" (:name %)))
+                                      %) java-member-definitions)]
 
-    (assert-submap2
-     {:class "clojure.lang.RT",
-      :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
-      :filename #"\.class"}
-     rt-def)
-    (assert-submap2
-     {:class "clojure.lang.RT",
-      :uri #"jar:file:.*\.clj",
-      :filename #".*\.clj"}
-     rt-usage)
-    (assert-submap2
-     {:class "clojure.lang.RT"
-      :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class"
-      :name "keys"
-      :parameter-types ["java.lang.Object"]
-      :flags #{:method :public :static}
-      :return-type "clojure.lang.ISeq"}
-     keys-rt-member-def)
-    (is (every? number? ((juxt :row
-                               :col
-                               :end-row
-                               :end-col) rt-usage)))))
+      (assert-submap2
+        {:class "clojure.lang.RT",
+         :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class",
+         :filename #"\.class"}
+        rt-def)
+      (assert-submap2
+        {:class "clojure.lang.RT",
+         :uri #"jar:file:.*\.clj",
+         :filename #".*\.clj"}
+        rt-usage)
+      (assert-submap2
+        {:class "clojure.lang.RT"
+         :uri #"jar:file:.*/org/clojure/clojure/1.10.3/clojure-1.10.3.jar!/clojure/lang/RT.class"
+         :name "keys"
+         :parameter-types ["java.lang.Object"]
+         :flags #{:method :public :static}
+         :return-type "clojure.lang.ISeq"}
+        keys-rt-member-def)
+      (is (every? number? ((juxt :row
+                                 :col
+                                 :end-row
+                                 :end-col) rt-usage)))))
+
+  (testing "local jar"
+    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/my-jar.jar"])
+          awesome-class-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-class-definitions)]
+      (assert-submaps2
+        '[{:class "foo.bar.AwesomeClass$Foo",
+           :uri #"jar:file:.*/corpus/java/my-jar.jar!/foo/bar/AwesomeClass\$Foo.class",
+           :filename #".*/corpus/java/my-jar.jar:foo/bar/AwesomeClass\$Foo.class"}
+          {:class "foo.bar.AwesomeClass",
+           :uri #"jar:file:.*/corpus/java/my-jar.jar!/foo/bar/AwesomeClass.class",
+           :filename #".*corpus/java/my-jar.jar:foo/bar/AwesomeClass.class"}]
+        awesome-class-defs))))
 
 #_(jar-classes-test)
 #_(analyze ["/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar"])
 
-
 (deftest local-classes-test
-  (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/classes"])]
-    (assert-submaps2
-     '[{:class "foo.bar.AwesomeClass",
-        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class",
-        :filename #".*corpus/java/classes/foo/bar/AwesomeClass.class"}]
-     java-class-definitions)
+  (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/classes"])
+        awesome-class-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-class-definitions)
+        awesome-member-defs (filter #(str/starts-with? (:class %) "foo.bar.AwesomeClass") java-member-definitions)]
+    (is (match?
+          (m/in-any-order
+            [{:class "foo.bar.AwesomeClass"}
+             {:class "foo.bar.AwesomeClass$Foo"}])
+          awesome-class-defs))
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
@@ -107,143 +123,158 @@
         :name "coolParse"
         :flags #{:public :static :method}
         :parameter-types ["java.util.List"]
-        :return-type "java.io.File[]"}]
-     java-member-definitions))
-  (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources"])]
+        :return-type "java.io.File[]"}
+       {:class "foo.bar.AwesomeClass",
+        :uri #"file:.*/corpus/java/classes/foo/bar/AwesomeClass.class"
+        :name "foo"
+        :flags #{:public :method}
+        :parameter-types []
+        :return-type "foo.bar.AwesomeClass$Foo"}]
+     awesome-member-defs))
+  (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources"])
+        awesome-class-defs (filter #(= "foo.bar.AwesomeClass" (:class %)) java-class-definitions)]
     (assert-submaps2
      '[{:class "foo.bar.AwesomeClass",
         :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
         :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
-     java-class-definitions))
+     awesome-class-defs))
   (testing "linting just one java source"
     (let [{:keys [java-class-definitions java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/AwesomeClass.java"])]
       (assert-submaps2
        '[{:class "foo.bar.AwesomeClass",
           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
+          :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}
+         {:class "foo.bar.AwesomeClass$Foo",
+          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java",
           :filename #".*corpus/java/sources/foo/bar/AwesomeClass.java"}]
        java-class-definitions)
       (assert-submaps2
-       '[{:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:public :field}
-          :name "bar1"
-          :type "Double"
-          :row 15 :col 5 :end-row 15 :end-col 23}
-         {:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:public :field :final}
-          :name "bar2"
-          :type "Double"
-          :row 16 :col 5 :end-row 16 :end-col 35}
-         {:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:public :static :field :final}
-          :name "bar3"
-          :type "Double"
-          :row 17 :col 5 :end-row 17 :end-col 42}
-         {:class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public}
-          :name "AwesomeClass"
-          :parameters ["double a"]
-          :row 19 :col 5 :end-row 21 :end-col 5}
-         {:return-type "int"
-          :name "coolSum1"
-          :class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public}
-          :parameters ["double a" "double b"]
-          :row 23 :col 5 :end-row 29 :end-col 5}
-         {:return-type "File[]"
-          :name "coolParse"
-          :class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public :static}
-          :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
-          :parameters ["List<String> filenames"]
-          :row 36 :end-row 38 :col 5 :end-col 5}
-         {:return-type "Foo"
-          :name "foo"
-          :class "foo.bar.AwesomeClass"
-          :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
-          :flags #{:method :public}
-          :parameters []
-          :row 40 :end-row 45 :col 5 :end-col 5}]
+       (cond->>
+        '[{:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:public :field}
+           :name "bar1"
+           :type "Double"
+           :row 15 :col 5 :end-row 15 :end-col 23}
+          {:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:public :field :final}
+           :name "bar2"
+           :type "Double"
+           :row 16 :col 5 :end-row 16 :end-col 35}
+          {:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:public :static :field :final}
+           :name "bar3"
+           :type "Double"
+           :row 17 :col 5 :end-row 17 :end-col 42}
+          {:class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public}
+           :name "AwesomeClass"
+           :parameters ["double a"]
+           :row 19 :col 5 :end-row 21 :end-col 5}
+          {:return-type "int"
+           :name "coolSum1"
+           :class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public}
+           :parameters ["double a" "double b"]
+           :row 23 :col 5 :end-row 29 :end-col 5}
+          {:return-type "File[]"
+           :name "coolParse"
+           :class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public :static}
+           :doc "/*\n     * Some cool doc\n     * @param filenames\n     * @return list of files\n     */"
+           :parameters ["List<String> filenames"]
+           :row 36 :end-row 38 :col 5 :end-col 5}
+          {:return-type "Foo"
+           :name "foo"
+           :class "foo.bar.AwesomeClass"
+           :uri #"file:.*/corpus/java/sources/foo/bar/AwesomeClass.java"
+           :flags #{:method :public}
+           :parameters []
+           :row 44 :end-row 46 :col 5 :end-col 5}]
+         tu/windows? (mapv (fn [m]
+                             (if (:doc m)
+                               (update m :doc #(str/replace % "\n" "\r\n"))
+                               m))))
        java-member-definitions))))
 
 (deftest class-usages-test
-  (let [{:keys [:java-class-usages :var-usages]} (analyze ["corpus/java/usages.clj"])]
+  (let [{:keys [java-class-usages var-usages]} (analyze ["corpus/java/usages.clj"])]
     (is (= '(try fn import) (map :name var-usages)))
     (assert-submaps2
-     [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56
-       :import true}
-      {:class "java.lang.Exception"
-       :uri #"file:.*corpus/java/usages.clj"
-       :filename #"corpus/java/usages.clj"
-       :row 3 :col 13 :end-row 3 :end-col 22
-       :name-row 3 :name-col 13 :name-end-row 3 :name-end-col 22}
-      {:class "java.lang.Thread"
-       :method-name "sleep"
-       :uri #"file:.*corpus/java/usages.clj"
-       :filename #"corpus/java/usages.clj"
-       :row 4 :col 1 :end-row 4 :end-col 13
-       :name-row 4 :name-col 1 :name-end-row 4 :name-end-col 13}
-      {:class "java.lang.Thread"
-       :uri #"file:.*corpus/java/usages.clj"
-       :method-name "sleep"
-       :filename #"corpus/java/usages.clj"
-       :row 5 :col 1 :end-row 5 :end-col 19
-       :name-row 5 :name-col 2 :name-end-row 5 :name-end-col 14}
-      {:class "java.lang.Thread"
-       :uri #"file:.*corpus/java/usages.clj"
-       :filename #"corpus/java/usages.clj"
-       :row 6 :col 1 :end-row 6 :end-col 18
-       :name-row 6 :name-col 2 :name-end-row 6 :name-end-col 9}
-      {:end-row 7, :name-end-col 17, :name-end-row 7, :name-row 7,
-       :filename #"corpus/java/usages.clj", :col 1,
-       :class "clojure.lang.PersistentVector", :name-col 1,
-       :uri #"file:.*corpus/java/usages.clj", :end-col 17, :row 7}
-      {:class "clojure.lang.Compiler", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj",
-       :row 9, :col 24, :end-row 9, :end-col 32, :import true}
-      {:end-row 10, :name-end-col 18, :name-end-row 10, :name-row 10,
-       :uri #"file:.*corpus/java/usages.clj", :col 1, :class "clojure.lang.Compiler", :name-col 1,
-       :method-name "specials"
-       :filename #"corpus/java/usages.clj"
-       :end-col 18, :row 10}
-      {:class "foo.bar.Baz",
-       :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 11, :col 1, :end-row 11, :end-col 12}
-      {:class "foo.bar.Baz", :uri #"file:.*corpus/java/usages.clj",
-       :method-name "EMPTY"
-       :filename #"corpus/java/usages.clj", :row 12, :col 1, :end-row 12, :end-col 18}
-      {:class "java.util.Date", :uri #"file:.*corpus/java/usages.clj",
-       :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}
-      {:class "java.io.File", :uri #"file:.*corpus/java/usages.clj",
-       :method-name "createTempFile"
-       :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42
-       :name-col 2 :name-end-col 29, :name-end-row 14, :name-row 14}
-      {:class "java.io.File",
-       :filename #"corpus/java/usages.clj"
-       :uri #"file:.*corpus/java/usages.clj"
-       :row 15,
-       :col 1,
-       :end-row 15,
-       :end-col 22
-       :name-row 15
-       :name-col 2}
-      {:end-row 16,
-       :name-end-col 19,
-       :name-end-row 16,
-       :name-row 16,
-       :col 1,
-       :class "java.lang.String",
-       :name-col 2,
-       :uri #"file:.*corpus/java/usages.clj"
-       :end-col 26,
-       :row 16}]
-     java-class-usages)))
+      [{:class "clojure.lang.PersistentVector", :uri #"file:.*corpus/java/usages.clj",
+        :filename #"corpus/java/usages.clj", :row 1, :col 40, :end-row 1, :end-col 56
+        :import true}
+       {:class "java.lang.Exception"
+        :uri #"file:.*corpus/java/usages.clj"
+        :filename #"corpus/java/usages.clj"
+        :row 3 :col 13 :end-row 3 :end-col 22
+        :name-row 3 :name-col 13 :name-end-row 3 :name-end-col 22}
+       {:class "java.lang.Thread"
+        :method-name "sleep"
+        :uri #"file:.*corpus/java/usages.clj"
+        :filename #"corpus/java/usages.clj"
+        :row 4 :col 1 :end-row 4 :end-col 13
+        :name-row 4 :name-col 1 :name-end-row 4 :name-end-col 13}
+       {:class "java.lang.Thread"
+        :uri #"file:.*corpus/java/usages.clj"
+        :method-name "sleep"
+        :filename #"corpus/java/usages.clj"
+        :row 5 :col 1 :end-row 5 :end-col 19
+        :name-row 5 :name-col 2 :name-end-row 5 :name-end-col 14}
+       {:class "java.lang.Thread"
+        :uri #"file:.*corpus/java/usages.clj"
+        :filename #"corpus/java/usages.clj"
+        :row 6 :col 1 :end-row 6 :end-col 18
+        :name-row 6 :name-col 2 :name-end-row 6 :name-end-col 9}
+       {:end-row 7, :name-end-col 17, :name-end-row 7, :name-row 7,
+        :filename #"corpus/java/usages.clj", :col 1,
+        :class "clojure.lang.PersistentVector", :name-col 1,
+        :uri #"file:.*corpus/java/usages.clj", :end-col 17, :row 7}
+       {:class "clojure.lang.Compiler", :uri #"file:.*corpus/java/usages.clj",
+        :filename #"corpus/java/usages.clj",
+        :row 9, :col 24, :end-row 9, :end-col 32, :import true}
+       {:end-row 10, :name-end-col 18, :name-end-row 10, :name-row 10,
+        :uri #"file:.*corpus/java/usages.clj", :col 1, :class "clojure.lang.Compiler", :name-col 1,
+        :method-name "specials"
+        :filename #"corpus/java/usages.clj"
+        :end-col 18, :row 10}
+       {:class "foo.bar.Baz",
+        :uri #"file:.*corpus/java/usages.clj",
+        :filename #"corpus/java/usages.clj", :row 11, :col 1, :end-row 11, :end-col 12}
+       {:class "foo.bar.Baz", :uri #"file:.*corpus/java/usages.clj",
+        :method-name "EMPTY"
+        :filename #"corpus/java/usages.clj", :row 12, :col 1, :end-row 12, :end-col 18}
+       {:class "java.util.Date", :uri #"file:.*corpus/java/usages.clj",
+        :filename #"corpus/java/usages.clj", :row 13, :col 1, :end-row 13, :end-col 15}
+       {:class "java.io.File", :uri #"file:.*corpus/java/usages.clj",
+        :method-name "createTempFile"
+        :filename #"corpus/java/usages.clj", :row 14, :col 1, :end-row 14, :end-col 42
+        :name-col 2 :name-end-col 29, :name-end-row 14, :name-row 14}
+       {:class "java.io.File",
+        :filename #"corpus/java/usages.clj"
+        :uri #"file:.*corpus/java/usages.clj"
+        :row 15,
+        :col 1,
+        :end-row 15,
+        :end-col 22
+        :name-row 15
+        :name-col 2}
+       {:end-row 16,
+        :name-end-col 19,
+        :name-end-row 16,
+        :name-row 16,
+        :col 1,
+        :class "java.lang.String",
+        :name-col 2,
+        :uri #"file:.*corpus/java/usages.clj"
+        :end-col 26,
+        :row 16}]
+      java-class-usages)))
 
 (deftest issue-2288-test
   (deflet/deflet
@@ -254,12 +285,75 @@
                  (get-in ['com.google.cloud/google-cloud-vision :paths 0])))
 
     (def ana (analyze [jar]))
-    (def create-meth (some #(when (and (= "com.google.cloud.vision.v1.ImageAnnotatorClient" (:class %) )
+    (def create-meth (some #(when (and (= "com.google.cloud.vision.v1.ImageAnnotatorClient" (:class %))
                                        (= "create" (:name %)))
-                         %) (:java-member-definitions ana)))
+                              %) (:java-member-definitions ana)))
     (assert-submaps2
      #{:method :public :static :final}
      (:flags create-meth))))
+
+(deftest interface-detection-test
+  (testing "Interface detection for .class files"
+    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/classes"])
+          interface-def (some #(when (= "foo.bar.SampleInterface" (:class %)) %) java-class-definitions)
+          class-def (some #(when (= "foo.bar.AwesomeClass" (:class %)) %) java-class-definitions)]
+      (is (contains? (:flags interface-def) :interface) "SampleInterface flags should contain :interface")
+      (is (not (contains? (:flags class-def) :interface)) "AwesomeClass flags should not contain :interface")))
+
+  (testing "Interface detection for .java source files"
+    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources"])
+          interface-def (some #(when (= "foo.bar.SampleInterface" (:class %)) %) java-class-definitions)
+          class-def (some #(when (= "foo.bar.AwesomeClass" (:class %)) %) java-class-definitions)]
+      (is (contains? (:flags interface-def) :interface) "SampleInterface flags should contain :interface")
+      (is (not (contains? (:flags class-def) :interface)) "AwesomeClass flags should not contain :interface")))
+
+  (testing "Interface has :interface flag in flags set"
+    (let [{:keys [java-class-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])
+          interface-def (first java-class-definitions)]
+      (is (contains? (:flags interface-def) :interface) "Interface flags should contain :interface")))
+
+  (testing "Interface methods are marked as public"
+    (let [{:keys [java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])
+          interface-methods (filter #(= "foo.bar.SampleInterface" (:class %)) java-member-definitions)]
+      (is (every? #(contains? (:flags %) :public) interface-methods)
+          "All interface methods should have :public flag"))))
+
+(deftest issue-2637-private-interface-methods-test
+  ;; Test for issue #2637: Java 9+ interfaces can have private helper methods
+  ;; Private methods should be filtered out and not appear in analysis
+  (testing "Private methods in interfaces (.java source) are not included in analysis"
+    (let [{:keys [java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/SampleInterface.java"])
+          interface-methods (filter #(= "foo.bar.SampleInterface" (:class %)) java-member-definitions)
+          method-names (set (map :name interface-methods))]
+      ;; The private helper() method should not appear in the analysis
+      (is (not (contains? method-names "helper"))
+          "Private helper method should not be in analysis output")
+      ;; Public methods should still be present
+      (is (contains? method-names "doSomething")
+          "Public method doSomething should be in analysis output")
+      ;; Default method should be present (and marked as public)
+      (is (contains? method-names "doStuff")
+          "Default method doStuff should be in analysis output")
+      (let [do-stuff-method (some #(when (= "doStuff" (:name %)) %) interface-methods)]
+        (is (contains? (:flags do-stuff-method) :public)
+            "Default method should be marked as public"))))
+
+  (testing "Private methods in interfaces (.class bytecode) are not included in analysis"
+    (let [{:keys [java-member-definitions]} (analyze ["corpus/java/classes/foo/bar/SampleInterface.class"])
+          interface-methods (filter #(= "foo.bar.SampleInterface" (:class %)) java-member-definitions)
+          method-names (set (map :name interface-methods))]
+      ;; The private helper() method should not appear in the analysis
+      (is (not (contains? method-names "helper"))
+          "Private helper method should not be in bytecode analysis output")
+      ;; Public methods should still be present
+      (is (contains? method-names "doSomething")
+          "Public method doSomething should be in bytecode analysis output")
+      ;; Default method should be present (and marked as public)
+      (is (contains? method-names "doStuff")
+          "Default method doStuff should be in bytecode analysis output")
+      (let [do-stuff-method (some #(when (= "doStuff" (:name %)) %) interface-methods)]
+        (is (contains? (:flags do-stuff-method) :public)
+            "Default method in bytecode should be marked as public")))))
 
 (comment
 

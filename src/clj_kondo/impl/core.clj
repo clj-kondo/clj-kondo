@@ -23,7 +23,7 @@
 (defn format-output [config]
   (let [output-cfg (:output config)]
     (if-let [^String pattern (-> output-cfg :pattern)]
-      (fn [{:keys [:filename :row :end-row :col :end-col :level :message :type] :as _finding}]
+      (fn [{:keys [filename row end-row col end-col level message type] :as _finding}]
         (-> pattern
             (str/replace "{{filename}}" filename)
             (str/replace "{{row}}" (str row))
@@ -34,7 +34,7 @@
             (str/replace "{{LEVEL}}" (str/upper-case (name level)))
             (str/replace "{{message}}" message)
             (str/replace "{{type}}" (str type))))
-      (fn [{:keys [:filename :row :col :level :message :type langs] :as _finding}]
+      (fn [{:keys [filename row col level message type langs] :as _finding}]
         (str filename ":"
              row ":"
              col ": "
@@ -144,7 +144,7 @@
                                  4
                                  3)}))))
 
-(defn resolve-config [^java.io.File cfg-dir configs debug]
+(defn resolve-config [^java.io.File cfg-dir configs ignore-home? debug]
   (let [local-config (when cfg-dir
                        (let [f (io/file cfg-dir "config.edn")]
                          (when (.exists f)
@@ -156,14 +156,17 @@
         import-dir-exists (fs/exists? (fs/file cfg-dir "imports"))
         root-imports (seq (auto-configs cfg-dir local-config-paths-set "**/**/config.edn"))
         discovered (when auto-load-configs?
-                     (concat root-imports
-                             (auto-configs cfg-dir local-config-paths-set "imports/**/**/config.edn")))
+                     (-> (concat root-imports
+                                 (auto-configs cfg-dir local-config-paths-set "imports/**/**/config.edn"))
+                         sort))
         _ (when (and debug
                      auto-load-configs?
                      (seq discovered))
             (binding [*out* *err*]
               (run! #(println "[clj-kondo] Auto-loading config path:" %) discovered)))
-        skip-home? (some-> local-config-paths meta :replace)
+        skip-home? (or
+                    ignore-home?
+                    (some-> local-config-paths meta :replace))
         ;; local config exists implicitly when configs are discovered, even when
         ;; local-config was nil
         local-config (if (seq discovered)
@@ -253,7 +256,12 @@
                                 (when (or (str/ends-with? nm ".class")
                                           (str/ends-with? nm ".java"))
                                   (when (and (java/analyze-class-defs? ctx)
-                                             (not (str/includes? nm "$"))
+                                             (let [idx (str/index-of nm "$")]
+                                               (or (not idx)
+                                                   (when-let [^Character c (nth nm (inc idx) nil)]
+                                                     (and (Character/isUpperCase c)
+                                                          (Character/isLetter c)
+                                                          (not (str/includes? (subs nm idx) "_"))))))
                                              (not (str/ends-with? nm "__init.class")))
                                     (java/reg-class-def! ctx {:jar jar
                                                               :entry x
@@ -315,8 +323,9 @@
     seen?))
 
 (defn excluded? [ctx filename]
-  (when-let [pat (some-> ctx :config :exclude-files re-pattern)]
-    (re-find pat (fs/unixify filename))))
+  (let [re-find (:re-find-memo ctx)]
+    (when-let [pat (-> ctx :config :exclude-files)]
+      (re-find pat (fs/unixify filename)))))
 
 (defn sources-from-dir
   [ctx dir canonical? use-import-dir?]
@@ -364,7 +373,7 @@
   (loop []
     (when-let [group (.pollFirst deque)]
       (try
-        (doseq [{:keys [:filename :source :lang :uri]} group]
+        (doseq [{:keys [filename source lang uri]} group]
           (ana/analyze-input ctx filename uri source lang dev?))
         (catch Exception e (binding [*out* *err*]
                              (prn e))))
@@ -382,7 +391,7 @@
       (.execute es
                 (bound-fn []
                   (analyze-task ctx deque dev?)
-                  (.countDown latch))))
+                (.countDown latch))))
     (.await latch)
     (.shutdown es)))
 
@@ -396,6 +405,7 @@
     default-language))
 
 (def path-separator (System/getProperty "path.separator"))
+(def path-separator-pat (re-pattern path-separator))
 
 (defn classpath? [f]
   (str/includes? f path-separator))
@@ -444,12 +454,12 @@
                   1
 
                   (classpath? path)
-                  (files-count (str/split path (re-pattern path-separator)) ctx)
+                  (files-count (str/split path path-separator-pat) ctx)
 
                   :else 0))))
        (reduce + 0)))
 
-(defn schedule [ctx {:keys [:filename :source :lang :uri] :as m} dev?]
+(defn schedule [ctx {:keys [filename source lang uri] :as m} dev?]
   (if (:parallel ctx)
     (swap! (:sources ctx) conj m)
     (when (or (:analysis ctx) (not (:skip-lint ctx)))
@@ -514,8 +524,7 @@
                                    default-language)} dev?))
           (classpath? path)
           (run! #(process-file ctx % default-language canonical? filename-fallback use-import-dir)
-                (str/split path
-                           (re-pattern path-separator)))
+                (str/split path path-separator-pat))
           :else
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx
@@ -543,7 +552,11 @@
 
 (defn copied-config-paths [ctx use-import-dir?]
   (when-let [cfg-dir (io/file (:config-dir ctx))]
-    (let [rel-cfg-dir (str (if (.isAbsolute cfg-dir)
+    (let [rel-cfg-dir (str (if (and (.isAbsolute cfg-dir)
+                                    (or (not utils/windows?)
+                                        ;; check if cfg-dir and current dir are on the same drive
+                                        (= (first (str (.getAbsoluteFile (io/file "."))))
+                                           (first (str cfg-dir)))))
                              (.relativize (.normalize (.toPath (.getAbsoluteFile (io/file "."))))
                                           (.normalize (.toPath cfg-dir)))
                              cfg-dir))
@@ -606,17 +619,21 @@
                                 :macro :private :deprecated
                                 :fixed-arities :varargs-min-arity
                                 :name :ns :top-ns :imported-ns :imported-var
-                                :arities :type :class])))
+                                :arities :type :class :methods])))
             vars))
+
+(defn deprecated-val [deprecated]
+  (when deprecated
+    (cond (boolean? deprecated) (true? deprecated)
+          (string? deprecated) deprecated
+          (some? deprecated) true)))
 
 (defn namespaces->indexed [namespaces]
   (when namespaces
     (map-vals (fn [{:keys [filename vars proxied-namespaces deprecated]}]
                 (some-> (assoc-some (format-vars vars)
                                     :proxied-namespaces proxied-namespaces
-                                    :deprecated (cond (boolean? deprecated) (true? deprecated)
-                                                      (string? deprecated) deprecated
-                                                      (some? deprecated) true))
+                                    :deprecated (deprecated-val deprecated))
                         (assoc :filename filename)))
               namespaces)))
 
@@ -624,9 +641,12 @@
   (when namespaces
     (map-vals (fn [v]
                 (let [vars (:vars v)
-                      filename (:filename v)]
-                  {:filename filename
-                   lang (format-vars vars)}))
+                      filename (:filename v)
+                      deprecated (:deprecated v)
+                      deprecated (deprecated-val deprecated)]
+                  (cond-> {:filename filename
+                          lang (format-vars vars)}
+                    deprecated (assoc :deprecated deprecated))))
               namespaces)))
 
 (defn namespaces->indexed-defs [ctx]
@@ -689,10 +709,11 @@
           []
           (group-by :message findings)))
 
-(defn filter-findings [config findings]
+(defn filter-findings [ctx config findings]
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
-        remove-output (not-empty (-> config :output :exclude-files))]
+        remove-output (not-empty (-> config :output :exclude-files))
+        re-find (:re-find-memo ctx)]
     (for [[[_filename _row _col type cljc] findings] findings
           :when (or
                  ;; always pass when not .cljc
@@ -701,8 +722,12 @@
                  (and (not= :redundant-do type)
                       (not= :redundant-call type)
                       (not= :redundant-let type)
+                      (not= :redundant-let-binding type)
                       (not= :single-logical-operand type)
-                      (not= :redundant-nested-call type))
+                      (not= :redundant-nested-call type)
+                      (not= :redundant-ignore type)
+                      (not= :redundant-fn-wrapper type)
+                      (not= :unused-excluded-var type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
           f (collapse-cljc-findings findings)
@@ -715,11 +740,11 @@
                   true)
           :when (if filter-output
                   (some (fn [pattern]
-                          (re-find (re-pattern pattern) filename))
+                          (re-find pattern filename))
                         filter-output)
                   true)
           :when (not-any? (fn [pattern]
-                            (re-find (re-pattern pattern) filename))
+                            (re-find pattern filename))
                           remove-output)]
       f)))
 

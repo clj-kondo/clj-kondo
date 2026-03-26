@@ -1,0 +1,2120 @@
+[{:filename
+  "test-regression/checkouts/metabase/src/metabase/activity_feed/api.clj",
+  :row 149,
+  :col 73,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:end-row 8,
+  :type :unresolved-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/analytics/prometheus.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unresolved excluded var: set!",
+  :row 8}
+ {:end-row 998,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/app_db/custom_migrations.clj",
+  :col 28,
+  :end-col 58,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 998}
+ {:end-row 43,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/app_db/update_h2.clj",
+  :col 19,
+  :end-col 57,
+  :langs (),
+  :message "Condition always true",
+  :row 43}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
+  :row 386,
+  :col 72,
+  :type :aliased-referred-var,
+  :message "Var tru is referred but used via alias: i18n",
+  :level :info,
+  :langs ()}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/impl/email.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 4,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/impl/email.clj",
+  :col 25,
+  :end-col 29,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 4}
+ {:end-row 91,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/impl/email.clj",
+  :col 22,
+  :end-col 62,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 91}
+ {:end-row 213,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/impl/email.clj",
+  :col 28,
+  :end-col 59,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 213}
+ {:end-row 262,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/impl/email.clj",
+  :col 43,
+  :end-col 57,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 262}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/body.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 4,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/body.clj",
+  :col 25,
+  :end-col 26,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 4}
+ {:end-row 156,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/body.clj",
+  :col 63,
+  :end-col 99,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 156}
+ {:end-row 417,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/body.clj",
+  :col 7,
+  :end-col 16,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 417}
+ {:end-row 500,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/body.clj",
+  :col 27,
+  :end-col 36,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 500}
+ {:end-row 512,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/body.clj",
+  :col 25,
+  :end-col 39,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 512}
+ {:end-row 3,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/card.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 3}
+ {:end-row 3,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/card.clj",
+  :col 25,
+  :end-col 26,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 3}
+ {:end-row 32,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/card.clj",
+  :col 3,
+  :end-col 38,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 32}
+ {:end-row 37,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/card.clj",
+  :col 3,
+  :end-col 86,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 37}
+ {:end-row 63,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/card.clj",
+  :col 26,
+  :end-col 39,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 63}
+ {:end-row 11,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/png.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 11}
+ {:end-row 11,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/png.clj",
+  :col 25,
+  :end-col 29,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 11}
+ {:end-row 135,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/png.clj",
+  :col 16,
+  :end-col 56,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 129}
+ {:end-row 7,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 7}
+ {:end-row 97,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/preview.clj",
+  :col 3,
+  :end-col 58,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 97}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 4,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 25,
+  :end-col 26,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 4}
+ {:end-row 79,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 8,
+  :end-col 15,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 79}
+ {:end-row 90,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 26,
+  :end-col 35,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 90}
+ {:end-row 140,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 105,
+  :end-col 112,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 140}
+ {:end-row 178,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 5,
+  :end-col 12,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 178}
+ {:end-row 222,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 26,
+  :end-col 34,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 222}
+ {:end-row 226,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/table.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "#'hiccup.core/h is deprecated since 2.0",
+  :row 226}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/util.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 4,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/util.clj",
+  :col 25,
+  :end-col 29,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 4}
+ {:end-row 201,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/render/util.clj",
+  :col 3,
+  :end-col 58,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 189}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/template/handlebars_helper.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: hash",
+  :row 2}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 555,
+  :col 23,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 573,
+  :col 48,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 655,
+  :col 56,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 699,
+  :col 36,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 700,
+  :col 43,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 1053,
+  :col 6,
+  :type :aliased-referred-var,
+  :message
+  "Var *current-user-permissions-set* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 1156,
+  :col 94,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :row 1728,
+  :col 50,
+  :type :aliased-referred-var,
+  :message
+  "Var *current-user-permissions-set* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:end-row 113,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/impl.clj",
+  :col 25,
+  :end-col 53,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 113}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver_api/core.clj",
+  :col 45,
+  :end-col 52,
+  :langs (),
+  :message "Unused excluded var: require",
+  :row 2}
+ {:type :aliased-referred-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/schema.cljc",
+  :col 67,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Var is-clause? is referred but used via alias: helpers",
+  :row 1616}
+ {:end-row 3,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/legacy_mbql/util.cljc",
+  :col 29,
+  :end-col 36,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: replace",
+  :row 3}
+ {:end-row 2,
+  :type :unresolved-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/aggregation.cljc",
+  :col 52,
+  :end-col 55,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unresolved excluded var: var",
+  :row 2}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 36,
+  :end-col 42,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: remove",
+  :row 4}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 71,
+  :end-col 74,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: ->>",
+  :row 4}
+ {:end-row 5,
+  :type :unresolved-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/core.cljc",
+  :col 65,
+  :end-col 68,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unresolved excluded var: var",
+  :row 5}
+ {:end-row 2,
+  :type :unresolved-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/expression.cljc",
+  :col 42,
+  :end-col 50,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unresolved excluded var: coalesce",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/filter.cljc",
+  :col 69,
+  :end-col 73,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: case",
+  :row 2}
+ {:end-row 560,
+  :type :redundant-let-binding,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/join.cljc",
+  :col 10,
+  :end-col 19,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Redundant let binding: home-cols",
+  :row 560}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/query.cljc",
+  :col 29,
+  :end-col 35,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: remove",
+  :row 2}
+ {:end-row 3,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/types/isa.cljc",
+  :col 48,
+  :end-col 55,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: number?",
+  :row 3}
+ {:end-row 708,
+  :type :condition-always-true,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/util.cljc",
+  :col 27,
+  :end-col 79,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Condition always true",
+  :row 707}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/util/match.cljs",
+  :col 29,
+  :end-col 36,
+  :langs (),
+  :message "Unused excluded var: replace",
+  :row 2}
+ {:end-row 528,
+  :type :redundant-declare,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/models/serialization.clj",
+  :col 1,
+  :end-col 24,
+  :langs (),
+  :message "Redundant declare: extract-query",
+  :row 528}
+ {:end-row 20,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/notification/condition.clj",
+  :col 14,
+  :end-col 75,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 20}
+ {:end-row 565,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/parameters/chain_filter.clj",
+  :col 30,
+  :end-col 35,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 565}
+ {:end-row 97,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/defenterprise.clj",
+  :col 32,
+  :end-col 38,
+  :langs (),
+  :message "Unquote (~) not syntax-quoted",
+  :row 97}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/public_sharing/api.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 390,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/public_sharing/api.clj",
+  :col 3,
+  :end-col 43,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 387}
+ {:end-row 8,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pulse/api/pulse.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 8}
+ {:end-row 8,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pulse/api/pulse.clj",
+  :col 25,
+  :end-col 29,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 8}
+ {:end-row 97,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pulse/api/pulse.clj",
+  :col 9,
+  :end-col 29,
+  :langs (),
+  :message "Redundant let binding: creator-or-recipient",
+  :row 97}
+ {:end-row 331,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pulse/api/pulse.clj",
+  :col 19,
+  :end-col 110,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 328}
+ {:end-row 266,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/queries/api/card.clj",
+  :col 20,
+  :end-col 31,
+  :langs (),
+  :message "Condition always true",
+  :row 266}
+ {:end-row 79,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor.clj",
+  :col 29,
+  :end-col 34,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 79}
+ {:end-row 30,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/compile.clj",
+  :col 28,
+  :end-col 46,
+  :langs (),
+  :message "Redundant let binding: preprocessed-query",
+  :row 30}
+ {:end-row 42,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/compile.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 42}
+ {:end-row 95,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/execute.clj",
+  :col 28,
+  :end-col 42,
+  :langs (),
+  :message "Redundant let binding: compiled-query",
+  :row 95}
+ {:end-row 4,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_implicit_joins.clj",
+  :col 29,
+  :end-col 34,
+  :langs (),
+  :message "Unused excluded var: alias",
+  :row 4}
+ {:end-row 104,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/add_source_metadata.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message "Redundant let binding: source-metadata",
+  :row 104}
+ {:end-row 630,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/pivot.clj",
+  :col 31,
+  :end-col 36,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 630}
+ {:end-row 7,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/pivot/postprocess.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: run!",
+  :row 7}
+ {:end-row 75,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/postprocess.clj",
+  :col 28,
+  :end-col 46,
+  :langs (),
+  :message "Redundant let binding: preprocessed-query",
+  :row 75}
+ {:end-row 174,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 174}
+ {:end-row 196,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 39,
+  :end-col 81,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 196}
+ {:end-row 211,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/preprocess.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 211}
+ {:end-row 45,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/writeback.clj",
+  :col 28,
+  :end-col 33,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 45}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/request/session.clj",
+  :row 66,
+  :col 42,
+  :type :aliased-referred-var,
+  :message "Var *current-user-id* is referred but used via alias: api",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/metabase/src/metabase/search/impl.clj",
+  :row 433,
+  :col 18,
+  :type :aliased-referred-var,
+  :message
+  "Var SearchContext is referred but used via alias: search.config",
+  :level :info,
+  :langs ()}
+ {:end-row 137,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/user_key_value/models/user_key_value/types.clj",
+  :col 40,
+  :end-col 43,
+  :langs (),
+  :message "Redundant let binding: dir",
+  :row 137}
+ {:end-row 244,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/users/api.clj",
+  :col 9,
+  :end-col 28,
+  :langs (),
+  :message "Redundant let binding: include_deactivated",
+  :row 244}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/embed.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 4,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/embed.clj",
+  :col 25,
+  :end-col 29,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 4}
+ {:end-row 27,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/embed.clj",
+  :col 3,
+  :end-col 37,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 24}
+ {:end-row 31,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/embed.clj",
+  :col 3,
+  :end-col 58,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 31}
+ {:end-row 211,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
+  :col 30,
+  :end-col 41,
+  :langs (),
+  :message "Condition always true",
+  :row 211}
+ {:end-row 223,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/i18n.clj",
+  :col 38,
+  :end-col 117,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 223}
+ {:end-row 114,
+  :type :unresolved-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/i18n/plural.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved var: insta/transform",
+  :row 114}
+ {:end-row 192,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/log.clj",
+  :col 45,
+  :end-col 50,
+  :langs (),
+  :message "Unquote (~) not syntax-quoted",
+  :row 192}
+ {:end-row 205,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/log.clj",
+  :col 54,
+  :end-col 58,
+  :langs (),
+  :message "Unquote (~) not syntax-quoted",
+  :row 205}
+ {:end-row 243,
+  :type :unquote-not-syntax-quoted,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/log.clj",
+  :col 11,
+  :end-col 17,
+  :langs (),
+  :message "Unquote-splicing (~@) not syntax-quoted",
+  :row 243}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
+  :col 29,
+  :end-col 36,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unused excluded var: declare",
+  :row 2}
+ {:end-row 2,
+  :type :unresolved-excluded-var,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/malli/registry.cljc",
+  :col 37,
+  :end-col 40,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Unresolved excluded var: def",
+  :row 2}
+ {:end-row 32,
+  :protocol-ns clj-yaml.core,
+  :protocol-name YAMLCodec,
+  :type :missing-protocol-method,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/yaml.clj",
+  :methods [encode],
+  :col 18,
+  :end-col 32,
+  :langs (),
+  :message "Missing protocol method(s): decode",
+  :row 32}
+ {:end-row 76,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/yaml.clj",
+  :col 41,
+  :end-col 44,
+  :langs (),
+  :message "Redundant let binding: dir",
+  :row 76}
+ {:end-row 131,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/warehouse_schema/api/field.clj",
+  :col 44,
+  :end-col 71,
+  :langs (),
+  :message "Condition always true",
+  :row 131}
+ {:end-row 46,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/warehouse_schema/models/field.clj",
+  :col 18,
+  :end-col 29,
+  :langs (),
+  :message "Condition always true",
+  :row 46}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/xrays/domain_entities/malli.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: defn",
+  :row 2}
+ {:end-row 7,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/mage/start_db_test.clj",
+  :col 9,
+  :end-col 30,
+  :langs (),
+  :message "Condition always true",
+  :row 7}
+ {:end-row 487,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/actions/actions_test.clj",
+  :col 31,
+  :end-col 77,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 487}
+ {:end-row 203,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/actions/api_test.clj",
+  :col 28,
+  :end-col 36,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 203}
+ {:end-row 19,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/actions/models_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 19}
+ {:end-row 145,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/activity_feed/api_test.clj",
+  :col 20,
+  :end-col 28,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 145}
+ {:end-row 120,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/snowplow_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 120}
+ {:end-row 99,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 16,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 99}
+ {:end-row 442,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 21,
+  :langs (),
+  :message "Condition always true",
+  :row 442}
+ {:end-row 446,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 20,
+  :langs (),
+  :message "Condition always true",
+  :row 446}
+ {:end-row 451,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 21,
+  :langs (),
+  :message "Condition always true",
+  :row 451}
+ {:end-row 455,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 15,
+  :end-col 20,
+  :langs (),
+  :message "Condition always true",
+  :row 455}
+ {:end-row 460,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 13,
+  :end-col 19,
+  :langs (),
+  :message "Condition always true",
+  :row 460}
+ {:end-row 64,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/api/timeline_test.clj",
+  :col 18,
+  :end-col 26,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 64}
+ {:end-row 2216,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/app_db/custom_migrations_test.clj",
+  :col 22,
+  :end-col 30,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 2216}
+ {:end-row 38,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/app_db/env_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 38}
+ {:end-row 17,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/app_db/internal_user_test.clj",
+  :col 11,
+  :end-col 25,
+  :langs (),
+  :message "Condition always true",
+  :row 17}
+ {:end-row 100,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/app_db/schema_migrations_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 100}
+ {:end-row 29,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/audit_app/events/audit_log_test.clj",
+  :col 12,
+  :end-col 20,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 29}
+ {:end-row 52,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/audit_app/models/audit_log_test.clj",
+  :col 16,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 52}
+ {:end-row 7,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/body_test.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 7}
+ {:end-row 7,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/body_test.clj",
+  :col 25,
+  :end-col 29,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 7}
+ {:end-row 213,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/body_test.clj",
+  :col 10,
+  :end-col 58,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 213}
+ {:end-row 218,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/body_test.clj",
+  :col 26,
+  :end-col 74,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 218}
+ {:end-row 1072,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/body_test.clj",
+  :col 30,
+  :end-col 40,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 1072}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/card_test.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 29,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/card_test.clj",
+  :col 7,
+  :end-col 18,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 29}
+ {:end-row 4,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/png_test.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 4}
+ {:end-row 50,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/png_test.clj",
+  :col 7,
+  :end-col 18,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 50}
+ {:end-row 248,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/collections/api_test.clj",
+  :col 18,
+  :end-col 26,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 248}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
+  :col 29,
+  :end-col 38,
+  :langs (),
+  :message "Unused excluded var: ancestors",
+  :row 2}
+ {:end-row 93,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/collections/models/collection_test.clj",
+  :col 12,
+  :end-col 20,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 93}
+ {:end-row 2253,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/dashboards/api_test.clj",
+  :col 20,
+  :end-col 28,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 2253}
+ {:end-row 3514,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/dashboards/api_test.clj",
+  :col 32,
+  :end-col 76,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 3514}
+ {:end-row 82,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/h2_test.clj",
+  :col 12,
+  :end-col 20,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 82}
+ {:end-row 93,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/impl_test.clj",
+  :col 22,
+  :end-col 77,
+  :langs (),
+  :message "Condition always true",
+  :row 93}
+ {:end-row 99,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 25,
+  :end-col 31,
+  :langs (),
+  :message "Write expected value first",
+  :row 99}
+ {:end-row 132,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 17,
+  :end-col 22,
+  :langs (),
+  :message "Condition always true",
+  :row 132}
+ {:end-row 153,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 37,
+  :end-col 38,
+  :langs (),
+  :message "Write expected value first",
+  :row 153}
+ {:end-row 180,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 41,
+  :end-col 42,
+  :langs (),
+  :message "Write expected value first",
+  :row 180}
+ {:end-row 12,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/native_test.clj",
+  :col 10,
+  :end-col 18,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 12}
+ {:end-row 31,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/eid_translation/util_test.clj",
+  :col 10,
+  :end-col 18,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 31}
+ {:end-row 177,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/embedding/api/embed_test.clj",
+  :col 12,
+  :end-col 15,
+  :langs (),
+  :message "Unresolved symbol: re=",
+  :row 177}
+ {:end-row 185,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/embedding/api/embed_test.clj",
+  :col 11,
+  :end-col 58,
+  :langs (),
+  :message "Condition always true",
+  :row 184}
+ {:end-row 45,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/events/recent_views_test.clj",
+  :col 12,
+  :end-col 20,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 45}
+ {:end-row 59,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/events/recent_views_test.clj",
+  :col 11,
+  :end-col 80,
+  :langs (),
+  :message "Condition always true",
+  :row 55}
+ {:end-row 823,
+  :type :is-message-not-string,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/aggregation_test.cljc",
+  :col 11,
+  :end-col 78,
+  :cljc true,
+  :langs (:clj),
+  :message "Test assertion message should be a string",
+  :row 819}
+ {:end-row 2032,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/field_test.cljc",
+  :col 40,
+  :end-col 86,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 2032}
+ {:end-row 96,
+  :type :condition-always-true,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/util/match_test.cljc",
+  :col 24,
+  :end-col 34,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Condition always true",
+  :row 96}
+ {:end-row 165,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/model_persistence/task/persist_refresh_test.clj",
+  :col 16,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 165}
+ {:end-row 72,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/api_test.clj",
+  :col 12,
+  :end-col 20,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 72}
+ {:end-row 293,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 293}
+ {:end-row 63,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/premium_features/test_util.clj",
+  :col 5,
+  :end-col 13,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 63}
+ {:end-row 151,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/premium_features/token_check_test.clj",
+  :col 10,
+  :end-col 18,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 151}
+ {:end-row 628,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
+  :col 24,
+  :end-col 32,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 628}
+ {:end-row 902,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/api/pulse_test.clj",
+  :col 18,
+  :end-col 26,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 902}
+ {:end-row 827,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 827}
+ {:end-row 832,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 832}
+ {:end-row 878,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 878}
+ {:end-row 884,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 37,
+  :end-col 87,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 884}
+ {:end-row 10,
+  :type :deprecated-namespace,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/render/test_util.clj",
+  :col 5,
+  :end-col 16,
+  :langs (),
+  :message "Namespace hiccup.core is deprecated since 2.0.",
+  :row 10}
+ {:end-row 153,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/render/test_util.clj",
+  :col 13,
+  :end-col 24,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 153}
+ {:end-row 173,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/render/test_util.clj",
+  :col 13,
+  :end-col 24,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 173}
+ {:end-row 194,
+  :type :deprecated-var,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/render/test_util.clj",
+  :col 14,
+  :end-col 25,
+  :langs (),
+  :message "#'hiccup.core/html is deprecated since 2.0",
+  :row 194}
+ {:end-row 1472,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 1472}
+ {:end-row 2857,
+  :type :duplicate-key-args,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/queries/api/card_test.clj",
+  :col 62,
+  :end-col 67,
+  :langs (),
+  :message "Duplicate key arg supplied to assoc: :type",
+  :row 2857}
+ {:end-row 821,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/api_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 821}
+ {:end-row 160,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/cache_test.clj",
+  :col 10,
+  :end-col 18,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 160}
+ {:end-row 22,
+  :type :redundant-let-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/permissions_test.clj",
+  :col 30,
+  :end-col 35,
+  :langs (),
+  :message "Redundant let binding: query",
+  :row 22}
+ {:end-row 131,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/results_metadata_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 131}
+ {:end-row 51,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/persistence_test.clj",
+  :col 20,
+  :end-col 28,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 51}
+ {:end-row 537,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/test_util.clj",
+  :col 10,
+  :end-col 18,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 537}
+ {:end-row 42,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/util/nest_query_test.clj",
+  :col 12,
+  :end-col 20,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 42}
+ {:end-row 1797,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_bucketing_test.clj",
+  :col 24,
+  :end-col 27,
+  :langs (),
+  :message "Unresolved symbol: re=",
+  :row 1797}
+ {:end-row 1015,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_time_zone_functions_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 1015}
+ {:end-row 212,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/nested_queries_test.clj",
+  :col 18,
+  :end-col 26,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 212}
+ {:end-row 599,
+  :type :equals-expected-position,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/parameters_test.clj",
+  :col 42,
+  :end-col 46,
+  :langs (),
+  :message "Write expected value first",
+  :row 599}
+ {:end-row 394,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/revisions/models/revision_test.clj",
+  :col 16,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 394}
+ {:end-row 22,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/server/middleware/log_test.clj",
+  :col 10,
+  :end-col 13,
+  :langs (),
+  :message "Unresolved symbol: re=",
+  :row 22}
+ {:end-row 121,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/session/api_test.clj",
+  :col 14,
+  :end-col 17,
+  :langs (),
+  :message "Unresolved symbol: re=",
+  :row 121}
+ {:end-row 114,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/setup/api_test.clj",
+  :col 26,
+  :end-col 34,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 114}
+ {:end-row 83,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/field_values_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 83}
+ {:end-row 171,
+  :protocol-ns clojurewerkz.quartzite.conversion,
+  :protocol-name JobDataMapConversion,
+  :type :missing-protocol-method,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/task/sync_databases_test.clj",
+  :methods [from-job-data],
+  :col 3,
+  :end-col 26,
+  :langs (),
+  :message "Missing protocol method(s): to-job-data",
+  :row 171}
+ {:end-row 497,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/task_history/api_test.clj",
+  :col 15,
+  :end-col 34,
+  :langs (),
+  :message "Condition always true",
+  :row 497}
+ {:end-row 123,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/task_test.clj",
+  :col 23,
+  :end-col 92,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 123}
+ {:end-row 497,
+  :type :is-message-not-string,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/upload/impl_test.clj",
+  :col 27,
+  :end-col 55,
+  :langs (),
+  :message "Test assertion message should be a string",
+  :row 493}
+ {:end-row 1018,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/users/api_test.clj",
+  :col 18,
+  :end-col 26,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 1018}
+ {:end-row 54,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/encryption_test.clj",
+  :col 8,
+  :end-col 11,
+  :langs (),
+  :message "Unresolved symbol: re=",
+  :row 54}
+ {:end-row 41,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 7,
+  :end-col 9,
+  :langs (),
+  :message "Condition always true",
+  :row 41}
+ {:end-row 41,
+  :type :is-message-not-string,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 10,
+  :end-col 42,
+  :langs (),
+  :message "Test assertion message should be a string",
+  :row 41}
+ {:end-row 42,
+  :type :condition-always-true,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 7,
+  :end-col 9,
+  :langs (),
+  :message "Condition always true",
+  :row 42}
+ {:end-row 42,
+  :type :is-message-not-string,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
+  :col 10,
+  :end-col 42,
+  :langs (),
+  :message "Test assertion message should be a string",
+  :row 42}
+ {:end-row 33,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/view_log/events/view_log_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 33}
+ {:end-row 282,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/field_test.clj",
+  :col 16,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 282}
+ {:end-row 701,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 82,
+  :end-col 128,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 701}
+ {:end-row 814,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 82,
+  :end-col 118,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 814}
+ {:end-row 245,
+  :type :is-message-not-string,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
+  :col 11,
+  :end-col 99,
+  :langs (),
+  :message "Test assertion message should be a string",
+  :row 245}
+ {:end-row 359,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
+  :col 20,
+  :end-col 28,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 359}
+ {:end-row 101,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/table_test.clj",
+  :col 16,
+  :end-col 24,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 101}
+ {:end-row 120,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
+  :col 47,
+  :end-col 69,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 120}
+ {:end-row 408,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 408}
+ {:end-row 319,
+  :type :is-message-not-string,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/models/database_test.clj",
+  :col 17,
+  :end-col 35,
+  :langs (),
+  :message "Test assertion message should be a string",
+  :row 319}
+ {:end-row 606,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/models/database_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 606}
+ {:end-row 1017,
+  :type :unresolved-symbol,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/xrays/automagic_dashboards/core_test.clj",
+  :col 14,
+  :end-col 22,
+  :langs (),
+  :message "Unresolved symbol: partial=",
+  :row 1017}
+ {:end-row 46,
+  :type :redundant-format,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/xrays/test_util/automagic_dashboards.clj",
+  :col 20,
+  :end-col 47,
+  :langs (),
+  :message "Format string contains no format specifiers",
+  :row 46}]

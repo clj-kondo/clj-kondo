@@ -21,11 +21,16 @@
     (when row
       (when-let [[ignores lang] (or (some-> (get-in ignores [filename base-lang])
                                             (vector base-lang))
-                                    (when (identical? :cljc base-lang)
+                                    (when (or (identical? :cljc base-lang)
+                                              (nil? base-lang))
                                       (or (some-> (get-in ignores [filename :clj])
                                                   (vector :clj))
                                           (some-> (get-in ignores [filename :cljs])
-                                                  (vector :cljs)))))]
+                                                  (vector :cljs))))
+                                    (when (or (identical? :edn base-lang)
+                                              (nil? base-lang))
+                                      (some-> (get-in ignores [filename :edn])
+                                              (vector :edn))))]
         (loop [ignores ignores
                idx 0]
           (when ignores
@@ -33,7 +38,7 @@
                   ignore-row (:row ignore)]
               (if (> ignore-row row)
                 ;; since ignores are sorted on row (and col) we can skip the rest of the checking here
-                false
+                (recur (next ignores) (inc idx))
                 ;; (>= row ignore row) is true from here
                 (if (or
                      (> row ignore-row)
@@ -47,6 +52,8 @@
                                  (and (= row ignore-end-row)
                                       (<= (:end-col m) (:end-col ignore)))))
                       (if (ignore-match? (:ignore ignore) tp)
+                        ;; TODO: this might bea race condition, but not today
+                        ;; since same file isn't analyzed by multiple threads
                         (do (swap! !ignores assoc-in [filename lang idx :used] true)
                             true)
                         (recur (next ignores) (inc idx)))

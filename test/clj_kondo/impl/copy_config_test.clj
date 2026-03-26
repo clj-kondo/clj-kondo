@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.copy-config-test
   (:require [clj-kondo.core :as clj-kondo]
+            [clj-kondo.test-utils :as tu]
             [clojure.java.io :as io]
             [clojure.test :as t :refer [deftest is testing]])
   (:import [java.nio.file Files]))
@@ -15,7 +16,7 @@
     (is (.exists (io/file tmp-dir "imports" "clj-kondo" "slingshot")))
     (is (= "{:hooks
  {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
-" (slurp (io/file tmp-dir "imports" "clj-kondo" "slingshot" "config.edn"))))))
+" (slurp (tu/normalize-newlines (io/file tmp-dir "imports" "clj-kondo" "slingshot" "config.edn")))))))
 
 (deftest copy-config-from-dir
   (let [tmp-dir (.toFile (Files/createTempDirectory
@@ -28,4 +29,4 @@
     (is (.exists (io/file tmp-dir "imports" "clj-kondo" "slingshot")))
     (is (= "{:hooks
  {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
-" (slurp (io/file tmp-dir "imports" "clj-kondo" "slingshot" "config.edn"))))))
+" (tu/normalize-newlines (slurp (io/file tmp-dir "imports" "clj-kondo" "slingshot" "config.edn")))))))

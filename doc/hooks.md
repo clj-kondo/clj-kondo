@@ -37,7 +37,8 @@ Other API functions:
 - `sexpr`: turns a node into a Clojure s-expression. Useful for analyzing concrete values.
 - `reg-keyword!`: indicates that a keyword's analysis should be marked as a
   definition. Expects the keyword node and either `true` or the fully-qualified
-  function that registered it. This can be used to implement keyword navigation for `clojure-lsp`.
+  function that registered it. Returns a new keyword node that must be in the transformed body.
+  This can be used to implement keyword navigation for `clojure-lsp`.
 - `tag`: returns node's tag, can be used as a dispatch function for multimethods, if you want your hook to be opened for extension.
 - `reg-finding!`: registers a finding. Expects a map with:
   - `:message`: the lint message
@@ -207,7 +208,8 @@ transforming the original rewrite-clj node.
 This is done either by simply throwing an error within the hook, or instead 
 calling `reg-finding!`. They are similar, but the latter allows for defining 
 precise details, including naming the linter type and defining the range to
-report the diagnostics for (eg where to render "squigglies").
+report the diagnostics for (eg where to render "squigglies"). If transformation
+is not needed, just return `nil` from the hook after registering findings.
 
 This is an example for re-frame's `dispatch` function which checks if the
 dispatched event used a qualified keyword.

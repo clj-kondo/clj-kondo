@@ -9,6 +9,9 @@
 ;; a lot of this work was already figured out here:
 ;; https://github.com/borkdude/speculative/blob/master/src/speculative/core.cljc
 
+(def seqable->nilable-seq {:arities {1 {:args [:seqable]
+                                        :ret #{:nil :seq}}}})
+
 (def seqable->seq {:arities {1 {:args [:seqable]
                                 :ret :seq}}})
 
@@ -20,6 +23,8 @@
 
 (def any->boolean {:arities {1 {:ret :boolean}}})
 
+(def ratio->number {:arities {1 {:args [:ratio]
+                                 :ret :number}}})
 
 ;; arity-1 function that returns the same type
 (def a->a {:arities {1 {:args [:any]}}
@@ -50,12 +55,38 @@
 (def int->int->int {:arities {2 {:args [:int :int]
                                  :ret :int}}})
 
+(def gettable #{:ilookup :nil :set :map :string :array})
+
+(def ^:private mapping-fn-varargs {:args '[:ifn :seqable [{:op :rest
+                                                           :spec :seqable}]]
+                                   :ret :seq})
+
+(def ^:private transducing-mapping-fn {:arities {1 {:args [:ifn]
+                                                    :ret :transducer}
+                                                 :varargs mapping-fn-varargs}})
+
 (def clojure-core
-  {'do {:fn last}
-   'doto {:fn first}
+  {;;; Special forms (https://clojure.org/reference/special_forms)
+   ;; 'def
    'if {:fn (fn [[_ then else]]
               (tu/union-type then else))}
+   'do {:fn last}
+   ;; 'let*
    'let {:fn last}
+   ;; 'quote
+   ;; 'var
+   ;; 'fn*
+   ;; 'loop*
+   ;; 'recur
+   'throw {:arities {1 {:args [:throwable]}}}
+   ;; 'try
+   ;; 'catch
+   ;; 'finally
+   ;; 'monitor-enter
+   ;; 'monitor-exit
+   
+   ;;; Public vars as of 1.10.0
+   ;;; defined in src/clj/clojure/core.clj
    ;; 16
    'list {:arities {:varargs {:ret :list}}}
    ;; 22
@@ -63,7 +94,7 @@
    ;; 49
    'first seqable->any
    ;; 57
-   'next seqable->seq
+   'next seqable->nilable-seq
    ;; 66
    'rest seqable->seq
    ;; 75
@@ -76,16 +107,16 @@
    ;; 98
    'ffirst seqable->any
    ;; 105
-   'nfirst seqable->seq
+   'nfirst seqable->nilable-seq
    ;; 112
    'fnext seqable->any
    ;; 119
-   'nnext seqable->seq
+   'nnext seqable->nilable-seq
    ;; 126
-   'seq {:arities {1 {:args [:seqable]
-                      :ret :seq}}}
+   'seq seqable->nilable-seq
    ;; 139
-   'instance? any->boolean
+   'instance? {:arities {2 {:args [:class :any]
+                            :ret :boolean}}}
    ;; 146
    'seq? any->boolean
    ;; 153
@@ -118,10 +149,14 @@
    ;; 262
    'last seqable->any
    ;; 272
-   'butlast seqable->seq
+   'butlast seqable->nilable-seq
    ;; 283 'defn
-   ;; 338 'to-array
-   ;; 346 'cast
+   ;; 338 
+   'to-array {:arities {1 {:args [:nilable/coll]
+                           :ret :array}}}
+   ;; 346 
+   'cast {:arities {2 {:args [:class :any]
+                       :ret :any}}}
    ;; 353
    'vector {:arities {:varargs {:ret :vector}}}
    ;; 367
@@ -133,9 +168,16 @@
    'hash-set {:arities {:varargs {:ret :set}}}
    ;; 398
    'sorted-map {:arities {:varargs {:ret :sorted-map}}}
-   ;; 407 'sorted-map-by
-   ;; 417 'sorted-set
-   ;; 425 'sorted-set-by
+   ;; 407 
+   'sorted-map-by {:arities {:varargs {:args [:ifn {:op :rest
+                                                    :spec [:any :any]}]
+                                       :ret :sorted-map}}}
+   ;; 417 
+   'sorted-set {:arities {:varargs {:ret :sorted-set}}}
+   ;; 425 
+   'sorted-set-by {:arities {:varargs {:args [:ifn {:op :rest
+                                                    :spec :any}]
+                                       :ret :sorted-set}}}
    ;; 436
    'nil? any->boolean
    ;; 444 'defmacro
@@ -159,7 +201,7 @@
    'any? any->boolean
    ;; 544
    'str {:arities {:varargs {:args [{:op :rest
-                                         :spec :any}]
+                                     :spec :any}]
                              :ret :string}}}
    ;; 562
    'symbol? any->boolean
@@ -180,7 +222,7 @@
                       (reduce tu/union-type #{} rets)
                       (reduce tu/union-type :nil rets)))))}
    ;; 589
-   'symbol {:arities {1 {:args [#{:symbol :string :keyword}]
+   'symbol {:arities {1 {:args [#{:symbol :string :keyword :var}]
                          :ret :symbol}
                       2 {:args [:nilable/string :string]
                          :ret :symbol}}}
@@ -374,6 +416,8 @@
                             :ret :boolean}}}
    ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
+   'get {:arities {2 {:args [gettable :any]}
+                   3 {:args [gettable :any :any]}}}
    ;; 1504
    'dissoc {:arities {:varargs {:args [:nilable/map {:op :rest :spec :any}]
                                 :ret :nilable/map}}}
@@ -394,12 +438,12 @@
    ;; 1574 'val
    ;; 1581
    'rseq {:arities {1 {:args [#{:vector :sorted-map}]
-                       :req :seq}}}
+                       :ret :nilable/seq}}}
    ;; 1589 'name
    ;; 1597
-   'namespace {:arities {1 {:ret :string}}}
+   'namespace {:arities {1 {:ret #{:nil :string}}}}
    ;; 1605
-   'boolean any->boolean
+   'boolean {:arities {1 {:ret :boolean}}}
    ;; 1612
    'ident? any->boolean
    ;; 1617
@@ -497,16 +541,17 @@
    ;; 2548
    'volatile? any->boolean
    ;; 2557
-   'comp {:arities {:varargs [{:op :rest
-                               :spec :ifn}]
-                    :ret :ifn}}
+   'comp {:arities {0 {:ret :fn}
+                    :varargs {:args [:ifn {:op :rest
+                                           :spec :ifn}]
+                              :ret :fn}}}
    ;; 2576
    'juxt {:arities {:varargs {:args [:ifn {:op :rest
                                            :spec :ifn}]
                               :ret :ifn}}}
    ;; 2614
    'partial {:arities {:varargs {:args [:ifn {:op :rest :spec :any}]
-                                 :ret :ifn}}}
+                                 :ret :fn}}}
    ;; 2647 'sequence
    ;; 2672
    'every? {:arities {2 {:args [:ifn :seqable]
@@ -522,19 +567,11 @@
                            :ret :boolean}}}
    ;; 2712 'dotimes
    ;; 2727
-   'map {:arities {1 {:args [:ifn]
-                      :ret :transducer}
-                   :varargs {:args '[:ifn :seqable [{:op :rest
-                                                     :spec :seqable}]]
-                             :ret :seq}}}
+   'map transducing-mapping-fn
    ;; 2776 'declare
    ;; 2781 'cat
    ;; 2783
-   'mapcat {:arities {1 {:args [:ifn]
-                         :ret :transducer}
-                      :varargs {:args '[:ifn :seqable [{:op :rest
-                                                        :spec :seqable}]]
-                                :ret :seq}}}
+   'mapcat transducing-mapping-fn
    ;; 2793
    'filter {:arities {1 {:args [:ifn]
                          :ret :transducer}
@@ -643,17 +680,29 @@
    ;; 3400 'disj!
    ;; 3425 'import
    ;; 3443 'into-array
-   ;; 3460 'class
+   ;; 3460
+   'class {:arities {1 {:args [:any]
+                        :ret :class}}}
    ;; 3466 'type
    ;; 3473 'num
-   ;; 3480 'long
-   ;; 3486 'float
-   ;; 3492 'double
-   ;; 3498 'short
-   ;; 3504 'byte
+   ;; 3480
+   'long {:arities {1 {:args [:number]
+                       :ret :long}}}
+   ;; 3486
+   'float {:arities {1 {:args [:number]
+                        :ret :float}}}
+   ;; 3492
+   'double {:arities {1 {:args [:number]
+                         :ret :double}}}
+   ;; 3498
+   'short {:arities {1 {:args [:number]
+                        :ret :short}}}
+   ;; 3504
    'byte {:arities {1 {:args [#{:byte :number :char}]
                        :ret :byte}}}
-   ;; 3510 'char
+   ;; 3510
+   'char {:arities {1 {:args [#{:int :char}]
+                       :ret :char}}}
    ;; 3516 'unchecked-byte
    ;; 3522 'unchecked-short
    ;; 3528 'unchecked-char
@@ -666,8 +715,10 @@
    ;; 3566 'mod
    ;; 3576
    'ratio? any->boolean
-   ;; 3582 'numerator
-   ;; 3590 'denominator
+   ;; 3582 
+   'numerator ratio->number
+   ;; 3590 
+   'denominator ratio->number
    ;; 3598
    'decimal? any->boolean
    ;; 3604
@@ -695,14 +746,32 @@
                       3 {:args [:vector :nat-int :nat-int]
                          :ret :vector}}}
    ;; 3831 'with-open
-   ;; 3852 'doto
+   ;; 3852
+   'doto {:fn first}
    ;; 3871 'memfn
    ;; 3884 'time
-   ;; 3898 'alength
-   ;; 3905 'aclone
-   ;; 3912 'aget
-   ;; 3923 'aset
-   ;; 3986 'make-array
+   ;; 3898
+   'alength {:arities {1 {:args [:array] :ret :int}}}
+   ;; 3905 
+   'aclone {:arities {1 {:args [:array] :ret :array}}}
+   ;; 3912 
+   'aget {:arities {2 {:args [:array :any] :ret :any}
+                    3 {:args [:array :any :any] :ret :any}
+                    :varargs {:min-arity 2
+                              :args [:array :any {:op :rest :spec :any}]
+                              :ret :any}}}
+   ;; 3923
+   'aset {:arities {3 {:args [:array :any :any] :ret :any}
+                    4 {:args [:array :any :any :any] :ret :any}
+                    :varargs {:min-arity 3
+                              :args [:array :any {:op :rest :spec :any} :any]
+                              :ret :any}}}
+   ;; 3986
+   'make-array {:arities {2 {:args [:class :int]
+                             :ret :array}
+                          :varargs {:min-arity 2
+                                    :args [:class :int {:op :rest :spec :int}]
+                                    :ret :array}}}
    ;; 4003 'to-array-2d
    ;; 4018 'macroexpand-1
    ;; 4026 'macroexpand
@@ -761,10 +830,10 @@
    ;; 4745 'prn-str
    ;; 4754 'print-str
    ;; 4763 'println-str
-   ;; 4794 'ex-info
-   'ex-info {:arities {2 {:args [:nilable/string :map]
+   ;; 4794
+   'ex-info {:arities {2 {:args [:nilable/string :nilable/map]
                           :ret :throwable}
-                       3 {:args [:nilable/string :map :any]
+                       3 {:args [:nilable/string :nilable/map :any]
                           :ret :throwable}}}
    ;; 4803 'ex-data
    ;; 4800 'ex-message
@@ -778,7 +847,7 @@
    ;; 4858 're-groups
    ;; 4874
    're-seq {:arities {2 {:args [:regex :string]
-                         :ret :seq}}}
+                         :ret #{:nil :seq}}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
                              :ret #{:vector :string}}}}
@@ -786,7 +855,7 @@
    're-find {:arities {1 {:args [:any] ;; matcher
                           :ret #{:vector :string}}
                        2 {:args [:regex :string]
-                          :ret #{:vector :string}}}}
+                          :ret #{:nil :vector :string}}}}
    ;; 4911 'rand
    ;; 4919 'rand-int
    ;; 4925 'defn-
@@ -820,7 +889,11 @@
    ;; 5086 'with-precision
    ;; 5109 'subseq
    ;; 5126 'rsubseq
-   ;; 5143 'repeatedly
+   ;; 5143
+   'repeatedly {:arities {1 {:args [:ifn]
+                             :ret :seq}
+                          2 {:args [:nat-int :ifn]
+                             :ret :seq}}}
    ;; 5152 'add-classpath
    ;; 5165 'hash
    ;; 5175 'mix-collection-hash
@@ -862,8 +935,12 @@
    ;; 5520 'thread-bound?
    ;; 5528 'make-hierarchy
    ;; 5537 'not-empty
-   ;; 5543 'bases
-   ;; 5553 'supers
+   ;; 5543 
+   'bases {:arities {1 {:args [:class]
+                        :ret :seq}}}
+   ;; 5553
+   'supers {:arities {1 {:args [:class]
+                         :ret :nilable/set}}}
    ;; 5564 'isa?
    ;; 5585 'parents
    ;; 5598 'ancestors
@@ -891,15 +968,15 @@
    ;; 6109 'load
    ;; 6128 'compile
    ;; 6142
-   'get-in {:arities {2 {:args [:nilable/associative :seqable]
+   'get-in {:arities {2 {:args [gettable :sequential]
                          :ret :any}
-                      3 {:args [:nilable/associative :seqable :any]
+                      3 {:args [gettable :sequential :any]
                          :ret :any}}}
    ;; 6152
-   'assoc-in {:arities {3 {:args [:nilable/associative :seqable :any]
+   'assoc-in {:arities {3 {:args [:nilable/associative :sequential :any]
                            :ret :associative}}}
    ;; 6172
-   'update-in {:arities {:varargs {:args [:nilable/associative :seqable :ifn {:op :rest :spec :any}]
+   'update-in {:arities {:varargs {:args [:nilable/associative :sequential :ifn {:op :rest :spec :any}]
                                    :ret :associative}}}
    ;; 6188
    'update {:arities {:varargs {:args [:nilable/associative :any :ifn {:op :rest :spec :any}]
@@ -939,7 +1016,9 @@
    ;; 6359 'condp
    ;; 6530
    'future? any->boolean
-   ;; 6536 'future-done?
+   ;; 6536
+   'future-done? {:arities {1 {:args [:future]
+                               :ret :boolean}}}
    ;; 6543 'letfn
    ;; 6556
    'fnil {:arities {2 {:args [:ifn :any]
@@ -950,8 +1029,10 @@
                        :ret :ifn}}}
    ;; 6697 'case
    ;; 6780 'Inst
-   ;; 6780 'inst-ms*
-   ;; 6787 'inst-ms
+   ;; 6780
+   'inst-ms* {:arities {1 {:args [:inst] :ret :long}}}
+   ;; 6787
+   'inst-ms {:arities {1 {:args [:inst] :ret :long}}}
    ;; 6793
    'inst? any->boolean
    ;; 6805
@@ -976,9 +1057,7 @@
                     :coll
                     t)))}
    ;; 6903
-   'mapv {:arities {1 {:args [:ifn]
-                       :ret :transducer}
-                    :varargs {:args '[:ifn :seqable {:op :rest
+   'mapv {:arities {:varargs {:args '[:ifn :seqable {:op :rest
                                                      :spec :seqable}]
                               :ret :vector}}}
    ;; 6921
@@ -986,11 +1065,19 @@
                           :ret :vector}}}
    ;; 6942 'slurp
    ;; 6954 'spit
-   ;; 6963 'future-call
+   ;; 6963
+   'future-call {:arities {1 {:args [:ifn]
+                              :ret :future}}}
    ;; 6990 'future
-   ;; 7000 'future-cancel
-   ;; 7006 'future-cancelled?
-   ;; 7012 'pmap
+   'future {:arities {:varargs {:ret :future}}}
+   ;; 7000
+   'future-cancel {:arities {1 {:args [:future]
+                                :ret :boolean}}}
+   ;; 7006
+   'future-cancelled? {:arities {1 {:args [:future]
+                                    :ret :boolean}}}
+   ;; 7012 
+   'pmap {:arities {:varargs mapping-fn-varargs}}
    ;; 7037 'pcalls
    ;; 7044 'pvalues
    ;; 7069 '*clojure-version*
@@ -1081,13 +1168,116 @@
    ;; 7868 'add-tap
    ;; 7879 'remove-tap
    ;; 7886 'tap>
-   'throw {:arities {1 {:args [:throwable]}}}
+   
+   ;;; defined in src/clj/clojure/core_deftype.clj
+   ;; 13 'namespace-munge
+   ;; 20 'definterface
+   ;; 70 'reify
+   ;; 128 'hash-combine
+   ;; 131 'munge
+   ;; 314 'defrecord
+   ;; 407 'record?
+   ;; 424 'deftype
+   ;; 537 'find-protocol-impl
+   ;; 548 'find-protocol-method
+   ;; 558 'extends?
+   ;; 565 'extenders
+   ;; 571 'satisfies?
+   ;; 577 '-cache-protocol-fn
+   ;; 630 '-reset-methods
+   ;; 716 'defprotocol
+   ;; 780 'extend
+   ;; 848 'extend-type
+   ;; 880 'extend-protocol
+   
+   ;;; defined in src/clj/clojure/core_print.clj
+   ;; 16 '*print-length*
+   ;; 27 '*print-level*
+   ;; 39 '*verbose-defrecords*
+   ;; 41 '*print-namespace-maps*
+   ;; 83 'print-simple
+   ;; 97 'print-ctor
+   ;; 200 'char-escape-string
+   ;; 342 'char-name-string
+   ;; 372 'primitives-classnames
+   ;; 465 'StackTraceElement->vec
+   ;; 471 'Throwable->map
+   ;; 559 'PrintWriter-on
+   
+   ;;; defined in src/clj/clojure/core_proxy.clj
+   ;; 20 'method-sig
+   ;; 37 'proxy-name
+   ;; 281 'get-proxy-class
+   ;; 295 'construct-proxy
+   ;; 302 'init-proxy
+   ;; 313 'update-proxy
+   ;; 328 'proxy-mappings
+   ;; 334 'proxy
+   ;; 389 'proxy-call-with-super
+   ;; 396 'proxy-super
+   ;; 403 'bean
+   
+   ;;; defined in src/clj/clojure/genclass.clj
+   ;; 507 'gen-class
+   ;; 688 'gen-interface
+   
+   ;;; defined in src/clj/clojure/gvec.clj
+   ;; 18 '->VecNode
+   ;; 20 'EMPTY-NODE
+   ;; 37 '->ArrayChunk
+   ;; 59 '->VecSeq
+   ;; 170 '->Vec
+   ;; 523 'vector-of
+   
+   ;;; Added in 1.11.0
+   ;; 1137 'abs
+   ;; 4392 'seq-to-map-for-destructuring
+   ;; 6861 'random-uuid
+   ;; 7786 'iteration
+   ;; 8008 'update-vals
+   ;; 8024 'update-keys
+   ;; 8044 'parse-long
+   ;; 8055 'parse-double
+   ;; 8068 'parse-uuid
+   ;; 8079 'parse-boolean
+   ;; 8090 'NaN?
+   ;; 8099 'infinite?
+   
+   ;;; Added in 1.12.0
+   ;; 6357 '*repl*
+   ;; 6853 'stream-reduce!
+   ;; 6862 'stream-seq!
+   ;; 6869 'stream-transduce!
+   ;; 6879 'stream-into!
+   ;; 7414 'splitv-at
+   ;; 7420 'partitionv
+   ;; 7443 'partitionv-all
    })
 
 (def cljs-core
-  (assoc clojure-core
-         'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
-                                :ret :keyword}
-                             2 {:args [#{:nilable/string :keyword :symbol}
-                                       #{:string :keyword :symbol}]
-                                :ret :keyword}}}))
+  (-> clojure-core
+      (dissoc 'cast)
+      (assoc-in ['instance? :arities 2 :args] [#{:class :fn} :any])
+      (assoc-in ['bases :arities 1 :args] [#{:class :fn}])
+      (assoc-in ['supers :arities 1 :args] [#{:class :fn}])
+      (assoc 'throw {:arities {1 {:args [:any]}}})
+      (assoc 'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
+                                    :ret :keyword}
+                                 2 {:args [#{:nilable/string :keyword :symbol}
+                                           #{:string :keyword :symbol}]
+                                    :ret :keyword}}})))
+(comment
+  (bases java.io.File)
+  ;; => (java.lang.Object java.io.Serializable java.lang.Comparable)
+  (supers Object)
+  ;; => nil
+  (supers java.io.File)
+  ;; => #{java.lang.Object java.io.Serializable java.lang.Comparable}
+  (make-array Integer/TYPE 3)
+  ;; => #object["[I" 0x54dee272 "[I@54dee272"]
+
+  (future-cancel (future (Thread/sleep 10000)))
+  ;; => true
+
+  ;; scratch 
+  )

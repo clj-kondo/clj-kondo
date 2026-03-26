@@ -58,6 +58,8 @@ Options:
   --report-level <level>: minimum severity for which to report.  Supported values:
     info, warning, error.  The default level if unspecified is info.
 
+  --repro: ignore home dir configuration
+
   --debug: print debug information.
 "))
 
@@ -82,6 +84,7 @@ Options:
     "--fail-level"   :scalar
     "--report-level" :scalar
     "--debug"        :scalar
+    "--repro"        :scalar
     :scalar))
 
 (defn- parse-opts [options]
@@ -134,14 +137,15 @@ Options:
                      "warning")
      :report-level (or (last (get opts "--report-level"))
                        "info")
-     :debug (contains? opts "--debug")}))
+     :debug (contains? opts "--debug")
+     :repro (contains? opts "--repro")}))
 
 (def fail-level? #{"warning" "error"})
 (def report-level? (conj fail-level? "info"))
 
 (defn main
   [& options]
-  (let [{:keys [:help :lint :version :pod :dependencies :fail-level :report-level] :as parsed}
+  (let [{:keys [help lint version pod dependencies fail-level report-level] :as parsed}
         (parse-opts options)]
     (or (cond version
               (print-version)
@@ -154,9 +158,9 @@ Options:
               (print-help)
               (not (report-level? report-level))
               (print-help)
-              :else (let [{:keys [:summary]
+              :else (let [{:keys [summary]
                            :as results} (clj-kondo/run! parsed)
-                          {:keys [:error :warning]} summary]
+                          {:keys [error warning]} summary]
                       (when-not dependencies
                         (clj-kondo/print! (assoc results :report-level report-level)))
                       (cond

@@ -1,5 +1,6 @@
 (ns clj-kondo.invalid-arity-test
   (:require
+   [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer
     [lint! assert-submaps assert-submaps2]]
    [clojure.java.io :as io]
@@ -7,8 +8,11 @@
    [clojure.test :as t :refer [deftest is testing]]
    [missing.test.assertions]))
 
+(def config {:linters {:aliased-referred-var {:level :off}}})
+
 (deftest invalid-arity-test
-  (let [linted (lint! (io/file "corpus" "invalid_arity"))
+  (let [linted (lint! (io/file "corpus" "invalid_arity")
+                      config)
         row-col-files (sort-by (juxt :file :row :col)
                                (map #(select-keys % [:row :col :file])
                                     linted))]
@@ -255,3 +259,13 @@
      :level :error,
      :message "cond->> requires even number of clauses"}]
    (lint! "(cond->> 42 (even? 7) inc (odd? 8))")))
+
+(deftest issue-2641-test
+  (clj-kondo/run! {:lint ["corpus/issue-2641/foo.clj"]
+                   :config-dir (io/file "corpus/issue-2641/.clj-kondo")})
+  (assert-submaps2
+   [{:end-row 4, :type :invalid-arity, :level :error, :filename "corpus/issue-2641/bar.clj",
+     :col 10, :end-col 25, :langs (), :message "foo/foo is called with 3 args but expects 2", :row 4}]
+   (-> (clj-kondo/run! {:lint ["corpus/issue-2641/bar.clj"]
+                        :config-dir (io/file "corpus/issue-2641/.clj-kondo")})
+       :findings)))

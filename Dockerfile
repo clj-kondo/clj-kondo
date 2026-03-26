@@ -19,6 +19,6 @@ RUN ./script/setup-musl
 RUN ./script/compile
 
 FROM ubuntu:latest
-RUN mkdir -p /usr/local/bin
-COPY --from=BASE /opt/clj-kondo /usr/local/bin/clj-kondo
+COPY --from=BASE /opt/clj-kondo /bin/clj-kondo
+RUN mkdir -p /usr/local/bin && ln -s /bin/clj-kondo /usr/local/bin/clj-kondo
 CMD ["clj-kondo"]

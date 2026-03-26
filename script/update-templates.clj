@@ -13,7 +13,7 @@
 (def deps-edn (edn/read-string (slurp "deps.edn")))
 
 (def deps-dependencies (:deps deps-edn))
-(def lein-dependencies (cons '[org.clojure/clojure "1.9.0"]
+(def lein-dependencies (cons '[org.clojure/clojure "1.10.3"]
                              (map (fn [[k v]]
                                     [k (:mvn/version v)])
                                   deps-dependencies)))

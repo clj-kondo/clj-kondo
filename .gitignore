@@ -75,6 +75,7 @@ clj-kondo*.snap
 .DS_Store
 !corpus/**/*.jar
 !corpus/java/classes/foo/bar/AwesomeClass.class
+!corpus/java/classes/foo/bar/SampleInterface.class
 corpus/config_dir/.cache
 /.clj-kondo/clj-kondo
 /.lsp/.cache
@@ -94,3 +95,8 @@ corpus/issue-2239/.clj-kondo/.cache
 src/scratch.clj
 .portal
 src/scratch.cljc
+src/scratch2.clj
+
+test-regression/checkouts
+test-regression/clj_kondo/clj_kondo/.clj-kondo
+.mcp-tasks-current.edn

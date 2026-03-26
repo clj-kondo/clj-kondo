@@ -66,3 +66,10 @@
                 :name    clojure-core-namespaces}]
               :linters {:discouraged-namespace
                         {clojure.java.jdbc {:message "Use next.jdbc instead of clojure.java.jdbc"}}}}))))
+
+(deftest config-in-ns-test
+  (is (empty? (lint! "(ns repro
+  (:require [discouraged :as d]))
+(d/foo)"
+                     '{:config-in-ns {repro {:ignore [:discouraged-namespace]}}
+                       :linters {:discouraged-namespace {discouraged {:message "discouraged ns"}}}}))))

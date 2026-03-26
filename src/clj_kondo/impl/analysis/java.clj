@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.analysis.java
   {:no-doc true}
   (:require
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -11,10 +12,12 @@
     CompilationUnit
     Modifier
     Modifier$Keyword
-    Node]
+    Node
+    PackageDeclaration]
    [com.github.javaparser.ast.body
-    EnumConstantDeclaration
+    ClassOrInterfaceDeclaration
     ConstructorDeclaration
+    EnumConstantDeclaration
     FieldDeclaration
     MethodDeclaration
     Parameter
@@ -39,10 +42,10 @@
     (.toByteArray xout)))
 
 #_(defn ^:private opcode->flags []
-  {Opcodes/ACC_PUBLIC #{:public}
-   Opcodes/ALOAD #{:public :field :static}
-   Opcodes/SIPUSH #{:public :field :final}
-   Opcodes/LCONST_0 #{:public :method :static}})
+    {Opcodes/ACC_PUBLIC #{:public}
+     Opcodes/ALOAD #{:public :field :static}
+     Opcodes/SIPUSH #{:public :field :final}
+     Opcodes/LCONST_0 #{:public :method :static}})
 
 (defn- opcode->flags
   "Thanks @hiredman for https://downey.family/p/2024-02-22/modifiers.clj.html. Generated with:"
@@ -50,19 +53,19 @@
 
   [x]
   (clojure.core/cond->
-      #{}
+   #{}
     (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_PUBLIC)
      Opcodes/ACC_PUBLIC)
     (clojure.core/conj :public)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
-     Opcodes/ACC_PRIVATE)
-    (clojure.core/conj :private)
+         (clojure.core/bit-and x Opcodes/ACC_PRIVATE)
+         Opcodes/ACC_PRIVATE)
+      (clojure.core/conj :private)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
-     Opcodes/ACC_PROTECTED)
-    (clojure.core/conj :protected)
+         (clojure.core/bit-and x Opcodes/ACC_PROTECTED)
+         Opcodes/ACC_PROTECTED)
+      (clojure.core/conj :protected)
     (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_STATIC)
      Opcodes/ACC_STATIC)
@@ -72,81 +75,81 @@
      Opcodes/ACC_FINAL)
     (clojure.core/conj :final)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_SUPER)
-     Opcodes/ACC_SUPER)
+       (clojure.core/bit-and x Opcodes/ACC_SUPER)
+       Opcodes/ACC_SUPER)
     #_(clojure.core/conj :super)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
-     Opcodes/ACC_SYNCHRONIZED)
+       (clojure.core/bit-and x Opcodes/ACC_SYNCHRONIZED)
+       Opcodes/ACC_SYNCHRONIZED)
     #_(clojure.core/conj :synchronized)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_OPEN)
-     Opcodes/ACC_OPEN)
+       (clojure.core/bit-and x Opcodes/ACC_OPEN)
+       Opcodes/ACC_OPEN)
     #_(clojure.core/conj :open)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
-     Opcodes/ACC_TRANSITIVE)
+       (clojure.core/bit-and x Opcodes/ACC_TRANSITIVE)
+       Opcodes/ACC_TRANSITIVE)
     #_(clojure.core/conj :transitive)
     #_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
-     Opcodes/ACC_VOLATILE)
+       (clojure.core/bit-and x Opcodes/ACC_VOLATILE)
+       Opcodes/ACC_VOLATILE)
     #_(clojure.core/conj :volatile)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
-     Opcodes/ACC_BRIDGE)
-    (clojure.core/conj :bridge)
+         (clojure.core/bit-and x Opcodes/ACC_BRIDGE)
+         Opcodes/ACC_BRIDGE)
+      (clojure.core/conj :bridge)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
-     Opcodes/ACC_STATIC_PHASE)
-    (clojure.core/conj :static_phase)
+         (clojure.core/bit-and x Opcodes/ACC_STATIC_PHASE)
+         Opcodes/ACC_STATIC_PHASE)
+      (clojure.core/conj :static_phase)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_VARARGS)
-     Opcodes/ACC_VARARGS)
-    (clojure.core/conj :varargs)
+         (clojure.core/bit-and x Opcodes/ACC_VARARGS)
+         Opcodes/ACC_VARARGS)
+      (clojure.core/conj :varargs)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
-     Opcodes/ACC_TRANSIENT)
-    (clojure.core/conj :transient)
+         (clojure.core/bit-and x Opcodes/ACC_TRANSIENT)
+         Opcodes/ACC_TRANSIENT)
+      (clojure.core/conj :transient)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_NATIVE)
-     Opcodes/ACC_NATIVE)
-    (clojure.core/conj :native)
-    #_#_(clojure.core/=
+         (clojure.core/bit-and x Opcodes/ACC_NATIVE)
+         Opcodes/ACC_NATIVE)
+      (clojure.core/conj :native)
+    (clojure.core/=
      (clojure.core/bit-and x Opcodes/ACC_INTERFACE)
      Opcodes/ACC_INTERFACE)
     (clojure.core/conj :interface)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
-     Opcodes/ACC_ABSTRACT)
-    (clojure.core/conj :abstract)
+         (clojure.core/bit-and x Opcodes/ACC_ABSTRACT)
+         Opcodes/ACC_ABSTRACT)
+      (clojure.core/conj :abstract)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_STRICT)
-     Opcodes/ACC_STRICT)
-    (clojure.core/conj :strict)
+         (clojure.core/bit-and x Opcodes/ACC_STRICT)
+         Opcodes/ACC_STRICT)
+      (clojure.core/conj :strict)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
-     Opcodes/ACC_SYNTHETIC)
-    (clojure.core/conj :synthetic)
+         (clojure.core/bit-and x Opcodes/ACC_SYNTHETIC)
+         Opcodes/ACC_SYNTHETIC)
+      (clojure.core/conj :synthetic)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
-     Opcodes/ACC_ANNOTATION)
-    (clojure.core/conj :annotation)
+         (clojure.core/bit-and x Opcodes/ACC_ANNOTATION)
+         Opcodes/ACC_ANNOTATION)
+      (clojure.core/conj :annotation)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_ENUM)
-     Opcodes/ACC_ENUM)
-    (clojure.core/conj :enum)
+         (clojure.core/bit-and x Opcodes/ACC_ENUM)
+         Opcodes/ACC_ENUM)
+      (clojure.core/conj :enum)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_MANDATED)
-     Opcodes/ACC_MANDATED)
-    (clojure.core/conj :mandated)
+         (clojure.core/bit-and x Opcodes/ACC_MANDATED)
+         Opcodes/ACC_MANDATED)
+      (clojure.core/conj :mandated)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_MODULE)
-     Opcodes/ACC_MODULE)
-    (clojure.core/conj :module)
+         (clojure.core/bit-and x Opcodes/ACC_MODULE)
+         Opcodes/ACC_MODULE)
+      (clojure.core/conj :module)
     #_#_(clojure.core/=
-     (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
-     Opcodes/ACC_DEPRECATED)
-    (clojure.core/conj :deprecated)))
+         (clojure.core/bit-and x Opcodes/ACC_DEPRECATED)
+         Opcodes/ACC_DEPRECATED)
+      (clojure.core/conj :deprecated)))
 
 (defn ^:private modifier-keyword->flag []
   (reduce #(assoc %1 %2 (keyword (str/lower-case (.asString ^Modifier$Keyword %2))))
@@ -158,10 +161,13 @@
   [^InputStream class-is]
   (let [class-reader (ClassReader. (input-stream->bytes class-is))
         class-name (str/replace (.getClassName class-reader) "/" ".")
-        result* (atom {class-name {:members []}})]
+        result* (atom {class-name {:members [] :flags nil}})]
     (.accept
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
+       (visit [version access name signature superName interfaces]
+         (swap! result* assoc-in [class-name :flags] (opcode->flags access))
+         nil)
        (visitField [access ^String name ^String desc signature value]
          (let [flags (opcode->flags access)]
            (when (:public flags)
@@ -215,26 +221,58 @@
           (merge (some-> node node->location))
           (update :flags set/union #{(node->flag-member-type node)})))))
 
+(defn ^:private normalize-inner-class-names
+  "Replace the . of full-class-name after package-name with $
+   Example:
+     full-class-name: my.custom.package.Foo.Bar.Baz
+     packcage-name: my.custom.package
+  
+     -> my.custom.package.Foo$Bar$Baz"
+  [full-class-name package-name]
+  (let [prefix (if (str/blank? package-name)
+                 ""
+                 (str package-name "."))
+        class-name (subs full-class-name (count prefix) (count full-class-name))
+        class-name (str/replace class-name "." "$")]
+    (str prefix class-name)))
+
 (defn ^:private source-is->java-member-definitions [^InputStream source-input-stream filename]
   (let [modifier-keyword->flag (modifier-keyword->flag)]
     (try
       (when-let [compilation ^CompilationUnit (.orElse (.getResult (.parse (JavaParser.) source-input-stream)) nil)]
         (reduce
-         (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
-           (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
-             (let [members (->> (concat
-                                 (.findAll class-or-interface FieldDeclaration)
-                                 (.findAll class-or-interface ConstructorDeclaration)
-                                 (.findAll class-or-interface MethodDeclaration)
-                                 (.findAll class-or-interface EnumConstantDeclaration))
-                                (keep #(node->member % modifier-keyword->flag)))]
-               (assoc classes class-name {:members (vec members)
-                                          :flags (set (map #(modifier-keyword->flag
-                                                             (.getKeyword ^Modifier %))
-                                                           (.getModifiers class-or-interface))) }))
-             classes))
-         {}
-         (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
+          (fn [classes ^com.github.javaparser.ast.body.TypeDeclaration class-or-interface]
+            (if-let [class-name (.orElse (.getFullyQualifiedName class-or-interface) nil)]
+              (let [package-name (or (some-> ^PackageDeclaration (.orElse (.getPackageDeclaration compilation) nil)
+                                             (.getName)
+                                             (.asString))
+                                     "")
+                    class-name (if (.isNestedType class-or-interface)
+                                 (normalize-inner-class-names class-name package-name)
+                                 class-name)
+                    is-interface? (and (instance? ClassOrInterfaceDeclaration class-or-interface)
+                                       (.isInterface ^ClassOrInterfaceDeclaration class-or-interface))
+                    members (->> (concat
+                                   (.findAll class-or-interface FieldDeclaration)
+                                   (.findAll class-or-interface ConstructorDeclaration)
+                                   (.findAll class-or-interface MethodDeclaration)
+                                   (.findAll class-or-interface EnumConstantDeclaration))
+                                 (keep #(node->member % modifier-keyword->flag))
+                                 (mapv (fn [member]
+                                         (if (and is-interface? (contains? (:flags member) :method))
+                                           (update member :flags conj :public)
+                                           member))))
+                    flags (set (map #(modifier-keyword->flag
+                                       (.getKeyword ^Modifier %))
+                                    (.getModifiers class-or-interface)))
+                    flags (if is-interface?
+                            (conj flags :interface)
+                            flags)]
+                (assoc classes class-name {:members members
+                                           :flags flags}))
+              classes))
+          {}
+          (.findAll compilation com.github.javaparser.ast.body.TypeDeclaration)))
       (catch Throwable e
         (binding [*out* *err*]
           (println "Error parsing java file" filename "with error" e))))))
@@ -254,12 +292,14 @@
                             (class-is->class-info is)
                             (source-is->java-member-definitions is filename)))]
       (doseq [[class-name class-info] class-by-info]
-        (swap! (:analysis ctx)
-               update :java-class-definitions conj
-               {:class class-name
-                :uri uri
-                :filename filename
-                :flags (:flags class-info)})
+        (let [flags (:flags class-info)
+              class-def {:class class-name
+                         :uri uri
+                         :filename filename
+                         :flags flags}]
+          (swap! (:analysis ctx)
+                 update :java-class-definitions conj
+                 class-def))
         (when (:analyze-java-member-defs? ctx)
           (doseq [member (:members class-info)]
             (swap! (:analysis ctx)
@@ -271,33 +311,49 @@
 (defn analyze-class-usages? [ctx]
   (identical? :clj (:lang ctx)))
 
+(defn lint-discouraged-method! [ctx class-name method-name loc+data]
+  (let [discouraged-meth-config
+        (get-in (:config ctx) [:linters :discouraged-java-method])]
+    (when-not (or (identical? :off (:level discouraged-meth-config))
+                  (empty? (dissoc discouraged-meth-config :level)))
+      (when-let [cfg (get-in discouraged-meth-config [(symbol class-name) (symbol method-name)])]
+        (findings/reg-finding! ctx
+                               (assoc loc+data
+                                      :filename (:filename ctx)
+                                      :level (or (:level cfg) (:level discouraged-meth-config))
+                                      :type :discouraged-java-method
+                                      :message (or (:message cfg)
+                                                   (str "Discouraged method: " method-name))))))))
+
 (defn reg-class-usage!
   ([ctx class-name method-name loc+data]
    (reg-class-usage! ctx class-name method-name loc+data nil nil))
   ([ctx class-name method-name loc+data name-meta opts]
-   (when true #_(analyze-class-usages? ctx)
-     (let [constructor-expr (:constructor-expr ctx)
-           loc+data* loc+data
-           loc+data (merge loc+data (meta constructor-expr))
-           name-meta (or name-meta
-                         (when constructor-expr
-                           loc+data*))]
-       (swap! (:java-class-usages ctx)
-              conj #_#_#_update :java-class-usages conj
-              (merge {:class class-name
-                      :uri (:uri ctx)
-                      :filename (:filename ctx)
-                      :call (:call opts)
-                      :config (:config ctx)
-                      :lang (:lang ctx)}
-                     loc+data
-                     (when method-name
-                       {:method-name method-name})
-                     (when name-meta
-                       {:name-row (:row name-meta)
-                        :name-col (:col name-meta)
-                        :name-end-row (:end-row name-meta)
-                        :name-end-col (:end-col name-meta)})))))
+   (let [constructor-expr (:constructor-expr ctx)
+         loc+data* loc+data
+         loc+data (merge loc+data (meta constructor-expr))
+         name-meta (or name-meta
+                       (when constructor-expr
+                         loc+data*))]
+     (when method-name
+       (lint-discouraged-method! ctx class-name method-name
+                                 loc+data))
+     (swap! (:java-class-usages ctx)
+            conj
+            (merge {:class class-name
+                    :uri (:uri ctx)
+                    :filename (:filename ctx)
+                    :call (:call opts)
+                    :config (:config ctx)
+                    :lang (:lang ctx)}
+                   loc+data
+                   (when method-name
+                     {:method-name method-name})
+                   (when name-meta
+                     {:name-row (:row name-meta)
+                      :name-col (:col name-meta)
+                      :name-end-row (:end-row name-meta)
+                      :name-end-col (:end-col name-meta)}))))
    nil))
 
 #_:clj-kondo/ignore
@@ -314,7 +370,4 @@
                                        (select-keys [:flags]))))))
   (ana->cached "java.lang.System" sys)
   (def clazz (io/resource "java/time/temporal/ChronoField.class"))
-  (class-is->class-info (io/input-stream clazz))
-
-
-  )
+  (class-is->class-info (io/input-stream clazz)))
