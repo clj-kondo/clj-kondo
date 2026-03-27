@@ -505,7 +505,7 @@
       (when package
         (when-let [package-sym (missing-required-package-ns-sym ctx ns-sym package)]
           (reg-imported-but-not-required! ctx ns-sym package-sym loc
-            (format "Used Clojure namespace %s but it was not required." package-sym))))))))))
+            (format "Used Clojure namespace %s but it was not required." package-sym)))))))
 
 (defn reg-unresolved-namespace!
   [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
