@@ -55,8 +55,6 @@
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.) (Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
-            :message "Imported namespace bar but it was not required."}
-           {:file #"foo.clj$", :row 1, :col 23, :level :warning,
             :message "Imported namespace bar but it was not required."})
          (lint! [bar-file foo-file] {:linters {:imported-but-not-required {:report-duplicates true}}})))
 
@@ -73,4 +71,41 @@
       (testing "disabling linter via config-in-ns"
         (spit bar-file "(ns bar) (deftype Bar [])")
         (spit foo-file "(ns ^{:clj-kondo/config {:linters {:imported-but-not-required {:level :off}}}} foo (:import (bar Bar))) (Bar.)")
-        (is (empty? (lint! [bar-file foo-file])))))))
+        (is (empty? (lint! [bar-file foo-file]))))
+
+      (testing "fully-qualified class used without import or require should warn"
+        (spit bar-file "(ns bar) (deftype Bar [])")
+        (spit foo-file "(ns foo) (bar.Bar.)")
+        (assert-submaps2
+         '({:file #"foo.clj$", :row 1, :level :warning,
+            :message "Used Clojure namespace bar but it was not required."})
+         (lint! [bar-file foo-file])))
+
+      (testing "fully-qualified class used with require but no import should not warn"
+        (spit bar-file "(ns bar) (deftype Bar [])")
+        (spit foo-file "(ns foo (:require [bar])) (bar.Bar.)")
+        (is (empty? (lint! [bar-file foo-file]))))
+
+      (testing "fully-qualified class using new form without require should warn"
+        (spit bar-file "(ns bar) (deftype Bar [])")
+        (spit foo-file "(ns foo) (new bar.Bar)")
+        (assert-submaps2
+         '({:file #"foo.clj$", :row 1, :level :warning,
+            :message "Used Clojure namespace bar but it was not required."})
+         (lint! [bar-file foo-file])))
+
+      (testing "fully-qualified class in same namespace should not warn"
+        (spit bar-file "(ns bar) (deftype Bar []) (bar.Bar.)")
+        (is (empty? (lint! [bar-file]))))
+
+      (testing "fully-qualified real Java class should not warn"
+        (spit foo-file "(ns foo) (java.io.File. \"foo\")")
+        (is (empty? (lint! [foo-file]))))
+
+      (testing "hyphenated namespace used by fully-qualified class without require should warn"
+        (spit bar-file "(ns bar-baz) (deftype Bar [])")
+        (spit foo-file "(ns foo) (bar_baz.Bar.)")
+        (assert-submaps2
+         '({:file #"foo.clj$", :row 1, :level :warning,
+            :message "Used Clojure namespace bar-baz but it was not required."})
+         (lint! [bar-file foo-file]))))))
