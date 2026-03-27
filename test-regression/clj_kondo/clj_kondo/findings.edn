@@ -32998,6 +32998,50 @@
   :langs (:clj),
   :message "Redundant ignore",
   :row 229}
+ {:end-row 36,
+  :ns clj-kondo.impl.rewrite-clj.node.string,
+  :type :imported-but-not-required,
+  :level :warning,
+  :filename "src/clj_kondo/hooks_api.clj",
+  :col 14,
+  :end-col 63,
+  :langs (),
+  :message
+  "Used Clojure namespace clj-kondo.impl.rewrite-clj.node.string but it was not required.",
+  :row 36}
+ {:end-row 42,
+  :ns clj-kondo.impl.rewrite-clj.node.token,
+  :type :imported-but-not-required,
+  :level :warning,
+  :filename "src/clj_kondo/hooks_api.clj",
+  :col 14,
+  :end-col 61,
+  :langs (),
+  :message
+  "Used Clojure namespace clj-kondo.impl.rewrite-clj.node.token but it was not required.",
+  :row 42}
+ {:end-row 48,
+  :ns clj-kondo.impl.rewrite-clj.node.quote,
+  :type :imported-but-not-required,
+  :level :warning,
+  :filename "src/clj_kondo/hooks_api.clj",
+  :col 14,
+  :end-col 61,
+  :langs (),
+  :message
+  "Used Clojure namespace clj-kondo.impl.rewrite-clj.node.quote but it was not required.",
+  :row 48}
+ {:end-row 54,
+  :ns clj-kondo.impl.rewrite-clj.node.seq,
+  :type :imported-but-not-required,
+  :level :warning,
+  :filename "src/clj_kondo/hooks_api.clj",
+  :col 19,
+  :end-col 62,
+  :langs (),
+  :message
+  "Used Clojure namespace clj-kondo.impl.rewrite-clj.node.seq but it was not required.",
+  :row 54}
  {:end-row 91,
   :type :unresolved-var,
   :level :warning,
@@ -33025,6 +33069,28 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
+ {:end-row 106,
+  :ns clj-kondo.impl.rewrite-clj.node.protocols,
+  :type :imported-but-not-required,
+  :level :warning,
+  :filename "src/clj_kondo/impl/hooks.clj",
+  :col 16,
+  :end-col 62,
+  :langs (),
+  :message
+  "Used Clojure namespace clj-kondo.impl.rewrite-clj.node.protocols but it was not required.",
+  :row 106}
+ {:end-row 120,
+  :ns clj-kondo.impl.rewrite-clj.node.seq,
+  :type :imported-but-not-required,
+  :level :warning,
+  :filename "src/clj_kondo/impl/hooks.clj",
+  :col 34,
+  :end-col 77,
+  :langs (),
+  :message
+  "Used Clojure namespace clj-kondo.impl.rewrite-clj.node.seq but it was not required.",
+  :row 120}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,
