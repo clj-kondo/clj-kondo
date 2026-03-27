@@ -13,7 +13,7 @@
       (testing "imported but not required Clojure-defined class should warn"
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.)")
         (assert-submaps2
-         '({:file #"foo.clj$", :row 1, :col 31, :level :warning,
+         '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
             :message "Imported namespace bar but it was not required."})
          (lint! [bar-file foo-file])))
 
@@ -30,7 +30,7 @@
         (spit bar-file "(ns bar-baz) (deftype Bar [])")
         (spit foo-file "(ns foo (:import (bar_baz Bar))) (Bar.)")
         (assert-submaps2
-         '({:file #"foo.clj$", :row 1, :col 35, :level :warning,
+         '({:file #"foo.clj$", :row 1, :col 27, :level :warning,
             :message "Imported namespace bar-baz but it was not required."})
          (lint! [bar-file foo-file])))
 
@@ -46,7 +46,7 @@
         (spit bar-file "(ns bar) (deftype Bar [])")
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.) (Bar.)")
         (assert-submaps2
-         '({:file #"foo.clj$", :row 1, :col 31, :level :warning,
+         '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
             :message "Imported namespace bar but it was not required."})
          (lint! [bar-file foo-file])))
 
@@ -54,9 +54,9 @@
         (spit bar-file "(ns bar) (deftype Bar [])")
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.) (Bar.)")
         (assert-submaps2
-         '({:file #"foo.clj$", :row 1, :col 31, :level :warning,
+         '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
             :message "Imported namespace bar but it was not required."}
-           {:file #"foo.clj$", :row 1, :col 38, :level :warning,
+           {:file #"foo.clj$", :row 1, :col 23, :level :warning,
             :message "Imported namespace bar but it was not required."})
          (lint! [bar-file foo-file] {:linters {:imported-but-not-required {:report-duplicates true}}})))
 

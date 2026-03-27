@@ -459,8 +459,9 @@
   (swap! namespaces update-in [base-lang lang ns-sym :used-imports]
          conj class-name)
   (let [name-meta (meta name-sym)
-        loc (or (meta expr)
-                (meta class-name))
+        loc (meta class-name)
+        usage-loc (or (meta expr)
+                      loc)
         name-sym-str (name name-sym)
         static-method-name (when (and (not= name-sym-str (str class-name))
                                       (not (str/includes? name-sym-str ".")))
@@ -468,8 +469,8 @@
     (when (identical? :clj lang)
       (let [package-sym' (symbol package)
             package-sym (if (get-in @namespaces [base-lang lang package-sym'])
-                           package-sym'
-                           (symbol (str/replace package #"_" "-")))]
+                          package-sym'
+                          (symbol (str/replace package #"_" "-")))]
         (when (get-in @namespaces [base-lang lang package-sym])
           (let [ns (get-namespace ctx base-lang lang ns-sym)]
             (when-not (or (some #(= package-sym %) (:required ns))
@@ -478,12 +479,12 @@
     (java/reg-class-usage! ctx
                            (str package "." class-name)
                            static-method-name
-                           (assoc loc
+                           (assoc usage-loc
                                   :call (:call opts)
-                                  :name-row (or (:row name-meta) (:row loc))
-                                  :name-col (or (:col name-meta) (:col loc))
-                                  :name-end-row (or (:end-row name-meta) (:end-row loc))
-                                  :name-end-col (or (:end-col name-meta) (:end-col loc))))))
+                                  :name-row (or (:row name-meta) (:row usage-loc))
+                                  :name-col (or (:col name-meta) (:col usage-loc))
+                                  :name-end-row (or (:end-row name-meta) (:end-row usage-loc))
+                                  :name-end-col (or (:end-col name-meta) (:end-col usage-loc))))))
 
 (defn reg-unresolved-namespace!
   [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
