@@ -9,7 +9,7 @@
     (let [bar-file (io/file dir "bar.clj")
           foo-file (io/file dir "foo.clj")]
       (spit bar-file "(ns bar) (deftype Bar [])")
-      
+
       (testing "imported but not required Clojure-defined class should warn"
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.)")
         (assert-submaps2
@@ -20,6 +20,19 @@
       (testing "imported and required Clojure-defined class should not warn"
         (spit foo-file "(ns foo (:require [bar]) (:import (bar Bar))) (Bar.)")
         (is (empty? (lint! [bar-file foo-file]))))
+
+      (testing "hyphenated namespace imported via munged package name"
+        (spit bar-file "(ns bar-baz) (deftype Bar [])")
+        (spit foo-file "(ns foo (:require [bar-baz]) (:import (bar_baz Bar))) (Bar.)")
+        (is (empty? (lint! [bar-file foo-file]))))
+
+      (testing "hyphenated namespace imported via munged package name but not required"
+        (spit bar-file "(ns bar-baz) (deftype Bar [])")
+        (spit foo-file "(ns foo (:import (bar_baz Bar))) (Bar.)")
+        (assert-submaps2
+         '({:file #"foo.clj$", :row 1, :col 35, :level :warning,
+            :message "Imported namespace bar-baz but it was not required."})
+         (lint! [bar-file foo-file])))
 
       (testing "imported but not required, but in same namespace should not warn"
         (spit bar-file "(ns bar) (deftype Bar []) (Bar.)")
