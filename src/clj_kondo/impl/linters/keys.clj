@@ -36,8 +36,10 @@
 (defn lint-map-keys
   ([ctx expr]
    (lint-map-keys ctx expr nil))
-  ([ctx expr {:keys [known-key?] :or {known-key? (constantly true)}}]
-   (let [filename (:filename ctx)
+  ([ctx expr opts]
+   (let [{:keys [known-key?]} opts
+         known-key? (or known-key? (constantly true))
+         filename (:filename ctx)
          t (tag expr)
          children (if (= :namespaced-map t)
                     (-> expr :children first :children)

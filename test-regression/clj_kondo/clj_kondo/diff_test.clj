@@ -31,7 +31,9 @@
                                                                clojure.data.json/codepoint-case]}
                                                  :def-fn {:level :warning}
                                                  :redundant-str-call {:level :warning}
-                                                 :redundant-let-binding {:level :warning}}
+                                                 :redundant-let-binding {:level :warning}
+                                                 :redundant-primitive-coercion {:level :warning}
+                                                 :reduce-without-init {:level :warning}}
                                                 :output {:langs false}}})
           findings (:findings lint-result)
           actual (remove #(str/includes? (:filename %) "src/scratch") findings)

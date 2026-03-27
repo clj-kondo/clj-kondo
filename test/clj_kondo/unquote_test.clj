@@ -74,7 +74,11 @@
 (require '[babashka2.process :as proc])
 
 (proc/$$ 1 ~2) ;; no warning here
-~2  ;; warning" {:linters {:unquote-not-syntax-quoted {:level :warning}}}))))
+~2  ;; warning" {:linters {:unquote-not-syntax-quoted {:level :warning}}})))
+  (testing "unquote never unresolved in quote"
+    (lint! "'(fn [x] `(dude ~x))"
+           {:linters {:unquote-not-syntax-quoted {:level :warning}
+                      :unresolved-symbol {:level :error}}})))
 
 (deftest issue-1695-test
   (is (empty? (lint! "(def version \"1.0.0\") (defproject dude \"1.0.0\" :foo (inc ~version))"

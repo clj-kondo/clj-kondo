@@ -40,6 +40,7 @@
               :duplicate-key-args {:level :warning}
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
+              :redundant-declare {:level :warning}
               :var-same-name-except-case {:level :warning}
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
@@ -90,17 +91,19 @@
               :deprecated-namespace {:level :warning}
               :unused-referred-var {:level :warning
                                     :exclude {#_#_taoensso.timbre [debug]}}
+              :aliased-referred-var {:level :info}
               :unused-private-var {:level :warning}
               :refer {:level :off
                       #_:exclude
                       #_[clojure.test]}
               :refer-all {:level :warning
                           :exclude #{}}
-              :refer-clojure-exclude-unresolved-var {:level :info}
+              :unresolved-excluded-var {:level :info}
               :use {:level :warning}
               :missing-else-branch {:level :warning}
               :if-nil-return {:level :off}
               :case-duplicate-test {:level :error}
+              :duplicate-refer {:level :warning}
               :case-quoted-test {:level :warning}
               :case-symbol-test {:level :off}
               :type-mismatch {:level :error}
@@ -113,6 +116,7 @@
                                  ;; different from str
                                  :aliases {#_clojure.string #_str}}
               :unused-import {:level :warning}
+              :unused-excluded-var {:level :info}
               :single-operand-comparison {:level :warning}
               :single-logical-operand {:level :warning}
               :redundant-nested-call {:level :info}
@@ -148,6 +152,9 @@
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
               :redundant-str-call {:level :info}
+              :is-message-not-string {:level :info}
+              :redundant-primitive-coercion {:level :info}
+              :redundant-format {:level :info}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :aliased-namespace-symbol {:level :off
@@ -184,6 +191,8 @@
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
               :locking-suspicious-lock {:level :warning}
+              :unquote-not-syntax-quoted {:level :warning}}
+              :destructured-or-always-evaluates {:level :off}
               :unquote-not-syntax-quoted {:level :warning}
               :imported-but-not-required {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
@@ -503,7 +512,7 @@
        x))
    coll))
 
-(defn deprecated-namespace-excluded-config [config ]
+(defn deprecated-namespace-excluded-config [config]
   (let [excluded (get-in config [:linters :deprecated-namespace :exclude])]
     (set excluded)))
 

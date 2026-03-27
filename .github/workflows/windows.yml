@@ -12,7 +12,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      GRAALVM_VERSION: "24"
+      GRAALVM_VERSION: "25"
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_PLATFORM: windows
 
@@ -32,9 +32,9 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Setup GraalVM
-        uses: graalvm/setup-graalvm@v1.3.3
+        uses: graalvm/setup-graalvm@v1.4.4
         with:
-          java-version: '24'
+          java-version: '25'
           distribution: 'graalvm'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}

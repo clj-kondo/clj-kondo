@@ -8,8 +8,11 @@
    [clojure.test :as t :refer [deftest is testing]]
    [missing.test.assertions]))
 
+(def config {:linters {:aliased-referred-var {:level :off}}})
+
 (deftest invalid-arity-test
-  (let [linted (lint! (io/file "corpus" "invalid_arity"))
+  (let [linted (lint! (io/file "corpus" "invalid_arity")
+                      config)
         row-col-files (sort-by (juxt :file :row :col)
                                (map #(select-keys % [:row :col :file])
                                     linted))]

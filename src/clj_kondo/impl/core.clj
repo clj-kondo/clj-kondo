@@ -140,7 +140,8 @@
                 (map str)
                 (filter #(not (contains? local-config-paths-set %))))
           (fs/glob cfg-dir glob
-                   {:max-depth (if (str/starts-with? glob "imports")
+                   {:follow-links true
+                    :max-depth (if (str/starts-with? glob "imports")
                                  4
                                  3)}))))
 
@@ -405,6 +406,7 @@
     default-language))
 
 (def path-separator (System/getProperty "path.separator"))
+(def path-separator-pat (re-pattern path-separator))
 
 (defn classpath? [f]
   (str/includes? f path-separator))
@@ -453,7 +455,7 @@
                   1
 
                   (classpath? path)
-                  (files-count (str/split path (re-pattern path-separator)) ctx)
+                  (files-count (str/split path path-separator-pat) ctx)
 
                   :else 0))))
        (reduce + 0)))
@@ -523,8 +525,7 @@
                                    default-language)} dev?))
           (classpath? path)
           (run! #(process-file ctx % default-language canonical? filename-fallback use-import-dir)
-                (str/split path
-                           (re-pattern path-separator)))
+                (str/split path path-separator-pat))
           :else
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx
@@ -726,7 +727,8 @@
                       (not= :single-logical-operand type)
                       (not= :redundant-nested-call type)
                       (not= :redundant-ignore type)
-                      (not= :redundant-fn-wrapper type))
+                      (not= :redundant-fn-wrapper type)
+                      (not= :unused-excluded-var type))
                  ;; but if we get here, then the amount of findings has to be bigger than 1
                  (> (count findings) 1))
           f (collapse-cljc-findings findings)

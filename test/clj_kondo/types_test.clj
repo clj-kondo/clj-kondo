@@ -157,7 +157,7 @@
         :row 1,
         :col 21,
         :level :error,
-        :message "Expected: string, received: integer."})
+        :message "Expected: string, received: long."})
      (lint! "(fn [^long x] (subs x 1 1))"
             {:linters {:type-mismatch {:level :error}}}))
     (assert-submaps2
@@ -679,20 +679,20 @@
 (deftest clojure-string-replace-test
   (assert-submaps2
    '({:file "<stdin>", :row 3, :col 27, :level :error,
-      :message "Regex match arg requires string or function replacement arg."})
+      :message "Regex match arg requires string or function replacement arg, received: keyword"})
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" #\"foo\" :foo)"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
    '({:file "<stdin>", :row 3, :col 23, :level :error,
-      :message "Char match arg requires char replacement arg."})
+      :message "Char match arg requires char replacement arg, received: string"})
    (lint! "
 (ns foo (:require [clojure.string :as str]))
 (str/replace \"foo\" \\a \"foo\")"
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 60, :level :error, :message "String match arg requires string replacement arg."})
+   '({:file "<stdin>", :row 1, :col 60, :level :error, :message "String match arg requires string replacement arg, received: function"})
    (lint! "(require '[clojure.string :as str]) (str/replace \"foo\" \"o\" (fn [_]))"
           {:linters {:type-mismatch {:level :error}}}))
   (is (empty? (lint! "
@@ -747,6 +747,10 @@
   (is (empty? (lint! "
 (require '[clojure.string :as str]) (defn replace-str [_foo bar] bar)
 (str/replace \"foo\" #\"bar\" (partial replace-str \"dude\"))"
+                     {:linters {:type-mismatch {:level :error}}})))
+  (is (empty? (lint! "
+(ns foo (:require [clojure.string :as str]))
+(str/replace \"$a\" #\"\\w+\" (comp str))"
                      {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest binding-call-test
@@ -1070,11 +1074,19 @@
 (foo 1)"
                      config))))
 
-(deftest issue-2172-throw-test
-  (is (assert-submaps2
-       '({:file "<stdin>", :row 1, :col 8, :level :error, :message "Expected: throwable, received: positive integer."})
-       (lint! "(throw 1)" config)))
-  (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config))))
+(deftest throw-test
+  (testing "throw expects a throwable in clj"
+    (is (assert-submaps2
+         '({:file "<stdin>", :row 1, :col 8, :level :error, :message "Expected: throwable, received: positive integer."})
+         (lint! "(throw 1)" config)))
+    (testing "it is ignored with clj-kondo/ignore"
+      (is (empty? (lint! "(throw #_:clj-kondo/ignore 1)" config)))))
+
+  (testing "throw accepts any type in cljs"
+    (is (empty? (lint! "(throw 1)" config "--lang" "cljs")))
+    (is (empty? (lint! "(throw \"dude\")" config "--lang" "cljs")))
+    (testing "with .cljs extension"
+      (is (empty? (lint! "(throw \"dude\")" config "--filename" "foo.cljs"))))))
 
 (deftest do-test
   (is (assert-submaps2
@@ -1172,7 +1184,7 @@
     (is (empty? (lint! "(to-array '(1 2 3))" config)))
     (is (empty? (lint! "(to-array #{1 2 3})" config)))
     (is (empty? (lint! "(to-array nil)" config))))
-  
+
   (testing "Invalid usage: non-seqable argument triggers type-mismatch"
     (assert-submaps2
      '({:file "<stdin>"
@@ -1272,7 +1284,7 @@
         :message "Expected: number, received: sorted set."})
      (lint! "(inc (sorted-set-by > 1 2 3))" config))))
 
-(deftest array-functions-test 
+(deftest array-functions-test
   (testing "alength"
     (is (empty? (lint! "(alength (to-array [1 2 3]))" config)))
     (assert-submaps2
@@ -1348,7 +1360,301 @@
         :message "Expected: array, received: vector."})
      (lint! "(aclone [1 2 3])" config))))
 
+(deftest comp-test
+  (is (empty? (lint! "(comp)" config)))
+  (is (empty? (lint! "(comp inc dec)" config)))
+  (is (empty? (lint! "(comp (map inc))" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 7
+      :level :error
+      :message "Expected: function, received: seq."})
+   (lint! "(comp (map inc (range)))" config)))
+
+(deftest cast-test
+  (testing "cast with valid class argument"
+    (is (empty? (lint! "(cast String \"hello\")" config)))
+    (is (empty? (lint! "(cast java.io.File (java.io.File. \".\"))" config))))
+  (testing "cast with invalid argument - not a class"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 7
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(cast 1 \"hello\")" config)))
+  (testing "cast return value should be any"
+    (is (empty? (lint! "(inc (cast java.lang.Long 5))" config)))))
+
+(deftest bases-test
+  (testing "bases with valid class argument"
+    (is (empty? (lint! "(bases java.io.File)" config)))
+    (is (empty? (lint! "(bases String)" config))))
+  (testing "bases with invalid argument - not a class"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 8
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(bases 1)" config)))
+  (testing "bases return value should be seq"
+    (is (empty? (lint! "(first (bases java.io.File))" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: seq."})
+     (lint! "(inc (bases java.io.File))" config)))
+  (testing "bases in ClojureScript accepts both classes and functions"
+    ;; In CLJS, bases can work with constructor functions
+    (is (empty? (lint! "(bases identity)"
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(bases (fn []))"
+                       config "--lang" "cljs")))))
+
+(deftest supers-test
+  (testing "supers with valid class argument"
+    (is (empty? (lint! "(supers java.io.File)" config)))
+    (is (empty? (lint! "(supers Object)" config))))
+  (testing "supers with invalid argument - not a class"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 9
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(supers 1)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 9
+        :level :error
+        :message "Expected: class, received: string."})
+     (lint! "(supers \"hello\")" config)))
+  (testing "supers return value should be set or nil"
+    (is (empty? (lint! "(conj (supers java.io.File) Object)" config)))
+
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: set or nil."})
+     (lint! "(inc (supers java.io.File))" config)))
+  (testing "supers in ClojureScript accepts both classes and functions"
+    ;; In CLJS, supers can work with constructor functions
+    (is (empty? (lint! "(supers identity)"
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(supers (fn []))"
+                       config "--lang" "cljs")))))
+
+(deftest class-test
+  (testing "class argument can be any"
+    (is (empty? (lint! "(class \"hello\")" config)))
+    (is (empty? (lint! "(class 1)" config)))
+    (is (empty? (lint! "(class nil)" config))))
+  (testing "class returns class"
+    (is (empty? (lint! "(bases (class \"hello\"))" config)))
+    (is (empty? (lint! "(supers (class []))" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: class."})
+     (lint! "(inc (class 42))" config))))
+
+(deftest instance-test
+  (testing "instance? returns boolean"
+    (is (empty? (lint! "(instance? String \"hello\")" config)))
+    (is (empty? (lint! "(instance? java.io.File (java.io.File. \".\"))" config)))
+    (is (empty? (lint! "(if (instance? Number 42) 1 2)" config))))
+  (testing "instance? requires class as first argument"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 12
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(instance? 42 \"hello\")" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 12
+        :level :error
+        :message "Expected: class, received: string."})
+     (lint! "(instance? \"String\" 42)" config)))
+  (testing "instance? in ClojureScript doesn't produce type errors"
+    ;; In CLJS, instance? accepts both classes and constructor functions
+    (is (empty? (lint! "(instance? ExceptionInfo (ex-info \"msg\" {}))"
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(instance? identity 42)"
+                       config "--lang" "cljs")))
+    (is (empty? (lint! "(ns foo (:require [cljs.core])) (instance? cljs.core/ExceptionInfo {})"
+                       config "--lang" "cljs"))))
+  (testing "instance? with primitive array class syntax (Clojure 1.12+)"
+    (is (empty? (lint! "(instance? byte/1 (byte-array 0))" config)))
+    (is (empty? (lint! "(instance? int/1 (int-array 0))" config)))
+    (is (empty? (lint! "(instance? long/1 (long-array 0))" config)))
+    (is (empty? (lint! "(instance? short/1 (short-array 0))" config)))
+    (is (empty? (lint! "(instance? float/1 (float-array 0))" config)))
+    (is (empty? (lint! "(instance? double/1 (double-array 0))" config)))
+    (is (empty? (lint! "(instance? boolean/1 (boolean-array 0))" config)))
+    (is (empty? (lint! "(instance? String/1 (char-array 0))" config)))))
+
+(deftest make-array-test
+  (testing "make-array with 2 args (type and length)"
+    (is (empty? (lint! "(make-array String 10)" config)))
+    (is (empty? (lint! "(make-array Integer/TYPE 5)" config))))
+  (testing "make-array with multiple dimensions"
+    (is (empty? (lint! "(make-array String 10 20)" config)))
+    (is (empty? (lint! "(make-array Integer/TYPE 5 3 2)" config))))
+  (testing "make-array requires class as first argument"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 13
+        :level :error
+        :message "Expected: class, received: positive integer."})
+     (lint! "(make-array 42 10)" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 13
+        :level :error
+        :message "Expected: class, received: string."})
+     (lint! "(make-array \"String\" 10)" config)))
+  (testing "make-array requires int as dimension arguments"
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 20
+        :level :error
+        :message "Expected: integer, received: string."})
+     (lint! "(make-array String \"10\")" config))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 23
+        :level :error
+        :message "Expected: integer, received: string."})
+     (lint! "(make-array String 10 \"20\")" config)))
+  (testing "make-array returns array"
+    (is (empty? (lint! "(alength (make-array String 10))" config)))
+    (is (empty? (lint! "(aget (make-array String 10) 0)" config)))
+    (assert-submaps2
+     '({:file "<stdin>"
+        :row 1
+        :col 6
+        :level :error
+        :message "Expected: number, received: array."})
+     (lint! "(inc (make-array String 10))" config))))
+
+(deftest inst-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "inst-ms and inst-ms* handle inst type"
+      (is (empty? (lint! "(defn f [^java.util.Date d] (inst-ms d))" config)))
+      (is (empty? (lint! "(defn f [^java.util.Date d] (inst-ms* d))" config)))
+      (is (empty? (lint! "(inst-ms (java.util.Date.))" config)))
+      (is (empty? (lint! "(inst-ms* (java.util.Date.))" config)))
+      (is (empty (lint! "(ns foo (:require [clj-time.core :as time]))
+                        (inst-ms (time/now))"))))
+
+    (testing "inst-ms and inst-ms* mismatch"
+      (assert-submaps2
+       '({:message "Expected: instant, received: string."})
+       (lint! "(inst-ms \"foo\")" config))
+      (assert-submaps2
+       '({:message "Expected: instant, received: positive integer."})
+       (lint! "(inst-ms* 10)" config))
+      (assert-submaps2
+       '({:message "Expected: instant, received: long or nil."})
+       (lint! "(defn f [^Long d] (inst-ms d))" config)))
+
+    (testing "inst-ms and inst-ms* return long"
+      (assert-submaps2
+       '({:message "Expected: string, received: long."})
+       (lint! "(defn f [^java.util.Date d] (subs (inst-ms d) 1))" config)))))
+
+(deftest -in-fns-test
+  (is (empty? (lint! "(assoc-in {:a {:b 42}} [:a :b] 43)" config)))
+  (is (empty? (lint! "(get-in {:a {:b 42}} '(:a :b))" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 25
+      :level :error
+      :message "Expected: sequential collection, received: set."})
+   (lint! "(update-in {:a {:b 42}} #{:a :b} inc)" config)))
+
+(deftest pmap-test
+  (is (empty? (lint! "(pmap inc [1 2 3])" config)))
+  (is (empty? (lint! "(pmap + [1 2] [3 4])" config)))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 1
+      :level :error
+      :message "clojure.core/pmap is called with 1 arg but expects 2 or more"})
+   (lint! "(pmap inc)" config))
+  (assert-submaps2
+   '({:file "<stdin>"
+      :row 1
+      :col 7
+      :level :error
+      :message "Expected: function, received: seq."})
+   (lint! "(comp (pmap inc [1 2 3]))" config)))
+
+(deftest future-type-test
+  (testing "future returns future type"
+    (is (empty? (lint! "(let [f (future 42)] (deref f))" config)))
+    (assert-submaps2
+    '({:file "<stdin>",
+       :row 1,
+       :col 27,
+       :level :error,
+       :message "Expected: number, received: future."})
+     (lint! "(let [f (future 42)] (inc f))" config)))
+  (testing "future-call returns future type"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (deref f))" config)))
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] @f)" config))))
+  (testing "future-done? accepts future"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (future-done? f))" config))))
+  (testing "future-cancel accepts future and returns boolean"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (future-cancel f))" config)))
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (if (future-cancel f) :ok :not-ok))" config))))
+  (testing "future-cancelled? accepts future and returns boolean"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (future-cancelled? f))" config)))
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (if (future-cancelled? f) :ok :not-ok))" config))))
+  (testing "future? returns boolean"
+    (is (empty? (lint! "(let [f (future-call (fn [] 42))] (if (future? f) :ok :not-ok))" config))))
+  (testing "type errors with wrong types"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 26,
+        :level :error,
+        :message "Expected: future, received: positive integer."})
+     (lint! "(let [x 1] (future-done? x))" config))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 1,
+        :col 34,
+        :level :error,
+        :message "Expected: future, received: atom."})
+     (lint! "(let [a (atom 1)] (future-cancel a))" config)))
+  (testing "java.util.concurrent.Future type hint"
+    (is (empty? (lint! "(defn foo [^java.util.concurrent.Future f] (future-done? f))" config)))
+    (is (empty? (lint! "(defn foo [^java.util.concurrent.Future f] @f)" config)))
+    (assert-submaps2
+     '({:file "<stdin>",
+        :level :error,
+        :message "Expected: atom, received: future or nil."})
+     (lint! "(defn foo [^java.util.concurrent.Future f] (swap! f inc))" config))))
+
 ;;;; Scratch
 
-(comment
-  )
+(comment)

@@ -14,7 +14,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils
     :refer [assoc-some linter-disabled? node->line one-of sexpr
-            string-from-token symbol-from-token tag token-node vector-node]]
+            string-from-token tag token-node vector-node]]
    [clj-kondo.impl.var-info :refer [core-sym?]]
    [clojure.set :as set]
    [clojure.string :as str]))
@@ -95,6 +95,21 @@
                      :consistent-alias
                      (str "Inconsistent alias. Expected " expected-alias " instead of " alias ".")))))))
 
+(defn- lint-duplicate-refers! [ctx refers]
+  (when-not (linter-disabled? ctx :duplicate-refer)
+    (reduce (fn [seen {v :value, :as refer-node}]
+              (if (contains? seen v)
+                (do
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx)
+                               refer-node
+                               :duplicate-refer
+                               (str "Duplicate refer: " v)))
+                  seen)
+                (conj seen v)))
+            #{} refers)))
+
 (defn analyze-libspec
   [ctx current-ns-name require-kw-expr libspec-expr]
   (utils/handle-ignore ctx libspec-expr)
@@ -112,7 +127,7 @@
         lint-refers? (not (identical? :off (-> linters :refer :level)))
         unknown-require-option-config (-> linters :unknown-require-option)
         req-macros? (= :require-macros require-kw)]
-    (if-let [s (symbol-from-token libspec-expr)]
+    (if-let [s (utils/symbol-from-token libspec-expr)]
       (do
         (when (and (= s current-ns-name)
                    (not req-macros?)
@@ -200,6 +215,7 @@
                                    m)
                                opt-expr-children (:children opt-expr)]
                            (run! #(utils/handle-ignore ctx %) opt-expr-children)
+                           (lint-duplicate-refers! ctx opt-expr-children)
                            (when (:analyze-var-usages? ctx)
                              (run! #(namespace/reg-var-usage! ctx current-ns-name
                                                               (let [m (meta %)]
@@ -464,22 +480,21 @@
    :col col})
 
 (defn- lint-refer-clojure-vars [{:keys [filename lang] :as ctx} excluded-vars]
-  (letfn [(exists-in-core?  [excluded-var lang]
+  (letfn [(exists-in-core? [excluded-var lang]
             (if (= :cljc (:base-lang ctx))
               (some #(core-sym? % excluded-var) [:clj :cljs])
               (core-sym? lang excluded-var)))]
-    (when-not (linter-disabled? ctx :refer-clojure-exclude-unresolved-var)
+    (when-not (linter-disabled? ctx :unresolved-excluded-var)
       (doseq [excluded-var excluded-vars
-              :when (not (exists-in-core? excluded-var lang))]
+              :when (not (or (exists-in-core? excluded-var lang)
+                             (utils/ignored? excluded-var
+                                             :unresolved-excluded-var)))]
         (findings/reg-finding!
          ctx
          (node->line filename excluded-var
-                     :refer-clojure-exclude-unresolved-var
-                     (format "The var %s does not exist in %s"
-                             excluded-var
-                             (case lang
-                               :clj "clojure.core"
-                               :cljs "cljs.core"))))))))
+                     :unresolved-excluded-var
+                     (str "Unresolved excluded var: "
+                          excluded-var)))))))
 
 (defn analyze-ns-decl
   [ctx expr]

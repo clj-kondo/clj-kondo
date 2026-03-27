@@ -4,7 +4,7 @@
         cheshire/cheshire {:mvn/version "5.13.0"}
         nrepl/bencode {:mvn/version "1.2.0"}
         org.babashka/sci {:mvn/version "0.10.47"}
-        babashka/fs {:mvn/version "0.5.30"}
+        babashka/fs {:mvn/version "0.5.31"}
         org.ow2.asm/asm {:mvn/version "9.7"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
  :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
@@ -48,7 +48,7 @@
                              :exec-fn cognitect.test-runner.api/test}
            :profiler
            {:extra-deps
-            {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.2.2"}}
+            {com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.7.0"}}
             :extra-paths ["src-profile"]
             :jvm-opts ["-Djdk.attach.allowAttachSelf"]
             :main-opts ["-m" "clj-kondo.profile"]}
@@ -66,4 +66,7 @@
                                               :exclude-linters [:unused-ret-vals
                                                                 :implicit-dependencies
                                                                 :local-shadows-var
-                                                                :constant-test]}]}}}
+                                                                :constant-test]}]}
+           :bench
+           {:extra-deps {com.github.clojure-lsp/clojure-lsp {:mvn/version "2026.02.20-16.08.58"}}
+            :main-opts []}}}
