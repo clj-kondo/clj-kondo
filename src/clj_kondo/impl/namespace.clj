@@ -457,7 +457,9 @@
   (let [package-sym (symbol package)]
     (or (when (get-in @namespaces [base-lang lang package-sym])
           package-sym)
-        (symbol (str/replace package #"_" "-")))))
+        (let [hyphenated (symbol (str/replace package #"_" "-"))]
+          (when (get-in @namespaces [base-lang lang hyphenated])
+            hyphenated)))))
 
 (defn- missing-required-package-ns-sym [ctx ns-sym package]
   (when-let [package-sym (resolve-existing-package-ns-sym ctx package)]
@@ -496,7 +498,7 @@
 (defn reg-used-fq-class!
   "When a Clojure-generated class is referenced by its fully-qualified name
    (without importing it) and its namespace is not required, register a finding."
-  [{:keys [base-lang lang namespaces] :as ctx} ns-sym class-str loc]
+  [{:keys [lang] :as ctx} ns-sym class-str loc]
   (when (identical? :clj lang)
     (let [^String class-str (str class-str)
           i (str/last-index-of class-str ".")
