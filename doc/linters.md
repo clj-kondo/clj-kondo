@@ -2236,6 +2236,12 @@ This linter warns when a Clojure-defined Java class (e.g. from `deftype`) is imp
 
 *Example message:* `Imported namespace bar but it was not required.`
 
+You can report duplicate warnings using:
+
+``` clojure
+{:linters {:imported-but-not-required {:report-duplicates true}}}
+```
+
 ### Unresolved symbol
 
 *Keyword:* `:unresolved-symbol`.
