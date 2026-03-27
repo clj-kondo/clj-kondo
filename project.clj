@@ -11,14 +11,15 @@
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   :source-paths ["src" "parser" "inlined"]
   :dependencies [[org.clojure/clojure "1.10.3"]
-                 [com.cognitect/transit-clj "1.0.333"]
                  [io.replikativ/datalog-parser "0.2.30"]
+                 [org.clojure/tools.namespace "1.5.0"]
+                 [org.ow2.asm/asm "9.7"]
+                 [com.cognitect/transit-clj "1.0.333"]
                  [cheshire/cheshire "5.13.0"]
-                 [nrepl/bencode "1.2.0"]
+                 [com.github.javaparser/javaparser-core "3.26.1"]
                  [org.babashka/sci "0.10.47"]
                  [babashka/fs "0.5.31"]
-                 [org.ow2.asm/asm "9.7"]
-                 [com.github.javaparser/javaparser-core "3.26.1"]]
+                 [nrepl/bencode "1.2.0"]]
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.10.3 {:dependencies [[org.clojure/clojure "1.10.3"]]}
              :test {:dependencies [[nubank/matcher-combinators "3.9.1"]

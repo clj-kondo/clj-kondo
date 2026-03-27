@@ -6,7 +6,8 @@
         org.babashka/sci {:mvn/version "0.10.47"}
         babashka/fs {:mvn/version "0.5.31"}
         org.ow2.asm/asm {:mvn/version "9.7"}
-        com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
+        com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}
+        org.clojure/tools.namespace {:mvn/version "1.5.0"}}
  :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
            :clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]

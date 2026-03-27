@@ -1,0 +1,2 @@
+{:hooks {:analyze-call {corpus.topo-sort.z-lib/my-fn corpus.topo-sort.z-lib/my-fn-hook}}
+ :linters {:discouraged-var {:level :error}}}

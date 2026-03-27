@@ -11,7 +11,10 @@
                                            ->uri]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [clojure.tools.namespace.dependency :as dep]
+   [clojure.tools.namespace.parse :as tns-parse]
+   [clojure.tools.reader.reader-types :as reader-types])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (set! *warn-on-reflection* true)
@@ -368,6 +371,63 @@
                       :else nil))))))
           files)))
 
+;;;; topological sort of sources by namespace dependencies
+
+(def ^:dynamic *topo-sort* true)
+
+(defn- read-ns-decl
+  "Reads the (ns ...) declaration from source text.
+   Returns the ns declaration as a list, or nil."
+  [source]
+  (try
+    (tns-parse/read-ns-decl (reader-types/indexing-push-back-reader source))
+    (catch Exception _ nil)))
+
+(defn- topo-sort-sources
+  "Sorts sources topologically based on namespace dependencies.
+   Sources without ns forms or involved in cycles keep their original order."
+  [sources]
+  (let [sources (vec sources)
+        n (count sources)]
+    (if (or (<= n 1) (not *topo-sort*))
+      sources
+      (let [;; extract ns declarations for each source
+            ns-decls (mapv #(read-ns-decl (:source %)) sources)
+            ;; map ns-name -> set of source indices (multiple files can declare same ns)
+            ns->idxs (reduce-kv (fn [m i decl]
+                                  (if decl
+                                    (update m (tns-parse/name-from-ns-decl decl)
+                                            (fnil conj []) i)
+                                    m))
+                                {} (vec ns-decls))
+            ;; build dependency graph using only intra-group deps
+            graph (reduce-kv
+                   (fn [g _i decl]
+                     (if-not decl g
+                       (let [ns-name (tns-parse/name-from-ns-decl decl)
+                             deps (tns-parse/deps-from-ns-decl decl)]
+                         (reduce (fn [g d]
+                                   (if (and (contains? ns->idxs d)
+                                            (not= d ns-name))
+                                     (try (dep/depend g ns-name d)
+                                          (catch Exception _ g))
+                                     g))
+                                 g deps))))
+                   (dep/graph) ns-decls)
+            sorted-nses (dep/topo-sort graph)
+            ;; expand sorted ns names to source indices (preserving original order within same ns)
+            sorted-idxs (into #{} (mapcat #(get ns->idxs %)) sorted-nses)
+            sorted-sources (mapcat (fn [ns-name]
+                                     (map sources (get ns->idxs ns-name)))
+                                   sorted-nses)
+            ;; append sources not in the sorted set (no ns form, or ns not in graph)
+            remaining (keep-indexed
+                       (fn [i src]
+                         (when-not (contains? sorted-idxs i)
+                           src))
+                       sources)]
+        (into (vec sorted-sources) remaining)))))
+
 ;;;; threadpool
 
 (defn analyze-task [ctx ^java.util.concurrent.LinkedBlockingDeque deque dev?]
@@ -382,7 +442,9 @@
 
 (defn parallel-analyze [ctx sources dev?]
   (let [source-groups (group-by :group-id sources)
-        source-groups (filter seq (vals source-groups))
+        source-groups (->> (vals source-groups)
+                           (filter seq)
+                           (map topo-sort-sources))
         deque (java.util.concurrent.LinkedBlockingDeque. ^java.util.List source-groups)
         _ (reset! (:sources ctx) []) ;; clean up garbage
         cnt (+ 2 (int (* 0.6 (.. Runtime getRuntime availableProcessors))))
@@ -498,7 +560,8 @@
                       (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping"))
                     (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
                                          dev?)
-                              (sources-from-jar ctx file canonical? use-import-dir))
+                              (topo-sort-sources
+                               (sources-from-jar ctx file canonical? use-import-dir)))
                         (when-not (:skip-lint ctx)
                           (swap! (:mark-linted ctx) conj [skip-mark path])))))
                 ;; assume normal source file
@@ -515,7 +578,8 @@
                               dev?)))))
             ;; assume directory
             (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
-                  (sources-from-dir ctx file canonical? use-import-dir)))
+                  (topo-sort-sources
+                   (vec (sources-from-dir ctx file canonical? use-import-dir)))))
           (= "-" path)
           (when-not (excluded? ctx filename-fallback)
             (schedule ctx {:filename (or filename-fallback "<stdin>")

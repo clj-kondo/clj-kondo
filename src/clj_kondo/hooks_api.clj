@@ -116,20 +116,36 @@
                             (select-keys % selected-keys)
                             %)))))
 
+(defn- ns-analysis-from-ctx
+  "Look up namespace analysis from the in-memory context (already-analyzed namespaces)."
+  [lang ns-sym]
+  (when-let [ctx utils/*ctx*]
+    (when-let [namespaces (:namespaces ctx)]
+      (if (= :cljc lang)
+        (let [clj-ns (get-in @namespaces [:cljc :clj ns-sym])
+              cljs-ns (get-in @namespaces [:cljc :cljs ns-sym])]
+          (when (or clj-ns cljs-ns)
+            (cond-> {}
+              clj-ns (assoc :clj (var-definitions (:vars clj-ns)))
+              cljs-ns (assoc :cljs (var-definitions (:vars cljs-ns))))))
+        (when-let [ns-data (get-in @namespaces [lang lang ns-sym])]
+          {lang (var-definitions (:vars ns-data))})))))
+
 (defn- ns-analysis*
   "Adapt from-cache-1 to provide a uniform return format.
   Unifies the format of cached information provided for each source
-  language."
+  language. Checks in-memory context first, falls back to disk cache."
   [lang ns-sym]
-  (if (= :cljc lang)
-    (->> (dissoc
-          (cache/from-cache-1 (:cache-dir utils/*ctx*) :cljc ns-sym)
-          :filename
-          :source)
-         (utils/map-vals var-definitions))
-    (some->> (cache/from-cache-1 (:cache-dir utils/*ctx*) lang ns-sym)
-             var-definitions
-             (hash-map lang))))
+  (or (ns-analysis-from-ctx lang ns-sym)
+      (if (= :cljc lang)
+        (->> (dissoc
+              (cache/from-cache-1 (:cache-dir utils/*ctx*) :cljc ns-sym)
+              :filename
+              :source)
+             (utils/map-vals var-definitions))
+        (some->> (cache/from-cache-1 (:cache-dir utils/*ctx*) lang ns-sym)
+                 var-definitions
+                 (hash-map lang)))))
 
 (defn ns-analysis
   "Return any cached analysis for the namespace identified by ns-sym.
