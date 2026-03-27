@@ -463,16 +463,9 @@
 
 (defn- missing-required-package-ns-sym [ctx ns-sym package]
   (when-let [package-sym (resolve-existing-package-ns-sym ctx package)]
-    (let [base-lang (:base-lang ctx)
-          lang (:lang ctx)
-          ns (get-namespace ctx base-lang lang ns-sym)
-          required (:required ns)]
+    (let [ns (get-namespace ctx (:base-lang ctx) (:lang ctx) ns-sym)]
       (when-not (or (= package-sym ns-sym)
-                    (some #(= package-sym %) required)
-                    (some (fn [req]
-                            (some #(= package-sym %)
-                                  (:required (get-namespace ctx base-lang lang req))))
-                          required))
+                    (some #(= package-sym %) (:required ns)))
         package-sym))))
 
 (defn reg-used-import!

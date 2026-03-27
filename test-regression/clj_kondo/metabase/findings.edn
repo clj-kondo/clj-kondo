@@ -734,18 +734,6 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 79}
- {:end-row 51,
-  :ns metabase.server.streaming-response,
-  :type :imported-but-not-required,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/query_processor/api.clj",
-  :col 54,
-  :end-col 106,
-  :langs (),
-  :message
-  "Used Clojure namespace metabase.server.streaming-response but it was not required.",
-  :row 51}
  {:end-row 30,
   :type :redundant-let-binding,
   :level :warning,

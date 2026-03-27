@@ -1015,13 +1015,20 @@
         :ns un
         :name (:name m)}))))
 
+(defn- transitively-required? [ctx base-lang lang ns package-sym]
+  (some (fn [req]
+          (let [req-ns (namespace/get-namespace ctx base-lang lang req)]
+            (some #(= package-sym %) (:required req-ns))))
+        (:required ns)))
+
 (defn lint-imported-but-not-required! [ctx]
   (let [hide-duplicates? (not (get-in ctx [:config :linters
-                                           :imported-but-not-required 
+                                           :imported-but-not-required
                                            :report-duplicates]))]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
             [package-sym occurrences] (:imported-but-not-required ns)
+            :when (not (transitively-required? ctx (:base-lang ns) (:lang ns) ns package-sym))
             occurrence (cond->> occurrences hide-duplicates? (take 1))]
       (findings/reg-finding!
        ctx
