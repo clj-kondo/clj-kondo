@@ -2,7 +2,7 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.core :as clj-kondo]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native? normalize-filename]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -529,5 +529,5 @@ my-ns/special-map \"
                           "--config-dir" (fs/file "corpus" "stackoverflow_hook" ".clj-kondo"))
           errors (filter #(= :error (:level %)) findings)]
       (is (seq errors))
-      (is (every? #(= "corpus/stackoverflow_hook/foo.clj" (:file %)) errors))
+      (is (every? #(= "corpus/stackoverflow_hook/foo.clj" (normalize-filename (:file %))) errors))
       (is (some #(str/includes? (:message %) "StackOverflowError") errors)))))
