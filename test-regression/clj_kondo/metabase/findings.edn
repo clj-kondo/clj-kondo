@@ -26,27 +26,6 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 998}
- {:end-row 50,
-  :type :not-nil?,
-  :level :info,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/app_db/encryption.clj",
-  :col 19,
-  :end-col 32,
-  :langs (),
-  :message "Use (some? x) instead of (not (nil? x))",
-  :row 50}
- {:end-row 147,
-  :type :not-nil?,
-  :level :info,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/app_db/setup.clj",
-  :col 15,
-  :end-col 25,
-  :langs (),
-  :message
-  "Use (when (some? x) ...) instead of (when-not (nil? x) ...)",
-  :row 147}
  {:end-row 43,
   :type :condition-always-true,
   :level :warning,
@@ -552,19 +531,6 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: var",
   :row 5}
- {:end-row 71,
-  :type :not-nil?,
-  :level :info,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/lib/drill_thru/zoom.cljc",
-  :col 21,
-  :end-col 36,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message
-  "Use (when (some? x) ...) instead of (when-not (nil? x) ...)",
-  :row 71}
  {:end-row 2,
   :type :unresolved-excluded-var,
   :level :info,
@@ -678,18 +644,6 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 565}
- {:end-row 132,
-  :type :not-nil?,
-  :level :info,
-  :lang :cljs,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/pivot/core.cljc",
-  :col 23,
-  :end-col 52,
-  :cljc true,
-  :langs (:cljs),
-  :message "Use (if (some? x) ...) instead of (if-not (nil? x) ...)",
-  :row 132}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -917,16 +871,6 @@
   "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
- {:end-row 707,
-  :type :not-nil?,
-  :level :info,
-  :filename
-  "test-regression/checkouts/metabase/src/metabase/settings/models/setting.clj",
-  :col 36,
-  :end-col 52,
-  :langs (),
-  :message "Use (some? x) instead of (not (nil? x))",
-  :row 707}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
@@ -1294,17 +1238,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 100}
- {:end-row 2623,
-  :type :not-nil?,
-  :level :info,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/app_db/schema_migrations_test.clj",
-  :col 23,
-  :end-col 32,
-  :langs (),
-  :message
-  "Use (when (some? x) ...) instead of (when-not (nil? x) ...)",
-  :row 2623}
  {:end-row 29,
   :type :unresolved-symbol,
   :level :error,
@@ -1465,16 +1398,6 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 3514}
- {:end-row 5383,
-  :type :not-nil?,
-  :level :info,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/dashboards/api_test.clj",
-  :col 16,
-  :end-col 76,
-  :langs (),
-  :message "Use (some? x) instead of (not (nil? x))",
-  :row 5383}
  {:end-row 82,
   :type :unresolved-symbol,
   :level :error,
@@ -1975,16 +1898,6 @@
   :langs (),
   :message "Missing protocol method(s): to-job-data",
   :row 171}
- {:end-row 352,
-  :type :not-nil?,
-  :level :info,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/sync/task/sync_databases_test.clj",
-  :col 20,
-  :end-col 32,
-  :langs (),
-  :message "Use (some? x) instead of (not (nil? x))",
-  :row 352}
  {:end-row 497,
   :type :condition-always-true,
   :level :warning,
