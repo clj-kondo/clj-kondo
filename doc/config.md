@@ -581,7 +581,7 @@ These are some example configurations used in real projects. Feel free to create
 - [clj-kondo](https://github.com/clj-kondo/clj-kondo/blob/master/.clj-kondo/config.edn)
 - [rewrite-cljc](https://github.com/lread/rewrite-cljs-playground/blob/master/.clj-kondo/config.edn)
 
-Also see the [config](https://github.com/clj-kondo/config) project.
+Also see the [configs](https://github.com/clj-kondo/configs) project.
 
 ## Exporting and importing configuration
 
@@ -615,7 +615,7 @@ To activate the exported configuration in your local project, you can add the fo
 
 ### Sample Exports
 
-The clj-kondo team has provided config exports for some popular libraries in the [clj-kondo/config](https://github.com/clj-kondo/config) repo.
+The clj-kondo team has provided config exports for some popular libraries in the [clj-kondo/configs](https://github.com/clj-kondo/configs) repo.
 Let's take a look at its clj-kondo exports:
 
 ```shellsession:
@@ -646,7 +646,7 @@ resources
             └── config.edn
 ```
 
-The clj-kondo/config repo:
+The clj-kondo/configs repo:
 
 - Includes a `config.edn` for each library. This defines the clj-kondo export config.
 - Includes custom [hooks](hooks.md) for some libraries under `clj_kondo`.
@@ -662,18 +662,13 @@ For example, if the `claypoole` library itself wanted to export config, it would
 ### Importing
 
 Clj-kondo, when asked, will copy clj-kondo configs found in library dependencies.
-As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
+Many libraries ship their own clj-kondo configs inside their jars. Additionally, configs for popular libraries are available in the [clj-kondo/configs](https://github.com/clj-kondo/configs) repository. To import configs from your dependencies:
 
-1. Include `clj-kondo/config` in your `deps.edn`:
-    ```Clojure
-    {:deps {clj-kondo/config {:git/url "https://github.com/clj-kondo/config"
-                              :sha "c37c13ea09b6aaf23db3a7a9a0574f422bb0b4c2"}}}
-    ```
-2. Ensure a `.clj-kondo` directory exists, if necessary:
+1. Ensure a `.clj-kondo` directory exists, if necessary:
     ```
     $ mkdir .clj-kondo
     ```
-3. Then ask clj-kondo to copy configs like so:
+2. Then ask clj-kondo to copy configs like so:
     ```
     $ clj-kondo --lint "$(clojure -Spath)" --copy-configs --skip-lint
     Configs copied:
@@ -683,7 +678,7 @@ As an example, let's add [clj-kondo/config](#sample-exports) as a dependency.
     - .clj-kondo/clj-kondo/rum
     - .clj-kondo/clj-kondo/slingshot
     ```
-4. Now enrichen clj-kondo's linting cache via:
+3. Now enrichen clj-kondo's linting cache via:
     ```
     $ clj-kondo --lint $(clojure -Spath) --dependencies --parallel
     ```
