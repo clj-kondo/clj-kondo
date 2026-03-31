@@ -6,5 +6,4 @@
    [missing.test.assertions]))
 
 (deftest compojure-test
-  (is (empty? (lint! (io/file "corpus" "compojure" "core_test.clj")
-                     {:linters {:not-nil? {:level :off}}}))))
+  (is (empty? (lint! (io/file "corpus" "compojure" "core_test.clj")))))

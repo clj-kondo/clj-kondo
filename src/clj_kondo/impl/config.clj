@@ -81,7 +81,7 @@
                                     :exclude [#_foo.bar/baz]}
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
-              :not-nil? {:level :info}
+              :not-nil? {:level :off}
               :deprecated-var {:level :warning
                                #_:exclude
                                #_{foo.foo/deprecated-fn

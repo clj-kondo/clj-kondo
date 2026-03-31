@@ -2655,8 +2655,7 @@ foo"))))
       :level :error,
       :message "Unresolved symbol: x"})
    (lint! (io/file "corpus" "compojure")
-          {:linters {:unresolved-symbol {:level :error}
-                     :not-nil? {:level :off}}}))
+          {:linters {:unresolved-symbol {:level :error}}}))
   (assert-submaps
    '({:file "<stdin>",
       :row 1,

@@ -3,7 +3,7 @@
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.test :refer [deftest is testing]]))
 
-(def config {:linters {:not-nil? {:level :warning}}})
+(def ^:private config {:linters {:not-nil? {:level :warning}}})
 
 (deftest not-nil?-test
   (testing "(not (nil? x)) -> (some? x)"

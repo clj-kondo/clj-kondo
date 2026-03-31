@@ -1482,7 +1482,7 @@ Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more b
 
 *Description:* warn on `(not (nil? x))` and suggest `(some? x)` instead. Also detects `(when-not (nil? x) ...)` and `(if-not (nil? x) ...)` patterns.
 
-*Default level:* `:info`.
+*Default level:* `:off`
 
 *Example triggers:*
 
