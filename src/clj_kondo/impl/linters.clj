@@ -179,7 +179,7 @@
       (lint-if-nil-return ctx (:expr call)))
     (when (and (= 'nil? called-name)
                (utils/one-of called-ns [clojure.core cljs.core])
-               (not (utils/linter-disabled? call :not-nil?)))
+               (not (utils/linter-disabled? ctx :not-nil?)))
       (let [cs (:callstack call)
             parent (second cs)
             effective-parent (or parent (nth cs 2 nil))
