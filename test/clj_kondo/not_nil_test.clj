@@ -40,11 +40,8 @@
     (is (empty? (lint! "(not (nil? 1))"
                        {:linters {:not-nil? {:level :off}}}))))
 
-  (testing "fires at default level (info)"
-    (assert-submaps2
-     '({:file "<stdin>", :row 1, :col 6, :level :info,
-        :message "Use (some? x) instead of (not (nil? x))"})
-     (lint! "(not (nil? 1))")))
+  (testing "off at default level"
+    (is (empty? (lint! "(not (nil? 1))"))))
 
   (testing "linter-specific ignore suppresses not-nil?"
     (is (empty? (lint! "#_{:clj-kondo/ignore [:not-nil?]} (not (nil? 1))" config)))
