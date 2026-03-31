@@ -190,8 +190,10 @@
         (cond
           (utils/one-of parent [[clojure.core not] [cljs.core not]])
           (reg! "Use (some? x) instead of (not (nil? x))")
+
           (utils/one-of effective-parent [[clojure.core when-not] [cljs.core when-not]])
           (reg! "Use (when (some? x) ...) instead of (when-not (nil? x) ...)")
+          
           (utils/one-of parent [[clojure.core if-not] [cljs.core if-not]])
           (reg! "Use (if (some? x) ...) instead of (if-not (nil? x) ...)"))))
     (when (contains? var-info/unused-values
