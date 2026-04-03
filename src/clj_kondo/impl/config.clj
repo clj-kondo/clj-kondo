@@ -489,17 +489,16 @@
         (let [binding-str (str binding-sym)]
           (boolean (some #(re-find % binding-str) regexes))))))
 
-(defn ns-groups [ctx config ns-name filename]
+(defn ns-groups-eduction [ctx config ns-name filename]
   (let [ns-groups-matcher (:re-find-memo ctx)]
-    (keep (fn [{:keys [pattern
-                       filename-pattern
-                       name]}]
-            (when (or (and (string? pattern) (symbol? name)
-                           (ns-groups-matcher pattern (str ns-name)))
-                      (and (string? filename-pattern) (symbol? name)
-                           (ns-groups-matcher filename-pattern filename)))
-              name))
-          (:ns-groups config))))
+    (utils/eduction
+     (keep (fn [{:keys [pattern filename-pattern name]}]
+             (when (or (and (string? pattern) (symbol? name)
+                            (ns-groups-matcher pattern (str ns-name)))
+                       (and (string? filename-pattern) (symbol? name)
+                            (ns-groups-matcher filename-pattern filename)))
+               name)))
+                    (:ns-groups config))))
 
 (defn unquote [coll]
   (walk/postwalk
