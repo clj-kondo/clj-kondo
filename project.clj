@@ -14,6 +14,7 @@
                  [io.replikativ/datalog-parser "0.2.30"]
                  [org.ow2.asm/asm "9.7"]
                  [borkdude/edamame "1.5.38"]
+                 [weavejester/dependency "1.0.1"]
                  [com.cognitect/transit-clj "1.0.333"]
                  [cheshire/cheshire "5.13.0"]
                  [com.github.javaparser/javaparser-core "3.26.1"]

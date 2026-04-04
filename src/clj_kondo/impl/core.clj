@@ -12,7 +12,8 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
-   [edamame.core :as edamame])
+   [edamame.core :as edamame]
+   [weavejester.dependency :as dep])
   (:import [java.util.jar JarFile JarFile$JarFileEntry]))
 
 (set! *warn-on-reflection* true)
@@ -389,68 +390,41 @@
 
 (defn- topo-sort-sources
   "Sorts sources topologically based on namespace dependencies.
-   Sources without ns forms or involved in cycles keep their original order.
-   Uses Kahn's algorithm: O(V+E)."
+   Sources without ns forms keep their relative position (appended at end)."
   [sources]
   (let [sources (vec sources)
         n (count sources)]
     (if (or (<= n 1) (not *topo-sort*))
       sources
-      (let [;; extract ns declarations for each source
-            ns-decls (mapv #(read-ns-decl (:source %)) sources)
-            ;; map ns-name -> source indices (multiple files can declare same ns)
+      (let [ns-decls (mapv #(read-ns-decl (:source %)) sources)
             ns->idxs (reduce-kv (fn [m i decl]
                                   (if decl
-                                    (update m (second decl)
-                                            (fnil conj []) i)
+                                    (update m (second decl) (fnil conj []) i)
                                     m))
-                                {} (vec ns-decls))
-            ;; build adjacency list: ns-name -> #{ns-names that depend on it}
-            ;; and in-degree count per ns-name
+                                {} ns-decls)
             all-nses (set (keys ns->idxs))
-            {:keys [adj in-deg]} (reduce-kv
-                                  (fn [acc _i decl]
-                                    (if-not decl acc
-                                      (let [ns-name (second decl)
-                                            deps (set (map :lib (:requires (edamame/parse-ns-form decl))))]
-                                        (reduce (fn [{:keys [adj in-deg] :as acc} d]
-                                                  (if (and (contains? all-nses d)
-                                                           (not= d ns-name)
-                                                           (not (contains? (get adj d) ns-name)))
-                                                    {:adj (update adj d (fnil conj #{}) ns-name)
-                                                     :in-deg (update in-deg ns-name (fnil inc 0))}
-                                                    acc))
-                                                acc deps))))
-                                  {:adj {} :in-deg {}} ns-decls)
-            ;; Kahn's: start with zero in-degree nodes
-            result (loop [queue (into clojure.lang.PersistentQueue/EMPTY
-                                      (filter #(zero? (get in-deg % 0)) all-nses))
-                          in-deg in-deg
-                          result (transient [])]
-                     (if-let [ns-name (peek queue)]
-                       (let [queue (pop queue)
-                             result (conj! result ns-name)
-                             dependents (get adj ns-name)]
-                         (if dependents
-                           (let [[queue in-deg]
-                                 (reduce (fn [[q d] dep]
-                                           (let [new-d (dec (get d dep))]
-                                             [(if (zero? new-d) (conj q dep) q)
-                                              (assoc d dep new-d)]))
-                                         [queue in-deg] dependents)]
-                             (recur queue in-deg result))
-                           (recur queue in-deg result)))
-                       (persistent! result)))
-            ;; expand sorted ns names to source indices
-            sorted-idxs (into #{} (mapcat #(get ns->idxs %)) result)
+            graph (reduce-kv
+                   (fn [g _i decl]
+                     (if-not decl g
+                       (let [ns-name (second decl)
+                             deps (keep (fn [{:keys [lib]}]
+                                          (when (and (contains? all-nses lib)
+                                                     (not= lib ns-name))
+                                            lib))
+                                        (:requires (edamame/parse-ns-form decl)))]
+                         (reduce (fn [g d]
+                                   (try (dep/depend g ns-name d)
+                                        (catch Exception _ g)))
+                                 g deps))))
+                   (dep/graph) ns-decls)
+            sorted (dep/topo-sort graph)
+            sorted-idxs (into #{} (mapcat #(get ns->idxs %)) sorted)
             sorted-sources (mapcat (fn [ns-name]
                                      (map sources (get ns->idxs ns-name)))
-                                   result)
-            ;; append sources not in the sorted set (no ns form, or cycles)
+                                   sorted)
             remaining (keep-indexed
                        (fn [i src]
-                         (when-not (contains? sorted-idxs i)
-                           src))
+                         (when-not (contains? sorted-idxs i) src))
                        sources)]
         (into (vec sorted-sources) remaining)))))
 

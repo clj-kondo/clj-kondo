@@ -7,7 +7,8 @@
         babashka/fs {:mvn/version "0.5.31"}
         org.ow2.asm/asm {:mvn/version "9.7"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}
-        borkdude/edamame {:mvn/version "1.5.38"}}
+        borkdude/edamame {:mvn/version "1.5.38"}
+        weavejester/dependency {:mvn/version "1.0.1"}}
  :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
            :clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]
