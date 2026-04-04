@@ -82,9 +82,10 @@
 
 (deftest ns-analysis-benefits-from-topo-sort-test
   (let [corpus (io/file "corpus" "topo_sort")
-        config-dir (.getPath (io/file corpus ".clj-kondo"))]
+        config-dir (.getPath (io/file corpus ".clj-kondo"))
+        consumer (io/file corpus "a_consumer.clj")
+        lib (io/file corpus "z_lib.clj")]
     (testing "with topo sort, ns-analysis finds the lib (no false positive)"
       (is (empty? (lint! corpus "--cache" "false" "--config-dir" config-dir))))
-    (testing "without topo sort, ns-analysis can't find the lib (false positive)"
-      (binding [impl-core/*topo-sort* false]
-        (is (seq (lint! corpus "--cache" "false" "--config-dir" config-dir)))))))
+    (testing "without topo sort (consumer before lib), ns-analysis can't find the lib"
+      (is (seq (lint! [consumer lib] "--cache" "false" "--config-dir" config-dir))))))
