@@ -2,7 +2,7 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.core :as clj-kondo]
-   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native?]]
+   [clj-kondo.test-utils :refer [lint! assert-submaps assert-submaps2 native? normalize-filename]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -522,3 +522,12 @@ my-ns/special-map \"
     (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2636" "src" "usage.clj")]
                      :config (edn/read-string (slurp (fs/file "corpus" "issue-2636" ".clj-kondo" "config.edn")))
                      :config-dir (fs/file "corpus" "issue-2636" ".clj-kondo")}))))
+
+(deftest stackoverflow-in-hook-result-test
+  (testing "StackOverflowError during analysis reports correct filename, not directory"
+    (let [findings (lint! (fs/file "corpus" "stackoverflow_hook" "foo.clj")
+                          "--config-dir" (fs/file "corpus" "stackoverflow_hook" ".clj-kondo"))
+          errors (filter #(= :error (:level %)) findings)]
+      (is (seq errors))
+      (is (every? #(= "corpus/stackoverflow_hook/foo.clj" (normalize-filename (:file %))) errors))
+      (is (some #(str/includes? (:message %) "StackOverflowError") errors)))))
