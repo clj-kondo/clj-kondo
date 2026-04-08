@@ -2590,7 +2590,7 @@
                                                   :row row
                                                   :col col
                                                   :type :hook
-                                                  :message (.getMessage e)}
+                                                  :message (or (.getMessage e) (str e))}
                                                  (select-keys (ex-data e)
                                                               [:level :row :col])))
                                                nil))))))
@@ -3694,6 +3694,16 @@
           (if dev?
             (throw e)
             (run! #(findings/reg-finding! ctx %) (->findings e filename))))
+        (catch Error e
+          (if dev?
+            (throw e)
+            (findings/reg-finding! ctx
+                                   {:filename filename
+                                    :col 0
+                                    :row 0
+                                    :type :file
+                                    :message (str "Could not process file: "
+                                                  (or (.getMessage e) (str e)))})))
         (finally
           (swap! files inc)
           (let [output-cfg (:output config)]

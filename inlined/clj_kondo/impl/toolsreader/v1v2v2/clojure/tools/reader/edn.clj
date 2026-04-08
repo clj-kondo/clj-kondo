@@ -57,9 +57,7 @@
           (str sb)
           (if (not-constituent? ch)
             (err/throw-bad-char rdr kind ch)
-            (recur (doto sb (.append (read-char rdr))) (peek-char rdr))))))))
-
-
+            (recur (doto sb (.append (clojure.core/char (read-char rdr)))) (peek-char rdr))))))))
 
 (declare read-tagged)
 
@@ -243,7 +241,7 @@
       \\ (recur (doto sb (.append (escape-char sb rdr)))
                 (read-char rdr))
       \" (str sb)
-      (recur (doto sb (.append ch)) (read-char rdr)))))
+      (recur (doto sb (.append (clojure.core/char ch))) (read-char rdr)))))
 
 (defn- read-symbol
   [rdr initch]

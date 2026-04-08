@@ -29,6 +29,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2779](https://github.com/clj-kondo/clj-kondo/issues/2779), [#2780](https://github.com/clj-kondo/clj-kondo/issues/2780), [#2781](https://github.com/clj-kondo/clj-kondo/issues/2781), [#2782](https://github.com/clj-kondo/clj-kondo/issues/2782), [#2783](https://github.com/clj-kondo/clj-kondo/issues/2783), [#2785](https://github.com/clj-kondo/clj-kondo/issues/2785), [#2786](https://github.com/clj-kondo/clj-kondo/issues/2786), [#2794](https://github.com/clj-kondo/clj-kondo/issues/2794): Performance optimizations.
 - Performance: cache hook-fn lookups to avoid repeated SCI evaluation
 - [#2621](https://github.com/clj-kondo/clj-kondo/issues/2621): load imports from symlinked config dir ([@walterl](https://github.com/walterl))
+- [#2798](https://github.com/clj-kondo/clj-kondo/issues/2798): report correct filename and error details when `StackOverflowError` occurs during analysis
 
 
 ## 2026.01.19
