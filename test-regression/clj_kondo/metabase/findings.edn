@@ -1918,6 +1918,18 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
+ {:end-row 30,
+  :ns metabase.server.streaming-response,
+  :type :missing-type-require,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/http_client.clj",
+  :col 40,
+  :end-col 57,
+  :langs (),
+  :message
+  "Imported type namespace metabase.server.streaming-response but it was not required.",
+  :row 30}
  {:end-row 497,
   :type :is-message-not-string,
   :level :info,

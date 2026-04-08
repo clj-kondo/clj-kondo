@@ -191,8 +191,9 @@
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
               :locking-suspicious-lock {:level :warning}
+              :unquote-not-syntax-quoted {:level :warning}
               :destructured-or-always-evaluates {:level :off}
-              :unquote-not-syntax-quoted {:level :warning}}
+              :missing-type-require {:level :warning}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

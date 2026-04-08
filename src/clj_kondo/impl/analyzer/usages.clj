@@ -7,6 +7,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.rewrite-clj.node.seq]
    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some
                                            symbol-token?]]
    [clojure.string :as str])
