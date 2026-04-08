@@ -71,7 +71,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Fix [#2699](https://github.com/clj-kondo/clj-kondo/issues/2699): fix false positive unresolved string var with extend-type on CLJS
 - Rename `:refer-clojure-exclude-unresolved-var` linter to `unresolved-excluded-var` for consistency
 - Upgrade to GraalVM 25
-- Fix [#2538](https://github.com/clj-kondo/clj-kondo/issues/2538): NEW linter: `imported-but-not-required` to warn on namespaces that are imported but not required
+- Fix [#2538](https://github.com/clj-kondo/clj-kondo/issues/2538): NEW linter: `missing-type-require` to warn when Clojure-generated type namespaces are used but not required
 
 ## 2025.12.23
 

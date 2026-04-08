@@ -174,7 +174,7 @@
                                    filename (let [thing (if (meta var-sym) var-sym expr)]
                                               thing)
                                    :syntax
-                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
+                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym))))
      (when-not (:skip-reg-var ctx)
        (let [;; don't use reg-finding! in swap since contention can cause it to fire multiple times
              [old-namespaces _]
@@ -193,10 +193,10 @@
                                  (update :vars assoc
                                          var-sym
                                          (assoc
-                                           (merge metadata (select-keys
-                                                            prev-var
-                                                            [:row :col :end-row :end-col]))
-                                           :top-ns top-ns))
+                                          (merge metadata (select-keys
+                                                           prev-var
+                                                           [:row :col :end-row :end-col]))
+                                          :top-ns top-ns))
                                  (assoc :classfiles
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
@@ -434,12 +434,12 @@
   (swap! namespaces update-in [base-lang lang ns-sym :refer-alls referred-all-ns-sym :referred]
          conj var-sym))
 
-(defn reg-imported-but-not-required! 
-  [{:keys [base-lang lang namespaces filename] :as ctx} 
+(defn reg-missing-type-require!
+  [{:keys [base-lang lang namespaces filename] :as ctx}
    ns-sym package-sym loc message]
-  (when-not (linter-disabled? ctx :imported-but-not-required)
+  (when-not (linter-disabled? ctx :missing-type-require)
     (let [occurrence (merge {:filename filename :message message} loc)]
-      (swap! namespaces update-in [base-lang lang ns-sym :imported-but-not-required package-sym]
+      (swap! namespaces update-in [base-lang lang ns-sym :missing-type-require package-sym]
              (fnil conj [])
              occurrence))))
 
@@ -483,8 +483,8 @@
                              name-sym-str)]
     (when (identical? :clj lang)
       (when-let [package-sym (missing-required-package-ns-sym ctx ns-sym package)]
-        (reg-imported-but-not-required! ctx ns-sym package-sym loc
-          (format "Imported namespace %s but it was not required." package-sym))))
+        (reg-missing-type-require! ctx ns-sym package-sym loc
+                                   (format "Imported type namespace %s but it was not required." package-sym))))
     (java/reg-class-usage! ctx
                            (str package "." class-name)
                            static-method-name
@@ -506,8 +506,8 @@
                     (subs class-str 0 i))]
       (when package
         (when-let [package-sym (missing-required-package-ns-sym ctx ns-sym package)]
-          (reg-imported-but-not-required! ctx ns-sym package-sym loc
-            (format "Used Clojure namespace %s but it was not required." package-sym)))))))
+          (reg-missing-type-require! ctx ns-sym package-sym loc
+                                     (format "Used type namespace %s but it was not required." package-sym)))))))
 
 (defn reg-unresolved-namespace!
   [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
@@ -515,11 +515,11 @@
     (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
-          (or
-           (some #(config/unresolved-namespace-excluded excluded %)
-                 ns-groups)
-           ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-           (config/unresolved-symbol-excluded ctx config callstack :dummy))
+       (or
+        (some #(config/unresolved-namespace-excluded excluded %)
+              ns-groups)
+        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
+        (config/unresolved-symbol-excluded ctx config callstack :dummy))
         (let [unresolved-ns (vary-meta unresolved-ns
                                        ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
                                        ;; we must include the filename here
@@ -759,9 +759,9 @@
                     (when alias?
                       (reg-used-alias! ctx ns-name ns-sym))
                     (cond->
-                        {:ns ns*
-                         :name var-name
-                         :interop? (and cljs? (boolean interop))}
+                     {:ns ns*
+                      :name var-name
+                      :interop? (and cljs? (boolean interop))}
                       alias?
                       (assoc :alias ns-sym)
                       core?
@@ -900,15 +900,14 @@
                          :allow-forward-reference? (:in-comment ctx)
                          :clojure-excluded? clojure-excluded?}))))))))))))
 
-#_
-(do
-  (def resolve-name* resolve-name)
+#_(do
+    (def resolve-name* resolve-name)
 
-  (defn resolve-name [ctx call? ns-name name-sym expr]
-    (prn :resolve)
-    (let [x (resolve-name* ctx call? ns-name name-sym expr)]
-      (prn x)
-      x)))
+    (defn resolve-name [ctx call? ns-name name-sym expr]
+      (prn :resolve)
+      (let [x (resolve-name* ctx call? ns-name name-sym expr)]
+        (prn x)
+        x)))
 
 ;;;; Scratch
 

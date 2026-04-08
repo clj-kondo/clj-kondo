@@ -165,11 +165,11 @@
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
-       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
+                             [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))
           (lint-if-nil-return ctx (:expr call)))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
-       [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
+                             [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       nil)
 
@@ -568,7 +568,7 @@
       (when-let [deprecated (:deprecated called-fn)]
         (when-not
          (or
-             ;; recursive call
+          ;; recursive call
           recursive?
           (utils/linter-disabled? call :deprecated-var)
           (config/deprecated-var-excluded
@@ -1021,18 +1021,18 @@
             (some #(= package-sym %) (:required req-ns))))
         (:required ns)))
 
-(defn lint-imported-but-not-required! [ctx]
+(defn lint-missing-type-require! [ctx]
   (let [hide-duplicates? (not (get-in ctx [:config :linters
-                                           :imported-but-not-required
+                                           :missing-type-require
                                            :report-duplicates]))]
     (doseq [ns (namespace/list-namespaces ctx)
             :let [ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
-            [package-sym occurrences] (:imported-but-not-required ns)
+            [package-sym occurrences] (:missing-type-require ns)
             :when (not (transitively-required? ctx (:base-lang ns) (:lang ns) ns package-sym))
             occurrence (cond->> occurrences hide-duplicates? (take 1))]
       (findings/reg-finding!
        ctx
-       {:type :imported-but-not-required
+       {:type :missing-type-require
         :filename (:filename occurrence)
         :message (:message occurrence)
         :row (:row occurrence)

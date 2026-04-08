@@ -1,4 +1,4 @@
-(ns clj-kondo.imported-but-not-required-test
+(ns clj-kondo.missing-type-require-test
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint! with-temp-dir]]
    [clojure.java.io :as io]
@@ -14,7 +14,7 @@
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
-            :message "Type namespace bar was used but not required."})
+            :message "Imported type namespace bar but it was not required."})
          (lint! [bar-file foo-file])))
 
       (testing "imported and required Clojure-defined class should not warn"
@@ -31,7 +31,7 @@
         (spit foo-file "(ns foo (:import (bar_baz Bar))) (Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :col 27, :level :warning,
-            :message "Type namespace bar-baz was used but not required."})
+            :message "Imported type namespace bar-baz but it was not required."})
          (lint! [bar-file foo-file])))
 
       (testing "imported but not required, but in same namespace should not warn"
@@ -47,7 +47,7 @@
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.) (Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
-            :message "Type namespace bar was used but not required."})
+            :message "Imported type namespace bar but it was not required."})
          (lint! [bar-file foo-file])))
 
       (testing "respects :report-duplicates true"
@@ -55,7 +55,7 @@
         (spit foo-file "(ns foo (:import (bar Bar))) (Bar.) (Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :col 23, :level :warning,
-            :message "Type namespace bar was used but not required."})
+            :message "Imported type namespace bar but it was not required."})
          (lint! [bar-file foo-file] {:linters {:missing-type-require {:report-duplicates true}}})))
 
       (testing "disabling linter via config"
@@ -78,7 +78,7 @@
         (spit foo-file "(ns foo) (bar.Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :level :warning,
-            :message "Type namespace bar was used but not required."})
+            :message "Used type namespace bar but it was not required."})
          (lint! [bar-file foo-file])))
 
       (testing "fully-qualified class used with require but no import should not warn"
@@ -91,7 +91,7 @@
         (spit foo-file "(ns foo) (new bar.Bar)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :level :warning,
-            :message "Type namespace bar was used but not required."})
+            :message "Used type namespace bar but it was not required."})
          (lint! [bar-file foo-file])))
 
       (testing "fully-qualified class in same namespace should not warn"
@@ -107,5 +107,5 @@
         (spit foo-file "(ns foo) (bar_baz.Bar.)")
         (assert-submaps2
          '({:file #"foo.clj$", :row 1, :level :warning,
-            :message "Type namespace bar-baz was used but not required."})
+            :message "Used type namespace bar-baz but it was not required."})
          (lint! [bar-file foo-file]))))))

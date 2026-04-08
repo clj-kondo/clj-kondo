@@ -1920,7 +1920,7 @@
   :row 123}
  {:end-row 30,
   :ns metabase.server.streaming-response,
-  :type :imported-but-not-required,
+  :type :missing-type-require,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/test/http_client.clj",
@@ -1928,7 +1928,7 @@
   :end-col 57,
   :langs (),
   :message
-  "Imported namespace metabase.server.streaming-response but it was not required.",
+  "Imported type namespace metabase.server.streaming-response but it was not required.",
   :row 30}
  {:end-row 497,
   :type :is-message-not-string,

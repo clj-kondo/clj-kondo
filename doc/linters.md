@@ -75,6 +75,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
     - [Missing test assertion](#missing-test-assertion)
+    - [Missing type require](#missing-type-require)
     - [Is message not string](#is-message-not-string)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
@@ -1382,6 +1383,65 @@ misses a value.
 ```
 
 *Example message:* `missing test assertion`.
+
+### Missing type require
+
+*Keyword:* `:missing-type-require`.
+
+*Default level:* `:warning`.
+
+This linter warns when a Clojure-generated Java class (e.g. from `deftype`, `defrecord`, or `gen-class`) is used without requiring the namespace that defines it. This can happen in two ways:
+
+1. The class is imported but the namespace is not required.
+2. The class is used by its fully-qualified name without requiring the namespace.
+
+**Case 1: Imported but namespace not required**
+
+`bar.clj`:
+
+```clojure
+(ns bar)
+(deftype Bar [])
+```
+
+`foo.clj`:
+
+```clojure
+(ns foo (:import (bar Bar)))
+(Bar.)
+```
+
+*Example message:* `Imported type namespace bar but it was not required.`
+
+**Case 2: Used by fully-qualified name without require**
+
+`bar.clj`:
+
+```clojure
+(ns bar)
+(deftype Bar [])
+```
+
+`foo.clj`:
+
+```clojure
+(ns foo)
+(bar.Bar.)         ;; constructor call
+(new bar.Bar)      ;; explicit new form
+bar.Bar/field      ;; static field/method access
+```
+
+*Example message:* `Used type namespace bar but it was not required.`
+
+In both cases the fix is to add `[bar]` to the `:require` form of `foo`.
+
+This linter only fires for Clojure-generated classes (i.e. classes whose namespace is known to clj-kondo via analysis). Standard Java classes such as `java.io.File` are not affected.
+
+You can report all occurrences instead of just the first per namespace using:
+
+```clojure
+{:linters {:missing-type-require {:report-duplicates true}}}
+```
 
 ### Is message not string
 
