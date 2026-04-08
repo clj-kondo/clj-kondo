@@ -2272,61 +2272,6 @@ You can report duplicate warnings using:
 {:linters {:unresolved-namespace {:report-duplicates true}}}
 ```
 
-### Imported but not required
-
-*Keyword:* `:imported-but-not-required`.
-
-*Default level:* `:warning`.
-
-This linter warns when a Clojure-generated Java class (e.g. from `deftype`, `defrecord`, or `gen-class`) is used without requiring the namespace that defines it. This can happen in two ways:
-
-1. The class is imported but the namespace is not required.
-2. The class is used by its fully-qualified name without requiring the namespace.
-
-**Case 1: Imported but namespace not required**
-
-`bar.clj`:
-```clojure
-(ns bar)
-(deftype Bar [])
-```
-
-`foo.clj`:
-```clojure
-(ns foo (:import (bar Bar)))
-(Bar.)
-```
-
-*Example message:* `Imported namespace bar but it was not required.`
-
-**Case 2: Used by fully-qualified name without require**
-
-`bar.clj`:
-```clojure
-(ns bar)
-(deftype Bar [])
-```
-
-`foo.clj`:
-```clojure
-(ns foo)
-(bar.Bar.)         ;; constructor call
-(new bar.Bar)      ;; explicit new form
-bar.Bar/field      ;; static field/method access
-```
-
-*Example message:* `Used Clojure namespace bar but it was not required.`
-
-In both cases the fix is to add `[bar]` to the `:require` form of `foo`.
-
-This linter only fires for Clojure-generated classes (i.e. classes whose namespace is known to clj-kondo via analysis). Standard Java classes such as `java.io.File` are not affected.
-
-You can report all occurrences instead of just the first per namespace using:
-
-``` clojure
-{:linters {:imported-but-not-required {:report-duplicates true}}}
-```
-
 ### Unresolved symbol
 
 *Keyword:* `:unresolved-symbol`.
