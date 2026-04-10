@@ -403,20 +403,24 @@
                                     m))
                                 {} ns-decls)
             all-nses (set (keys ns->idxs))
-            graph (reduce-kv
-                   (fn [g _i decl]
-                     (if-not decl g
-                       (let [ns-name (second decl)
-                             deps (keep (fn [{:keys [lib]}]
-                                          (when (and (contains? all-nses lib)
-                                                     (not= lib ns-name))
-                                            lib))
-                                        (:requires (edamame/parse-ns-form decl)))]
-                         (reduce (fn [g d]
-                                   (try (dep/depend g ns-name d)
-                                        (catch Exception _ g)))
-                                 g deps))))
-                   (dep/graph) ns-decls)
+            ;; Build dependency/dependents maps directly, bypassing
+            ;; dep/depend's O(V) cycle check per edge
+            {:keys [dependencies dependents]}
+            (reduce-kv
+             (fn [acc _i decl]
+               (if-not decl acc
+                 (let [ns-name (second decl)
+                       deps (keep (fn [{:keys [lib]}]
+                                    (when (and (contains? all-nses lib)
+                                               (not= lib ns-name))
+                                      lib))
+                                  (:requires (edamame/parse-ns-form decl)))]
+                   (reduce (fn [{:keys [dependencies dependents]} d]
+                             {:dependencies (update dependencies ns-name (fnil conj #{}) d)
+                              :dependents (update dependents d (fnil conj #{}) ns-name)})
+                           acc deps))))
+             {:dependencies {} :dependents {}} ns-decls)
+            graph (dep/->MapDependencyGraph dependencies dependents)
             sorted (dep/topo-sort graph)
             sorted-idxs (into #{} (mapcat #(get ns->idxs %)) sorted)
             sorted-sources (mapcat (fn [ns-name]
