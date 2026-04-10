@@ -876,19 +876,31 @@
               :col (:col default)
               :end-row (:end-row default)
               :end-col (:end-col default)}))))
-      (when (not (identical? :off (-> ctx :config :linters :keyword-binding :level)))
-        (doseq [binding (filter :keyword (:bindings ns))]
-          (when-not (or (namespace (:keyword binding))
-                        (:auto-resolved binding))
-            (findings/reg-finding!
-             ctx
-             {:type :keyword-binding
-              :filename (:filename binding)
-              :message (str "Keyword binding should be a symbol: " (keyword (:name binding)))
-              :row (:row binding)
-              :col (:col binding)
-              :end-row (:end-row binding)
-              :end-col (:end-col binding)})))))))
+      (let [{:keys [level namespaced-keywords auto-resolved-keywords]
+             :or {namespaced-keywords true
+                  auto-resolved-keywords true}} (-> ctx :config :linters :keyword-binding)]
+        (when (not (identical? :off level))
+          (doseq [binding (filter :keyword (:bindings ns))]
+            (when-some [keyword-str (cond
+                                      (namespace (:keyword binding))
+                                      (when (not namespaced-keywords)
+                                        (str (:keyword binding)))
+
+                                      (:auto-resolved binding)
+                                      (when (not auto-resolved-keywords)
+                                        (str "::" (name (:keyword binding))))
+
+                                      :else
+                                      (str (:keyword binding)))]
+              (findings/reg-finding!
+               ctx
+               {:type :keyword-binding
+                :filename (:filename binding)
+                :message (str "Keyword binding should be a symbol: " keyword-str)
+                :row (:row binding)
+                :col (:col binding)
+                :end-row (:end-row binding)
+                :end-col (:end-col binding)}))))))))
 
 (defn lint-unused-private-vars!
   [ctx]

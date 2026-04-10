@@ -28,8 +28,17 @@
    (lint! mixed-example)))
 
 (deftest namespaced-keyword-test
-  (testing "keywords with namespaced are ignored"
+  (testing "keywords with namespace are ignored by default"
     (assert-submaps2
      [{:file "<stdin>", :row 1, :col 24, :level :warning, :message "Keyword binding should be a symbol: :baz"}]
      (lint! "(let [{:keys [:foo/bar :baz ::baz]} {}] bar)"
-            {:linters {:keyword-binding {:level :warning}}}))))
+            {:linters {:keyword-binding {:level :warning}}})))
+  (testing "keywords with namespace are not ignored when specified otherwise"
+    (assert-submaps2
+     [{:file "<stdin>", :row 1, :col 15, :level :warning, :message "Keyword binding should be a symbol: :foo/bar"}
+      {:file "<stdin>", :row 1, :col 24, :level :warning, :message "Keyword binding should be a symbol: :baz"}
+      {:file "<stdin>", :row 1, :col 29, :level :warning, :message "Keyword binding should be a symbol: ::baz"}]
+     (lint! "(let [{:keys [:foo/bar :baz ::baz]} {}] bar)"
+            {:linters {:keyword-binding {:namespaced-keywords false
+                                         :auto-resolved-keywords false
+                                         :level :warning}}}))))
