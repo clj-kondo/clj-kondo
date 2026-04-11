@@ -465,7 +465,7 @@
 (defn reg-unresolved-namespace!
   [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
-    (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
+    (let [ns-groups (cons unresolved-ns (config/ns-groups-eduction ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
           (or
@@ -473,14 +473,14 @@
                  ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
            (config/unresolved-symbol-excluded ctx config callstack :dummy))
-        (let [unresolved-ns (vary-meta unresolved-ns
-                                       ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
-                                       ;; we must include the filename here
-                                       ;; see #73
-                                       assoc :filename filename)]
-          (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
-                 (fnil conj [])
-                 unresolved-ns))))))
+          (let [unresolved-ns (vary-meta unresolved-ns
+                                         ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
+                                         ;; we must include the filename here
+                                         ;; see #73
+                                         assoc :filename filename)]
+            (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
+                   (fnil conj [])
+                   unresolved-ns))))))
 
 (defn get-namespace [ctx base-lang lang ns-sym]
   (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
