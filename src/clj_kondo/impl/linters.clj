@@ -876,27 +876,19 @@
               :col (:col default)
               :end-row (:end-row default)
               :end-col (:end-col default)}))))
-      (let [{:keys [level namespaced-keywords auto-resolved-keywords]
-             :or {namespaced-keywords true
-                  auto-resolved-keywords true}} (-> ctx :config :linters :keyword-binding)]
+      (let [{:keys [level disallow-all-keywords]} (-> ctx :config :linters :keyword-binding)]
         (when (not (identical? :off level))
           (doseq [binding (filter :keyword (:bindings ns))]
-            (when-some [keyword-str (cond
-                                      (namespace (:keyword binding))
-                                      (when (not namespaced-keywords)
-                                        (str (:keyword binding)))
-
-                                      (:auto-resolved binding)
-                                      (when (not auto-resolved-keywords)
-                                        (str "::" (name (:keyword binding))))
-
-                                      :else
-                                      (str (:keyword binding)))]
+            (when (or disallow-all-keywords
+                      (not (or (namespace (:keyword binding))
+                               (:auto-resolved binding))))
               (findings/reg-finding!
                ctx
                {:type :keyword-binding
                 :filename (:filename binding)
-                :message (str "Keyword binding should be a symbol: " keyword-str)
+                :message (str "Keyword binding should be a symbol: "
+                              (when (:auto-resolved binding) ":")
+                              (:keyword binding))
                 :row (:row binding)
                 :col (:col binding)
                 :end-row (:end-row binding)
