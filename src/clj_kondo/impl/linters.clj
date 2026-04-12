@@ -1082,10 +1082,14 @@
       (when-let [methods (:methods resolved)]
         (when-let [unresolved-protocol-methods (seq (remove (set methods) protocol-methods))]
           (doseq [unresolved unresolved-protocol-methods]
-            (findings/reg-finding! ctx (assoc (meta unresolved)
-                                              :type :unresolved-protocol-method
-                                              :filename (:filename ns)
-                                              :message (str "Unresolved protocol method: " unresolved)))))
+            (findings/reg-finding! ctx (-> unresolved
+                                           meta
+                                           (dissoc :impl-fixed-arities
+                                                   :impl-varargs-min-arity)
+                                           (assoc
+                                            :type :unresolved-protocol-method
+                                            :filename (:filename ns)
+                                            :message (str "Unresolved protocol method: " unresolved))))))
         (when-let [missing (seq (remove (set protocol-methods) methods))]
           (findings/reg-finding! ctx (assoc protocol-impl
                                             :type :missing-protocol-method
@@ -1101,12 +1105,13 @@
                   :when (not (contains? allowed impl-arity))]
             (findings/reg-finding!
              ctx
-             (assoc m
-                    :type :unimplemented-protocol-method-arity
-                    :filename (:filename ns)
-                    :message (format protocol-method-arity-msg
-                                     impl-method impl-arity 
-                                     (sort allowed))))))))))
+             (-> m
+                 (dissoc :impl-fixed-arities :impl-varargs-min-arity)
+                 (assoc  :type :unimplemented-protocol-method-arity
+                         :filename (:filename ns)
+                         :message (format protocol-method-arity-msg
+                                          impl-method impl-arity
+                                          (sort allowed)))))))))))
 
 ;;;; scratch
 

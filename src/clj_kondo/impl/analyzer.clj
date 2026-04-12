@@ -1775,12 +1775,12 @@
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
             (utils/handle-ignore ctx c)
-            (let [children (:children c)
+            (let [method-children (:children c)
 
                   {:keys [fixed-arities varargs-min-arity]}
                   (-> (if (and (not protocol-fn?)
-                               (= 'Class/forName (:value (first children))))
-                        (when (str/starts-with? (try (sexpr (second children))
+                               (= 'Class/forName (:value (first method-children))))
+                        (when (str/starts-with? (try (sexpr (second method-children))
                                                      (catch Exception _ "")) "[")
                           (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
                                                             :level :warning
