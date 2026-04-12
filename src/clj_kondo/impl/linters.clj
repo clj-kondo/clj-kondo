@@ -13,6 +13,9 @@
    [clojure.set :as set]
    [clojure.string :as str]))
 
+(def ^:private protocol-method-arity-msg 
+  "Protocol method %s is implemented with arity %d, expected one of: %s")
+
 (set! *warn-on-reflection* true)
 
 (defn- condition-value [condition]
@@ -1087,7 +1090,23 @@
           (findings/reg-finding! ctx (assoc protocol-impl
                                             :type :missing-protocol-method
                                             :filename (:filename ns)
-                                            :message (str "Missing protocol method(s): " (str/join ", " missing)))))))))
+                                            :message (str "Missing protocol method(s): " (str/join ", " missing)))))
+        (when-let [method-arities (:method-arities resolved)]
+          (doseq [impl-method protocol-methods
+                  :let [{:keys [impl-fixed-arities] :as m} (meta impl-method)
+                        allowed (get method-arities impl-method)]
+                  :when (and allowed impl-fixed-arities
+                             (not (:impl-varargs-min-arity m)))
+                  impl-arity impl-fixed-arities
+                  :when (not (contains? allowed impl-arity))]
+            (findings/reg-finding!
+             ctx
+             (assoc m
+                    :type :unimplemented-protocol-method-arity
+                    :filename (:filename ns)
+                    :message (format protocol-method-arity-msg
+                                     impl-method impl-arity 
+                                     (sort allowed))))))))))
 
 ;;;; scratch
 

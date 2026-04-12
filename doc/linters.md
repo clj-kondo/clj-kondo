@@ -74,6 +74,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing map value](#missing-map-value)
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
+    - [Unimplemented protocol method arity](#unimplemented-protocol-method-arity)
     - [Missing test assertion](#missing-test-assertion)
     - [Is message not string](#is-message-not-string)
     - [Namespace name mismatch](#namespace-name-mismatch)
@@ -1365,6 +1366,30 @@ misses a value.
 ```
 
 *Example message:* `Missing protocol method(s): bar`.
+
+### Unimplemented protocol method arity
+
+*Keyword:* `:unimplemented-protocol-method-arity`.
+
+*Description:* warn when a protocol method is implemented with an arity that doesn't match any arity declared in the protocol.
+
+*Default level:* `:warning`.
+
+*Example trigger:*
+
+``` clojure
+(defprotocol AProtocol
+  (bar [a b])
+  (baz [a] [a b] [a b c]))
+
+(deftype Foo [a b c]
+  AProtocol
+  (bar [x] a)             ;; wrong: bar only accepts arity 2
+  (baz [x] b)             ;; ok
+  (baz [x y z w] 0))      ;; wrong: baz does not accept arity 4
+```
+
+*Example message:* `Protocol method bar is implemented with arity 1, expected one of: (2)`.
 
 ### Missing test assertion
 

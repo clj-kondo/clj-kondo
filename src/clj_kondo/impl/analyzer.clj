@@ -1680,15 +1680,16 @@
                                        :protocol-name protocol-name
                                        :defined-by defined-by
                                        :defined-by->lint-as defined-by->lint-as))
-                          (docstring/lint-docstring! ctx doc-node docstring)))
-                      fn-name))]
+                          (docstring/lint-docstring! ctx doc-node docstring)
+                          [fn-name fixed-arities]))))]
       (when protocol-name
         (namespace/reg-var! ctx ns-name protocol-name expr
                             (assoc-some name-meta
                                         :user-meta (when (:analysis-var-meta ctx)
                                                      (:user-meta name-meta))
                                         :doc docstring
-                                        :methods (vec meths)
+                                        :methods (mapv first meths)
+                                        :method-arities (into {} meths)
                                         :defined-by defined-by
                                         :defined-by->lint-as defined-by->lint-as))))))
 
@@ -1774,24 +1775,31 @@
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
             (utils/handle-ignore ctx c)
-            (let [children (:children c)]
-              (if (and (not protocol-fn?)
-                       (= 'Class/forName (:value (first children))))
-                (when (str/starts-with? (try (sexpr (second children))
-                                             (catch Exception _ "")) "[")
-                  (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
-                                                    :level :warning
-                                                    :message "Prefer a symbol to refer to the array class")))
-                (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
-                            (assoc c :protocol-fn protocol-fn?))))
-            (let [methods (conj methods (let [val (:value protocol-method-name)
+            (let [children (:children c)
+
+                  {:keys [fixed-arities varargs-min-arity]}
+                  (-> (if (and (not protocol-fn?)
+                               (= 'Class/forName (:value (first children))))
+                        (when (str/starts-with? (try (sexpr (second children))
+                                                     (catch Exception _ "")) "[")
+                          (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
+                                                            :level :warning
+                                                            :message "Prefer a symbol to refer to the array class")))
+                        (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
+                                    (assoc c :protocol-fn protocol-fn?)))
+                      meta
+                      :arity)
+
+                  methods (conj methods (let [val (:value protocol-method-name)
                                               val (if (qualified-symbol? val)
                                                     (symbol (name val))
                                                     val)]
                                           (cond-> val
                                             (symbol? val)
                                             (with-meta
-                                              (meta protocol-method-name)))))]
+                                              (assoc (meta protocol-method-name)
+                                                     :impl-fixed-arities fixed-arities
+                                                     :impl-varargs-min-arity varargs-min-arity)))))]
               (when (end? (second children))
                 (namespace/reg-protocol-impl! ctx ns-name (assoc (meta protocol-node)
                                                                  :protocol-ns protocol-ns
