@@ -1015,6 +1015,28 @@
   :langs (:clj :cljs),
   :message "Unresolved excluded var: def",
   :row 2}
+ {:end-row 73,
+  :type :unimplemented-protocol-method-arity,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/performance.clj",
+  :col 4,
+  :end-col 8,
+  :langs (),
+  :message
+  "Protocol method conj is implemented with arity 2, expected one of: (1)",
+  :row 73}
+ {:end-row 78,
+  :type :unimplemented-protocol-method-arity,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/performance.clj",
+  :col 4,
+  :end-col 14,
+  :langs (),
+  :message
+  "Protocol method persistent is implemented with arity 1, expected one of: (0)",
+  :row 78}
  {:end-row 32,
   :protocol-ns clj-yaml.core,
   :protocol-name YAMLCodec,
