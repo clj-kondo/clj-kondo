@@ -21,26 +21,40 @@
                                        (symbol (namespace gval))
                                        (:value (first gchildren)))
                          imported-ns (qualify-ns imported-ns imported-ns)
+                         rest-children (rest gchildren)
+                         refer-syntax? (and (not fqs-import?)
+                                            (= :refer (:k (first rest-children))))
+                         renames (when refer-syntax?
+                                   (let [after-refers (drop 2 rest-children)]
+                                     (when (= :rename (:k (first after-refers)))
+                                       (apply hash-map
+                                              (map :value (:children (second after-refers)))))))
                          imported-vars (if fqs-import?
-                                         [[g (symbol (name gval))]]
-                                         (map (fn [c] [c (:value c)]) (rest gchildren)))]]
+                                         [[g (symbol (name gval)) nil]]
+                                         (if refer-syntax?
+                                           (map (fn [c]
+                                                  (let [v (:value c)]
+                                                    [c v (get renames v)]))
+                                                (:children (second rest-children)))
+                                           (map (fn [c] [c (:value c) nil]) rest-children)))]]
                (do
-                 (doseq [[i-expr i-value] imported-vars]
-                   (common/analyze-usages2
-                    (ctx-with-linters-disabled ctx [:unresolved-var :unresolved-symbol])
-                    (if fqs-import?
-                      i-expr
-                      (with-meta (token-node
-                                  (symbol (str (:value (first gchildren)))
-                                          (str i-value)))
-                        (meta i-expr))))
-                   (let [expr-meta (meta i-expr)]
-                     (namespace/reg-var! ctx ns-name i-value expr {:imported-ns imported-ns
-                                                                   :imported-var i-value
-                                                                   :name-row (:row expr-meta)
-                                                                   :name-col (:col expr-meta)
-                                                                   :name-end-row (:end-row expr-meta)
-                                                                   :name-end-col (:end-col expr-meta)
-                                                                   :defined-by defined-by
-                                                                   :defined-by->lint-as defined-by->lint-as})))
+                 (doseq [[i-expr i-value i-rename] imported-vars]
+                   (let [local-name (or i-rename i-value)]
+                     (common/analyze-usages2
+                      (ctx-with-linters-disabled ctx [:unresolved-var :unresolved-symbol])
+                      (if fqs-import?
+                        i-expr
+                        (with-meta (token-node
+                                    (symbol (str (:value (first gchildren)))
+                                            (str i-value)))
+                          (meta i-expr))))
+                     (let [expr-meta (meta i-expr)]
+                       (namespace/reg-var! ctx ns-name local-name expr {:imported-ns imported-ns
+                                                                        :imported-var i-value
+                                                                        :name-row (:row expr-meta)
+                                                                        :name-col (:col expr-meta)
+                                                                        :name-end-row (:end-row expr-meta)
+                                                                        :name-end-col (:end-col expr-meta)
+                                                                        :defined-by defined-by
+                                                                        :defined-by->lint-as defined-by->lint-as}))))
                  imported-ns)))}]))
