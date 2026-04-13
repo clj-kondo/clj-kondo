@@ -35,7 +35,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn input-stream->bytes ^bytes [^InputStream input-stream]
+(defn ^:private input-stream->bytes ^bytes [^InputStream input-stream]
   (with-open [xin input-stream
               xout (java.io.ByteArrayOutputStream.)]
     (io/copy xin xout)

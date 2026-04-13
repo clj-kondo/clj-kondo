@@ -19,7 +19,6 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2792](https://github.com/clj-kondo/clj-kondo/issues/2792): Extract var definitions from AOT-only jars to eliminate false-positive unresolved-symbol/unresolved-var warnings
 - [#2579](https://github.com/clj-kondo/clj-kondo/issues/2579): avoid redundant config merge when switching namespaces
 - [#1878](https://github.com/clj-kondo/clj-kondo/issues/1878): support potemkin's `import-fn`, `import-macro`, and `import-def`
 - [#2498](https://github.com/clj-kondo/clj-kondo/issues/2498): support new potemkin `import-vars` `:refer` and `:rename` syntax
