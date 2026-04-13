@@ -1626,7 +1626,8 @@
                               ;; skip last docstring
                               #(when (= :vector (tag %)) %))]
     (docstring/lint-docstring! ctx doc-node docstring)
-    (let [meths (for [c (next children)
+    (let [interface? (= 'clojure.core/definterface defined-by->lint-as)
+          meths (for [c (next children)
                       :when (= :list (tag c)) ;; skip first docstring
                       :let [children (:children c)
                             name-node (first children)
@@ -1690,9 +1691,9 @@
                                   (:user-meta name-meta))
                      :doc docstring
                      :methods (mapv first meths)
-                     :method-arities (when-not (= 'clojure.core/definterface
-                                                  defined-by->lint-as)
-                                       (into {} meths))
+                     :method-arities (cond-> (into {} meths)
+                                       interface?
+                                       (update-vals #(set (map inc %))))
                      :defined-by defined-by
                      :defined-by->lint-as defined-by->lint-as))))))
 

@@ -141,8 +141,22 @@
   (foo [x] :ok)
   (bar [x] :ok))")))))
 
-(deftest definterface-no-warn-test
-  (testing "no warning for definterface (this not in declaration arity)"
+(deftest definterface-wrong-arity-test
+  (testing "definterface method implemented with wrong arity"
+    (assert-submaps2
+     '({:level :warning,
+        :message "Protocol method foo is implemented with arity 1, expected one of: (2)"})
+     (lint! "(ns test.foo)
+
+(definterface IFoo
+  (foo [x]))
+
+(deftype T [a]
+  IFoo
+  (foo [this] :wrong))"))))
+
+(deftest definterface-correct-arity-test
+  (testing "no warning when definterface method has correct arity"
     (is (empty?
          (lint! "(ns test.foo)
 
