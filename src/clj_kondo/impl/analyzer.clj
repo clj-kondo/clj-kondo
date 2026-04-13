@@ -1693,7 +1693,7 @@
                      :methods (mapv first meths)
                      :method-arities (cond-> (into {} meths)
                                        interface?
-                                       (update-vals #(set (map inc %))))
+                                       (utils/update-vals #(set (map inc %))))
                      :defined-by defined-by
                      :defined-by->lint-as defined-by->lint-as))))))
 
