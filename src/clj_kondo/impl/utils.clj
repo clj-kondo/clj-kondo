@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
-  (:refer-clojure :exclude [update-vals])
+  (:refer-clojure :exclude [update-vals eduction])
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.analyzer.common :as common]
@@ -338,6 +338,21 @@
                             (recur (next xs) kept (conj! removed x))))
       [(persistent! kept) (persistent! removed)])))
 
+(defn eduction
+  "Identical to `clojure.core/eduction` but doesn't perform expensive and useless
+  argument manipulation."
+  [xform coll]
+  (->Eduction xform coll))
+
+(defn some'
+  "Like `clojure.core/some`, but uses a `reduce` to traverse the collection for
+  performance reasons (`reduce` is more efficient and allocation-free for
+  vectors)."
+  [pred coll]
+  (reduce #(when-let [r (pred %2)]
+             (reduced r))
+          nil coll))
+
 (defn resolve-ns [idacs base-lang lang ns]
   (case [base-lang lang]
     [:clj :clj] (or (get-in idacs [:clj :defs ns])
@@ -415,10 +430,7 @@
        (or
         (let [imported-var (:imported-var called-fn)
               seenv [imported-ns imported-var]]
-          (when (not (or
-                      (seen seenv)
-                      (and (not= fn-ns imported-ns)
-                           (not= fn-name imported-var))))
+          (when-not (seen seenv)
             (resolve-call idacs call call-lang imported-ns imported-var
                           unresolved? refer-alls (conj seen seenv))))
         ;; if we cannot find the imported var here, we fall back on called-fn
