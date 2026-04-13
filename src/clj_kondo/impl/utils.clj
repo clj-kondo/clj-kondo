@@ -430,10 +430,7 @@
        (or
         (let [imported-var (:imported-var called-fn)
               seenv [imported-ns imported-var]]
-          (when (not (or
-                      (seen seenv)
-                      (and (not= fn-ns imported-ns)
-                           (not= fn-name imported-var))))
+          (when-not (seen seenv)
             (resolve-call idacs call call-lang imported-ns imported-var
                           unresolved? refer-alls (conj seen seenv))))
         ;; if we cannot find the imported var here, we fall back on called-fn
