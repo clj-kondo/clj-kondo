@@ -2980,6 +2980,72 @@ foo/baz
 (ns foo (:require [bar])) (require '[potemkin]) (potemkin/import-vars [bar x])
 (ns bar (:require [foo] [potemkin])) (potemkin/import-vars [foo x])"))))
 
+(deftest import-fn-test
+  (testing "import-fn checks arity"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 6,
+        :col 1,
+        :level :error,
+        :message "app.core/foo is called with 0 args but expects 1"})
+     (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-fn]]))
+(import-fn app.core/foo)
+(ns consumer (:require [app.api]))
+(app.api/foo)
+(app.api/foo 1)"
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "import-fn with rename"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 6,
+        :col 1,
+        :level :error,
+        :message "app.core/foo is called with 0 args but expects 1"})
+     (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-fn]]))
+(import-fn app.core/foo my-foo)
+(ns consumer (:require [app.api]))
+(app.api/my-foo)
+(app.api/my-foo 1)"
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "import-macro works"
+    (is (empty? (lint! "
+(ns app.core) (defmacro my-macro [_body])
+(ns app.api (:require [app.core] [potemkin :refer [import-macro]]))
+(import-macro app.core/my-macro)
+(ns consumer (:require [app.api]))
+(app.api/my-macro 1)"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "import-def works"
+    (is (empty? (lint! "
+(ns app.core) (def my-var 42)
+(ns app.api (:require [app.core] [potemkin :refer [import-def]]))
+(import-def app.core/my-var)
+(ns consumer (:require [app.api]))
+app.api/my-var"
+                       {:linters {:unresolved-symbol {:level :error}
+                                  :unresolved-var {:level :error}}}))))
+  (testing "import-fn with cache"
+    (when (.exists (io/file ".clj-kondo"))
+      (rename-path ".clj-kondo" ".clj-kondo.bak"))
+    (make-dirs ".clj-kondo")
+    (lint! "(ns app.core) (defn foo [_x])" "--cache")
+    (lint! "(ns app.api (:require [potemkin :refer [import-fn]]))
+            (import-fn app.core/foo)"
+           "--cache")
+    (assert-submaps '({:file "<stdin>",
+                       :row 1,
+                       :col 49,
+                       :level :error,
+                       :message "app.core/foo is called with 0 args but expects 1"})
+                    (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo)" "--cache"))
+    (remove-dir ".clj-kondo")
+    (when (.exists (io/file ".clj-kondo.bak"))
+      (rename-path ".clj-kondo.bak" ".clj-kondo"))))
+
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
     (let [dir (io/file "corpus" "directory.clj")
