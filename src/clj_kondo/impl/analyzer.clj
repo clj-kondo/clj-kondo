@@ -2848,6 +2848,10 @@
                             (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
+                            ([potemkin import-fn] [potemkin import-macro] [potemkin import-def])
+                            (potemkin/analyze-import-fn ctx expr utils/ctx-with-linters-disabled
+                                                       defined-by
+                                                       defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
                              [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!

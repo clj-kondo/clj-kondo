@@ -6,6 +6,38 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils :refer [token-node]]))
 
+(defn analyze-import-fn
+  "Analyzes potemkin's import-fn, import-macro, and import-def which take
+  a single fully-qualified symbol and optionally a new name."
+  [ctx expr ctx-with-linters-disabled defined-by defined-by->lint-as]
+  (let [ns (:ns ctx)
+        ns-name (:name ns)
+        qualify-ns (:qualify-ns ns)
+        args (next (:children expr))
+        sym-node (first args)
+        sym-val (:value sym-node)
+        rename-node (second args)
+        rename-val (:value rename-node)]
+    (when (and sym-val (qualified-symbol? sym-val))
+      (let [imported-ns (symbol (namespace sym-val))
+            imported-ns (qualify-ns imported-ns imported-ns)
+            imported-var (symbol (name sym-val))
+            local-name (or rename-val imported-var)
+            expr-meta (meta sym-node)]
+        (common/analyze-usages2
+         (ctx-with-linters-disabled ctx [:unresolved-var :unresolved-symbol])
+         sym-node)
+        (namespace/reg-var! ctx ns-name local-name expr {:imported-ns imported-ns
+                                                         :imported-var imported-var
+                                                         :name-row (:row expr-meta)
+                                                         :name-col (:col expr-meta)
+                                                         :name-end-row (:end-row expr-meta)
+                                                         :name-end-col (:end-col expr-meta)
+                                                         :defined-by defined-by
+                                                         :defined-by->lint-as defined-by->lint-as})
+        [{:type :import-vars
+          :used-namespaces [imported-ns]}]))))
+
 (defn analyze-import-vars [ctx expr ctx-with-linters-disabled defined-by defined-by->lint-as]
   (let [ns (:ns ctx)
         ns-name (:name ns)
