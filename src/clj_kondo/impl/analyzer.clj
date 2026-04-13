@@ -1683,15 +1683,18 @@
                           (docstring/lint-docstring! ctx doc-node docstring)
                           [fn-name fixed-arities]))))]
       (when protocol-name
-        (namespace/reg-var! ctx ns-name protocol-name expr
-                            (assoc-some name-meta
-                                        :user-meta (when (:analysis-var-meta ctx)
-                                                     (:user-meta name-meta))
-                                        :doc docstring
-                                        :methods (mapv first meths)
-                                        :method-arities (into {} meths)
-                                        :defined-by defined-by
-                                        :defined-by->lint-as defined-by->lint-as))))))
+        (namespace/reg-var!
+         ctx ns-name protocol-name expr
+         (assoc-some name-meta
+                     :user-meta (when (:analysis-var-meta ctx)
+                                  (:user-meta name-meta))
+                     :doc docstring
+                     :methods (mapv first meths)
+                     :method-arities (when-not (= 'clojure.core/definterface
+                                                  defined-by->lint-as)
+                                       (into {} meths))
+                     :defined-by defined-by
+                     :defined-by->lint-as defined-by->lint-as))))))
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
   (let [def-by (name defined-by)

@@ -141,6 +141,20 @@
   (foo [x] :ok)
   (bar [x] :ok))")))))
 
+(deftest definterface-no-warn-test
+  (testing "no warning for definterface (this not in declaration arity)"
+    (is (empty?
+         (lint! "(ns test.foo)
+
+(definterface IFoo
+  (foo [x])
+  (bar []))
+
+(deftype T [a]
+  IFoo
+  (foo [this x] a)
+  (bar [this] a))")))))
+
 (deftest config-disabled-test
   (testing "linter can be disabled via config"
     (is (empty?
