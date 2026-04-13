@@ -3487,7 +3487,7 @@
         (let [ns-name (:name first-parsed)
               local-config (:config first-parsed)
               global-config (:global-config ctx)
-              new-config (config/merge-config! global-config local-config)]
+              new-config (or local-config global-config)]
           (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
           (recur
            (-> ctx
