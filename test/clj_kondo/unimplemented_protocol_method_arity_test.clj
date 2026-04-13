@@ -1,5 +1,6 @@
 (ns clj-kondo.unimplemented-protocol-method-arity-test
-  (:require [clj-kondo.test-utils :refer [lint! assert-submaps2]]
+  (:require [babashka.fs :as fs]
+            [clj-kondo.test-utils :refer [lint! assert-submaps2]]
             [clojure.test :refer [deftest is testing]]))
 
 (deftest deftype-wrong-arity-test
@@ -194,3 +195,16 @@
   P
   (foo [x y] :wrong-arity))"
                '{:config-in-ns {repro {:linters {:unimplemented-protocol-method-arity {:level :off}}}}})))))
+
+(deftest cross-file-cache-test
+  (testing "arity check works across files via cache"
+    (fs/with-temp-dir [tmp {}]
+      (spit (fs/file tmp "proto.clj")
+            "(ns proto) (defprotocol P (foo [a]))")
+      (lint! (fs/file tmp "proto.clj") "--cache" (str tmp))
+      (spit (fs/file tmp "impl.clj")
+            "(ns impl (:require [proto])) (deftype T [] proto/P (foo [this extra] :wrong))")
+      (assert-submaps2
+       '({:level :warning
+          :message "Protocol method foo is implemented with arity 2, expected one of: (1)"})
+       (lint! (fs/file tmp "impl.clj") "--cache" (str tmp))))))
