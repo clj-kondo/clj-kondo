@@ -465,7 +465,7 @@
 (defn reg-unresolved-namespace!
   [{:keys [base-lang lang namespaces config callstack filename] :as ctx} ns-sym unresolved-ns]
   (when-not (identical? :off (-> config :linters :unresolved-namespace :level))
-    (let [ns-groups (cons unresolved-ns (config/ns-groups ctx config unresolved-ns filename))
+    (let [ns-groups (cons unresolved-ns (config/ns-groups-eduction ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
           (or
@@ -473,14 +473,14 @@
                  ns-groups)
            ;; unresolved namespaces in an excluded unresolved symbols call are not reported
            (config/unresolved-symbol-excluded ctx config callstack :dummy))
-        (let [unresolved-ns (vary-meta unresolved-ns
-                                       ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
-                                       ;; we must include the filename here
-                                       ;; see #73
-                                       assoc :filename filename)]
-          (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
-                 (fnil conj [])
-                 unresolved-ns))))))
+          (let [unresolved-ns (vary-meta unresolved-ns
+                                         ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
+                                         ;; we must include the filename here
+                                         ;; see #73
+                                         assoc :filename filename)]
+            (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
+                   (fnil conj [])
+                   unresolved-ns))))))
 
 (defn get-namespace [ctx base-lang lang ns-sym]
   (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
@@ -642,39 +642,39 @@
   (when-let [discouraged-var-config
              (get-in call-config [:linters :discouraged-var])]
     (when-not (or (identical? :off (:level discouraged-var-config))
-                  (empty? (dissoc discouraged-var-config :level)))
-      (let [candidates (cons (symbol (str resolved-ns) (str fn-name))
-                             (map #(symbol (str %) (str fn-name))
-                                  (config/ns-groups ctx call-config resolved-ns filename)))]
-        (run!
-         (fn [fn-lookup-sym]
-           (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
-             (when-not (or (identical? :off (:level cfg))
-                           (:clj-kondo.impl/generated expr))
-               (let [arities (:arities cfg)
-                     arity (:arity arity-info)]
-                 (when (and (or (not arity-info)
-                                (not arities)
-                                (not arity)
-                                (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
-                                                         arity)
-                                                       (let [varargs-min-arity (:varargs-min-arity arity-info)]
-                                                         (when (and varargs-min-arity (>= arity varargs-min-arity))
-                                                           :varargs)))]
-                                  (contains? (set arities) called-arity)))
-                            (let [langs (:langs cfg)]
-                              (or (not langs)
-                                  (contains? (set langs) (:lang ctx)))))
-                   (findings/reg-finding! ctx {:filename filename
-                                               :level (:level cfg)
-                                               :row row
-                                               :end-row end-row
-                                               :col col
-                                               :end-col end-col
-                                               :type :discouraged-var
-                                               :message (or (:message cfg)
-                                                            (str "Discouraged var: " fn-sym))}))))))
-         candidates)))))
+                  (and (:level discouraged-var-config)
+                       (= 1 (count discouraged-var-config))))
+      (let [lint-var
+            (fn [ns-name]
+              (let [fn-lookup-sym (symbol (str ns-name) (str fn-name))]
+                (when-let [cfg (get discouraged-var-config fn-lookup-sym)]
+                  (when-not (or (identical? :off (:level cfg))
+                                (:clj-kondo.impl/generated expr))
+                    (let [arities (:arities cfg)
+                          arity (:arity arity-info)]
+                      (when (and (or (not arity-info)
+                                     (not arities)
+                                     (not arity)
+                                     (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
+                                                              arity)
+                                                            (let [varargs-min-arity (:varargs-min-arity arity-info)]
+                                                              (when (and varargs-min-arity (>= arity varargs-min-arity))
+                                                                :varargs)))]
+                                       (contains? (set arities) called-arity)))
+                                 (let [langs (:langs cfg)]
+                                   (or (not langs)
+                                       (contains? (set langs) (:lang ctx)))))
+                        (findings/reg-finding! ctx {:filename filename
+                                                    :level (:level cfg)
+                                                    :row row
+                                                    :end-row end-row
+                                                    :col col
+                                                    :end-col end-col
+                                                    :type :discouraged-var
+                                                    :message (or (:message cfg)
+                                                                 (str "Discouraged var: " fn-sym))})))))))]
+        (lint-var (str resolved-ns))
+        (run! lint-var (config/ns-groups-eduction ctx call-config resolved-ns filename))))))
 
 (defn resolve-name
   [ctx call? ns-name name-sym expr]

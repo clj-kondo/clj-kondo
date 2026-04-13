@@ -263,34 +263,43 @@
                                 :filename (:filename utils/*ctx*)})
         nil)))
 
-(defn fq-syms->vecs
+(defn only-fq-syms-eduction
+  "Return an eduction of only fully qualified symbols."
   [fq-syms]
-  (keep (fn [fq-sym]
-          (when (symbol? fq-sym)
-            (if-let [ns* (namespace fq-sym)]
-              [(symbol ns*) (symbol (name fq-sym))]
-              (do (findings/reg-finding! utils/*ctx*
-                                         {:type :clj-kondo-config
-                                          :level :warning
-                                          :row 0
-                                          :col 0
-                                          :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
-                                          :filename (:filename utils/*ctx*)})
-                  nil))))
-        fq-syms))
+  (utils/eduction
+   (filter (fn [fq-sym]
+             (when (symbol? fq-sym)
+               (if (namespace fq-sym)
+                 true
+                 (do (findings/reg-finding! utils/*ctx*
+                                            {:type :clj-kondo-config
+                                             :level :warning
+                                             :row 0
+                                             :col 0
+                                             :message (str "Configuration error. Expected fully qualified symbol, got: " fq-sym)
+                                             :filename (:filename utils/*ctx*)})
+                     false)))))
+   fq-syms))
 
 (defn skip-args
   ([config linter]
    (some-> (get-in config [:linters linter :skip-args])
-           (fq-syms->vecs))))
+           (only-fq-syms-eduction))))
 
 (defn skip?
   "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
   ([config linter callstack]
-   (when-let [disabled (seq (skip-args config linter))]
-     (some (fn [disabled-sym]
-             (some #(= disabled-sym %) callstack))
-           disabled))))
+   (utils/some' (fn [disabled-fq-sym]
+                  (let [disabled-ns (namespace disabled-fq-sym)
+                        disabled-name (name disabled-fq-sym)]
+                    (utils/some' (fn [frame]
+                                   ;; Instead of reconstructing [ns name] vector
+                                   ;; from `disabled-fq-sym`, compare string
+                                   ;; values directly for efficiency.
+                                   (and (= (some-> (nth frame 0 nil) name) disabled-ns)
+                                        (= (some-> (nth frame 1 nil) name) disabled-name)))
+                                 callstack)))
+                (skip-args config linter))))
 
 (defn lint-as [config v]
   (some-> (get-in config [:lint-as v])
@@ -489,17 +498,16 @@
         (let [binding-str (str binding-sym)]
           (boolean (some #(re-find % binding-str) regexes))))))
 
-(defn ns-groups [ctx config ns-name filename]
+(defn ns-groups-eduction [ctx config ns-name filename]
   (let [ns-groups-matcher (:re-find-memo ctx)]
-    (keep (fn [{:keys [pattern
-                       filename-pattern
-                       name]}]
-            (when (or (and (string? pattern) (symbol? name)
-                           (ns-groups-matcher pattern (str ns-name)))
-                      (and (string? filename-pattern) (symbol? name)
-                           (ns-groups-matcher filename-pattern filename)))
-              name))
-          (:ns-groups config))))
+    (utils/eduction
+     (keep (fn [{:keys [pattern filename-pattern name]}]
+             (when (or (and (string? pattern) (symbol? name)
+                            (ns-groups-matcher pattern (str ns-name)))
+                       (and (string? filename-pattern) (symbol? name)
+                            (ns-groups-matcher filename-pattern filename)))
+               name)))
+                    (:ns-groups config))))
 
 (defn unquote [coll]
   (walk/postwalk
