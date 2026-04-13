@@ -5,10 +5,10 @@
    [babashka.fs :as fs]
    [clj-kondo.impl.analysis.aot :as aot]
    [clj-kondo.impl.analysis.java :as java]
-   [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.analyzer :as ana]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.utils :as utils :refer [one-of print-err! map-vals assoc-some
                                            ->uri]]
    [clojure.edn :as edn]
@@ -248,43 +248,76 @@
       (spit dest source))
     (catch Exception e (prn (.getMessage e)))))
 
+(defn ^:private process-aot-namespaces
+  "Extract var definitions from AOT-only __init.class entries in a jar
+  and register them into the namespaces atom. Skips namespaces that have
+  corresponding source files (source analysis takes precedence)."
+  [ctx ^JarFile jar ^java.io.File jar-file canonical? init-entries source-ns-prefixes]
+  (doseq [[prefix ^JarFile$JarFileEntry init-entry] init-entries
+          :when (not (contains? source-ns-prefixes prefix))]
+    (try
+      (let [ns-vars (aot/extract-ns-vars jar init-entry)]
+        (when (seq ns-vars)
+          (let [ns-name (->> (vals ns-vars)
+                             (keep :ns)
+                             first)]
+            (when ns-name
+              (namespace/reg-namespace!
+               (assoc ctx :base-lang :clj :lang :clj)
+               {:name ns-name
+                :vars ns-vars
+                :filename (str (if canonical?
+                                 (.getCanonicalPath jar-file)
+                                 (str jar-file))
+                               ":" (.getName init-entry))})))))
+      (catch Exception e
+        (when (:debug ctx)
+          (utils/stderr "[clj-kondo] Error extracting AOT vars from"
+                        (.getName init-entry) ":" (.getMessage e)))))))
+
 (defn sources-from-jar
   [ctx ^java.io.File jar-file canonical? use-import-dir?]
   (with-open [jar (JarFile. jar-file)]
     (let [cfg-dir (:config-dir ctx)
           all-entries (enumeration-seq (.entries jar))
-          ;; Collect __init.class entries for AOT-only namespace detection
-          init-entries (atom {}) ;; {ns-path-prefix -> JarEntry}
-          source-ns-prefixes (atom #{})
-          entries (filter (fn [^JarFile$JarFileEntry x]
-                            (let [nm (.getName x)]
-                              (when-not (.isDirectory x)
-                                ;; Track __init.class entries
-                                (when (str/ends-with? nm "__init.class")
-                                  (let [prefix (subs nm 0 (- (count nm) (count "__init.class")))]
-                                    (swap! init-entries assoc prefix x)))
-                                (when (or (str/ends-with? nm ".class")
-                                          (str/ends-with? nm ".java"))
-                                  (when (and (java/analyze-class-defs? ctx)
-                                             (let [idx (str/index-of nm "$")]
-                                               (or (not idx)
-                                                   (when-let [^Character c (nth nm (inc idx) nil)]
-                                                     (and (Character/isUpperCase c)
-                                                          (Character/isLetter c)
-                                                          (not (str/includes? (subs nm idx) "_"))))))
-                                             (not (str/ends-with? nm "__init.class")))
-                                    (java/reg-class-def! ctx {:jar jar
-                                                              :entry x
-                                                              :filename (str (if canonical?
-                                                                               (str (.getCanonicalPath jar-file))
-                                                                               (str jar-file))
-                                                                             ":" nm)
-                                                              :file jar-file})))
-                                ;; Track source file ns prefixes
-                                (when (source-file? nm)
-                                  (let [prefix (str/replace nm #"\.(clj|cljs|cljc)$" "")]
-                                    (swap! source-ns-prefixes conj prefix)))
-                                (source-file? nm)))) all-entries)
+          ;; Classify entries in a single pass: collect __init.class entries
+          ;; and source namespace prefixes for AOT-only detection
+          {:keys [init-entries source-ns-prefixes source-entries]}
+          (reduce (fn [acc ^JarFile$JarFileEntry x]
+                    (let [nm (.getName x)]
+                      (if (.isDirectory x)
+                        acc
+                        (let [acc (if (str/ends-with? nm "__init.class")
+                                    (let [prefix (subs nm 0 (- (count nm) (count "__init.class")))]
+                                      (update acc :init-entries assoc prefix x))
+                                    acc)
+                              is-source (source-file? nm)]
+                          (when (or (str/ends-with? nm ".class")
+                                    (str/ends-with? nm ".java"))
+                            (when (and (java/analyze-class-defs? ctx)
+                                       (let [idx (str/index-of nm "$")]
+                                         (or (not idx)
+                                             (when-let [^Character c (nth nm (inc idx) nil)]
+                                               (and (Character/isUpperCase c)
+                                                    (Character/isLetter c)
+                                                    (not (str/includes? (subs nm idx) "_"))))))
+                                       (not (str/ends-with? nm "__init.class")))
+                              (java/reg-class-def! ctx {:jar jar
+                                                        :entry x
+                                                        :filename (str (if canonical?
+                                                                         (str (.getCanonicalPath jar-file))
+                                                                         (str jar-file))
+                                                                       ":" nm)
+                                                        :file jar-file})))
+                          (cond-> acc
+                            is-source
+                            (-> (update :source-ns-prefixes conj
+                                        (str/replace nm #"\.(clj|cljs|cljc)$" ""))
+                                (update :source-entries conj x)))))))
+                  {:init-entries {}
+                   :source-ns-prefixes #{}
+                   :source-entries []}
+                  all-entries)
           ;; Important that we close the `JarFile` so this has to be strict see GH
           ;; issue #542. Maybe it makes sense to refactor loading source using
           ;; transducers so we don't have to load the entire source of a jar file in
@@ -304,28 +337,9 @@
                                                        entry-name)
                                         :source source
                                         :group-id jar-file}))))
-                        entries)]
-      ;; Process AOT-only namespaces: __init.class with no corresponding source.
-      ;; entries has been fully consumed by into above, so init-entries and
-      ;; source-ns-prefixes are populated.
-      (when-let [cache-dir (:cache-dir ctx)]
-        (doseq [[prefix ^JarFile$JarFileEntry init-entry] @init-entries
-                :when (not (contains? @source-ns-prefixes prefix))]
-          (try
-            (let [ns-vars (aot/extract-ns-vars jar init-entry)]
-              (when (seq ns-vars)
-                (let [ns-name (->> (vals ns-vars)
-                                   (keep :ns)
-                                   first)]
-                  (when ns-name
-                    (cache/with-thread-lock
-                      (cache/with-cache cache-dir 6
-                        (cache/to-cache (:config-dir ctx) cache-dir
-                                        :clj ns-name ns-vars)))))))
-            (catch Exception e
-              (when (:debug ctx)
-                (utils/stderr "[clj-kondo] Error extracting AOT vars from"
-                              (.getName init-entry) ":" (.getMessage e)))))))
+                        source-entries)]
+      ;; Register AOT-only namespaces so they flow through the normal pipeline
+      (process-aot-namespaces ctx jar jar-file canonical? init-entries source-ns-prefixes)
       sources)))
 
 ;;;; dir processing
