@@ -2590,7 +2590,7 @@
                                                   :row row
                                                   :col col
                                                   :type :hook
-                                                  :message (.getMessage e)}
+                                                  :message (or (.getMessage e) (str e))}
                                                  (select-keys (ex-data e)
                                                               [:level :row :col])))
                                                nil))))))
@@ -2848,6 +2848,10 @@
                             (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
                                                           'potemkin/import-vars
                                                           defined-by->lint-as)
+                            ([potemkin import-fn] [potemkin import-macro] [potemkin import-def])
+                            (potemkin/analyze-import-fn ctx expr utils/ctx-with-linters-disabled
+                                                       defined-by
+                                                       defined-by->lint-as)
                             ([clojure.core.async alt!] [clojure.core.async alt!!]
                              [cljs.core.async alt!] [cljs.core.async alt!!])
                             (core-async/analyze-alt!
@@ -3483,7 +3487,7 @@
         (let [ns-name (:name first-parsed)
               local-config (:config first-parsed)
               global-config (:global-config ctx)
-              new-config (config/merge-config! global-config local-config)]
+              new-config (or local-config global-config)]
           (swap! (:used-namespaces ctx) update (:base-lang ctx) into (:used-namespaces first-parsed))
           (recur
            (-> ctx
@@ -3694,6 +3698,16 @@
           (if dev?
             (throw e)
             (run! #(findings/reg-finding! ctx %) (->findings e filename))))
+        (catch Error e
+          (if dev?
+            (throw e)
+            (findings/reg-finding! ctx
+                                   {:filename filename
+                                    :col 0
+                                    :row 0
+                                    :type :file
+                                    :message (str "Could not process file: "
+                                                  (or (.getMessage e) (str e)))})))
         (finally
           (swap! files inc)
           (let [output-cfg (:output config)]

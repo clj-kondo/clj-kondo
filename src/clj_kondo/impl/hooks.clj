@@ -162,7 +162,7 @@
                       (some (fn [group-sym]
                               (get-in hook-cfg [:analyze-call (symbol (str group-sym)
                                                                       (str var-sym))]))
-                            (config/ns-groups ctx config ns-sym filename)))]
+                            (config/ns-groups-eduction ctx config ns-sym filename)))]
         (sci/binding [sci/out *out*
                       sci/err *err*]
           (let [code (if (string? x)
@@ -178,22 +178,26 @@
                           (some (fn [group-sym]
                                   (get-in hook-cfg [:macroexpand (symbol (str group-sym)
                                                                          (str var-sym))]))
-                                (config/ns-groups ctx config ns-sym filename)))]
+                                (config/ns-groups-eduction ctx config ns-sym filename)))]
           (sci/binding [sci/out *out*
                         sci/err *err*]
             (let [code (if (string? x)
                          (when (:allow-string-hooks ctx)
                            x)
                          (let [ns (namespace x)]
-                           (format "(require '%s %s)\n(deref (var %s))"
+                           (format "(require '%s %s)\n(var %s)"
                                    ns
                                    (if api/*reload* :reload "")
                                    x)))
-                  macro (binding [utils/*ctx* ctx]
-                          (sci/eval-string* (store/get-ctx) code))]
-              (fn [{:keys [node]}]
-                {:node (macroexpand macro node
-                                    (:bindings utils/*ctx*))}))))))))
+                  the-var (binding [utils/*ctx* ctx]
+                            (sci/eval-string* (store/get-ctx) code))]
+              (when (and the-var (not (string? x)) (not (:macro (meta the-var))))
+                (binding [*out* *err*]
+                  (println (str "WARNING: macroexpand hook " x " is not a macro"))))
+              (when-let [macro (if (var? the-var) @the-var the-var)]
+                (fn [{:keys [node]}]
+                  {:node (macroexpand macro node
+                                      (:bindings utils/*ctx*))})))))))))
 
 (def ^:private hook-not-found (Object.))
 

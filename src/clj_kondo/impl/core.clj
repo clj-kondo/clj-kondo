@@ -18,7 +18,7 @@
 
 (set! *warn-on-reflection* true)
 
-(def dev? (= "true" (System/getenv "CLJ_KONDO_DEV")))
+(def dev? (delay (= "true" (System/getenv "CLJ_KONDO_DEV"))))
 
 (def cache-version "v1")
 
@@ -546,7 +546,7 @@
                     (when-not (:skip-lint ctx)
                       (utils/stderr "[clj-kondo]" jar-name "was already linted, skipping"))
                     (do (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language))
-                                         dev?)
+                                         @dev?)
                               (sources-from-jar ctx file canonical? use-import-dir))
                         (when-not (:skip-lint ctx)
                           (swap! (:mark-linted ctx) conj [skip-mark path])))))
@@ -561,9 +561,9 @@
                                    :uri (->uri nil nil fn)
                                    :source (slurp file)
                                    :lang (lang-from-file path default-language)}
-                              dev?)))))
+                              @dev?)))))
             ;; assume directory
-            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) dev?)
+            (run! #(schedule ctx (assoc % :lang (lang-from-file (:filename %) default-language)) @dev?)
                   (sources-from-dir ctx file canonical? use-import-dir)))
           (= "-" path)
           (when-not (excluded? ctx filename-fallback)
@@ -571,7 +571,7 @@
                            :source (slurp *in*)
                            :lang (if filename-fallback
                                    (lang-from-file filename-fallback default-language)
-                                   default-language)} dev?))
+                                   default-language)} @dev?))
           (classpath? path)
           (run! #(process-file ctx % default-language canonical? filename-fallback use-import-dir)
                 (str/split path path-separator-pat))
@@ -589,7 +589,7 @@
                                     :row 0
                                     :message "file does not exist"}))))
       (catch Throwable e
-        (if dev?
+        (if @dev?
           (throw e)
           (when-not (:skip-lint ctx)
             (findings/reg-finding! ctx {:filename (if canonical?
@@ -646,7 +646,7 @@
     (when (and (:parallel ctx)
                (or (:analysis ctx)
                    (not (:skip-lint ctx))))
-      (parallel-analyze ctx @(:sources ctx) dev?))
+      (parallel-analyze ctx @(:sources ctx) @dev?))
     (when (and cache-dir (:dependencies ctx))
       (doseq [[mark path] @(:mark-linted ctx)]
         (let [skip-file (io/file cache-dir "skip" mark)]

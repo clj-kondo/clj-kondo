@@ -20,6 +20,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2792](https://github.com/clj-kondo/clj-kondo/issues/2792): Extract var definitions from AOT-only jars to eliminate false-positive unresolved-symbol/unresolved-var warnings
+- [#2579](https://github.com/clj-kondo/clj-kondo/issues/2579): avoid redundant config merge when switching namespaces
+- [#1878](https://github.com/clj-kondo/clj-kondo/issues/1878): support potemkin's `import-fn`, `import-macro`, and `import-def`
+- [#2498](https://github.com/clj-kondo/clj-kondo/issues/2498): support new potemkin `import-vars` `:refer` and `:rename` syntax
 - [#2768](https://github.com/clj-kondo/clj-kondo/issues/2768): NEW linter: `:redundant-declare` which warns when `declare` is used after a var is already defined ([@jramosg](https://github.com/jramosg))
 - Performance improvement: refactor `lint-cond-constants!` to eliminate `sexpr` usage ([@jramosg](https://github.com/jramosg))
 - [#2762](https://github.com/clj-kondo/clj-kondo/issues/2762): Fix false positive: `throw` with string in CLJS no longer warns about type mismatch ([@jramosg](https://github.com/jramosg))
@@ -27,9 +30,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Type system: Add type support for future-related functions (`future`, `future-call`, `future-done?`, `future-cancel`, `future-cancelled?`) ([@jramosg](https://github.com/jramosg))
 - [#2770](https://github.com/clj-kondo/clj-kondo/issues/2770): Fix: linter-specific ignores now correctly respect the specified linters instead of suppressing all linters for `:unused-excluded-var` and `:unresolved-excluded-var`
 - [#2773](https://github.com/clj-kondo/clj-kondo/issues/2773): Align executable path for images to be `/bin/clj-kondo` ([@harryzcy](https://github.com/harryzcy))
-- [#2779](https://github.com/clj-kondo/clj-kondo/issues/2779), [#2780](https://github.com/clj-kondo/clj-kondo/issues/2780), [#2781](https://github.com/clj-kondo/clj-kondo/issues/2781), [#2782](https://github.com/clj-kondo/clj-kondo/issues/2782), [#2783](https://github.com/clj-kondo/clj-kondo/issues/2783), [#2785](https://github.com/clj-kondo/clj-kondo/issues/2785), [#2786](https://github.com/clj-kondo/clj-kondo/issues/2786), [#2794](https://github.com/clj-kondo/clj-kondo/issues/2794): Performance optimizations.
+- [#2779](https://github.com/clj-kondo/clj-kondo/issues/2779), [#2780](https://github.com/clj-kondo/clj-kondo/issues/2780), [#2781](https://github.com/clj-kondo/clj-kondo/issues/2781), [#2782](https://github.com/clj-kondo/clj-kondo/issues/2782), [#2783](https://github.com/clj-kondo/clj-kondo/issues/2783), [#2785](https://github.com/clj-kondo/clj-kondo/issues/2785), [#2786](https://github.com/clj-kondo/clj-kondo/issues/2786), [#2794](https://github.com/clj-kondo/clj-kondo/issues/2794), [#2800](https://github.com/clj-kondo/clj-kondo/issues/2800), [#2801](https://github.com/clj-kondo/clj-kondo/issues/2801): Performance optimizations.
 - Performance: cache hook-fn lookups to avoid repeated SCI evaluation
 - [#2621](https://github.com/clj-kondo/clj-kondo/issues/2621): load imports from symlinked config dir ([@walterl](https://github.com/walterl))
+- [#2798](https://github.com/clj-kondo/clj-kondo/issues/2798): report correct filename and error details when `StackOverflowError` occurs during analysis
 
 
 ## 2026.01.19
