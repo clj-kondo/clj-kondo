@@ -2799,17 +2799,77 @@ foo"))))
 (deftest import-vars-test
   (assert-submaps
    '({:file "corpus/import_vars.clj",
-      :row 23,
+      :row 45,
       :col 1,
       :level :error,
       :message "clojure.walk/prewalk is called with 0 args but expects 2"}
      {:file "corpus/import_vars.clj",
-      :row 24,
+      :row 46,
+      :col 1,
+      :level :error,
+      :message "app.core/foo is called with 0 args but expects 1"}
+     {:file "corpus/import_vars.clj",
+      :row 47,
+      :col 1,
+      :level :error,
+      :message "clojure.walk/prewalk is called with 0 args but expects 2"}
+     {:file "corpus/import_vars.clj",
+      :row 48,
+      :col 1,
+      :level :error,
+      :message "app.core/foo is called with 0 args but expects 1"}
+     {:file "corpus/import_vars.clj",
+      :row 49,
       :col 1,
       :level :error,
       :message "app.core/foo is called with 0 args but expects 1"})
    (lint! (io/file "corpus" "import_vars.clj")
           {:linters {:unresolved-symbol {:level :error}}}))
+  (testing "import-vars with :refer syntax works"
+    (is (empty? (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-vars]]))
+(import-vars [app.core :refer [foo]])
+(ns consumer (:require [app.api]))
+(app.api/foo 1)"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "import-vars with :refer :rename syntax works"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 5,
+        :col 1,
+        :level :error,
+        :message "app.core/foo is called with 0 args but expects 1"})
+     (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-vars]]))
+(import-vars [app.core :refer [foo] :rename {foo my-foo}])
+(my-foo)"
+            {:linters {:unresolved-symbol {:level :error}}}))
+    (is (empty? (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-vars]]))
+(import-vars [app.core :refer [foo] :rename {foo my-foo}])
+(ns consumer (:require [app.api]))
+(app.api/my-foo 1)"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "import-vars with :refer syntax works when using cache"
+    (when (.exists (io/file ".clj-kondo"))
+      (rename-path ".clj-kondo" ".clj-kondo.bak"))
+    (make-dirs ".clj-kondo")
+    (lint! "(ns app.core) (defn foo [])" "--cache")
+    (lint! "(ns app.api (:require [potemkin :refer [import-vars]]))
+            (import-vars [app.core :refer [foo]])"
+           "--cache")
+    (assert-submaps '({:file "<stdin>",
+                       :row 1,
+                       :col 49,
+                       :level :error,
+                       :message "app.core/foo is called with 1 arg but expects 0"})
+                    (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo 1)" "--cache"))
+    (remove-dir ".clj-kondo")
+    (when (.exists (io/file ".clj-kondo.bak"))
+      (rename-path ".clj-kondo.bak" ".clj-kondo")))
   (testing "import-vars with vector works when using cache"
     (when (.exists (io/file ".clj-kondo"))
       (rename-path ".clj-kondo" ".clj-kondo.bak"))
@@ -2919,6 +2979,72 @@ foo/baz
   (is (empty? (lint! "
 (ns foo (:require [bar])) (require '[potemkin]) (potemkin/import-vars [bar x])
 (ns bar (:require [foo] [potemkin])) (potemkin/import-vars [foo x])"))))
+
+(deftest import-fn-test
+  (testing "import-fn checks arity"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 6,
+        :col 1,
+        :level :error,
+        :message "app.core/foo is called with 0 args but expects 1"})
+     (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-fn]]))
+(import-fn app.core/foo)
+(ns consumer (:require [app.api]))
+(app.api/foo)
+(app.api/foo 1)"
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "import-fn with rename"
+    (assert-submaps
+     '({:file "<stdin>",
+        :row 6,
+        :col 1,
+        :level :error,
+        :message "app.core/foo is called with 0 args but expects 1"})
+     (lint! "
+(ns app.core) (defn foo [_x])
+(ns app.api (:require [app.core] [potemkin :refer [import-fn]]))
+(import-fn app.core/foo my-foo)
+(ns consumer (:require [app.api]))
+(app.api/my-foo)
+(app.api/my-foo 1)"
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "import-macro works"
+    (is (empty? (lint! "
+(ns app.core) (defmacro my-macro [_body])
+(ns app.api (:require [app.core] [potemkin :refer [import-macro]]))
+(import-macro app.core/my-macro)
+(ns consumer (:require [app.api]))
+(app.api/my-macro 1)"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "import-def works"
+    (is (empty? (lint! "
+(ns app.core) (def my-var 42)
+(ns app.api (:require [app.core] [potemkin :refer [import-def]]))
+(import-def app.core/my-var)
+(ns consumer (:require [app.api]))
+app.api/my-var"
+                       {:linters {:unresolved-symbol {:level :error}
+                                  :unresolved-var {:level :error}}}))))
+  (testing "import-fn with cache"
+    (when (.exists (io/file ".clj-kondo"))
+      (rename-path ".clj-kondo" ".clj-kondo.bak"))
+    (make-dirs ".clj-kondo")
+    (lint! "(ns app.core) (defn foo [_x])" "--cache")
+    (lint! "(ns app.api (:require [potemkin :refer [import-fn]]))
+            (import-fn app.core/foo)"
+           "--cache")
+    (assert-submaps '({:file "<stdin>",
+                       :row 1,
+                       :col 49,
+                       :level :error,
+                       :message "app.core/foo is called with 0 args but expects 1"})
+                    (lint! "(ns consumer (:require [app.api :refer [foo]])) (foo)" "--cache"))
+    (remove-dir ".clj-kondo")
+    (when (.exists (io/file ".clj-kondo.bak"))
+      (rename-path ".clj-kondo.bak" ".clj-kondo"))))
 
 (deftest dir-with-source-extension-test
   (testing "analyses source in dir with source extension"
