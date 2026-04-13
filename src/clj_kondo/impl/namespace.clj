@@ -643,7 +643,7 @@
              (get-in call-config [:linters :discouraged-var])]
     (when-not (or (identical? :off (:level discouraged-var-config))
                   (and (:level discouraged-var-config)
-                       (= (count discouraged-var-config) 1)))
+                       (= 1 (count discouraged-var-config))))
       (let [lint-var
             (fn [ns-name]
               (let [fn-lookup-sym (symbol (str ns-name) (str fn-name))]
