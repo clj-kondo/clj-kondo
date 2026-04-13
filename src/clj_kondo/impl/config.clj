@@ -263,7 +263,7 @@
                                 :filename (:filename utils/*ctx*)})
         nil)))
 
-(defn only-fq-syms
+(defn only-fq-syms-eduction
   "Return an eduction of only fully qualified symbols."
   [fq-syms]
   (utils/eduction
@@ -284,7 +284,7 @@
 (defn skip-args
   ([config linter]
    (some-> (get-in config [:linters linter :skip-args])
-           (only-fq-syms))))
+           (only-fq-syms-eduction))))
 
 (defn skip?
   "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
