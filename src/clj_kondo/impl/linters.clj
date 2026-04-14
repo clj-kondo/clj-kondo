@@ -168,11 +168,11 @@
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
-       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
+                             [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))
           (lint-if-nil-return ctx (:expr call)))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
-       [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
+                             [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       nil)
 
@@ -1107,35 +1107,36 @@
              ctx
              (-> m
                  (dissoc :impl-fixed-arities :impl-varargs-min-arity)
-                 (assoc  :type :protocol-method-arity-mismatch
-                         :filename (:filename ns)
-                         :message (format protocol-method-arity-msg
-                                          impl-method impl-arity
-                                          (str/join ", " (sort allowed)))))))
+                 (assoc :type :protocol-method-arity-mismatch
+                        :filename (:filename ns)
+                        :message (format protocol-method-arity-msg
+                                         impl-method impl-arity
+                                         (str/join ", " (sort allowed)))))))
           ;; missing arity: protocol declares an arity not implemented
-          (let [impl-arities-by-method
-                (reduce (fn [acc m]
-                          (let [mname (symbol (name m))
-                                {:keys [impl-fixed-arities impl-varargs-min-arity]} (meta m)]
-                            (if impl-varargs-min-arity
-                              (assoc acc mname :varargs)
-                              (update acc mname (fnil into #{}) impl-fixed-arities))))
-                        {} protocol-methods)]
-            (doseq [[method-name declared-arities] method-arities
-                    :let [impl (get impl-arities-by-method method-name)
-                          missing (when (and impl (not= impl :varargs))
-                                    (sort (set/difference declared-arities impl)))]
-                    :when (seq missing)]
-              (findings/reg-finding!
-               ctx
-               (assoc protocol-impl
-                      :type :missing-protocol-method-arity
-                      :filename (:filename ns)
-                      :message (if (= 1 (count missing))
-                                 (format "Protocol method %s arity %d is not implemented"
-                                         method-name (first missing))
-                                 (format "Protocol method %s arities %s are not implemented"
-                                         method-name (str/join ", " missing))))))))))))
+          (when-not (utils/linter-disabled? ctx :missing-protocol-method-arity)
+            (let [impl-arities-by-method
+                  (reduce (fn [acc m]
+                            (let [mname (symbol (name m))
+                                  {:keys [impl-fixed-arities impl-varargs-min-arity]} (meta m)]
+                              (if impl-varargs-min-arity
+                                (assoc acc mname :varargs)
+                                (update acc mname (fnil into #{}) impl-fixed-arities))))
+                          {} protocol-methods)]
+              (doseq [[method-name declared-arities] method-arities
+                      :let [impl (get impl-arities-by-method method-name)
+                            missing (when (and impl (not= impl :varargs))
+                                      (sort (set/difference declared-arities impl)))]
+                      :when (seq missing)]
+                (findings/reg-finding!
+                 ctx
+                 (assoc protocol-impl
+                        :type :missing-protocol-method-arity
+                        :filename (:filename ns)
+                        :message (if (= 1 (count missing))
+                                   (format "Protocol method %s arity %d is not implemented"
+                                           method-name (first missing))
+                                   (format "Protocol method %s arities %s are not implemented"
+                                           method-name (str/join ", " missing)))))))))))))
 
 ;;;; scratch
 
