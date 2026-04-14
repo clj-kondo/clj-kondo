@@ -1073,7 +1073,8 @@
           :let [ns-config (:config ns)
                 ctx (if ns-config (assoc ctx :config ns-config)
                         ctx)
-                ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
+                ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))
+                missing-arity-disabled? (utils/linter-disabled? ctx :missing-protocol-method-arity)]
           protocol-impl (:protocol-impls ns)
           :let [protocol-methods (:methods protocol-impl)
                 protocol-ns (:protocol-ns protocol-impl)
@@ -1113,7 +1114,7 @@
                                          impl-method impl-arity
                                          (str/join ", " (sort allowed)))))))
           ;; missing arity: protocol declares an arity not implemented
-          (when-not (utils/linter-disabled? ctx :missing-protocol-method-arity)
+          (when-not missing-arity-disabled?
             (let [impl-arities-by-method
                   (reduce (fn [acc m]
                             (let [mname (symbol (name m))
