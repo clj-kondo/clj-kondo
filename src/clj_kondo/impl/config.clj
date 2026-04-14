@@ -190,7 +190,7 @@
               :do-template {:level :warning}
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
-              :unimplemented-protocol-method-arity {:level :warning}
+              :protocol-method-arity-mismatch {:level :warning}
               :locking-suspicious-lock {:level :warning}
               :destructured-or-always-evaluates {:level :off}
               :unquote-not-syntax-quoted {:level :warning}}

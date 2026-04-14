@@ -74,7 +74,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing map value](#missing-map-value)
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
-    - [Unimplemented protocol method arity](#unimplemented-protocol-method-arity)
+    - [Protocol method arity mismatch](#protocol-method-arity-mismatch)
     - [Missing test assertion](#missing-test-assertion)
     - [Is message not string](#is-message-not-string)
     - [Namespace name mismatch](#namespace-name-mismatch)
@@ -1367,9 +1367,9 @@ misses a value.
 
 *Example message:* `Missing protocol method(s): bar`.
 
-### Unimplemented protocol method arity
+### Protocol method arity mismatch
 
-*Keyword:* `:unimplemented-protocol-method-arity`.
+*Keyword:* `:protocol-method-arity-mismatch`.
 
 *Description:* warn when a protocol method is implemented with an arity that doesn't match any arity declared in the protocol.
 

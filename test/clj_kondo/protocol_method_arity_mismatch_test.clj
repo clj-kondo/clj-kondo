@@ -1,4 +1,4 @@
-(ns clj-kondo.unimplemented-protocol-method-arity-test
+(ns clj-kondo.protocol-method-arity-mismatch-test
   (:require [babashka.fs :as fs]
             [clj-kondo.test-utils :refer [lint! assert-submaps2]]
             [clojure.test :refer [deftest is testing]]))
@@ -142,6 +142,34 @@
   (foo [x] :ok)
   (bar [x] :ok))")))))
 
+(deftest multi-body-wrong-arity-test
+  (testing "multi-body method impl with wrong arity"
+    (assert-submaps2
+     '({:file "<stdin>", :row 9, :col 4, :level :warning,
+        :message "Protocol method bar is implemented with arity 4, expected one of: (1 2 3)"})
+     (lint! "(ns test.foo)
+
+(defprotocol P
+  (foo [a])
+  (bar [a] [a b] [a b c]))
+
+(reify P
+  (foo [this] :ok)
+  (bar ([this] :ok)
+       ([this x] :ok)
+       ([this x y z] :wrong)))")))
+  (testing "multi-body method impl all correct"
+    (is (empty?
+         (lint! "(ns test.foo)
+
+(defprotocol P
+  (bar [a] [a b] [a b c]))
+
+(reify P
+  (bar ([this] :ok)
+       ([this x] :ok)
+       ([this x y] :ok)))")))))
+
 (deftest definterface-wrong-arity-test
   (testing "definterface method implemented with wrong arity"
     (assert-submaps2
@@ -181,7 +209,7 @@
 (deftype T []
   P
   (foo [x y] :wrong-arity))"
-               {:linters {:unimplemented-protocol-method-arity {:level :off}}})))))
+               {:linters {:protocol-method-arity-mismatch {:level :off}}})))))
 
 (deftest config-in-ns-test
   (testing "linter can be disabled via config-in-ns"
@@ -194,7 +222,7 @@
 (deftype T []
   P
   (foo [x y] :wrong-arity))"
-               '{:config-in-ns {repro {:linters {:unimplemented-protocol-method-arity {:level :off}}}}})))))
+               '{:config-in-ns {repro {:linters {:protocol-method-arity-mismatch {:level :off}}}}})))))
 
 (deftest cross-file-cache-test
   (testing "arity check works across files via cache"

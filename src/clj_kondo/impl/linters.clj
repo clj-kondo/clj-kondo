@@ -13,7 +13,7 @@
    [clojure.set :as set]
    [clojure.string :as str]))
 
-(def ^:private protocol-method-arity-msg 
+(def ^:private protocol-method-arity-msg
   "Protocol method %s is implemented with arity %d, expected one of: %s")
 
 (set! *warn-on-reflection* true)
@@ -1107,7 +1107,7 @@
              ctx
              (-> m
                  (dissoc :impl-fixed-arities :impl-varargs-min-arity)
-                 (assoc  :type :unimplemented-protocol-method-arity
+                 (assoc  :type :protocol-method-arity-mismatch
                          :filename (:filename ns)
                          :message (format protocol-method-arity-msg
                                           impl-method impl-arity
