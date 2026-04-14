@@ -1141,7 +1141,7 @@
                           {} protocol-methods)]
               (doseq [[method-name declared-arities] method-arities
                       :let [impl (get impl-arities-by-method method-name)
-                            missing (when (and impl (not= impl :varargs))
+                            missing (when (and impl (not= :varargs impl))
                                       (sort (set/difference declared-arities impl)))]
                       :when (seq missing)]
                 (findings/reg-finding!
