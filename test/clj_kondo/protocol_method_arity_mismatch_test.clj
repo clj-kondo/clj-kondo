@@ -280,6 +280,29 @@
   (foo [x y] :wrong-arity))"
                '{:config-in-ns {repro {:linters {:protocol-method-arity-mismatch {:level :off}}}}})))))
 
+(deftest ignore-test
+  (testing "#_:clj-kondo/ignore on top-level form ignores wrong arity"
+    (is (empty?
+         (lint! "(ns test.foo)
+(defprotocol P (bar [a]))
+#_:clj-kondo/ignore
+(deftype T [] P (bar [this x y] :wrong))"))))
+  (testing "targeted ignore on the protocol method form ignores wrong arity"
+    (is (empty?
+         (lint! "(ns test.foo)
+(defprotocol P (bar [a]))
+(deftype T []
+  P
+  #_{:clj-kondo/ignore [:protocol-method-arity-mismatch]}
+  (bar [this x y] :wrong))"))))
+  (testing "#_:clj-kondo/ignore on top-level form ignores missing arity"
+    (is (empty?
+         (lint! "(ns test.foo)
+(defprotocol P (bar [a] [a b] [a b c]))
+#_:clj-kondo/ignore
+(deftype T [] P (bar [this] :ok))"
+                {:linters {:missing-protocol-method-arity {:level :warning}}})))))
+
 (deftest cross-file-cache-test
   (testing "arity check works across files via cache"
     (fs/with-temp-dir [tmp {}]
