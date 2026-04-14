@@ -977,6 +977,7 @@
               ;; zero or one children
               (< (count (rest (:children expr))) 2)
               (and core?
+                   (not (:condition expr))
                    (not (:clj-kondo.impl/generated (meta parent-call)))
                    (or
                     ;; explicit do
@@ -1999,10 +2000,10 @@
   (let [children (next (:children expr))
         condition (first children)
         body (next children)]
-    (analyze-condition
-     ;; avoid redundant do check for condition
-     (update ctx :callstack conj nil)
-     condition)
+    ;; analyze-condition marks the condition node with :condition true, which
+    ;; analyze-do / unused-value consult to avoid treating the test as an
+    ;; implicit-do body of when/when-not.
+    (analyze-condition ctx condition)
     (if-not (seq body)
       (findings/reg-finding!
        ctx
@@ -2202,6 +2203,7 @@
                                          :expr (when-not (:dependencies ctx) expr)
                                          :simple? (simple-symbol? fsym)
                                          :callstack (:callstack ctx)
+                                         :condition (:condition expr)
                                          :config (:config ctx)
                                          :top-ns (:top-ns ctx)
                                          ;; :arg-types (:arg-types ctx)
@@ -2655,6 +2657,7 @@
                                     :expr (when-not dependencies expr)
                                     :simple? (simple-symbol? full-fn-name)
                                     :callstack (:callstack ctx)
+                                    :condition (:condition expr)
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
                                     :arg-types arg-types
@@ -2987,6 +2990,7 @@
                                         :filename (:filename ctx)
                                         :expr (when-not dependencies expr)
                                         :callstack (:callstack ctx)
+                                        :condition (:condition expr)
                                         :config (:config ctx)
                                         :top-ns (:top-ns ctx)
                                         :arg-types (:arg-types ctx)
@@ -3175,6 +3179,7 @@
             generated? (:clj-kondo.impl/generated expr)
             redundant?
             (and (not generated?)
+                 (not (:condition expr))
                  core?
                  (not (:clj-kondo.impl/generated (meta parent-call)))
                  (one-of core-sym [do fn defn defn-

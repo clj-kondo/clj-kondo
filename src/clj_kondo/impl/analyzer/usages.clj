@@ -284,6 +284,7 @@
                              generated? (:clj-kondo.impl/generated expr)
                              redundant?
                              (and (not generated?)
+                                  (not (:condition expr))
                                   core?
                                   (not (:clj-kondo.impl/generated (meta parent-call)))
                                   (one-of core-sym [do fn fn* defn defn-
@@ -309,6 +310,7 @@
                              generated? (:clj-kondo.impl/generated expr)
                              redundant?
                              (and (not generated?)
+                                  (not (:condition expr))
                                   (or core? test?)
                                   (not (:clj-kondo.impl/generated (meta parent-call)))
                                   (if core?
