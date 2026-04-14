@@ -14,7 +14,7 @@
    [clojure.string :as str]))
 
 (def ^:private protocol-method-arity-msg
-  "Protocol method %s is implemented with arity %d, expected one of: %s")
+  "Protocol method %s is implemented with arity %d but expects %s")
 
 (set! *warn-on-reflection* true)
 
@@ -1111,7 +1111,31 @@
                          :filename (:filename ns)
                          :message (format protocol-method-arity-msg
                                           impl-method impl-arity
-                                          (sort allowed)))))))))))
+                                          (str/join ", " (sort allowed)))))))
+          ;; missing arity: protocol declares an arity not implemented
+          (let [impl-arities-by-method
+                (reduce (fn [acc m]
+                          (let [mname (symbol (name m))
+                                {:keys [impl-fixed-arities impl-varargs-min-arity]} (meta m)]
+                            (if impl-varargs-min-arity
+                              (assoc acc mname :varargs)
+                              (update acc mname (fnil into #{}) impl-fixed-arities))))
+                        {} protocol-methods)]
+            (doseq [[method-name declared-arities] method-arities
+                    :let [impl (get impl-arities-by-method method-name)
+                          missing (when (and impl (not= impl :varargs))
+                                    (sort (set/difference declared-arities impl)))]
+                    :when (seq missing)]
+              (findings/reg-finding!
+               ctx
+               (assoc protocol-impl
+                      :type :protocol-method-arity-mismatch
+                      :filename (:filename ns)
+                      :message (if (= 1 (count missing))
+                                 (format "Protocol method %s arity %d is not implemented"
+                                         method-name (first missing))
+                                 (format "Protocol method %s arities %s are not implemented"
+                                         method-name (str/join ", " missing))))))))))))
 
 ;;;; scratch
 

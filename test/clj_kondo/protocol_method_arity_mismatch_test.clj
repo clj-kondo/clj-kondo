@@ -6,10 +6,14 @@
 (deftest deftype-wrong-arity-test
   (testing "deftype method implemented with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 9, :col 4, :level :warning,
-        :message "Protocol method bar is implemented with arity 1, expected one of: (2)"}
+     '({:level :warning,
+        :message "Protocol method bar arity 2 is not implemented"}
+       {:level :warning,
+        :message "Protocol method baz arities 2, 3 are not implemented"}
+       {:file "<stdin>", :row 9, :col 4, :level :warning,
+        :message "Protocol method bar is implemented with arity 1 but expects 2"}
        {:file "<stdin>", :row 11, :col 4, :level :warning,
-        :message "Protocol method baz is implemented with arity 4, expected one of: (1 2 3)"})
+        :message "Protocol method baz is implemented with arity 4 but expects 1, 2, 3"})
      (lint! "(ns test.foo)
 
 (defprotocol AProtocol
@@ -25,10 +29,14 @@
 (deftest defrecord-wrong-arity-test
   (testing "defrecord method implemented with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 9, :col 4, :level :warning,
-        :message "Protocol method foo is implemented with arity 2, expected one of: (1)"}
+     '({:level :warning,
+        :message "Protocol method bar arity 2 is not implemented"}
+       {:level :warning,
+        :message "Protocol method foo arity 1 is not implemented"}
+       {:file "<stdin>", :row 9, :col 4, :level :warning,
+        :message "Protocol method foo is implemented with arity 2 but expects 1"}
        {:file "<stdin>", :row 11, :col 4, :level :warning,
-        :message "Protocol method bar is implemented with arity 3, expected one of: (1 2)"})
+        :message "Protocol method bar is implemented with arity 3 but expects 1, 2"})
      (lint! "(ns test.foo)
 
 (defprotocol P
@@ -44,8 +52,10 @@
 (deftest reify-wrong-arity-test
   (testing "reify method implemented with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 8, :col 4, :level :warning,
-        :message "Protocol method foo is implemented with arity 2, expected one of: (1)"})
+     '({:level :warning,
+        :message "Protocol method foo arity 1 is not implemented"}
+       {:file "<stdin>", :row 8, :col 4, :level :warning,
+        :message "Protocol method foo is implemented with arity 2 but expects 1"})
      (lint! "(ns test.foo)
 
 (defprotocol P
@@ -60,8 +70,10 @@
 (deftest reify-inside-let-test
   (testing "reify inside a let with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 10, :col 6, :level :warning,
-        :message "Protocol method bar is implemented with arity 3, expected one of: (1 2)"})
+     '({:level :warning,
+        :message "Protocol method bar arities 1, 2 are not implemented"}
+       {:file "<stdin>", :row 10, :col 6, :level :warning,
+        :message "Protocol method bar is implemented with arity 3 but expects 1, 2"})
      (lint! "(ns test.foo)
 
 (defprotocol P
@@ -76,8 +88,12 @@
 (deftest extend-protocol-wrong-arity-test
   (testing "extend-protocol method implemented with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 9, :col 4, :level :warning,
-        :message "Protocol method foo is implemented with arity 2, expected one of: (1)"})
+     '({:level :warning,
+        :message "Protocol method bar arity 2 is not implemented"}
+       {:level :warning,
+        :message "Protocol method foo arity 1 is not implemented"}
+       {:file "<stdin>", :row 9, :col 4, :level :warning,
+        :message "Protocol method foo is implemented with arity 2 but expects 1"})
      (lint! "(ns test.foo)
 
 (defprotocol P
@@ -92,8 +108,10 @@
 (deftest extend-type-wrong-arity-test
   (testing "extend-type method implemented with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 10, :col 4, :level :warning,
-        :message "Protocol method bar is implemented with arity 3, expected one of: (1 2)"})
+     '({:level :warning,
+        :message "Protocol method bar arities 1, 2 are not implemented"}
+       {:file "<stdin>", :row 10, :col 4, :level :warning,
+        :message "Protocol method bar is implemented with arity 3 but expects 1, 2"})
      (lint! "(ns test.foo)
 
 (defprotocol P
@@ -124,29 +142,37 @@
 (deftype T []
   P
   (foo [x] :ok)
-  (bar [x] :ok))
+  (bar [x] :ok)
+  (bar [x y] :ok)
+  (bar [x y z] :ok))
 
 (reify P
   (foo [this] :ok)
   (bar [this] :ok)
-  (bar [this x] :ok))
+  (bar [this x] :ok)
+  (bar [this x y] :ok))
 
 (extend-protocol P
   String
   (foo [x] :ok)
   (bar [x] :ok)
-  (bar [x y] :ok))
+  (bar [x y] :ok)
+  (bar [x y z] :ok))
 
 (extend-type Number
   P
   (foo [x] :ok)
-  (bar [x] :ok))")))))
+  (bar [x] :ok)
+  (bar [x y] :ok)
+  (bar [x y z] :ok))")))))
 
 (deftest multi-body-wrong-arity-test
   (testing "multi-body method impl with wrong arity"
     (assert-submaps2
-     '({:file "<stdin>", :row 9, :col 4, :level :warning,
-        :message "Protocol method bar is implemented with arity 4, expected one of: (1 2 3)"})
+     '({:level :warning,
+        :message "Protocol method bar arity 3 is not implemented"}
+       {:file "<stdin>", :row 9, :col 4, :level :warning,
+        :message "Protocol method bar is implemented with arity 4 but expects 1, 2, 3"})
      (lint! "(ns test.foo)
 
 (defprotocol P
@@ -170,11 +196,50 @@
        ([this x] :ok)
        ([this x y] :ok)))")))))
 
+(deftest missing-arity-test
+  (testing "warns when protocol arity is not implemented"
+    (assert-submaps2
+     '({:level :warning,
+        :message "Protocol method bar arities 2, 3 are not implemented"})
+     (lint! "(ns test.foo)
+
+(defprotocol P
+  (bar [a] [a b] [a b c]))
+
+(deftype T []
+  P
+  (bar [this] :ok))")))
+  (testing "no warning when all arities are implemented"
+    (is (empty?
+         (lint! "(ns test.foo)
+
+(defprotocol P
+  (bar [a] [a b]))
+
+(deftype T []
+  P
+  (bar [this] :ok)
+  (bar [this x] :ok))"))))
+  (testing "no warning for entirely missing method (covered by missing-protocol-method)"
+    (is (empty?
+         (lint! "(ns test.foo)
+
+(defprotocol P
+  (foo [a])
+  (bar [a] [a b]))
+
+(deftype T []
+  P
+  (foo [this] :ok))"
+               {:linters {:missing-protocol-method {:level :off}}})))))
+
 (deftest definterface-wrong-arity-test
   (testing "definterface method implemented with wrong arity"
     (assert-submaps2
      '({:level :warning,
-        :message "Protocol method foo is implemented with arity 1, expected one of: (2)"})
+        :message "Protocol method foo arity 2 is not implemented"}
+       {:level :warning,
+        :message "Protocol method foo is implemented with arity 1 but expects 2"})
      (lint! "(ns test.foo)
 
 (definterface IFoo
@@ -234,5 +299,7 @@
             "(ns impl (:require [proto])) (deftype T [] proto/P (foo [this extra] :wrong))")
       (assert-submaps2
        '({:level :warning
-          :message "Protocol method foo is implemented with arity 2, expected one of: (1)"})
+          :message "Protocol method foo arity 1 is not implemented"}
+         {:level :warning
+          :message "Protocol method foo is implemented with arity 2 but expects 1"})
        (lint! (fs/file tmp "impl.clj") "--cache" (str tmp))))))

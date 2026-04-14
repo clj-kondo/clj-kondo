@@ -1389,7 +1389,8 @@ misses a value.
   (baz [x y z w] 0))      ;; wrong: baz does not accept arity 4
 ```
 
-*Example message:* `Protocol method bar is implemented with arity 1, expected one of: (2)`.
+*Example message:* `Protocol method bar is implemented with arity 1 but expects 2`.\
+*Example message:* `Protocol method baz is implemented with arity 4 but expects 1, 2, 3`.
 
 ### Missing test assertion
 
