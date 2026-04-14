@@ -101,22 +101,3 @@ Library-specific analysis: core.async, re-frame, spec, potemkin, datalog, compoj
 3. Create PR with minimal changes
 4. Tests are required for all changes
 5. Don't force-push on PR branches (will be squashed on merge)
-
-# Clojure REPL Evaluation
-
-The command `clj-nrepl-eval` is installed on your path for evaluating Clojure code via nREPL.
-
-**Discover nREPL servers:**
-
-`clj-nrepl-eval --discover-ports`
-
-**Evaluate code:**
-
-`clj-nrepl-eval -p <port> "<clojure-code>"`
-
-With timeout (milliseconds)
-
-`clj-nrepl-eval -p <port> --timeout 5000 "<clojure-code>"`
-
-The REPL session persists between evaluations - namespaces and state are maintained.
-Always use `:reload` when requiring namespaces to pick up changes.

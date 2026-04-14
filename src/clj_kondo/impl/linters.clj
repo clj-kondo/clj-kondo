@@ -180,6 +180,21 @@
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call))
       (lint-if-nil-return ctx (:expr call)))
+    (when (and (= 'nil? called-name)
+               (utils/one-of called-ns [clojure.core cljs.core])
+               (not (utils/linter-disabled? ctx :not-nil?)))
+      (when-let [msg (case (second (:callstack call))
+                       ([clojure.core not] [cljs.core not])
+                       "Use (some? x) instead of (not (nil? x))"
+                       ([clojure.core when-not] [cljs.core when-not])
+                       "Use (when (some? x) ...) instead of (when-not (nil? x) ...)"
+                       ([clojure.core if-not] [cljs.core if-not])
+                       "Use (if (some? x) ...) instead of (if-not (nil? x) ...)"
+                       nil)]
+        (findings/reg-finding! ctx
+                               (assoc (utils/location call)
+                                      :type :not-nil?
+                                      :message msg))))
     (when (contains? var-info/unused-values
                      (symbol (let [cns (str called-ns)]
                                (if (= "cljs.core" cns) "clojure.core" cns))
@@ -635,6 +650,7 @@
                                    (second parent-call))
                         unused?
                         (and (not (:clj-kondo.impl/generated (meta (first cs))))
+                             (not (:condition call))
                              (or (and core?
                                       (or
                                        ;; doseq always return nil

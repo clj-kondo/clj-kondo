@@ -82,6 +82,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
     - [Not empty?](#not-empty)
+    - [Not nil?](#not-nil)
     - [Plus one](#plus-one)
     - [Private call](#private-call)
     - [Protocol method varargs](#protocol-method-varargs)
@@ -1522,6 +1523,34 @@ Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more b
 *Example trigger:* `(not (empty? []))`
 
 *Example message:* `use the idiom (seq x) rather than (not (empty? x))`.
+
+### Not nil?
+
+*Keyword:* `:not-nil?`
+
+*Description:* warn on `(not (nil? x))` and suggest `(some? x)` instead. Also detects `(when-not (nil? x) ...)` and `(if-not (nil? x) ...)` patterns.
+
+*Default level:* `:off`
+
+*Example triggers:*
+
+```clojure
+(not (nil? x))
+(when-not (nil? x) :foo)
+(if-not (nil? x) :foo :bar)
+```
+
+*Example messages:*
+
+- `Use (some? x) instead of (not (nil? x))`
+- `Use (when (some? x) ...) instead of (when-not (nil? x) ...)`
+- `Use (if (some? x) ...) instead of (if-not (nil? x) ...)`
+
+*Config:*
+
+```clojure
+{:linters {:not-nil? {:level :warning}}}
+```
 
 ### Plus one
 

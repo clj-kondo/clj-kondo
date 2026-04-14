@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2788](https://github.com/clj-kondo/clj-kondo/issues/2788): NEW linter: `:not-nil?` which suggests `(some? x)` instead of `(not (nil? x))`, and similar patterns with `when-not` and `if-not` (default level: `:off`)
 - [#2520](https://github.com/clj-kondo/clj-kondo/issues/2520): NEW linter: `:protocol-method-arity-mismatch` which warns when a protocol method is implemented with an arity that doesn't match any arity declared in the protocol ([@jramosg](https://github.com/jramosg))
 - [#2520](https://github.com/clj-kondo/clj-kondo/issues/2520): NEW linter: `:missing-protocol-method-arity` (off by default) which warns when a protocol method is implemented but not all declared arities are covered
 - [#2579](https://github.com/clj-kondo/clj-kondo/issues/2579): avoid redundant config merge when switching namespaces
