@@ -27483,7 +27483,7 @@
   :langs (),
   :message "Prefer placing return type hint on arg vector: String",
   :row 38}
- {:end-row 77,
+ {:end-row 75,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27492,8 +27492,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding opts",
-  :row 77}
- {:end-row 123,
+  :row 75}
+ {:end-row 121,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27502,8 +27502,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding backslash",
-  :row 123}
- {:end-row 123,
+  :row 121}
+ {:end-row 121,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27512,8 +27512,8 @@
   :end-col 22,
   :langs (),
   :message "unused binding opts",
-  :row 123}
- {:end-row 167,
+  :row 121}
+ {:end-row 165,
   :type :non-arg-vec-return-type-hint,
   :level :warning,
   :filename
@@ -27523,8 +27523,8 @@
   :langs (),
   :message
   "Prefer placing return type hint on arg vector: PersistentVector",
-  :row 167}
- {:end-row 205,
+  :row 165}
+ {:end-row 203,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27533,8 +27533,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding opts",
-  :row 205}
- {:end-row 216,
+  :row 203}
+ {:end-row 214,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27543,8 +27543,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding sb",
-  :row 216}
- {:end-row 238,
+  :row 214}
+ {:end-row 236,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27553,8 +27553,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding opts",
-  :row 238}
- {:end-row 264,
+  :row 236}
+ {:end-row 262,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27563,8 +27563,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding initch",
-  :row 264}
- {:end-row 264,
+  :row 262}
+ {:end-row 262,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27573,8 +27573,8 @@
   :end-col 22,
   :langs (),
   :message "unused binding opts",
-  :row 264}
- {:end-row 278,
+  :row 262}
+ {:end-row 276,
   :type :unused-private-var,
   :level :warning,
   :filename
@@ -27584,8 +27584,8 @@
   :langs (),
   :message
   "Unused private var clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.edn/wrapping-reader",
-  :row 278}
- {:end-row 299,
+  :row 276}
+ {:end-row 297,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27594,8 +27594,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding opts",
-  :row 299}
- {:end-row 354,
+  :row 297}
+ {:end-row 352,
   :type :unused-binding,
   :level :warning,
   :filename
@@ -27604,8 +27604,8 @@
   :end-col 31,
   :langs (),
   :message "unused binding initch",
-  :row 354}
- {:end-row 358,
+  :row 352}
+ {:end-row 356,
   :type :missing-else-branch,
   :level :warning,
   :filename
@@ -27614,8 +27614,8 @@
   :end-col 68,
   :langs (),
   :message "Missing else branch.",
-  :row 357}
- {:end-row 418,
+  :row 355}
+ {:end-row 416,
   :type :missing-else-branch,
   :level :warning,
   :filename
@@ -27624,8 +27624,8 @@
   :end-col 74,
   :langs (),
   :message "Missing else branch.",
-  :row 415}
- {:end-row 425,
+  :row 413}
+ {:end-row 423,
   :type :missing-else-branch,
   :level :warning,
   :filename
@@ -27634,7 +27634,7 @@
   :end-col 70,
   :langs (),
   :message "Missing else branch.",
-  :row 422}
+  :row 420}
  {:end-row 13,
   :ns
   clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils,

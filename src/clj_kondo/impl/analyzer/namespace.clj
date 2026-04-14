@@ -553,10 +553,10 @@
                  'user)
         _ (when-not (= 'user ns-name)
             (reset! (:main-ns ctx) ns-name))
-        ns-groups (config/ns-groups ctx global-config ns-name filename)
         config-in-ns (let [config-in-ns (:config-in-ns global-config)]
                        (apply config/merge-config!
-                              (concat (map #(get config-in-ns %) ns-groups)
+                              (concat (map #(get config-in-ns %)
+                                           (config/ns-groups-eduction ctx global-config ns-name filename))
                                       [(get config-in-ns ns-name)])))
         config-in-ns (config/expand-ignore config-in-ns)
         local-config (let [{:clj-kondo/keys [config ignore]} ns-meta]
