@@ -183,22 +183,25 @@
     (when (and (= 'nil? called-name)
                (utils/one-of called-ns [clojure.core cljs.core])
                (not (utils/linter-disabled? ctx :not-nil?)))
-      (let [cs (:callstack call)
-            parent (second cs)
-            effective-parent (or parent (nth cs 2 nil))
-            reg! #(findings/reg-finding! ctx
-                                         (assoc (utils/location call)
-                                                :type :not-nil?
-                                                :message %))]
-        (cond
-          (utils/one-of parent [[clojure.core not] [cljs.core not]])
-          (reg! "Use (some? x) instead of (not (nil? x))")
-
-          (utils/one-of effective-parent [[clojure.core when-not] [cljs.core when-not]])
-          (reg! "Use (when (some? x) ...) instead of (when-not (nil? x) ...)")
-          
-          (utils/one-of parent [[clojure.core if-not] [cljs.core if-not]])
-          (reg! "Use (if (some? x) ...) instead of (if-not (nil? x) ...)"))))
+      ;; analyze-when pushes a nil callstack frame around a when/when-not
+      ;; condition (to suppress the redundant-do linter on it), so the
+      ;; enclosing when-not is not the direct parent. Skip nil / [nil _]
+      ;; frames to find the effective enclosing call.
+      (let [parent (->> (rest (:callstack call))
+                        (drop-while #(or (nil? %) (nil? (first %))))
+                        first)]
+        (when-let [msg (case parent
+                         ([clojure.core not] [cljs.core not])
+                         "Use (some? x) instead of (not (nil? x))"
+                         ([clojure.core when-not] [cljs.core when-not])
+                         "Use (when (some? x) ...) instead of (when-not (nil? x) ...)"
+                         ([clojure.core if-not] [cljs.core if-not])
+                         "Use (if (some? x) ...) instead of (if-not (nil? x) ...)"
+                         nil)]
+          (findings/reg-finding! ctx
+                                 (assoc (utils/location call)
+                                        :type :not-nil?
+                                        :message msg)))))
     (when (contains? var-info/unused-values
                      (symbol (let [cns (str called-ns)]
                                (if (= "cljs.core" cns) "clojure.core" cns))
