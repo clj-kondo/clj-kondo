@@ -191,6 +191,7 @@
               :unresolved-protocol-method {:level :warning}
               :missing-protocol-method {:level :warning}
               :protocol-method-arity-mismatch {:level :warning}
+              :missing-protocol-method-arity {:level :off}
               :locking-suspicious-lock {:level :warning}
               :destructured-or-always-evaluates {:level :off}
               :unquote-not-syntax-quoted {:level :warning}}

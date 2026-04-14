@@ -1129,7 +1129,7 @@
               (findings/reg-finding!
                ctx
                (assoc protocol-impl
-                      :type :protocol-method-arity-mismatch
+                      :type :missing-protocol-method-arity
                       :filename (:filename ns)
                       :message (if (= 1 (count missing))
                                  (format "Protocol method %s arity %d is not implemented"
