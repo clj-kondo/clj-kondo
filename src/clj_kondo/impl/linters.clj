@@ -13,6 +13,9 @@
    [clojure.set :as set]
    [clojure.string :as str]))
 
+(def ^:private protocol-method-arity-msg
+  "Protocol method %s is implemented with arity %d but expects %s")
+
 (set! *warn-on-reflection* true)
 
 (defn- condition-value [condition]
@@ -165,11 +168,11 @@
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
-       [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
+                             [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))
           (lint-if-nil-return ctx (:expr call)))
       ([clojure.core get-in] [clojure.core assoc-in] [clojure.core update-in]
-       [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
+                             [cljs.core get-in] [cljs.core assoc-in] [cljs.core update-in])
       (lint-single-key-in ctx called-name (:expr call))
       nil)
 
@@ -1070,7 +1073,8 @@
           :let [ns-config (:config ns)
                 ctx (if ns-config (assoc ctx :config ns-config)
                         ctx)
-                ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]
+                ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))
+                missing-arity-disabled? (utils/linter-disabled? ctx :missing-protocol-method-arity)]
           protocol-impl (:protocol-impls ns)
           :let [protocol-methods (:methods protocol-impl)
                 protocol-ns (:protocol-ns protocol-impl)
@@ -1079,15 +1083,61 @@
       (when-let [methods (:methods resolved)]
         (when-let [unresolved-protocol-methods (seq (remove (set methods) protocol-methods))]
           (doseq [unresolved unresolved-protocol-methods]
-            (findings/reg-finding! ctx (assoc (meta unresolved)
-                                              :type :unresolved-protocol-method
-                                              :filename (:filename ns)
-                                              :message (str "Unresolved protocol method: " unresolved)))))
+            (findings/reg-finding! ctx (-> unresolved
+                                           meta
+                                           (dissoc :impl-fixed-arities
+                                                   :impl-varargs-min-arity)
+                                           (assoc
+                                            :type :unresolved-protocol-method
+                                            :filename (:filename ns)
+                                            :message (str "Unresolved protocol method: " unresolved))))))
         (when-let [missing (seq (remove (set protocol-methods) methods))]
           (findings/reg-finding! ctx (assoc protocol-impl
                                             :type :missing-protocol-method
                                             :filename (:filename ns)
-                                            :message (str "Missing protocol method(s): " (str/join ", " missing)))))))))
+                                            :message (str "Missing protocol method(s): " (str/join ", " missing)))))
+        (when-let [method-arities (:method-arities resolved)]
+          (doseq [impl-method protocol-methods
+                  :let [{:keys [impl-fixed-arities] :as m} (meta impl-method)
+                        allowed (get method-arities impl-method)]
+                  :when (and allowed impl-fixed-arities
+                             (not (:impl-varargs-min-arity m)))
+                  impl-arity impl-fixed-arities
+                  :when (not (contains? allowed impl-arity))]
+            (findings/reg-finding!
+             ctx
+             (-> m
+                 (dissoc :impl-fixed-arities :impl-varargs-min-arity)
+                 (assoc :type :protocol-method-arity-mismatch
+                        :filename (:filename ns)
+                        :message (format protocol-method-arity-msg
+                                         impl-method impl-arity
+                                         (str/join ", " (sort allowed)))))))
+          ;; missing arity: protocol declares an arity not implemented
+          (when-not missing-arity-disabled?
+            (let [impl-arities-by-method
+                  (reduce (fn [acc m]
+                            (let [mname (symbol (name m))
+                                  {:keys [impl-fixed-arities impl-varargs-min-arity]} (meta m)]
+                              (if impl-varargs-min-arity
+                                (assoc acc mname :varargs)
+                                (update acc mname (fnil into #{}) impl-fixed-arities))))
+                          {} protocol-methods)]
+              (doseq [[method-name declared-arities] method-arities
+                      :let [impl (get impl-arities-by-method method-name)
+                            missing (when (and impl (not= impl :varargs))
+                                      (sort (set/difference declared-arities impl)))]
+                      :when (seq missing)]
+                (findings/reg-finding!
+                 ctx
+                 (assoc protocol-impl
+                        :type :missing-protocol-method-arity
+                        :filename (:filename ns)
+                        :message (if (= 1 (count missing))
+                                   (format "Protocol method %s arity %d is not implemented"
+                                           method-name (first missing))
+                                   (format "Protocol method %s arities %s are not implemented"
+                                           method-name (str/join ", " missing)))))))))))))
 
 ;;;; scratch
 

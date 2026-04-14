@@ -620,7 +620,8 @@
                                 :macro :private :deprecated
                                 :fixed-arities :varargs-min-arity
                                 :name :ns :top-ns :imported-ns :imported-var
-                                :arities :type :class :methods])))
+                                :arities :type :class :methods
+                                :method-arities])))
             vars))
 
 (defn deprecated-val [deprecated]

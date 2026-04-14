@@ -1626,7 +1626,8 @@
                               ;; skip last docstring
                               #(when (= :vector (tag %)) %))]
     (docstring/lint-docstring! ctx doc-node docstring)
-    (let [meths (for [c (next children)
+    (let [interface? (= 'clojure.core/definterface defined-by->lint-as)
+          meths (for [c (next children)
                       :when (= :list (tag c)) ;; skip first docstring
                       :let [children (:children c)
                             name-node (first children)
@@ -1680,17 +1681,21 @@
                                        :protocol-name protocol-name
                                        :defined-by defined-by
                                        :defined-by->lint-as defined-by->lint-as))
-                          (docstring/lint-docstring! ctx doc-node docstring)))
-                      fn-name))]
+                          (docstring/lint-docstring! ctx doc-node docstring)
+                          [fn-name fixed-arities]))))]
       (when protocol-name
-        (namespace/reg-var! ctx ns-name protocol-name expr
-                            (assoc-some name-meta
-                                        :user-meta (when (:analysis-var-meta ctx)
-                                                     (:user-meta name-meta))
-                                        :doc docstring
-                                        :methods (vec meths)
-                                        :defined-by defined-by
-                                        :defined-by->lint-as defined-by->lint-as))))))
+        (namespace/reg-var!
+         ctx ns-name protocol-name expr
+         (assoc-some name-meta
+                     :user-meta (when (:analysis-var-meta ctx)
+                                  (:user-meta name-meta))
+                     :doc docstring
+                     :methods (mapv first meths)
+                     :method-arities (cond-> (into {} meths)
+                                       interface?
+                                       (utils/update-vals #(set (map inc %))))
+                     :defined-by defined-by
+                     :defined-by->lint-as defined-by->lint-as))))))
 
 (defn analyze-protocol-impls [ctx defined-by defined-by->lint-as ns-name children]
   (let [def-by (name defined-by)
@@ -1774,24 +1779,31 @@
             ;; protocol-fn-name might contain metadata
             (meta/lift-meta-content2 ctx protocol-method-name)
             (utils/handle-ignore ctx c)
-            (let [children (:children c)]
-              (if (and (not protocol-fn?)
-                       (= 'Class/forName (:value (first children))))
-                (when (str/starts-with? (try (sexpr (second children))
-                                             (catch Exception _ "")) "[")
-                  (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
-                                                    :level :warning
-                                                    :message "Prefer a symbol to refer to the array class")))
-                (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
-                            (assoc c :protocol-fn protocol-fn?))))
-            (let [methods (conj methods (let [val (:value protocol-method-name)
+            (let [method-children (:children c)
+
+                  {:keys [fixed-arities varargs-min-arity]}
+                  (-> (if (and (not protocol-fn?)
+                               (= 'Class/forName (:value (first method-children))))
+                        (when (str/starts-with? (try (sexpr (second method-children))
+                                                     (catch Exception _ "")) "[")
+                          (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
+                                                            :level :warning
+                                                            :message "Prefer a symbol to refer to the array class")))
+                        (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
+                                    (assoc c :protocol-fn protocol-fn?)))
+                      meta
+                      :arity)
+
+                  methods (conj methods (let [val (:value protocol-method-name)
                                               val (if (qualified-symbol? val)
                                                     (symbol (name val))
                                                     val)]
                                           (cond-> val
                                             (symbol? val)
                                             (with-meta
-                                              (meta protocol-method-name)))))]
+                                              (assoc (meta protocol-method-name)
+                                                     :impl-fixed-arities fixed-arities
+                                                     :impl-varargs-min-arity varargs-min-arity)))))]
               (when (end? (second children))
                 (namespace/reg-protocol-impl! ctx ns-name (assoc (meta protocol-node)
                                                                  :protocol-ns protocol-ns
