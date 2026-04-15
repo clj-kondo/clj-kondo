@@ -17,7 +17,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update lein-clj-kondo -->
 <!-- - [ ] update carve -->
 
-## Unreleased
+## 2026.04.15
 
 - [#2788](https://github.com/clj-kondo/clj-kondo/issues/2788): NEW linter: `:not-nil?` which suggests `(some? x)` instead of `(not (nil? x))`, and similar patterns with `when-not` and `if-not` (default level: `:off`)
 - [#2520](https://github.com/clj-kondo/clj-kondo/issues/2520): NEW linter: `:protocol-method-arity-mismatch` which warns when a protocol method is implemented with an arity that doesn't match any arity declared in the protocol ([@jramosg](https://github.com/jramosg))
