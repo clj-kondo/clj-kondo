@@ -28,8 +28,9 @@
     :list (map-without-nils #(key-value % in-quote?) (:children node))
     :set (some-> (map-without-nils #(key-value % in-quote?) (:children node))
                  (set))
-    :map (some->> (map-without-nils #(key-value % in-quote?) (:children node))
-                  (apply hash-map))
+    :map (when (even? (count (:children node)))
+           (some->> (map-without-nils #(key-value % in-quote?) (:children node))
+                    (apply hash-map)))
     :quote (recur (first (:children node)) true)
     nil))
 

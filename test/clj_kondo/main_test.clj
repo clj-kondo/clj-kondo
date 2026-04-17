@@ -1184,7 +1184,17 @@ foo/foo ;; this does use the private var
          (lint! "(fn [x] {:post} x)")))
   (assert-submaps
    '({:row 1, :col 22, :level :error, :message "missing value for key :c"})
-   (lint! "(let [{:keys [:a :b] :c} {}] [a b])")))
+   (lint! "(let [{:keys [:a :b] :c} {}] [a b])"))
+  (testing "malformed map nested in set or map-key position reports location (issue #2811)"
+    (assert-submaps
+     '({:row 1, :col 4, :level :error, :message "missing value for key :oops"})
+     (lint! "#{{:oops}}"))
+    (assert-submaps
+     '({:row 1, :col 3, :level :error, :message "missing value for key :badkey"})
+     (lint! "{{:badkey} 123}"))
+    (assert-submaps
+     '({:row 1, :col 7, :level :error, :message "missing value for key :badval"})
+     (lint! "{123 {:badval}}"))))
 
 (deftest set-duplicate-keys-test
   (is (= '({:file "<stdin>",
