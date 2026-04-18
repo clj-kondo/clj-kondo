@@ -254,6 +254,35 @@
   (foo [this x] a)
   (bar [this] a))")))))
 
+(deftest definterface-overloaded-method-test
+  (testing "no warning when definterface declares the same method with multiple arities (#2814)"
+    (is (empty?
+         (lint! "(ns test.foo)
+
+(definterface IStore
+  (put [_v])
+  (put [_k _v]))
+
+(deftype Store []
+  IStore
+  (put [_this _object] nil)
+  (put [_this _k _object] nil))"))))
+  (testing "wrong arity is still detected when definterface overloads a method"
+    (assert-submaps2
+     '({:level :warning,
+        :message "Protocol method put is implemented with arity 4 but expects 2, 3"})
+     (lint! "(ns test.foo)
+
+(definterface IStore
+  (put [_v])
+  (put [_k _v]))
+
+(deftype Store []
+  IStore
+  (put [_this _object] nil)
+  (put [_this _k _object] nil)
+  (put [_this _a _b _c] nil))"))))
+
 (deftest config-disabled-test
   (testing "linter can be disabled via config"
     (is (empty?
