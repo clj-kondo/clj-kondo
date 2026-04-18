@@ -20,6 +20,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2811](https://github.com/clj-kondo/clj-kondo/issues/2811): report correct location for `:missing-map-value` when the malformed map is nested in a set or in map-key position, and no longer suppress subsequent lint errors in the file
+- [#2813](https://github.com/clj-kondo/clj-kondo/issues/2813): fix false positive `:unused-excluded-var` when a core var is excluded to make room for a `:refer` with `:rename`
 
 ## 2026.04.15
 
