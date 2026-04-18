@@ -798,6 +798,7 @@
                        (not (utils/linter-disabled? ns :unused-excluded-var)))
             :let [{:keys [lang base-lang referred-vars vars bindings]} ns
                   used (set (concat (keys vars)
+                                    (keys referred-vars)
                                     (map :name (vals referred-vars))
                                     (map :name bindings)))
                   ctx (assoc ctx :lang lang :base-lang base-lang)]
