@@ -62,6 +62,12 @@
   (testing "excluded var shadowed by require"
     (is (empty? (lint! "(ns foo (:refer-clojure :exclude [comp]) (:require [other-ns :refer [comp]])) comp"))))
 
+  (testing "excluded var shadowed by :refer + :rename (issue #2813)"
+    (is (empty? (lint! "(ns foo (:refer-clojure :exclude [defrecord])
+                         (:require [other-ns :refer [defrecord+]
+                                              :rename {defrecord+ defrecord}]))
+                         defrecord"))))
+
   (testing "excluded var not used when shadowed by require with different name"
     (assert-submaps2
      [{:row 2
