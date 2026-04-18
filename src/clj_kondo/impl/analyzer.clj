@@ -1612,6 +1612,14 @@
               "Missing catch or finally in try")))
           analyzed)))))
 
+(defn- method-arities-by-name [meths defined-by->lint-as]
+  (let [interface? (= 'clojure.core/definterface defined-by->lint-as)]
+    (reduce (fn [acc [fn-name fixed-arities]]
+              (update acc fn-name (fnil into #{})
+                      (cond->> fixed-arities
+                        interface? (map inc))))
+            {} meths)))
+
 (defn analyze-defprotocol [{:keys [ns] :as ctx} expr defined-by defined-by->lint-as]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
@@ -1627,8 +1635,7 @@
                               ;; skip last docstring
                               #(when (= :vector (tag %)) %))]
     (docstring/lint-docstring! ctx doc-node docstring)
-    (let [interface? (= 'clojure.core/definterface defined-by->lint-as)
-          meths (for [c (next children)
+    (let [meths (for [c (next children)
                       :when (= :list (tag c)) ;; skip first docstring
                       :let [children (:children c)
                             name-node (first children)
@@ -1692,9 +1699,8 @@
                                   (:user-meta name-meta))
                      :doc docstring
                      :methods (mapv first meths)
-                     :method-arities (cond-> (into {} meths)
-                                       interface?
-                                       (utils/update-vals #(set (map inc %))))
+                     :method-arities (method-arities-by-name
+                                      meths  defined-by->lint-as)
                      :defined-by defined-by
                      :defined-by->lint-as defined-by->lint-as))))))
 
