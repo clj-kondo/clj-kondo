@@ -70,6 +70,7 @@
              :namespaces (atom {})
              :findings (atom [])
              :ignores (atom {})
+             :redefined-var-ignore-ids (atom {})
              :base-lang :clj
              :lang :clj
              :bindings {}
@@ -121,6 +122,7 @@
                              :findings (atom [])
                              :namespaces (atom {})
                              :ignores (atom {})
+                             :redefined-var-ignore-ids (atom {})
                              :bindings {}
                              :main-ns (atom nil)}]
                     (ana/analyze-input (assoc ctx :filename "test.clj") "test.clj" "file:test.clj" source :clj false)

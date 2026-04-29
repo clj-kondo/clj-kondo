@@ -61,6 +61,7 @@
        :files (atom 0)
        :findings findings
        :ignores (atom {})
+       :redefined-var-ignore-ids (atom {})
        :java-class-usages (atom [])
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
@@ -86,6 +87,7 @@
        :files (atom 0)
        :findings (atom [])
        :ignores (atom {})
+        :redefined-var-ignore-ids (atom {})
        :java-class-usages (atom [])
        :namespaces namespaces
        :used-namespaces (atom {:clj #{}
