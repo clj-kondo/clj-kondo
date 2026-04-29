@@ -135,6 +135,31 @@
          "/"
          (->> name clojure.core/name str/lower-case))))
 
+(defn- mark-ignores-used-by-ids! [{:keys [ignores]} ignore-ids]
+  (letfn [(mark-used [entry]
+            (cond-> entry
+              (ignore-ids (:clj-kondo/ignore-id entry))
+              (assoc :used true)))]
+    (when (seq ignore-ids)
+      (swap! ignores
+             #(utils/update-vals %
+                                 (fn [by-lang]
+                                   (utils/update-vals
+                                    by-lang (fn [entries] (mapv mark-used entries)))))))))
+
+(defn- reg-redefined-var-ignore-id!
+  [{:keys [redefined-var-ignore-ids]} base-lang lang ns-sym var-sym ignore-id]
+  (when ignore-id
+    (swap! redefined-var-ignore-ids update-in
+           [base-lang lang ns-sym var-sym] (fnil conj #{}) ignore-id)))
+
+(defn- mark-redefined-var-ignores-used!
+  [{:keys [redefined-var-ignore-ids] :as ctx} base-lang lang ns-sym var-sym]
+  (let [path [base-lang lang ns-sym var-sym]]
+    (when-let [ignore-ids (get-in @redefined-var-ignore-ids path)]
+      (mark-ignores-used-by-ids! ctx ignore-ids)
+      (swap! redefined-var-ignore-ids update-in (pop path) dissoc var-sym))))
+
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
@@ -212,7 +237,12 @@
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)
                  hard-def? (and (not (:declared metadata))
-                                (not (:in-comment ctx)))]
+                                (not (:in-comment ctx)))
+                 redefined-var-ignore? (utils/ignored? expr :redefined-var)
+                 ignore-id (:clj-kondo/ignore-id m)]
+             (when (and top-level? hard-def? redefined-var-ignore?)
+               (reg-redefined-var-ignore-id!
+                ctx base-lang lang ns-sym var-sym ignore-id))
              (when (identical? :clj lang)
                (when-let [clashing-vars (->> (get classfiles classfile)
                                              (remove #{var-sym})
@@ -245,6 +275,8 @@
                                     core-ns)))]
                    (when (or (pos? curr-var-count)
                              (not= ns-sym redefined-ns))
+                     (mark-redefined-var-ignores-used!
+                      ctx base-lang lang ns-sym var-sym)
                      (findings/reg-finding!
                       ctx
                       (node->line filename

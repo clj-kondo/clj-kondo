@@ -197,6 +197,7 @@
                  :used-namespaces used-nss
                  :file-analyzed-fn file-analyzed-fn
                  :ignores (atom {})
+                 :redefined-var-ignore-ids (atom {})
                  :id-gen (when analyze-locals? (atom 0))
                  :analyze-var-usages? analyze-var-usages?
                  :analyze-locals? analyze-locals?
