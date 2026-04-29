@@ -135,6 +135,31 @@
          "/"
          (->> name clojure.core/name str/lower-case))))
 
+(defn- mark-ignores-used-by-ids! [{:keys [ignores]} ignore-ids]
+  (letfn [(mark-used [entry]
+            (cond-> entry
+              (ignore-ids (:clj-kondo/ignore-id entry))
+              (assoc :used true)))]
+    (when (seq ignore-ids)
+      (swap! ignores
+             #(utils/update-vals %
+                                 (fn [by-lang]
+                                   (utils/update-vals
+                                    by-lang (fn [entries] (mapv mark-used entries)))))))))
+
+(defn- reg-redefined-var-ignore-id!
+  [{:keys [redefined-var-ignore-ids]} base-lang lang ns-sym var-sym ignore-id]
+  (when ignore-id
+    (swap! redefined-var-ignore-ids update-in
+           [base-lang lang ns-sym var-sym] (fnil conj #{}) ignore-id)))
+
+(defn- mark-redefined-var-ignores-used!
+  [{:keys [redefined-var-ignore-ids] :as ctx} base-lang lang ns-sym var-sym]
+  (let [path [base-lang lang ns-sym var-sym]]
+    (when-let [ignore-ids (get-in @redefined-var-ignore-ids path)]
+      (mark-ignores-used-by-ids! ctx ignore-ids)
+      (swap! redefined-var-ignore-ids update-in (pop path) dissoc var-sym))))
+
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))
@@ -174,7 +199,7 @@
                                    filename (let [thing (if (meta var-sym) var-sym expr)]
                                               thing)
                                    :syntax
-                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
+                                   (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym))))
      (when-not (:skip-reg-var ctx)
        (let [;; don't use reg-finding! in swap since contention can cause it to fire multiple times
              [old-namespaces _]
@@ -193,10 +218,10 @@
                                  (update :vars assoc
                                          var-sym
                                          (assoc
-                                           (merge metadata (select-keys
-                                                            prev-var
-                                                            [:row :col :end-row :end-col]))
-                                           :top-ns top-ns))
+                                          (merge metadata (select-keys
+                                                           prev-var
+                                                           [:row :col :end-row :end-col]))
+                                          :top-ns top-ns))
                                  (assoc :classfiles
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
@@ -212,7 +237,12 @@
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)
                  hard-def? (and (not (:declared metadata))
-                                (not (:in-comment ctx)))]
+                                (not (:in-comment ctx)))
+                 redefined-var-ignore? (utils/ignored? expr :redefined-var)
+                 ignore-id (:clj-kondo/ignore-id m)]
+             (when (and top-level? hard-def? redefined-var-ignore?)
+               (reg-redefined-var-ignore-id!
+                ctx base-lang lang ns-sym var-sym ignore-id))
              (when (identical? :clj lang)
                (when-let [clashing-vars (->> (get classfiles classfile)
                                              (remove #{var-sym})
@@ -245,6 +275,8 @@
                                     core-ns)))]
                    (when (or (pos? curr-var-count)
                              (not= ns-sym redefined-ns))
+                     (mark-redefined-var-ignores-used!
+                      ctx base-lang lang ns-sym var-sym)
                      (findings/reg-finding!
                       ctx
                       (node->line filename
@@ -468,19 +500,19 @@
     (let [ns-groups (cons unresolved-ns (config/ns-groups-eduction ctx config unresolved-ns filename))
           excluded (config/unresolved-namespace-excluded-config config)]
       (when-not
-          (or
-           (some #(config/unresolved-namespace-excluded excluded %)
-                 ns-groups)
-           ;; unresolved namespaces in an excluded unresolved symbols call are not reported
-           (config/unresolved-symbol-excluded ctx config callstack :dummy))
-          (let [unresolved-ns (vary-meta unresolved-ns
-                                         ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
-                                         ;; we must include the filename here
-                                         ;; see #73
-                                         assoc :filename filename)]
-            (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
-                   (fnil conj [])
-                   unresolved-ns))))))
+       (or
+        (some #(config/unresolved-namespace-excluded excluded %)
+              ns-groups)
+        ;; unresolved namespaces in an excluded unresolved symbols call are not reported
+        (config/unresolved-symbol-excluded ctx config callstack :dummy))
+        (let [unresolved-ns (vary-meta unresolved-ns
+                                       ;; since the user namespaces is present in each filesrc/clj_kondo/impl/namespace.clj
+                                       ;; we must include the filename here
+                                       ;; see #73
+                                       assoc :filename filename)]
+          (swap! namespaces update-in [base-lang lang ns-sym :unresolved-namespaces unresolved-ns]
+                 (fnil conj [])
+                 unresolved-ns))))))
 
 (defn get-namespace [ctx base-lang lang ns-sym]
   (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
@@ -714,9 +746,9 @@
                     (when alias?
                       (reg-used-alias! ctx ns-name ns-sym))
                     (cond->
-                        {:ns ns*
-                         :name var-name
-                         :interop? (and cljs? (boolean interop))}
+                     {:ns ns*
+                      :name var-name
+                      :interop? (and cljs? (boolean interop))}
                       alias?
                       (assoc :alias ns-sym)
                       core?
@@ -853,15 +885,14 @@
                          :allow-forward-reference? (:in-comment ctx)
                          :clojure-excluded? clojure-excluded?}))))))))))))
 
-#_
-(do
-  (def resolve-name* resolve-name)
+#_(do
+    (def resolve-name* resolve-name)
 
-  (defn resolve-name [ctx call? ns-name name-sym expr]
-    (prn :resolve)
-    (let [x (resolve-name* ctx call? ns-name name-sym expr)]
-      (prn x)
-      x)))
+    (defn resolve-name [ctx call? ns-name name-sym expr]
+      (prn :resolve)
+      (let [x (resolve-name* ctx call? ns-name name-sym expr)]
+        (prn x)
+        x)))
 
 ;;;; Scratch
 
