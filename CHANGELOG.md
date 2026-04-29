@@ -44,6 +44,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2621](https://github.com/clj-kondo/clj-kondo/issues/2621): load imports from symlinked config dir ([@walterl](https://github.com/walterl))
 - [#2798](https://github.com/clj-kondo/clj-kondo/issues/2798): report correct filename and error details when `StackOverflowError` occurs during analysis
 
+
 ## 2026.01.19
 
 - [#2735](https://github.com/clj-kondo/clj-kondo/issues/2735): NEW linter: `:duplicate-refer` which warns on duplicate entries in `:refer` of `:require`. ([@jramosg](https://github.com/jramosg))
@@ -53,7 +54,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - `unused-excluded-var`: Add location metadata to excluded vars in `ns-unmap`. This fixes some findings with not location. ([@jramosg](https://github.com/jramosg))
 - [#2747](https://github.com/clj-kondo/clj-kondo/issues/2747): Fix: Gensym bindings in nested syntax quotes are now correctly recognized ([@jramosg](https://github.com/jramosg))when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
 - [#2746](https://github.com/clj-kondo/clj-kondo/issues/2746): Fix regression: primitive array class syntax (e.g., `byte/1`, `int/2`) now correctly recognized as class literals in type checking ([@jramosg](https://github.com/jramosg))
-- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
+- [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg)) 
 - [#2749](https://github.com/clj-kondo/clj-kondo/issues/2749): Fix false positive for throw in CLJS when throwing non-throwable values ([@jramosg](https://github.com/jramosg))
 - [#2739](https://github.com/clj-kondo/clj-kondo/issues/2739): Extend `:equals-expected-position` linter to also warn for `not=` when expected value is not first ([@jramosg](https://github.com/jramosg))
 - [#2732](https://github.com/clj-kondo/clj-kondo/issues/2732): `unreachable-code`: warn when `:default` does not come last in reader conditionals ([@jramosg](https://github.com/jramosg))
@@ -643,7 +644,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## 2022.04.23
 
 - [#1653](https://github.com/clj-kondo/clj-kondo/issues/1653): new linter `:keyword-binding` - warns when a keyword
-  is used in a `:keys` binding vector. This linter is `:off` by default. See [docs](doc/linters.md#keyword-in-binding-vector).
+is used in a `:keys` binding vector. This linter is `:off` by default. See [docs](doc/linters.md#keyword-in-binding-vector).
 - [#996](https://github.com/clj-kondo/clj-kondo/issues/996): new linter `:discouraged-var`. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#discouraged-var).
 - [#1618](https://github.com/clj-kondo/clj-kondo/issues/1618): new `:config-in-ns` configuration option. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#config-in-ns).
 - Support `:ns-groups` configuration option. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/config.md#namespace-groups)
@@ -735,7 +736,7 @@ Analysis:
 - Relax `:reduce-without-init` for functions known to be safe [#1519](https://github.com/clj-kondo/clj-kondo/issues/1519)
 - Symbol arg to `fdef` can be arbitrary namespace [#1532](https://github.com/clj-kondo/clj-kondo/issues/1532)
 - Improve potemkin generated var-definition analysis [#1521](https://github.com/clj-kondo/clj-kondo/issues/1521) ([@ericdallo](https://github.com/ericdallo))
-- Stabilize cache version independent from kondo version [#1520](https://github.com/clj-kondo/clj-kondo/issues/1520). This allows you to re-use the cache over multiple kondo versions.
+-  Stabilize cache version independent from kondo version [#1520](https://github.com/clj-kondo/clj-kondo/issues/1520). This allows you to re-use the cache over multiple kondo versions.
 - `:output {:progress true}` should print to stderr [#1523](https://github.com/clj-kondo/clj-kondo/issues/1523)
 - Only print informative messages when `--debug` is enabled. [#1514](https://github.com/clj-kondo/clj-kondo/issues/1514)
 - Add Sublime Text instructions [#827](https://github.com/clj-kondo/clj-kondo/issues/827) ([@KyleErhabor](https://github.com/KyleErhabor))
@@ -757,6 +758,7 @@ Analysis:
 - Fix exclude-defmulti-args for CLJS [#1503](https://github.com/clj-kondo/clj-kondo/issues/1503)
 - Fix warning location of namespaced map [#1475](https://github.com/clj-kondo/clj-kondo/issues/1475)
 - False positive :docstring-no-summary on multiline docstrings [#1507](https://github.com/clj-kondo/clj-kondo/issues/1507)
+
 
 ## 2021.12.16
 
@@ -806,7 +808,7 @@ Analysis:
 - Local `fn` type inference
   [#1412](https://github.com/clj-kondo/clj-kondo/issues/1412)
 - Analysis: allow user to request all or specific metadata be returned [#1280](https://github.com/clj-kondo/clj-kondo/issues/1280) ([@lread](https://github.com/lread))
-- `rseq` called on other type than vector or sorted-map now gives type error [#1432](https://github.com/clj-kondo/clj-kondo/issues/1432)
+-  `rseq` called on other type than vector or sorted-map now gives type error [#1432](https://github.com/clj-kondo/clj-kondo/issues/1432)
 
 ### Enhanced / fixed
 
@@ -1124,7 +1126,7 @@ Thanks [@zilti](https://github.com/zilti), [@dharrigan](https://github.com/dharr
 ## v2020.09.09
 
 Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://github.com/bfontaine), [@snoe](https://github.com/snoe), [@andreyorst](https://github.com/andreyorst), [@jeroenvandijk](https://github.com/jeroenvandijk),
-[@jaihindhreddy](https://github.com/jaihindhreddy), [@sittim](https://github.com/sittim) and [@sogaiu](https://github.com/sogaiu) for contributing to this release. Thanks to the people who helped designing the new features in Github issue conversations. Thanks to [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring this release.
+[@jaihindhreddy](https://github.com/jaihindhreddy), [@sittim](https://github.com/sittim) and [@sogaiu](https://github.com/sogaiu) for contributing to this release. Thanks to the people who helped designing the new features in Github issue conversations.  Thanks to [Clojurists Together](https://www.clojuriststogether.org/) for sponsoring this release.
 
 ### New
 
@@ -1132,26 +1134,26 @@ Thanks to [@cldwalker](https://github.com/cldwalker), [@bfontaine](https://githu
   linting an entire classpath. [#632](https://github.com/clj-kondo/clj-kondo/issues/632), [#972](https://github.com/clj-kondo/clj-kondo/issues/972)
 - Detect error when calling a local that's not a function. [#948](https://github.com/clj-kondo/clj-kondo/issues/948)
 
-  ```clojure
-  (let [inc "foo"]
-    (inc 1))
-    ^--- String cannot be called as a function
-  ```
+    ``` clojure
+    (let [inc "foo"]
+      (inc 1))
+      ^--- String cannot be called as a function
+    ```
 
 - Support ignore hints [#872](https://github.com/clj-kondo/clj-kondo/issues/872):
 
-  ```clojure
-  (inc 1 2 3)
-  ^--- clojure.core/inc is called with 3 args but expects 1
+    ``` clojure
+    (inc 1 2 3)
+    ^--- clojure.core/inc is called with 3 args but expects 1
 
-  #_:clj-kondo/ignore
-  (inc 1 2 3)
-  ^--- arity warning ignored
+    #_:clj-kondo/ignore
+    (inc 1 2 3)
+    ^--- arity warning ignored
 
-  #_{:clj-kondo/ignore[:invalid-arity]}
-  (do (inc 1 2 3))
-  ^--- only redundant do is reported, but invalid arity is ignored
-  ```
+    #_{:clj-kondo/ignore[:invalid-arity]}
+    (do (inc 1 2 3))
+    ^--- only redundant do is reported, but invalid arity is ignored
+    ```
 
   Also see [config.md](doc/config.md).
 
