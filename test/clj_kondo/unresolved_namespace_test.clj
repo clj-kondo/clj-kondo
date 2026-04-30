@@ -113,7 +113,7 @@ x/bar ;; <- no warning")))
         :message "Unresolved namespace shader. Are you missing a require?"})
      (lint! "[#::assimp{:model-to-load [\"assets/cube.glb\"] :tex-unit-offset 0} #::shader{:use ::barycentric-shader}]")))
   (testing "no warnings when namespaces are required"
-    (is (empty? (lint! "(ns foo (:require [assimp :as assimp] [shader :as shader]))
+    (is (empty? (lint! "(ns foo (:require [assimp] [shader]))
                       [#::assimp{:model-to-load [\"assets/cube.glb\"] :tex-unit-offset 0}
                        #::shader{:use ::barycentric-shader}]"))))
   (testing "no warnings for current namespace shorthand"
