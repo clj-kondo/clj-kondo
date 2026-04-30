@@ -3276,16 +3276,18 @@
                                 children)
                      children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
-                               (update ctx
-                                       :callstack #(cons [nil t] %)) children)]
+                               (-> ctx
+                                   (dissoc :recur-arity)
+                                   (update :callstack #(cons [nil t] %))) children)]
                  (types/add-arg-type-from-expr ctx (assoc expr
                                                           :children children
                                                           :analyzed analyzed))
                  analyzed))
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
-                 (analyze-children (update ctx
-                                           :callstack #(cons [nil t] %))
+                 (analyze-children (-> ctx
+                                       (dissoc :recur-arity)
+                                       (update :callstack #(cons [nil t] %)))
                                    children))
         :fn (do
               (lint-unused-value ctx expr)
@@ -3466,8 +3468,9 @@
         :vector
         (do
           (lint-unused-value ctx expr)
-          (analyze-children (update ctx
-                                    :callstack #(cons [nil t] %))
+          (analyze-children (-> ctx
+                                (dissoc :recur-arity)
+                                (update :callstack #(cons [nil t] %)))
                             children))
         :deref
         (recur ctx (with-meta
