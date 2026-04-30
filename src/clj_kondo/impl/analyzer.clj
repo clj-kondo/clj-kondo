@@ -1199,7 +1199,7 @@
     (when seen-recur? (vreset! seen-recur? true))
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
-      (if (= :none recur-arity)
+      (if (and (map? recur-arity) (empty? recur-arity))
         (findings/reg-finding!
          ctx
          (node->line
@@ -3284,7 +3284,7 @@
                      children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
                                (-> ctx
-                                   (assoc :recur-arity :none)
+                                   (assoc :recur-arity {})
                                    (update :callstack #(cons [nil t] %))) children)]
                  (types/add-arg-type-from-expr ctx (assoc expr
                                                           :children children
@@ -3293,7 +3293,7 @@
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
                  (analyze-children (-> ctx
-                                       (assoc :recur-arity :none)
+                                       (assoc :recur-arity {})
                                        (update :callstack #(cons [nil t] %)))
                                    children))
         :fn (do
@@ -3476,7 +3476,7 @@
         (do
           (lint-unused-value ctx expr)
           (analyze-children (-> ctx
-                                (assoc :recur-arity :none)
+                                (assoc :recur-arity {})
                                 (update :callstack #(cons [nil t] %)))
                             children))
         :deref
