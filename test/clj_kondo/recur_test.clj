@@ -43,5 +43,28 @@
       (recur)
       1)
     1))
-" linter-config)))))
+" linter-config))))
+  (testing "recur in collection literal is not in tail position (#2817)"
+    (assert-submaps
+     '({:file "<stdin>" :row 1 :col 14 :level :error
+        :message "Recur can only be used in tail position."})
+     (lint! "(defn h [a] [(recur (inc a))])" linter-config))
+    (assert-submaps
+     '({:file "<stdin>" :row 1 :col 19 :level :error
+        :message "Recur can only be used in tail position."})
+     (lint! "(defn h [a] {:key (recur (inc a))})" linter-config))
+    (assert-submaps
+     '({:file "<stdin>" :row 1 :col 14 :level :error
+        :message "Recur can only be used in tail position."})
+     (lint! "(defn h [a] {(recur (inc a)) :v})" linter-config))
+    (assert-submaps
+     '({:file "<stdin>" :row 1 :col 15 :level :error
+        :message "Recur can only be used in tail position."})
+     (lint! "(defn h [a] #{(recur (inc a))})" linter-config))
+    (assert-submaps
+     '({:file "<stdin>" :row 1 :col 14 :level :error
+        :message "Recur can only be used in tail position."})
+     (lint! "(loop [a 0] [(recur (inc a))])" linter-config))
+    (testing "fn literal inside collection still allows recur"
+      (is (empty? (lint! "(defn h [a] [(map #(recur %) [1 2])])" linter-config))))))
 
