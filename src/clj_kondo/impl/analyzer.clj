@@ -1192,6 +1192,20 @@
         cse
         (recur (rest callstack))))))
 
+(defn mark-non-tail-recur
+  "Marks ctx as a non-tail position for recur (e.g. inside a collection
+  literal). An empty map is used as the sentinel so that downstream
+  `assoc-in [:recur-arity :fixed-arity] 0` calls still work."
+  [ctx]
+  (assoc ctx :recur-arity {}))
+
+(defn non-tail-recur?
+  "Inverse of `mark-non-tail-recur`: true when the ctx's :recur-arity
+  signals a non-tail position. Distinguished from a nil :recur-arity,
+  which means there is no enclosing fn or loop at all."
+  [recur-arity]
+  (and (map? recur-arity) (empty? recur-arity)))
+
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
         recur-arity (:recur-arity ctx)
@@ -1199,7 +1213,7 @@
     (when seen-recur? (vreset! seen-recur? true))
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
-      (if (and (map? recur-arity) (empty? recur-arity))
+      (if (non-tail-recur? recur-arity)
         (findings/reg-finding!
          ctx
          (node->line
@@ -3284,7 +3298,7 @@
                      children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
                                (-> ctx
-                                   (assoc :recur-arity {})
+                                   mark-non-tail-recur
                                    (update :callstack #(cons [nil t] %))) children)]
                  (types/add-arg-type-from-expr ctx (assoc expr
                                                           :children children
@@ -3293,7 +3307,7 @@
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
                  (analyze-children (-> ctx
-                                       (assoc :recur-arity {})
+                                       mark-non-tail-recur
                                        (update :callstack #(cons [nil t] %)))
                                    children))
         :fn (do
@@ -3476,7 +3490,7 @@
         (do
           (lint-unused-value ctx expr)
           (analyze-children (-> ctx
-                                (assoc :recur-arity {})
+                                mark-non-tail-recur
                                 (update :callstack #(cons [nil t] %)))
                             children))
         :deref
