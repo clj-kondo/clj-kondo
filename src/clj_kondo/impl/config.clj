@@ -175,6 +175,7 @@
               :minus-one {:level :off}
               :protocol-method-varargs {:level :error}
               :unused-alias {:level :off}
+              :redundant-alias {:level :warning}
               :self-requiring-namespace {:level :warning}
               :condition-always-true {:level :off}
               :underscore-in-namespace {:level :warning}
