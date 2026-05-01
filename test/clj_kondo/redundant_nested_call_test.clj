@@ -29,3 +29,15 @@
   (is
    (empty?
     (lint! "(-> {:a 1} (merge {:b 2}) (merge {:b 3}))"))))
+
+(deftest redundant-nested-call-cljc-test
+  (doseq [config [{}
+                  {:cljc {:features [:clj :cljs]}}
+                  {:cljc {:features [:cljs]}}
+                  {:cljc {:features [:clj]}}]]
+    (testing (str "config: " config)
+      (assert-submaps2
+        [{:file "foo.cljc" :row 1 :col 8 :level :info :message "Redundant nested call: str"}]
+        (lint! "(str 1 (str 2))"
+               config
+               "--filename" "foo.cljc")))))

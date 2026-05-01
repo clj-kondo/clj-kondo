@@ -528,6 +528,11 @@
 (defn deprecated-namespace-excluded? [config required]
   (contains? config required))
 
+(defn cljc-features
+  [config]
+  (or (some-> config :cljc :features)
+      [:clj :cljs]))
+
 ;;;; Scratch
 
 ;; (comment
