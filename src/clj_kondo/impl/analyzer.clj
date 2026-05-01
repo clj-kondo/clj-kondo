@@ -3685,10 +3685,8 @@
               ctx (assoc ctx
                          :inline-configs (atom [])
                          :main-ns (atom nil))
-              cljc-config (:cljc config)
               features (when (identical? :cljc lang)
-                         (or (:features cljc-config)
-                             [:clj :cljs]))
+                         (config/cljc-features config ))
               parsed (binding [*reader-features* features]
                        (p/parse-string input))
               fname (fs/file-name filename)
