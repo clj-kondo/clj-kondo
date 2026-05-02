@@ -32,11 +32,10 @@ jobs:
           restore-keys: ${{ runner.os }}-maven-
 
       - name: Setup GraalVM
-        uses: graalvm/setup-graalvm@v1.4.4
+        uses: graalvm/setup-graalvm@v1.5.2
         with:
           java-version: '25'
           distribution: 'graalvm'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install clojure tools
