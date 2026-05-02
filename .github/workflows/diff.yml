@@ -23,7 +23,7 @@ jobs:
           cli: latest
 
       - name: Cache
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v5
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-project-clj-${{ hashFiles('**/project.clj') }}
