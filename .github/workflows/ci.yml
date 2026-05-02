@@ -30,7 +30,7 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
