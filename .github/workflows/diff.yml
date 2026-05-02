@@ -18,7 +18,7 @@ jobs:
           java-version: "8"
 
       - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@master
+        uses: DeLaGuardo/setup-clojure@13.6.0
         with:
           cli: latest
 

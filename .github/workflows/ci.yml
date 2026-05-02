@@ -43,7 +43,7 @@ jobs:
           restore-keys: v1-dependencies-
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@12.5
+        uses: DeLaGuardo/setup-clojure@13.6.0
         with:
           cli: latest
           lein: latest
