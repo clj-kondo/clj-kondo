@@ -715,23 +715,25 @@
   (let [print-debug? (:debug config)
         filter-output (not-empty (-> config :output :include-files))
         remove-output (not-empty (-> config :output :exclude-files))
-        re-find (:re-find-memo ctx)]
+        re-find (:re-find-memo ctx)
+        cljc-features-count (count (config/cljc-features config))]
     (for [[[_filename _row _col type cljc] findings] findings
-          :when (or
-                 ;; always pass when not .cljc
-                 (not cljc)
-                 ;; always pass when it's not one of these
-                 (and (not= :redundant-do type)
-                      (not= :redundant-call type)
-                      (not= :redundant-let type)
-                      (not= :redundant-let-binding type)
-                      (not= :single-logical-operand type)
-                      (not= :redundant-nested-call type)
-                      (not= :redundant-ignore type)
-                      (not= :redundant-fn-wrapper type)
-                      (not= :unused-excluded-var type))
-                 ;; but if we get here, then the amount of findings has to be bigger than 1
-                 (> (count findings) 1))
+          :when (or ;; keep findings when:
+                  ;; 1) not multi-dialect
+                  (not cljc)
+                  ;; 2) not linter of interest (and multi-dialect)
+                  (and (not= :redundant-do type)
+                       (not= :redundant-call type)
+                       (not= :redundant-let type)
+                       (not= :redundant-let-binding type)
+                       (not= :single-logical-operand type)
+                       (not= :redundant-nested-call type)
+                       (not= :redundant-ignore type)
+                       (not= :redundant-fn-wrapper type)
+                       (not= :unused-excluded-var type))
+                  ;; 3) findings count matches features analyzed (and multi-dialect and linter of interest)
+                  ;;    (we exclude when all dialects do not agree on finding for a linter of interest).
+                  (= (count findings) cljc-features-count))
           f (collapse-cljc-findings findings)
           :let [filename (:filename f)
                 tp (:type f)

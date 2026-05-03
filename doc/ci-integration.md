@@ -103,7 +103,7 @@ jobs:
       with:
         version: '2022.01.15'
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
     - name: Lint
       run: clj-kondo --lint src --config '{:output {:pattern "::{{level}} file={{filename}},line={{row}},col={{col}}::{{message}}"}}'

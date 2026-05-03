@@ -30,12 +30,12 @@ jobs:
       CLJ_KONDO_TEST_ENV: native
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Cache deps
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v5
         id: cache-deps
         with:
           path: ~/.m2/repository
@@ -43,7 +43,7 @@ jobs:
           restore-keys: v1-dependencies-
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@12.5
+        uses: DeLaGuardo/setup-clojure@13.6.0
         with:
           cli: latest
           lein: latest
@@ -51,20 +51,18 @@ jobs:
 
       - name: Setup GraalVM
         if: "matrix.static == false"
-        uses: graalvm/setup-graalvm@v1.3.1
+        uses: graalvm/setup-graalvm@v1.5.2
         with:
           java-version: '25'
           distribution: 'graalvm'
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup GraalVM+musl
         if: "matrix.static == true"
-        uses: graalvm/setup-graalvm@v1.3.1
+        uses: graalvm/setup-graalvm@v1.5.2
         with:
           java-version: '25'
           distribution: 'graalvm'
-          components: 'native-image'
           native-image-musl: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -101,14 +99,14 @@ jobs:
           echo "##[set-output name=version;]${CLJ_KONDO_VERSION}"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: clj-kondo
           name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-amd64
 
       - name: Upload static artifact
         if: "matrix.static == true"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: clj-kondo
           name: clj-kondo-${{ steps.clj-kondo-version.outputs.version }}-${{ matrix.name }}-static-amd64
