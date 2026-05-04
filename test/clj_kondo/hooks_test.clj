@@ -549,7 +549,7 @@ my-ns/special-map \"
         (testing "every marker macro is extracted"
           (doseq [name ["my-let" "shout" "joined" "tagged"
                         "mixed" "literal" "setty"]]
-            (is (str/includes? gen (str "(defmacro " name)) name)))
+            (is (str/includes? gen (str "(defmacro " name)))))
         (testing "alias kinds in :require reflect macro-body usage"
           (testing "expand-time call only -> :as"
             (is (str/includes? gen "[clojure.set :as set]")))
@@ -561,8 +561,7 @@ my-ns/special-map \"
       (let [cfg (slurp (fs/file inline-config))]
         (doseq [name ["my-let" "shout" "joined" "tagged"
                       "mixed" "literal" "setty"]]
-          (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name))
-              name)))
+          (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name)))))
       (is (fs/exists? manifest)))
     (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
       (assert-submaps2
