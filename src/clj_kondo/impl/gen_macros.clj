@@ -38,37 +38,38 @@
        (when-let [head (first (:children n))]
          (= 'ns (safe-sexpr head)))))
 
-(defn- token-ns-sym [n]
-  (when (= :token (utils/tag n))
-    (let [v (:value n)]
-      (when (and (symbol? v) (namespace v))
-        (symbol (namespace v))))))
+(defn- aggregate-alias-usages
+  "Reduce a sequence of `{:ns full-ns :kind :as|:as-alias}` usage entries
+  collected by the analyzer into a `{alias-sym {:ns full-ns :kind ...}}` map.
 
-(defn- collect-aliases
-  "Walk node, classify each alias usage as :as (outside syntax-quote) or
-  :as-alias (inside syntax-quote). Returns {alias-sym :as|:as-alias}.
-  When the same alias is seen both ways, :as wins."
-  [expr ns-aliases]
-  (let [acc (volatile! {})
-        walk (fn walk [n depth]
-               (when n
-                 (let [tag (utils/tag n)
-                       depth' (cond
-                                (= :syntax-quote tag) (inc depth)
-                                (or (= :unquote tag)
-                                    (= :unquote-splicing tag)) (dec depth)
-                                :else depth)]
-                   (when-let [a (token-ns-sym n)]
-                     (when (contains? ns-aliases a)
-                       (let [kind (if (pos? depth') :as-alias :as)
-                             cur (@acc a)]
-                         (when (or (nil? cur)
-                                   (and (= :as-alias cur) (= :as kind)))
-                           (vswap! acc assoc a kind)))))
-                   (when-let [cs (:children n)]
-                     (run! #(walk % depth') cs)))))]
-    (walk expr 0)
-    @acc))
+  - Reverse-look up the alias from `source-aliases` (an `{alias full-ns}`
+    map provided by the source namespace).
+  - When source declared an alias as `:as-alias` (preserved via meta on the
+    alias key), pin the result to `:as-alias` regardless of usage location -
+    matches source intent and avoids forcing SCI to load a stub namespace.
+  - When the same alias is observed both ways, `:as` wins."
+  [usages source-aliases]
+  (let [ns->alias-key (reduce-kv (fn [m alias-key full-ns]
+                                   (assoc m full-ns alias-key))
+                                 {}
+                                 source-aliases)]
+    (reduce
+     (fn [m {:keys [ns kind]}]
+       (let [alias-key (get ns->alias-key ns)]
+         (cond
+           (nil? alias-key) m
+           :else
+           (let [alias-sym (with-meta (symbol (name alias-key)) {})
+                 src-as-alias? (:as-alias (meta alias-key))
+                 kind (if src-as-alias? :as-alias kind)
+                 cur (get m alias-sym)]
+             (cond
+               (nil? cur) (assoc m alias-sym {:ns ns :kind kind})
+               (and (= :as-alias (:kind cur)) (= :as kind))
+               (assoc m alias-sym {:ns ns :kind :as})
+               :else m)))))
+     {}
+     usages)))
 
 (defn- parse-existing-aliases
   "Read the (ns ... (:require ...)) form from existing content and extract
@@ -97,22 +98,18 @@
                     {}
                     require-clause)))))))
 
-(defn- merge-aliases
-  "Merge new alias usages into existing alias map. ns-aliases provides the
-  source-namespace lookup for newly seen aliases. Promotes :as-alias to :as
-  when needed."
-  [existing new ns-aliases]
+(defn- merge-alias-maps
+  "Union two `{alias {:ns :kind}}` maps, promoting `:as-alias` to `:as`
+  when the same alias appears both ways across the two inputs."
+  [existing new]
   (reduce-kv
-   (fn [m a kind]
-     (let [full-ns (or (get-in m [a :ns]) (get ns-aliases a))]
-       (if-not full-ns
-         m
-         (let [cur (get m a)]
-           (cond
-             (nil? cur) (assoc m a {:ns full-ns :kind kind})
-             (and (= :as-alias (:kind cur)) (= :as kind))
-             (assoc m a {:ns full-ns :kind :as})
-             :else m)))))
+   (fn [m a v]
+     (let [cur (get m a)]
+       (cond
+         (nil? cur) (assoc m a v)
+         (and (= :as-alias (:kind cur)) (= :as (:kind v)))
+         (assoc m a v)
+         :else m)))
    (or existing {})
    new))
 
@@ -157,8 +154,8 @@
         (spit f (str (ns-form-string gen-ns aliases)
                      (str/join "\n\n" (map str top-forms))
                      "\n")))
-    (when (.exists f)
-      (.delete f))))
+    (when (fs/exists? f)
+      (fs/delete f))))
 
 (defn- with-gen-lock* [cfg-dir body-fn]
   (binding [cache/*lock-file-name* (str (io/file ".cache" ".gen-macros-lock"))]
@@ -170,7 +167,7 @@
   `(with-gen-lock* ~cfg-dir (fn [] ~@body)))
 
 (defn- read-existing [^File f]
-  (when (.exists f) (slurp f)))
+  (when (fs/exists? f) (slurp f)))
 
 (defn- parse-form [s]
   (first (:children (parser/parse-string s))))
@@ -189,20 +186,23 @@
   push a manifest entry onto the per-file `:gen-macros` ctx atom. Only
   fires for the :clj language pass.
 
-  `:ns-aliases` is the alias map of the source namespace ({alias full-ns}),
-  used to qualify symbols that appear inside the macro body."
-  [ctx {:keys [orig-ns fn-name expr ns-aliases]}]
+  `:alias-usages` is the per-usage `{:ns :kind}` vector produced by the
+  analyzer while walking the macro body. `:source-aliases` is the alias
+  map of the source namespace (`{alias full-ns}`), used to look up the
+  alias symbol for each used namespace and to honor `:as-alias` intent
+  (preserved as meta on the alias key)."
+  [ctx {:keys [orig-ns fn-name expr alias-usages source-aliases]}]
   (when (and (identical? :clj (:lang ctx))
              orig-ns fn-name expr)
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
             new-form (parse-form (str expr))
-            new-aliases (collect-aliases expr (or ns-aliases {}))]
+            new-aliases (aggregate-alias-usages alias-usages source-aliases)]
         (with-gen-lock cfg-dir
           (let [{:keys [aliases forms]} (parse-content (read-existing f))
                 merged-forms (merge-form forms fn-name new-form)
-                merged-aliases (merge-aliases aliases new-aliases ns-aliases)]
+                merged-aliases (merge-alias-maps aliases new-aliases)]
             (write-file! f gen-ns merged-aliases merged-forms)))
         (swap! (:gen-macros ctx) conj
                {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns})))))
@@ -214,7 +214,7 @@
            "gen-macros.edn"))
 
 (defn- read-manifest [^File f]
-  (when (.exists f)
+  (when (fs/exists? f)
     (try (edn/read-string (slurp f))
          (catch Exception _ nil))))
 
@@ -223,8 +223,8 @@
     (do (io/make-parents f)
         (binding [*print-namespace-maps* false]
           (spit f (pr-str (vec entries)))))
-    (when (.exists f)
-      (.delete f))))
+    (when (fs/exists? f)
+      (fs/delete f))))
 
 (defn- prune-orphans! [^File cfg-dir removed]
   (doseq [[orig-ns entries] (group-by :orig-ns removed)]

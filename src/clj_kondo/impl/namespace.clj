@@ -308,9 +308,18 @@
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
-  [{:keys [base-lang lang namespaces]} ns-sym required-ns-sym]
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym required-ns-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
-         conj required-ns-sym))
+         conj required-ns-sym)
+  ;; Capture per-usage kind for the macros-from-source feature so the
+  ;; generated hook file can decide between :as and :as-alias on the
+  ;; same evidence the analyzer already collects.
+  (when-let [acc (:gen-macros-aliases-acc ctx)]
+    (let [kind (cond
+                 (:gen-macros-as-alias-only? ctx) :as-alias
+                 (pos? (or (:syntax-quote-level ctx) 0)) :as-alias
+                 :else :as)]
+      (swap! acc conj {:ns required-ns-sym :kind kind}))))
 
 (defn reg-proxied-namespaces!
   [{:keys [base-lang lang namespaces]} ns-sym proxied-ns-syms]

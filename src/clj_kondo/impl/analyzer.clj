@@ -676,22 +676,14 @@
                                   cljs.core/defmacro])
                          (:macro var-meta))
                  true)
-        _ (when (and macro?
-                     (:clj-kondo/macro var-meta)
-                     ns-name fn-name
-                     (not (gen-macros/reserved-ns? ns-name))
-                     (one-of defined-by->lint-as
-                             [clojure.core/defmacro
-                              cljs.core/defmacro]))
-            (gen-macros/record! ctx {:orig-ns ns-name
-                                     :fn-name fn-name
-                                     :expr expr
-                                     :ns-aliases (:aliases (:ns ctx))})
-            (let [fq-sym (symbol (str ns-name) (str fn-name))
-                  gen-ns (gen-macros/gen-ns-sym ns-name)
-                  hook-cfg {:hooks {:macroexpand
-                                    {fq-sym (symbol (str gen-ns) (str fn-name))}}}]
-              (swap! (:inline-configs ctx) conj hook-cfg)))
+        gen-macro? (and macro?
+                        (:clj-kondo/macro var-meta)
+                        ns-name fn-name
+                        (not (gen-macros/reserved-ns? ns-name))
+                        (one-of defined-by->lint-as
+                                [clojure.core/defmacro
+                                 cljs.core/defmacro]))
+        gen-macros-acc (when gen-macro? (atom []))
         deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
@@ -715,16 +707,29 @@
             (namespace/reg-var!
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
-                             (-> ctx
-                                 (assoc :docstring docstring
-                                        :in-def fn-name
-                                        :macro? macro?))
+                             (cond-> (-> ctx
+                                         (assoc :docstring docstring
+                                                :in-def fn-name
+                                                :macro? macro?))
+                               gen-macros-acc
+                               (assoc :gen-macros-aliases-acc gen-macros-acc))
                              %)
                            bodies)
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
+    (when gen-macro?
+      (gen-macros/record! ctx {:orig-ns ns-name
+                               :fn-name fn-name
+                               :expr expr
+                               :alias-usages @gen-macros-acc
+                               :source-aliases (:aliases (:ns ctx))})
+      (let [fq-sym (symbol (str ns-name) (str fn-name))
+            gen-ns (gen-macros/gen-ns-sym ns-name)
+            hook-cfg {:hooks {:macroexpand
+                              {fq-sym (symbol (str gen-ns) (str fn-name))}}}]
+        (swap! (:inline-configs ctx) conj hook-cfg)))
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
