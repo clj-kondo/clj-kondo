@@ -545,13 +545,24 @@ my-ns/special-map \"
               "--config-dir" (str cfg-dir))))
     (testing "generated source file, inline-config and manifest are written"
       (is (fs/exists? gen-file))
-      (is (str/includes? (slurp (fs/file gen-file)) "(defmacro my-let"))
-      (is (str/includes? (slurp (fs/file gen-file)) "(defmacro shout"))
+      (let [gen (slurp (fs/file gen-file))]
+        (testing "every marker macro is extracted"
+          (doseq [name ["my-let" "shout" "joined" "tagged"
+                        "mixed" "literal" "setty"]]
+            (is (str/includes? gen (str "(defmacro " name)) name)))
+        (testing "alias kinds in :require reflect macro-body usage"
+          (testing "expand-time call only -> :as"
+            (is (str/includes? gen "[clojure.set :as set]")))
+          (testing "mixed expand-time + syntax-quote use -> :as wins"
+            (is (str/includes? gen "[clojure.string :as str]")))
+          (testing "auto-resolved keyword + source :as-alias intent -> :as-alias"
+            (is (str/includes? gen "[some.stub :as-alias stub]")))))
       (is (fs/exists? inline-config))
-      (is (str/includes? (slurp (fs/file inline-config))
-                         "clj-kondo.gen-macros.script/my-let"))
-      (is (str/includes? (slurp (fs/file inline-config))
-                         "clj-kondo.gen-macros.script/shout"))
+      (let [cfg (slurp (fs/file inline-config))]
+        (doseq [name ["my-let" "shout" "joined" "tagged"
+                      "mixed" "literal" "setty"]]
+          (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name))
+              name)))
       (is (fs/exists? manifest)))
     (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
       (assert-submaps2
