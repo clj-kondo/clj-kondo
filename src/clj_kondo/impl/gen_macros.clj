@@ -4,7 +4,7 @@
    [babashka.fs :as fs]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.parser :as parser]
-   [clj-kondo.impl.rewrite-clj.node.protocols :as node]
+   [clj-kondo.impl.utils :as utils]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -24,22 +24,22 @@
   (io/file cfg-dir (str (ns-path gen-ns) ".clj")))
 
 (defn- safe-sexpr [n]
-  (try (node/sexpr n) (catch Exception _ nil)))
+  (try (utils/sexpr n) (catch Exception _ nil)))
 
 (defn- defmacro-form-name [n]
-  (when (= :list (node/tag n))
+  (when (= :list (utils/tag n))
     (let [[head name-node] (:children n)]
       (when (and head name-node
                  (= 'defmacro (safe-sexpr head)))
         (safe-sexpr name-node)))))
 
 (defn- ns-form? [n]
-  (and (= :list (node/tag n))
+  (and (= :list (utils/tag n))
        (when-let [head (first (:children n))]
          (= 'ns (safe-sexpr head)))))
 
 (defn- token-ns-sym [n]
-  (when (= :token (node/tag n))
+  (when (= :token (utils/tag n))
     (let [v (:value n)]
       (when (and (symbol? v) (namespace v))
         (symbol (namespace v))))))
@@ -52,7 +52,7 @@
   (let [acc (volatile! {})
         walk (fn walk [n depth]
                (when n
-                 (let [tag (node/tag n)
+                 (let [tag (utils/tag n)
                        depth' (cond
                                 (= :syntax-quote tag) (inc depth)
                                 (or (= :unquote tag)
@@ -63,7 +63,7 @@
                        (let [kind (if (pos? depth') :as-alias :as)
                              cur (@acc a)]
                          (when (or (nil? cur)
-                                   (and (= cur :as-alias) (= kind :as)))
+                                   (and (= :as-alias cur) (= :as kind)))
                            (vswap! acc assoc a kind)))))
                    (when-let [cs (:children n)]
                      (run! #(walk % depth') cs)))))]
@@ -110,7 +110,7 @@
          (let [cur (get m a)]
            (cond
              (nil? cur) (assoc m a {:ns full-ns :kind kind})
-             (and (= (:kind cur) :as-alias) (= kind :as))
+             (and (= :as-alias (:kind cur)) (= :as kind))
              (assoc m a {:ns full-ns :kind :as})
              :else m)))))
    (or existing {})
@@ -155,7 +155,7 @@
   (if (seq top-forms)
     (do (io/make-parents f)
         (spit f (str (ns-form-string gen-ns aliases)
-                     (str/join "\n\n" (map node/string top-forms))
+                     (str/join "\n\n" (map str top-forms))
                      "\n")))
     (when (.exists f)
       (.delete f))))
@@ -197,7 +197,7 @@
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
-            new-form (parse-form (node/string expr))
+            new-form (parse-form (str expr))
             new-aliases (collect-aliases expr (or ns-aliases {}))]
         (with-gen-lock cfg-dir
           (let [{:keys [aliases forms]} (parse-content (read-existing f))
