@@ -523,6 +523,55 @@ my-ns/special-map \"
                      :config (edn/read-string (slurp (fs/file "corpus" "issue-2636" ".clj-kondo" "config.edn")))
                      :config-dir (fs/file "corpus" "issue-2636" ".clj-kondo")}))))
 
+(deftest macro-from-source-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "script.clj")
+        manifest (fs/file cfg-dir "inline-configs" "script.clj" "gen-macros.edn")
+        inline-config (fs/file cfg-dir "inline-configs" "script.clj" "config.edn")
+        src-dir (fs/file "corpus" "macro-from-source" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "first run extracts macro; cross-file usage warns until config is auto-loaded"
+      (assert-submaps2
+       [{:file "corpus/macro-from-source/src/usage.clj"
+         :row 4 :col 17 :level :error
+         :message "Unresolved symbol: x"}]
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}
+                         :unresolved-namespace {:level :warning}}}
+              "--config-dir" (str cfg-dir))))
+    (testing "generated source file, inline-config and manifest are written"
+      (is (fs/exists? gen-file))
+      (is (str/includes? (slurp (fs/file gen-file)) "(defmacro my-let"))
+      (is (str/includes? (slurp (fs/file gen-file)) "(defmacro shout"))
+      (is (fs/exists? inline-config))
+      (is (str/includes? (slurp (fs/file inline-config))
+                         "clj-kondo.gen-macros.script/my-let"))
+      (is (str/includes? (slurp (fs/file inline-config))
+                         "clj-kondo.gen-macros.script/shout"))
+      (is (fs/exists? manifest)))
+    (testing "second run applies hook cross-file. TODO: aliases from the source ns are not yet resolved in the extracted hook, so str/upper-case surfaces as :unresolved-namespace. Drop this expected warning once alias resolution lands."
+      (assert-submaps2
+       [{:file "corpus/macro-from-source/src/usage.clj"
+         :row 5 :col 1 :level :warning
+         :message "Unresolved namespace str. Are you missing a require?"}]
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}
+                         :unresolved-namespace {:level :warning}}}
+              "--config-dir" (str cfg-dir))))
+    (testing ":auto-load-configs false removes generated artifacts"
+      (lint! src-dir
+             {:auto-load-configs false
+              :linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (is (not (fs/exists? gen-file)))
+      (is (not (fs/exists? manifest)))
+      (is (not (fs/exists? inline-config))))
+    (cleanup!)))
+
 (deftest stackoverflow-in-hook-result-test
   (testing "StackOverflowError during analysis reports correct filename, not directory"
     (let [findings (lint! (fs/file "corpus" "stackoverflow_hook" "foo.clj")

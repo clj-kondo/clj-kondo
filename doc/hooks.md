@@ -346,6 +346,39 @@ There are several special cases to watch out for when using the `:macroexpand` f
     `(clojure.set/union ...)
     ```
 
+## Macros from source
+
+When a `defmacro` in your source code carries the metadata
+`{:clj-kondo/macro true}`, clj-kondo extracts the macro into the configuration
+directory and registers it as a `:macroexpand` hook for that var. There is no
+need to copy the macro into `.clj-kondo/` by hand.
+
+``` clojure
+(ns my.app)
+
+(defmacro my-let
+  {:clj-kondo/macro true}
+  [bnds & body]
+  `(let [~@bnds] ~@body))
+```
+
+clj-kondo writes `.clj-kondo/clj_kondo/gen_macros/my/app.clj` defining
+`clj-kondo.gen-macros.my.app/my-let` and configures
+`{:hooks {:macroexpand {my.app/my-let clj-kondo.gen-macros.my.app/my-let}}}`
+under `.clj-kondo/inline-configs/...`. The configuration is auto-loaded on
+the next clj-kondo run via `:auto-load-configs`.
+
+Caveats:
+
+- The macro body must be self-contained: every symbol must be either a
+  `clojure.core` var or fully qualified. Aliases from the surrounding
+  namespace are not available in the extracted file.
+- `&form` and `&env` are passed through to the extracted macro.
+- Cross-file usages of a freshly marked macro may take two runs to clear,
+  matching the behaviour of `:clj-kondo/config` inline configs.
+- With `:auto-load-configs false`, the feature is disabled and any
+  generated artifacts are deleted.
+
 ## Tips and tricks
 
 Here are some tips and tricks for developing hooks.

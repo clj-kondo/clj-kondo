@@ -23,6 +23,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.gen-macros :as gen-macros]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.linters.config :as lint-config]
@@ -675,6 +676,21 @@
                                   cljs.core/defmacro])
                          (:macro var-meta))
                  true)
+        _ (when (and macro?
+                     (:clj-kondo/macro var-meta)
+                     ns-name fn-name
+                     (not (gen-macros/reserved-ns? ns-name))
+                     (one-of defined-by->lint-as
+                             [clojure.core/defmacro
+                              cljs.core/defmacro]))
+            (gen-macros/record! ctx {:orig-ns ns-name
+                                     :fn-name fn-name
+                                     :expr expr})
+            (let [fq-sym (symbol (str ns-name) (str fn-name))
+                  gen-ns (gen-macros/gen-ns-sym ns-name)
+                  hook-cfg {:hooks {:macroexpand
+                                    {fq-sym (symbol (str gen-ns) (str fn-name))}}}]
+              (swap! (:inline-configs ctx) conj hook-cfg)))
         deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
@@ -3684,6 +3700,7 @@
                     ctx)
               ctx (assoc ctx
                          :inline-configs (atom [])
+                         :gen-macros (atom [])
                          :main-ns (atom nil))
               features (when (identical? :cljc lang)
                          (config/cljc-features config ))
@@ -3722,21 +3739,26 @@
           (when-let [cfg-dir (-> ctx :config :cfg-dir)]
             (when-let [main-ns @(:main-ns ctx)]
               (let [configs (-> ctx :inline-configs deref seq)
+                    auto-load? (not (false? (:auto-load-configs config)))
                     inline-file (io/file cfg-dir "inline-configs"
                                          (str (namespace-munge main-ns)
                                               (when-let [ext (fs/extension (:filename ctx))]
                                                 (str "." ext))) "config.edn")]
-                (if (and configs (not (false? (:auto-load-configs config))))
-                  (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                    (cache/with-thread-lock
-                      (cache/with-cache ;; lock config dir for concurrent writes
-                        cfg-dir
-                        10
-                        (binding [*print-namespace-maps* false]
-                          (spit (doto inline-file
-                                  (io/make-parents)) (apply config/merge-config! configs))))))
-                  (when (fs/exists? inline-file)
-                    (fs/delete-tree (fs/parent inline-file)))))))
+                (if (and configs auto-load?)
+                  (do
+                    (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
+                      (cache/with-thread-lock
+                        (cache/with-cache ;; lock config dir for concurrent writes
+                          cfg-dir
+                          10
+                          (binding [*print-namespace-maps* false]
+                            (spit (doto inline-file
+                                    (io/make-parents)) (apply config/merge-config! configs))))))
+                    (gen-macros/finalize-file! ctx lang))
+                  (do
+                    (gen-macros/delete-for-file! ctx lang)
+                    (when (fs/exists? inline-file)
+                      (fs/delete-tree (fs/parent inline-file))))))))
           (doseq [f line-length-findings]
             (findings/reg-finding! ctx f)))
         (catch Exception e
