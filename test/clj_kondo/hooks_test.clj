@@ -553,11 +553,9 @@ my-ns/special-map \"
       (is (str/includes? (slurp (fs/file inline-config))
                          "clj-kondo.gen-macros.script/shout"))
       (is (fs/exists? manifest)))
-    (testing "second run applies hook cross-file. TODO: aliases from the source ns are not yet resolved in the extracted hook, so str/upper-case surfaces as :unresolved-namespace. Drop this expected warning once alias resolution lands."
+    (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
       (assert-submaps2
-       [{:file "corpus/macro-from-source/src/usage.clj"
-         :row 5 :col 1 :level :warning
-         :message "Unresolved namespace str. Are you missing a require?"}]
+       []
        (lint! src-dir
               {:linters {:unresolved-symbol {:level :error}
                          :unresolved-namespace {:level :warning}}}

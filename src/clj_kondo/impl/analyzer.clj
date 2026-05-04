@@ -685,7 +685,8 @@
                               cljs.core/defmacro]))
             (gen-macros/record! ctx {:orig-ns ns-name
                                      :fn-name fn-name
-                                     :expr expr})
+                                     :expr expr
+                                     :ns-aliases (:aliases (:ns ctx))})
             (let [fq-sym (symbol (str ns-name) (str fn-name))
                   gen-ns (gen-macros/gen-ns-sym ns-name)
                   hook-cfg {:hooks {:macroexpand
@@ -2597,10 +2598,11 @@
                   :message "Default :or value is always evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
-                (namespace/reg-unresolved-namespace! ctx ns-name
-                                                     (with-meta unresolved-ns
-                                                       (assoc (meta full-fn-name)
-                                                              :name fn-name)))
+                (when-not (:clj-kondo.impl/generated expr)
+                  (namespace/reg-unresolved-namespace! ctx ns-name
+                                                       (with-meta unresolved-ns
+                                                         (assoc (meta full-fn-name)
+                                                                :name fn-name))))
                 (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
                                                                fn-name])
                                   children))

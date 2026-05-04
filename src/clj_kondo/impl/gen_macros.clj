@@ -38,20 +38,102 @@
        (when-let [head (first (:children n))]
          (= 'ns (safe-sexpr head)))))
 
-(defn- top-defmacro-forms
-  "Parse content and return its top-level forms with the leading (ns ...)
-  form (if any) stripped."
+(defn- token-ns-sym [n]
+  (when (= :token (node/tag n))
+    (let [v (:value n)]
+      (when (and (symbol? v) (namespace v))
+        (symbol (namespace v))))))
+
+(defn- collect-aliases
+  "Walk node, classify each alias usage as :as (outside syntax-quote) or
+  :as-alias (inside syntax-quote). Returns {alias-sym :as|:as-alias}.
+  When the same alias is seen both ways, :as wins."
+  [expr ns-aliases]
+  (let [acc (volatile! {})
+        walk (fn walk [n depth]
+               (when n
+                 (let [tag (node/tag n)
+                       depth' (cond
+                                (= :syntax-quote tag) (inc depth)
+                                (or (= :unquote tag)
+                                    (= :unquote-splicing tag)) (dec depth)
+                                :else depth)]
+                   (when-let [a (token-ns-sym n)]
+                     (when (contains? ns-aliases a)
+                       (let [kind (if (pos? depth') :as-alias :as)
+                             cur (@acc a)]
+                         (when (or (nil? cur)
+                                   (and (= cur :as-alias) (= kind :as)))
+                           (vswap! acc assoc a kind)))))
+                   (when-let [cs (:children n)]
+                     (run! #(walk % depth') cs)))))]
+    (walk expr 0)
+    @acc))
+
+(defn- parse-existing-aliases
+  "Read the (ns ... (:require ...)) form from existing content and extract
+  {alias-sym {:ns full-ns :kind :as|:as-alias}}."
   [content]
   (when content
-    (let [parsed (parser/parse-string content)]
-      (->> (:children parsed)
-           (remove ns-form?)
-           vec))))
+    (let [parsed (parser/parse-string content)
+          ns-node (first (filter ns-form? (:children parsed)))]
+      (when ns-node
+        (when-let [sx (safe-sexpr ns-node)]
+          (let [require-clause (some (fn [form]
+                                       (when (and (sequential? form)
+                                                  (= :require (first form)))
+                                         (rest form)))
+                                     (rest sx))]
+            (reduce (fn [m libspec]
+                      (cond
+                        (and (vector? libspec) (symbol? (first libspec)))
+                        (let [[ns & opts] libspec
+                              opts (apply hash-map opts)]
+                          (cond
+                            (:as opts) (assoc m (:as opts) {:ns ns :kind :as})
+                            (:as-alias opts) (assoc m (:as-alias opts) {:ns ns :kind :as-alias})
+                            :else m))
+                        :else m))
+                    {}
+                    require-clause)))))))
 
-(defn- compose-content [gen-ns top-forms]
-  (str "(ns " gen-ns ")\n\n"
-       (str/join "\n\n" (map node/string top-forms))
-       "\n"))
+(defn- merge-aliases
+  "Merge new alias usages into existing alias map. ns-aliases provides the
+  source-namespace lookup for newly seen aliases. Promotes :as-alias to :as
+  when needed."
+  [existing new ns-aliases]
+  (reduce-kv
+   (fn [m a kind]
+     (let [full-ns (or (get-in m [a :ns]) (get ns-aliases a))]
+       (if-not full-ns
+         m
+         (let [cur (get m a)]
+           (cond
+             (nil? cur) (assoc m a {:ns full-ns :kind kind})
+             (and (= (:kind cur) :as-alias) (= kind :as))
+             (assoc m a {:ns full-ns :kind :as})
+             :else m)))))
+   (or existing {})
+   new))
+
+(defn- ns-form-string [gen-ns aliases]
+  (if (empty? aliases)
+    (str "(ns " gen-ns ")\n\n")
+    (let [requires (->> aliases
+                        (sort-by key)
+                        (map (fn [[a {:keys [ns kind]}]]
+                               (str "[" ns " " kind " " a "]"))))]
+      (str "(ns " gen-ns "\n  (:require " (str/join "\n            " requires) "))\n\n"))))
+
+(defn- parse-content
+  "Parse existing gen-file content, returning {:aliases {...} :forms [...]}."
+  [content]
+  (if-not content
+    {:aliases {} :forms []}
+    (let [parsed (parser/parse-string content)
+          children (:children parsed)]
+      {:aliases (or (parse-existing-aliases content) {})
+       :forms (vec (remove ns-form? children))})))
 
 (defn- merge-form
   "Replace the (defmacro fn-name ...) entry in top-forms with new-form, or
@@ -69,10 +151,12 @@
   (let [drop-set (set fn-names)]
     (vec (remove #(contains? drop-set (defmacro-form-name %)) top-forms))))
 
-(defn- write-file! [^File f gen-ns top-forms]
+(defn- write-file! [^File f gen-ns aliases top-forms]
   (if (seq top-forms)
     (do (io/make-parents f)
-        (spit f (compose-content gen-ns top-forms)))
+        (spit f (str (ns-form-string gen-ns aliases)
+                     (str/join "\n\n" (map node/string top-forms))
+                     "\n")))
     (when (.exists f)
       (.delete f))))
 
@@ -103,18 +187,23 @@
 (defn record!
   "Synchronously emit an extracted macro source file under the cfg-dir and
   push a manifest entry onto the per-file `:gen-macros` ctx atom. Only
-  fires for the :clj language pass."
-  [ctx {:keys [orig-ns fn-name expr]}]
+  fires for the :clj language pass.
+
+  `:ns-aliases` is the alias map of the source namespace ({alias full-ns}),
+  used to qualify symbols that appear inside the macro body."
+  [ctx {:keys [orig-ns fn-name expr ns-aliases]}]
   (when (and (identical? :clj (:lang ctx))
              orig-ns fn-name expr)
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
-            new-form (parse-form (node/string expr))]
+            new-form (parse-form (node/string expr))
+            new-aliases (collect-aliases expr (or ns-aliases {}))]
         (with-gen-lock cfg-dir
-          (let [forms (top-defmacro-forms (read-existing f))
-                merged (merge-form forms fn-name new-form)]
-            (write-file! f gen-ns merged)))
+          (let [{:keys [aliases forms]} (parse-content (read-existing f))
+                merged-forms (merge-form forms fn-name new-form)
+                merged-aliases (merge-aliases aliases new-aliases ns-aliases)]
+            (write-file! f gen-ns merged-aliases merged-forms)))
         (swap! (:gen-macros ctx) conj
                {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns})))))
 
@@ -141,9 +230,9 @@
   (doseq [[orig-ns entries] (group-by :orig-ns removed)]
     (let [gen-ns (gen-ns-sym orig-ns)
           f (gen-file cfg-dir gen-ns)
-          forms (top-defmacro-forms (read-existing f))
+          {:keys [aliases forms]} (parse-content (read-existing f))
           forms (remove-forms forms (map :fn-name entries))]
-      (write-file! f gen-ns forms))))
+      (write-file! f gen-ns aliases forms))))
 
 (defn finalize-file!
   "Diff the previous on-disk manifest for this source file against the
