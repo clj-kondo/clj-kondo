@@ -7,6 +7,7 @@
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.pprint]
+   [clojure.string :as str]
    [sci.core :as sci]
    [sci.ctx-store :as store])
   (:refer-clojure :exclude [macroexpand]))
@@ -100,6 +101,45 @@
 
 (reset-ctx!)
 
+(defn- file-sha256 [^java.io.File f]
+  (with-open [in (java.io.FileInputStream. f)]
+    (let [buf (byte-array 8192)
+          md (java.security.MessageDigest/getInstance "SHA-256")]
+      (loop []
+        (let [n (.read in buf)]
+          (when (pos? n)
+            (.update md buf 0 n)
+            (recur))))
+      (apply str (map #(format "%02x" %) (.digest md))))))
+
+(defn- hook-file-for-ns ^java.io.File [ns-str]
+  (when ns-str
+    (let [base-path (-> ns-str namespace-munge (str/replace "." "/"))]
+      (find-file-on-classpath base-path))))
+
+(defn- file-changed?
+  "Detect whether the on-disk content of `f` has changed since the last
+  observation cached under `:file-stamps` in `hook-resolve-cache`. Fast
+  path: if mtime matches the cached value, return false without re-hashing.
+  Slow path: mtime differs, hash the content and compare. Updates the
+  cache either way."
+  [^java.io.File f]
+  (when (and f (.exists f))
+    (let [path (.getAbsolutePath f)
+          mtime (.lastModified f)
+          {prev-mtime :mtime prev-hash :hash}
+          (get-in @hook-resolve-cache [:file-stamps path])]
+      (if (and prev-mtime (= mtime prev-mtime))
+        false
+        (let [h (file-sha256 f)]
+          (vswap! hook-resolve-cache assoc-in [:file-stamps path]
+                  {:mtime mtime :hash h})
+          (not= h prev-hash))))))
+
+(defn- hook-needs-reload? [ns-str]
+  (or api/*reload*
+      (file-changed? (hook-file-for-ns ns-str))))
+
 (defn walk
   [inner outer form]
   (cond
@@ -165,14 +205,14 @@
                             (config/ns-groups-eduction ctx config ns-sym filename)))]
         (sci/binding [sci/out *out*
                       sci/err *err*]
-          (let [code (if (string? x)
-                       (when (:allow-string-hooks ctx)
-                         x)
-                       (let [ns (namespace x)]
-                         (format "(require '%s %s)\n%s" ns
-                                 (if api/*reload* :reload "")
-                                 x)))]
-            (binding [utils/*ctx* ctx]
+          (binding [utils/*ctx* ctx]
+            (let [code (if (string? x)
+                         (when (:allow-string-hooks ctx)
+                           x)
+                         (let [ns (namespace x)]
+                           (format "(require '%s %s)\n%s" ns
+                                   (if (hook-needs-reload? ns) :reload "")
+                                   x)))]
               (sci/eval-string* (store/get-ctx) code))))
         (when-let [x (or (get-in hook-cfg [:macroexpand sym])
                           (some (fn [group-sym]
@@ -181,23 +221,23 @@
                                 (config/ns-groups-eduction ctx config ns-sym filename)))]
           (sci/binding [sci/out *out*
                         sci/err *err*]
-            (let [code (if (string? x)
-                         (when (:allow-string-hooks ctx)
-                           x)
-                         (let [ns (namespace x)]
-                           (format "(require '%s %s)\n(var %s)"
-                                   ns
-                                   (if api/*reload* :reload "")
-                                   x)))
-                  the-var (binding [utils/*ctx* ctx]
-                            (sci/eval-string* (store/get-ctx) code))]
-              (when (and the-var (not (string? x)) (not (:macro (meta the-var))))
-                (binding [*out* *err*]
-                  (println (str "WARNING: macroexpand hook " x " is not a macro"))))
-              (when-let [macro (if (var? the-var) @the-var the-var)]
-                (fn [{:keys [node]}]
-                  {:node (macroexpand macro node
-                                      (:bindings utils/*ctx*))})))))))))
+            (binding [utils/*ctx* ctx]
+              (let [code (if (string? x)
+                           (when (:allow-string-hooks ctx)
+                             x)
+                           (let [ns (namespace x)]
+                             (format "(require '%s %s)\n(var %s)"
+                                     ns
+                                     (if (hook-needs-reload? ns) :reload "")
+                                     x)))
+                    the-var (sci/eval-string* (store/get-ctx) code)]
+                (when (and the-var (not (string? x)) (not (:macro (meta the-var))))
+                  (binding [*out* *err*]
+                    (println (str "WARNING: macroexpand hook " x " is not a macro"))))
+                (when-let [macro (if (var? the-var) @the-var the-var)]
+                  (fn [{:keys [node]}]
+                    {:node (macroexpand macro node
+                                        (:bindings utils/*ctx*))}))))))))))
 
 (def ^:private hook-not-found (Object.))
 
@@ -206,10 +246,12 @@
   (try
     (let [hooks-cfg (:hooks config)
           cache-val @hook-resolve-cache
-          ;; invalidate cache when hooks config changes
+          ;; invalidate hook lookups when hooks config changes, but keep the
+          ;; per-file stamps so we don't re-hash on every config reload
           cache-val (if (identical? hooks-cfg (:hooks-cfg cache-val))
                       cache-val
-                      {:hooks-cfg hooks-cfg})
+                      {:hooks-cfg hooks-cfg
+                       :file-stamps (:file-stamps cache-val)})
           k [ns-sym var-sym]
           v (get cache-val k hook-not-found)]
       (if (identical? v hook-not-found)
