@@ -180,17 +180,6 @@
     (try (edn/read-string (slurp f))
          (catch Exception _ nil))))
 
-(defn- this-file-prev-names
-  "Names this source file owned in the previous run (from its manifest).
-  Used to identify which existing gen-file forms belong to this source
-  file so we can replace them in-place while preserving forms contributed
-  by *other* source files in the same gen ns."
-  [ctx ^File cfg-dir]
-  (when-let [main-ns (some-> ctx :main-ns deref)]
-    (let [ext (some-> (:filename ctx) fs/extension)
-          man-file (manifest-file cfg-dir main-ns ext)]
-      (set (map :fn-name (read-manifest man-file))))))
-
 (defn record!
   "Push an entry onto the per-file `:gen-macros` ctx atom and rewrite the
   gen file. The gen file is fully regenerated on every call from this
@@ -211,20 +200,16 @@
             new-aliases (aggregate-alias-usages alias-usages source-aliases)
             entries (swap! (:gen-macros ctx) conj
                            {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns
-                            :form-str (str expr) :aliases new-aliases})
-            current-names (set (map :fn-name entries))
-            prev-names (this-file-prev-names ctx cfg-dir)
-            owned-names (into current-names prev-names)]
+                            :form-str (str expr) :aliases new-aliases})]
         (with-gen-lock cfg-dir
-          (let [{:keys [forms]} (parse-content (read-existing f))
-                foreign-forms (vec (remove #(contains? owned-names (top-form-name %)) forms))
+          (let [;; A gen ns is owned by exactly one source file (cross-file
+                ;; contributions to the same gen ns are not supported). Every
+                ;; rewrite reflects only the current source file's accumulated
+                ;; entries; aliases and forms removed from the source disappear
+                ;; from the gen ns on the next run.
                 this-forms (mapv (fn [{:keys [form-str]}] (parse-form form-str)) entries)
-                ;; Aliases reflect only the current entries from this source file.
-                ;; Stale aliases parsed from the existing gen file are intentionally
-                ;; dropped so an alias removed from a marker body disappears from
-                ;; the gen ns's :require on the next run.
                 this-aliases (reduce merge-alias-maps {} (map :aliases entries))]
-            (write-file! f gen-ns this-aliases (concat foreign-forms this-forms))))))))
+            (write-file! f gen-ns this-aliases this-forms)))))))
 
 (defn- write-manifest! [^File f entries]
   (if (seq entries)
