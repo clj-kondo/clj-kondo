@@ -241,15 +241,25 @@
                          (assoc m :referred-all opt-expr)
                          :else m)))
                 (:as :as-alias)
-                (recur
-                 (nnext children)
-                 (assoc m
-                        :as (when opt
-                              (with-meta opt
-                                (cond-> (assoc (meta opt-expr)
-                                               :filename (:filename ctx))
-                                  (identical? :as-alias child-k)
-                                  (assoc :as-alias true))))))
+                (do
+                  (when (and (= ns-name opt)
+                             ;; Compare with raw-name too, to avoid warning on e.g. ["foo" :as foo]
+                             (= (:raw-name (meta ns-name)) opt))
+                    (findings/reg-finding!
+                     ctx
+                     (node->line (:filename ctx)
+                                 opt-expr
+                                 :redundant-alias
+                                 (str "redundant alias: " opt))))
+                  (recur
+                   (nnext children)
+                   (assoc m
+                          :as (when opt
+                                (with-meta opt
+                                  (cond-> (assoc (meta opt-expr)
+                                                 :filename (:filename ctx))
+                                    (identical? :as-alias child-k)
+                                    (assoc :as-alias true)))))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default

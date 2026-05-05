@@ -1,5 +1,5 @@
 (ns my-test
-  (:require [foo :as foo]))
+  (:require [foo]))
 
 (defn my-test [& xs]
   (prn xs))

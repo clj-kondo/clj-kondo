@@ -59,7 +59,7 @@
       :col 32,
       :level :warning,
       :message "namespace baz is required but never used"})
-   (lint! "(ns foo (:require [bar :as b] [baz :as baz])) #::{:a #::bar{:a 1}}"))
+   (lint! "(ns foo (:require [bar :as b] [baz :as qux])) #::{:a #::bar{:a 1}}"))
   (assert-submap
    '({:file "<stdin>",
       :row 1,
@@ -104,7 +104,7 @@
   (is (empty? (lint! "(ns foo (:require [bar :as b])) #::b{:a 1}")))
   (is (empty? (lint! "(ns foo (:require [bar :as b] baz)) #::baz{:a #::bar{:a 1}}")))
   (is (empty? (lint! "(ns foo (:require goog.math.Long)) (instance? goog.math.Long 1)")))
-  (is (empty? (lint! "(ns foo (:require [schema.core :as s] [bar :as bar])) (s/defn foo :- bar/Schema [])")))
+  (is (empty? (lint! "(ns foo (:require [schema.core :as s] [bar])) (s/defn foo :- bar/Schema [])")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {str/join true}")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) {true str/join}")))
   (is (empty? (lint! "(ns foo (:require [clojure.string :as str])) [str/join]")))
@@ -138,9 +138,9 @@
   (:require [bar :as b]))"))))
   (is (empty? (lint! "
 (ns kondo
-  (:require [df :as df]
-            [fulcro :as fulcro]
-            [ui.gift-list :as ui.gift-list]))
+  (:require [df]
+            [fulcro]
+            [ui.gift-list :as ugl]))
 
 (fulcro/defsc Home1 [_this _]
   {:will-enter (fn [app _]

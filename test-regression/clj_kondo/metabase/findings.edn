@@ -862,6 +862,16 @@
   :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 15,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/request/util.clj",
+  :col 20,
+  :end-col 30,
+  :langs (),
+  :message "redundant alias: user-agent",
+  :row 15}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/search/impl.clj",
   :row 433,
@@ -1228,6 +1238,16 @@
   :langs (),
   :message "Condition always true",
   :row 17}
+ {:end-row 12,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/app_db/liquibase_test.clj",
+  :col 19,
+  :end-col 28,
+  :langs (),
+  :message "redundant alias: next.jdbc",
+  :row 12}
  {:end-row 100,
   :type :unresolved-symbol,
   :level :error,
@@ -1258,6 +1278,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 52}
+ {:end-row 7,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/impl/http_test.clj",
+  :col 25,
+  :end-col 40,
+  :langs (),
+  :message "redundant alias: compojure.route",
+  :row 7}
  {:end-row 7,
   :type :deprecated-namespace,
   :level :warning,
@@ -1418,6 +1448,26 @@
   :langs (),
   :message "Condition always true",
   :row 93}
+ {:end-row 47,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/postgres_test.clj",
+  :col 19,
+  :end-col 28,
+  :langs (),
+  :message "redundant alias: next.jdbc",
+  :row 47}
+ {:end-row 27,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
+  :col 19,
+  :end-col 28,
+  :langs (),
+  :message "redundant alias: next.jdbc",
+  :row 27}
  {:end-row 99,
   :type :equals-expected-position,
   :level :warning,
@@ -1885,6 +1935,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 83}
+ {:end-row 9,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/sync_metadata/fields/sync_metadata_test.clj",
+  :col 19,
+  :end-col 28,
+  :langs (),
+  :message "redundant alias: next.jdbc",
+  :row 9}
+ {:end-row 18,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/sync_metadata/tables_test.clj",
+  :col 19,
+  :end-col 28,
+  :langs (),
+  :message "redundant alias: next.jdbc",
+  :row 18}
  {:end-row 171,
   :protocol-ns clojurewerkz.quartzite.conversion,
   :protocol-name JobDataMapConversion,
@@ -2028,6 +2098,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 814}
+ {:end-row 16,
+  :type :redundant-alias,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/field_values_test.clj",
+  :col 19,
+  :end-col 28,
+  :langs (),
+  :message "redundant alias: next.jdbc",
+  :row 16}
  {:end-row 245,
   :type :is-message-not-string,
   :level :info,
