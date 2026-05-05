@@ -226,7 +226,6 @@
                  ;; memoized version of re-find that takes a pattern string and a match string
                  ;; regex creation is cached
                  ;; matches on regex are cached
-                 #_{:clj-kondo/ignore [:discouraged-var]}
                  (let [re-pattern-memo (utils/memoize' re-pattern)]
                    (utils/memoize' (fn [pattern-str file-str]
                                      (re-find (re-pattern-memo pattern-str) file-str))))}
