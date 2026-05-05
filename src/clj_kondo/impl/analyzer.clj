@@ -1894,8 +1894,14 @@
                                     :defmethod true,
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
                              method-name-node)
-          _ (analyze-expression** ctx-without-idx dispatch-val-node)]
-      (analyze-fn ctx-without-idx (with-meta {:children (cons nil fn-tail)} (meta expr))))))
+          _ (analyze-expression** ctx-without-idx dispatch-val-node)
+          method-name (when method-name-node (sexpr method-name-node))
+          method-name (when (symbol? method-name)
+                        (symbol (name method-name)))
+          ctx-with-def (if method-name
+                         (assoc ctx-without-idx :in-def method-name)
+                         ctx-without-idx)]
+      (analyze-fn ctx-with-def (with-meta {:children (cons nil fn-tail)} (meta expr))))))
 
 (defn analyze-areduce [ctx expr]
   (let [children (next (:children expr))
