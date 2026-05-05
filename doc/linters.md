@@ -1645,7 +1645,7 @@ message is: `inc already refers to #'clojure.core/inc`
 
 *Description:* warn when alias is the same as the namespace it is aliasing
 
-*Default level:* `:warning`.
+*Default level:* `:off`.
 
 *Example trigger:* `(ns foo (:require [bar :as bar]))`.
 
