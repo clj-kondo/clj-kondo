@@ -85,9 +85,8 @@ clj-kondo.build_artifacts.txt
 corpus/namespace_config/.clj-kondo/inline-configs
 .lock
 corpus/.clj-kondo/inline-configs
-corpus/.clj-kondo/clj_kondo
 corpus/macro-from-source/.clj-kondo/inline-configs
-corpus/macro-from-source/.clj-kondo/clj_kondo
+**/.clj-kondo/clj_kondo
 tmp
 .eastwood
 

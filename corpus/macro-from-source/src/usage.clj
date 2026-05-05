@@ -8,3 +8,5 @@
 (script/mixed "Hi")
 (script/literal :ignored)
 (script/setty #{1} #{2})
+(script/defdouble forty-two 21)
+(inc forty-two)

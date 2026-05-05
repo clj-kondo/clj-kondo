@@ -209,9 +209,14 @@
             (let [code (if (string? x)
                          (when (:allow-string-hooks ctx)
                            x)
-                         (let [ns (namespace x)]
-                           (format "(require '%s %s)\n%s" ns
-                                   (if (hook-needs-reload? ns) :reload "")
+                         (let [ns (namespace x)
+                               reload? (hook-needs-reload? ns)]
+                           (format "%s(require '%s %s)\n%s"
+                                   (if reload?
+                                     (format "(when (find-ns '%s) (remove-ns '%s))\n" ns ns)
+                                     "")
+                                   ns
+                                   (if reload? :reload "")
                                    x)))]
               (sci/eval-string* (store/get-ctx) code))))
         (when-let [x (or (get-in hook-cfg [:macroexpand sym])
@@ -225,10 +230,14 @@
               (let [code (if (string? x)
                            (when (:allow-string-hooks ctx)
                              x)
-                           (let [ns (namespace x)]
-                             (format "(require '%s %s)\n(var %s)"
+                           (let [ns (namespace x)
+                                 reload? (hook-needs-reload? ns)]
+                             (format "%s(require '%s %s)\n(var %s)"
+                                     (if reload?
+                                       (format "(when (find-ns '%s) (remove-ns '%s))\n" ns ns)
+                                       "")
                                      ns
-                                     (if (hook-needs-reload? ns) :reload "")
+                                     (if reload? :reload "")
                                      x)))
                     the-var (sci/eval-string* (store/get-ctx) code)]
                 (when (and the-var (not (string? x)) (not (:macro (meta the-var))))

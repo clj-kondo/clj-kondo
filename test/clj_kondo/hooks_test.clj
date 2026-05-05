@@ -538,7 +538,10 @@ my-ns/special-map \"
       (assert-submaps2
        [{:file "corpus/macro-from-source/src/usage.clj"
          :row 4 :col 17 :level :error
-         :message "Unresolved symbol: x"}]
+         :message "Unresolved symbol: x"}
+        {:file "corpus/macro-from-source/src/usage.clj"
+         :row 11 :col 19 :level :error
+         :message "Unresolved symbol: forty-two"}]
        (lint! src-dir
               {:linters {:unresolved-symbol {:level :error}
                          :unresolved-namespace {:level :warning}}}
@@ -548,8 +551,10 @@ my-ns/special-map \"
       (let [gen (slurp (fs/file gen-file))]
         (testing "every marker macro is extracted"
           (doseq [name ["my-let" "shout" "joined" "tagged"
-                        "mixed" "literal" "setty"]]
+                        "mixed" "literal" "setty" "defdouble"]]
             (is (str/includes? gen (str "(defmacro " name)))))
+        (testing "marker helper defns are extracted alongside the macros"
+          (is (str/includes? gen "(defn double-it")))
         (testing "alias kinds in :require reflect macro-body usage"
           (testing "expand-time call only -> :as"
             (is (str/includes? gen "[clojure.set :as set]")))
@@ -559,9 +564,12 @@ my-ns/special-map \"
             (is (str/includes? gen "[some.stub :as-alias stub]")))))
       (is (fs/exists? inline-config))
       (let [cfg (slurp (fs/file inline-config))]
-        (doseq [name ["my-let" "shout" "joined" "tagged"
-                      "mixed" "literal" "setty"]]
-          (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name)))))
+        (testing "macros register macroexpand hooks"
+          (doseq [name ["my-let" "shout" "joined" "tagged"
+                        "mixed" "literal" "setty" "defdouble"]]
+            (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name)))))
+        (testing "helper defns do not register a macroexpand hook"
+          (is (not (str/includes? cfg "/double-it")))))
       (is (fs/exists? manifest)))
     (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
       (assert-submaps2

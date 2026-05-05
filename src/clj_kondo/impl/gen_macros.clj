@@ -26,12 +26,12 @@
 (defn- safe-sexpr [n]
   (try (utils/sexpr n) (catch Exception _ nil)))
 
-(defn- defmacro-form-name [n]
+(defn- top-form-name
+  "Return the NAME of a top-level (HEAD NAME ...) list. Gen files only ever
+  hold forms we emit (defmacro/defn/def style), so we don't filter by HEAD."
+  [n]
   (when (= :list (utils/tag n))
-    (let [[head name-node] (:children n)]
-      (when (and head name-node
-                 (= 'defmacro (safe-sexpr head)))
-        (safe-sexpr name-node)))))
+    (safe-sexpr (second (:children n)))))
 
 (defn- ns-form? [n]
   (and (= :list (utils/tag n))
@@ -132,21 +132,9 @@
       {:aliases (or (parse-existing-aliases content) {})
        :forms (vec (remove ns-form? children))})))
 
-(defn- merge-form
-  "Replace the (defmacro fn-name ...) entry in top-forms with new-form, or
-  append it if absent."
-  [top-forms fn-name new-form]
-  (let [replaced? (volatile! false)
-        merged (mapv (fn [n]
-                       (if (= fn-name (defmacro-form-name n))
-                         (do (vreset! replaced? true) new-form)
-                         n))
-                     top-forms)]
-    (if @replaced? merged (conj merged new-form))))
-
 (defn- remove-forms [top-forms fn-names]
   (let [drop-set (set fn-names)]
-    (vec (remove #(contains? drop-set (defmacro-form-name %)) top-forms))))
+    (vec (remove #(contains? drop-set (top-form-name %)) top-forms))))
 
 (defn- write-file! [^File f gen-ns aliases top-forms]
   (if (seq top-forms)
@@ -181,32 +169,6 @@
   [orig-ns]
   (str/starts-with? (str orig-ns) reserved-ns-prefix))
 
-(defn record!
-  "Synchronously emit an extracted macro source file under the cfg-dir and
-  push a manifest entry onto the per-file `:gen-macros` ctx atom. Only
-  fires for the :clj language pass.
-
-  `:alias-usages` is the per-usage `{:ns :kind}` vector produced by the
-  analyzer while walking the macro body. `:source-aliases` is the alias
-  map of the source namespace (`{alias full-ns}`), used to look up the
-  alias symbol for each used namespace and to honor `:as-alias` intent
-  (preserved as meta on the alias key)."
-  [ctx {:keys [orig-ns fn-name expr alias-usages source-aliases]}]
-  (when (and (identical? :clj (:lang ctx))
-             orig-ns fn-name expr)
-    (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
-      (let [gen-ns (gen-ns-sym orig-ns)
-            f (gen-file cfg-dir gen-ns)
-            new-form (parse-form (str expr))
-            new-aliases (aggregate-alias-usages alias-usages source-aliases)]
-        (with-gen-lock cfg-dir
-          (let [{:keys [aliases forms]} (parse-content (read-existing f))
-                merged-forms (merge-form forms fn-name new-form)
-                merged-aliases (merge-alias-maps aliases new-aliases)]
-            (write-file! f gen-ns merged-aliases merged-forms)))
-        (swap! (:gen-macros ctx) conj
-               {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns})))))
-
 (defn- manifest-file ^File [cfg-dir main-ns ext]
   (io/file cfg-dir "inline-configs"
            (str (namespace-munge (str main-ns))
@@ -217,6 +179,49 @@
   (when (fs/exists? f)
     (try (edn/read-string (slurp f))
          (catch Exception _ nil))))
+
+(defn- this-file-prev-names
+  "Names this source file owned in the previous run (from its manifest).
+  Used to identify which existing gen-file forms belong to this source
+  file so we can replace them in-place while preserving forms contributed
+  by *other* source files in the same gen ns."
+  [ctx ^File cfg-dir]
+  (when-let [main-ns (some-> ctx :main-ns deref)]
+    (let [ext (some-> (:filename ctx) fs/extension)
+          man-file (manifest-file cfg-dir main-ns ext)]
+      (set (map :fn-name (read-manifest man-file))))))
+
+(defn record!
+  "Push an entry onto the per-file `:gen-macros` ctx atom and rewrite the
+  gen file. The gen file is fully regenerated on every call from this
+  source file's accumulated entries (in source order), preserving forms
+  contributed by other source files to the same gen namespace.
+
+  `:alias-usages` is the per-usage `{:ns :kind}` vector produced by the
+  analyzer while walking the macro/helper body. `:source-aliases` is the
+  alias map of the source namespace (`{alias full-ns}`), used to look up
+  the alias symbol for each used namespace and to honor `:as-alias`
+  intent (preserved as meta on the alias key)."
+  [ctx {:keys [orig-ns fn-name expr alias-usages source-aliases]}]
+  (when (and (identical? :clj (:lang ctx))
+             orig-ns fn-name expr)
+    (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
+      (let [gen-ns (gen-ns-sym orig-ns)
+            f (gen-file cfg-dir gen-ns)
+            new-aliases (aggregate-alias-usages alias-usages source-aliases)
+            entries (swap! (:gen-macros ctx) conj
+                           {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns
+                            :form-str (str expr) :aliases new-aliases})
+            current-names (set (map :fn-name entries))
+            prev-names (this-file-prev-names ctx cfg-dir)
+            owned-names (into current-names prev-names)]
+        (with-gen-lock cfg-dir
+          (let [{:keys [aliases forms]} (parse-content (read-existing f))
+                foreign-forms (vec (remove #(contains? owned-names (top-form-name %)) forms))
+                this-forms (mapv (fn [{:keys [form-str]}] (parse-form form-str)) entries)
+                this-aliases (reduce merge-alias-maps {} (map :aliases entries))
+                merged-aliases (merge-alias-maps aliases this-aliases)]
+            (write-file! f gen-ns merged-aliases (concat foreign-forms this-forms))))))))
 
 (defn- write-manifest! [^File f entries]
   (if (seq entries)

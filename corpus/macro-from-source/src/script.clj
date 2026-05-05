@@ -47,4 +47,15 @@
   [a b]
   (set/union a b))
 
+(defn ^{:clj-kondo/macro true} double-it
+  "Helper defn marked for extraction. Called by `defdouble` at expand time."
+  [n]
+  (* 2 n))
+
+(defmacro defdouble
+  "Marker macro that calls a same-ns helper at expand time."
+  {:clj-kondo/macro true}
+  [sym n]
+  `(def ~sym ~(double-it n)))
+
 (my-let [x 1] (inc x))
