@@ -1199,6 +1199,20 @@
         cse
         (recur (rest callstack))))))
 
+(defn mark-non-tail-recur
+  "Marks ctx as a non-tail position for recur (e.g. inside a collection
+  literal). An empty map is used as the sentinel so that downstream
+  `assoc-in [:recur-arity :fixed-arity] 0` calls still work."
+  [ctx]
+  (assoc ctx :recur-arity {}))
+
+(defn non-tail-recur?
+  "Inverse of `mark-non-tail-recur`: true when the ctx's :recur-arity
+  signals a non-tail position. Distinguished from a nil :recur-arity,
+  which means there is no enclosing fn or loop at all."
+  [recur-arity]
+  (and (map? recur-arity) (empty? recur-arity)))
+
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
         recur-arity (:recur-arity ctx)
@@ -1206,46 +1220,53 @@
     (when seen-recur? (vreset! seen-recur? true))
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
-      (let [arg-count (count (rest (:children expr)))
-            expected-arity
-            (or (:fixed-arity recur-arity)
-                ;; varargs must be passed as a seq or nil in recur
-                (when-let [min-arity (:min-arity recur-arity)]
-                  (inc min-arity)))
-            expected-arity (if (:protocol-fn ctx)
-                             ;; compensate for this argument
-                             (dec expected-arity)
-                             expected-arity)]
-        (let [len (:len ctx)
-              idx (:idx ctx)
-              parent (-> (:callstack ctx)
-                         rest first-callstack-elt-ignoring-macros second)]
-          (when (and len idx
-                     (not= (dec len) idx)
-                     (not (one-of parent [if case cond if-let if-not if-some condp])))
+      (if (non-tail-recur? recur-arity)
+        (findings/reg-finding!
+         ctx
+         (node->line
+          filename
+          expr
+          :unexpected-recur "Recur can only be used in tail position."))
+        (let [arg-count (count (rest (:children expr)))
+              expected-arity
+              (or (:fixed-arity recur-arity)
+                  ;; varargs must be passed as a seq or nil in recur
+                  (when-let [min-arity (:min-arity recur-arity)]
+                    (inc min-arity)))
+              expected-arity (if (:protocol-fn ctx)
+                               ;; compensate for this argument
+                               (dec expected-arity)
+                               expected-arity)]
+          (let [len (:len ctx)
+                idx (:idx ctx)
+                parent (-> (:callstack ctx)
+                           rest first-callstack-elt-ignoring-macros second)]
+            (when (and len idx
+                       (not= (dec len) idx)
+                       (not (one-of parent [if case cond if-let if-not if-some condp])))
+              (findings/reg-finding!
+               ctx
+               (node->line
+                filename
+                expr
+                :unexpected-recur "Recur can only be used in tail position."))))
+          (cond
+            (not expected-arity)
             (findings/reg-finding!
              ctx
              (node->line
               filename
               expr
-              :unexpected-recur "Recur can only be used in tail position."))))
-        (cond
-          (not expected-arity)
-          (findings/reg-finding!
-           ctx
-           (node->line
-            filename
-            expr
-            :unexpected-recur "Unexpected usage of recur."))
-          (not= expected-arity arg-count)
-          (findings/reg-finding!
-           ctx
-           (node->line
-            filename
-            expr
-            :invalid-arity
-            (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
-          :else nil))))
+              :unexpected-recur "Unexpected usage of recur."))
+            (not= expected-arity arg-count)
+            (findings/reg-finding!
+             ctx
+             (node->line
+              filename
+              expr
+              :invalid-arity
+              (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
+            :else nil)))))
   (analyze-children ctx (rest (:children expr))))
 
 (defn analyze-letfn [ctx expr]
@@ -3283,16 +3304,18 @@
                                 children)
                      children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
-                               (update ctx
-                                       :callstack #(cons [nil t] %)) children)]
+                               (-> ctx
+                                   mark-non-tail-recur
+                                   (update :callstack #(cons [nil t] %))) children)]
                  (types/add-arg-type-from-expr ctx (assoc expr
                                                           :children children
                                                           :analyzed analyzed))
                  analyzed))
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
-                 (analyze-children (update ctx
-                                           :callstack #(cons [nil t] %))
+                 (analyze-children (-> ctx
+                                       mark-non-tail-recur
+                                       (update :callstack #(cons [nil t] %)))
                                    children))
         :fn (do
               (lint-unused-value ctx expr)
@@ -3473,8 +3496,9 @@
         :vector
         (do
           (lint-unused-value ctx expr)
-          (analyze-children (update ctx
-                                    :callstack #(cons [nil t] %))
+          (analyze-children (-> ctx
+                                mark-non-tail-recur
+                                (update :callstack #(cons [nil t] %)))
                             children))
         :deref
         (recur ctx (with-meta
@@ -3668,10 +3692,8 @@
               ctx (assoc ctx
                          :inline-configs (atom [])
                          :main-ns (atom nil))
-              cljc-config (:cljc config)
               features (when (identical? :cljc lang)
-                         (or (:features cljc-config)
-                             [:clj :cljs]))
+                         (config/cljc-features config ))
               parsed (binding [*reader-features* features]
                        (p/parse-string input))
               fname (fs/file-name filename)

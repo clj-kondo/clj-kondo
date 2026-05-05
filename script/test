@@ -2,6 +2,9 @@
 
 set -eo pipefail
 
+# home-config-test currently relies on this env var not being set:
+unset XDG_CONFIG_HOME
+
 # shellcheck disable=1091
 source script/extract-versions
 
