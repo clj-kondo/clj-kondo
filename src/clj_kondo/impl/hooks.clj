@@ -130,8 +130,14 @@
           {prev-mtime :mtime prev-hash :hash}
           (get-in @hook-resolve-cache [:file-stamps path])]
       (if (and prev-mtime (= mtime prev-mtime))
-        false
-        (let [h (file-sha256 f)]
+        (do (binding [*out* *err*]
+              (println "[hooks-debug] mtime-hit" path))
+            false)
+        (let [t0 (System/nanoTime)
+              h (file-sha256 f)
+              dt-us (long (/ (- (System/nanoTime) t0) 1000))]
+          (binding [*out* *err*]
+            (println "[hooks-debug] mtime-miss hashed" path "in" dt-us "us"))
           (vswap! hook-resolve-cache assoc-in [:file-stamps path]
                   {:mtime mtime :hash h})
           (not= h prev-hash))))))
@@ -193,6 +199,8 @@
 
 (defn- hook-fn*
   [ctx config ns-sym var-sym]
+  (binding [*out* *err*]
+    (println "[hooks-debug] hook-fn* invoked for" ns-sym "/" var-sym))
   (let [sym (symbol (str ns-sym)
                     (str var-sym))
         hook-cfg (:hooks config)
@@ -245,20 +253,23 @@
   [ctx config ns-sym var-sym]
   (try
     (let [hooks-cfg (:hooks config)
-          cache-val @hook-resolve-cache
           ;; invalidate hook lookups when hooks config changes, but keep the
           ;; per-file stamps so we don't re-hash on every config reload
-          cache-val (if (identical? hooks-cfg (:hooks-cfg cache-val))
-                      cache-val
-                      {:hooks-cfg hooks-cfg
-                       :file-stamps (:file-stamps cache-val)})
+          _ (vswap! hook-resolve-cache
+                    (fn [cv]
+                      (if (identical? hooks-cfg (:hooks-cfg cv))
+                        cv
+                        {:hooks-cfg hooks-cfg
+                         :file-stamps (:file-stamps cv)})))
           k [ns-sym var-sym]
-          v (get cache-val k hook-not-found)]
+          v (get @hook-resolve-cache k hook-not-found)]
       (if (identical? v hook-not-found)
         (let [ret (hook-fn* ctx config ns-sym var-sym)]
-          (vreset! hook-resolve-cache (assoc cache-val k ret))
+          (vswap! hook-resolve-cache assoc k ret)
           ret)
-        v))
+        (do (binding [*out* *err*]
+              (println "[hooks-debug] cache-hit" ns-sym "/" var-sym))
+            v)))
     (catch Exception e
       (binding [*out* *err*]
         (println "WARNING: error while trying to read hook for"
