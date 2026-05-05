@@ -526,7 +526,6 @@ my-ns/special-map \"
 (deftest macro-from-source-test
   (let [cfg-dir (fs/file "corpus" "macro-from-source" ".clj-kondo")
         gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "script.clj")
-        manifest (fs/file cfg-dir "inline-configs" "script.clj" "gen-macros.edn")
         inline-config (fs/file cfg-dir "inline-configs" "script.clj" "config.edn")
         src-dir (fs/file "corpus" "macro-from-source" "src")
         cleanup! (fn []
@@ -546,7 +545,7 @@ my-ns/special-map \"
               {:linters {:unresolved-symbol {:level :error}
                          :unresolved-namespace {:level :warning}}}
               "--config-dir" (str cfg-dir))))
-    (testing "generated source file, inline-config and manifest are written"
+    (testing "generated source file and inline-config are written"
       (is (fs/exists? gen-file))
       (let [gen (slurp (fs/file gen-file))]
         (testing "every marker macro is extracted"
@@ -569,8 +568,7 @@ my-ns/special-map \"
                         "mixed" "literal" "setty" "defdouble"]]
             (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name)))))
         (testing "helper defns do not register a macroexpand hook"
-          (is (not (str/includes? cfg "/double-it")))))
-      (is (fs/exists? manifest)))
+          (is (not (str/includes? cfg "/double-it"))))))
     (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
       (assert-submaps2
        []
@@ -584,7 +582,6 @@ my-ns/special-map \"
               :linters {:unresolved-symbol {:level :error}}}
              "--config-dir" (str cfg-dir))
       (is (not (fs/exists? gen-file)))
-      (is (not (fs/exists? manifest)))
       (is (not (fs/exists? inline-config))))
     (cleanup!)))
 

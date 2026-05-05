@@ -3753,16 +3753,14 @@
                                               (when-let [ext (fs/extension (:filename ctx))]
                                                 (str "." ext))) "config.edn")]
                 (if (and configs auto-load?)
-                  (do
-                    (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                      (cache/with-thread-lock
-                        (cache/with-cache ;; lock config dir for concurrent writes
-                          cfg-dir
-                          10
-                          (binding [*print-namespace-maps* false]
-                            (spit (doto inline-file
-                                    (io/make-parents)) (apply config/merge-config! configs))))))
-                    (gen-macros/finalize-file! ctx lang))
+                  (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
+                    (cache/with-thread-lock
+                      (cache/with-cache ;; lock config dir for concurrent writes
+                        cfg-dir
+                        10
+                        (binding [*print-namespace-maps* false]
+                          (spit (doto inline-file
+                                  (io/make-parents)) (apply config/merge-config! configs))))))
                   (do
                     (gen-macros/delete-for-file! ctx lang)
                     (when (fs/exists? inline-file)
