@@ -216,12 +216,15 @@
             prev-names (this-file-prev-names ctx cfg-dir)
             owned-names (into current-names prev-names)]
         (with-gen-lock cfg-dir
-          (let [{:keys [aliases forms]} (parse-content (read-existing f))
+          (let [{:keys [forms]} (parse-content (read-existing f))
                 foreign-forms (vec (remove #(contains? owned-names (top-form-name %)) forms))
                 this-forms (mapv (fn [{:keys [form-str]}] (parse-form form-str)) entries)
-                this-aliases (reduce merge-alias-maps {} (map :aliases entries))
-                merged-aliases (merge-alias-maps aliases this-aliases)]
-            (write-file! f gen-ns merged-aliases (concat foreign-forms this-forms))))))))
+                ;; Aliases reflect only the current entries from this source file.
+                ;; Stale aliases parsed from the existing gen file are intentionally
+                ;; dropped so an alias removed from a marker body disappears from
+                ;; the gen ns's :require on the next run.
+                this-aliases (reduce merge-alias-maps {} (map :aliases entries))]
+            (write-file! f gen-ns this-aliases (concat foreign-forms this-forms))))))))
 
 (defn- write-manifest! [^File f entries]
   (if (seq entries)
