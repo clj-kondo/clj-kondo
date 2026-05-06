@@ -816,16 +816,25 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
+(defn- references-symbol?
+  [node sym]
+  (when node
+    (or (and (= :token (tag node))
+             (= sym (:value node)))
+        (some #(references-symbol? % sym) (:children node)))))
+
 (defn- conditional-build-up-step?
   [value-node map-sym]
   (when (and value-node map-sym (= :list (tag value-node)))
     (let [if-children (:children value-node)]
       (when (= 4 (count if-children))
         (let [if-operator (nth if-children 0)
+              if-predicate (nth if-children 1)
               then-branch (nth if-children 2)
               else-branch (nth if-children 3)]
           (when (and (= :token (tag if-operator))
                      (= 'if (:value if-operator))
+                     (not (references-symbol? if-predicate map-sym))
                      (= :list (tag then-branch))
                      else-branch)
             (let [then-children (:children then-branch)
@@ -839,13 +848,6 @@
                     (= map-sym (:value assoc-map-arg))
                     (= :token (tag else-branch))
                     (= map-sym (:value else-branch)))))))))))
-
-(defn- references-symbol?
-  [node sym]
-  (when node
-    (or (and (= :token (tag node))
-             (= sym (:value node)))
-        (some #(references-symbol? % sym) (:children node)))))
 
 (defn- base-binding-candidate?
   [value-node map-sym]
