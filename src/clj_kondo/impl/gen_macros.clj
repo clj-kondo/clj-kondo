@@ -30,8 +30,12 @@
   - When source declared an alias as `:as-alias` (preserved via meta on the
     alias key), pin the result to `:as-alias` regardless of usage location -
     matches source intent and avoids forcing SCI to load a stub namespace.
-  - When the same alias is observed both ways, `:as` wins."
-  [usages source-aliases]
+  - When the same alias is observed both ways, `:as` wins.
+  - When the aliased namespace has its own gen file (it contains its own
+    marker macros/helpers), redirect the require to point at the gen ns
+    so SCI uses the extracted copy instead of the (possibly SCI-incompatible)
+    original."
+  [usages source-aliases ^File cfg-dir]
   (let [ns->alias-key (reduce-kv (fn [m alias-key full-ns]
                                    (assoc m full-ns alias-key))
                                  {}
@@ -42,11 +46,15 @@
          (let [alias-sym (with-meta (symbol (name alias-key)) {})
                src-as-alias? (:as-alias (meta alias-key))
                kind (if src-as-alias? :as-alias kind)
+               redirected-ns (let [gen-ns (gen-ns-sym ns)]
+                               (if (and cfg-dir (fs/exists? (gen-file cfg-dir gen-ns)))
+                                 gen-ns
+                                 ns))
                cur (get m alias-sym)]
            (cond
-             (nil? cur) (assoc m alias-sym {:ns ns :kind kind})
+             (nil? cur) (assoc m alias-sym {:ns redirected-ns :kind kind})
              (and (= :as-alias (:kind cur)) (= :as kind))
-             (assoc m alias-sym {:ns ns :kind :as})
+             (assoc m alias-sym {:ns redirected-ns :kind :as})
              :else m))
          m))
      {}
@@ -124,7 +132,7 @@
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
-            new-aliases (aggregate-alias-usages alias-usages source-aliases)
+            new-aliases (aggregate-alias-usages alias-usages source-aliases cfg-dir)
             entries (swap! (:gen-macros ctx) conj
                            {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns
                             :form-str (str expr) :aliases new-aliases})]

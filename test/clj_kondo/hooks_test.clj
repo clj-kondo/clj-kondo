@@ -585,6 +585,34 @@ my-ns/special-map \"
       (is (not (fs/exists? inline-config))))
     (cleanup!)))
 
+(deftest macro-from-source-cross-ns-helper-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-xref" ".clj-kondo")
+        helpers-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "helpers.clj")
+        main-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "main.clj")
+        src-dir (fs/file "corpus" "macro-from-source-xref" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "helper-only ns generates a gen file even without a marker defmacro"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (is (fs/exists? helpers-gen))
+      (is (str/includes? (slurp (fs/file helpers-gen)) "(defn binding-vec?")))
+    (testing "consumer ns redirects its alias to the gen ns of the helper"
+      (is (fs/exists? main-gen))
+      (let [gen (slurp (fs/file main-gen))]
+        (is (str/includes? gen "[clj-kondo.gen-macros.helpers :as h]"))))
+    (testing "second run lints clean - macro expands using the redirected helper"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
 (deftest stackoverflow-in-hook-result-test
   (testing "StackOverflowError during analysis reports correct filename, not directory"
     (let [findings (lint! (fs/file "corpus" "stackoverflow_hook" "foo.clj")

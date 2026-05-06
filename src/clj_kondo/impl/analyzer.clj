@@ -3747,20 +3747,27 @@
           (when-let [cfg-dir (-> ctx :config :cfg-dir)]
             (when-let [main-ns @(:main-ns ctx)]
               (let [configs (-> ctx :inline-configs deref seq)
+                    gen-macros? (-> ctx :gen-macros deref seq boolean)
                     auto-load? (not (false? (:auto-load-configs config)))
                     inline-file (io/file cfg-dir "inline-configs"
                                          (str (namespace-munge main-ns)
                                               (when-let [ext (fs/extension (:filename ctx))]
                                                 (str "." ext))) "config.edn")]
-                (if (and configs auto-load?)
-                  (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                    (cache/with-thread-lock
-                      (cache/with-cache ;; lock config dir for concurrent writes
-                        cfg-dir
-                        10
-                        (binding [*print-namespace-maps* false]
-                          (spit (doto inline-file
-                                  (io/make-parents)) (apply config/merge-config! configs))))))
+                (if auto-load?
+                  (do
+                    (when configs
+                      (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
+                        (cache/with-thread-lock
+                          (cache/with-cache ;; lock config dir for concurrent writes
+                            cfg-dir
+                            10
+                            (binding [*print-namespace-maps* false]
+                              (spit (doto inline-file
+                                      (io/make-parents)) (apply config/merge-config! configs)))))))
+                    (when-not gen-macros?
+                      (gen-macros/delete-for-file! ctx lang))
+                    (when (and (not configs) (fs/exists? inline-file))
+                      (fs/delete-tree (fs/parent inline-file))))
                   (do
                     (gen-macros/delete-for-file! ctx lang)
                     (when (fs/exists? inline-file)
