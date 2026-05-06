@@ -149,6 +149,23 @@
                                        (node->line (:filename ctx) expr :if-nil-return
                                                    (format "For nil return, prefer %s." preferred)))))))))
 
+(defn lint-redundant-if
+  "Lint `(if x x y)` patterns that can be simplified to `(or x y)` without
+   changing evaluation count."
+  [ctx expr]
+  (when-not (utils/linter-disabled? ctx :redundant-if)
+    (let [[condition then-branch else-branch] (rest (:children expr))]
+      (when (and else-branch
+                 (= (:value condition) (:value then-branch))
+                 (utils/symbol-token? condition)
+                 (not (or (:clj-kondo.impl/generated condition)
+                          (:clj-kondo.impl/generated then-branch)
+                          (:clj-kondo.impl/generated else-branch))))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :redundant-if
+                     "Use (or x y) instead of (if x x y)"))))))
+
 (defn lint-single-key-in [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :single-key-in)
     (let [[_ _ keyvec] (:children call)]
@@ -179,7 +196,8 @@
     ;; special forms which are not fns
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call))
-      (lint-if-nil-return ctx (:expr call)))
+      (lint-if-nil-return ctx (:expr call))
+      (lint-redundant-if ctx (:expr call)))
     (when (and (= 'nil? called-name)
                (utils/one-of called-ns [clojure.core cljs.core])
                (not (utils/linter-disabled? ctx :not-nil?)))
