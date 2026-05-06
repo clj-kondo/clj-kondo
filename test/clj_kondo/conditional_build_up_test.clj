@@ -6,7 +6,6 @@
 (def config
   {:linters {:conditional-build-up {:level :warning}}})
 
-
 (deftest conditional-build-up-positive-test
   (testing "two consecutive conditional assocs (minimum case)"
     (assert-submaps2
@@ -162,6 +161,19 @@
                m)"
              {:linters {:conditional-build-up {:level :error}}})))
 
+  (testing "standard conditional step combined with splicing reader-conditional triggers chain for both dialects"
+    (assert-submaps2
+      [{:level :warning
+        :message "Prefer cond-> to build a map with successive conditional assocs."}]
+      (lint! "(let [m {:k0 (f0 in)}
+                    m (if (p1 in) (assoc m :k1 (f1 in)) m)
+                    #?@(:clj
+                        [m (if (p2 in) (assoc m :clj-k2 (f2 in)) m)]
+                        :cljs
+                        [m (if (p3 in) (assoc m :cljs-k3 (f3 in)) m)])]
+                m)"
+             config "--lang" "cljc")))
+
 
 (deftest conditional-build-up-negative-test
   (testing "only one conditional assoc (below threshold)"
@@ -176,6 +188,13 @@
                               o (if (even? in) (assoc n :k2 2) n)]
                           o)"
                        config))))
+
+  (testing "predicate references map symbol"
+    (is (empty? (lint! "(let [m {}
+                              m (if (:a m) (assoc m :a 1) m)
+                              m (if (:b m) (assoc m :b 2) m)]
+                          m)"
+                        config))))
 
   (testing "else branch returns a different value from the variable itself"
     (is (empty? (lint! "(let [m {:k0 0}
