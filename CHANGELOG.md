@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Docs: update `doc/config.md` optional-linters section to include linters that are `:off` by default ([@jramosg](https://github.com/jramosg))
 - [#2811](https://github.com/clj-kondo/clj-kondo/issues/2811): report correct location for `:missing-map-value` when the malformed map is nested in a set or in map-key position, and no longer suppress subsequent lint errors in the file
 - [#2813](https://github.com/clj-kondo/clj-kondo/issues/2813): fix false positive `:unused-excluded-var` when a core var is excluded to make room for a `:refer` with `:rename` ([@jramosg](https://github.com/jramosg))
 - [#2814](https://github.com/clj-kondo/clj-kondo/issues/2814): fix false positive `:protocol-method-arity-mismatch` when a `definterface` declares the same method name with multiple arities ([@jramosg](https://github.com/jramosg))
