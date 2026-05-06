@@ -2985,8 +2985,7 @@
                               (cond
                                 (and (= resolved-namespace 'clojure.core.async)
                                      (= resolved-name 'go))
-                                (do
-                                  (analyze-children (assoc next-ctx :inside-go? true) children))
+                                (analyze-children (assoc next-ctx :inside-go? true) children)
                                 (and (= resolved-namespace 'clojure.core.async)
                                      (contains? '#{<!! >!!} resolved-name))
                                 (do
