@@ -2801,7 +2801,13 @@
                           case
                           (analyze-case ctx expr)
                           loop
-                          (analyze-loop ctx expr)
+                          (analyze-loop (cond-> ctx
+                                          (contains? '#{clojure.core.async/go-loop
+                                                        cljs.core.async/go-loop
+                                                        cljs.core.async.macros/go-loop}
+                                                     resolved-var-sym)
+                                          (assoc :inside-go? true))
+                                        expr)
                           recur
                           (analyze-recur ctx expr)
                           quote nil
@@ -2987,7 +2993,7 @@
                                      (= resolved-name 'go))
                                 (analyze-children (assoc next-ctx :inside-go? true) children)
                                 (and (= resolved-namespace 'clojure.core.async)
-                                     (contains? '#{<!! >!!} resolved-name))
+                                     (contains? '#{<!! >!! alts!!} resolved-name))
                                 (do
                                   (when (:inside-go? ctx)
                                     (findings/reg-finding!
