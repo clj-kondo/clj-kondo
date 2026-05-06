@@ -16,6 +16,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
+    - [Conditional build up] (#conditional-build-up)
     - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
