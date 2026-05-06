@@ -16,7 +16,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
-    - [Conditional build up] (#conditional-build-up)
+    - [Conditional build-up](#conditional-build-up)
     - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
@@ -303,6 +303,28 @@ doesn't check for literally `true` values of vars since this is often a dev/prod
 *Example trigger:* `(if odd? :odd :even)`.
 
 *Example message:* `Condition always true`.
+
+### Conditional build-up
+
+*Keyword:* `:conditional-build-up`.
+
+*Description:* warn when a `let` repeatedly rebinds the same local map using forms like `(if pred (assoc m ...) m)`, which can often be written more clearly with `cond->`.
+
+*Default level:* `:info`.
+
+*Example trigger:*
+
+``` clojure
+(let [m {}
+      m (if (:a input) (assoc m :a 1) m)
+      m (if (:b input) (assoc m :b 2) m)
+      m (if (:c input) (assoc m :c 3) m)
+      m (if (:d input) (assoc m :d 4) m)
+      m (if (:e input) (assoc m :e 5) m)]
+  m)
+```
+
+*Example message:* `Prefer cond-> to build a map with successive conditional assocs.`
 
 ### Conflicting-alias
 
