@@ -220,6 +220,7 @@ configuration. For general configurations options, go [here](config.md).
 (def my-chan (a/chan))
 (a/go
   (println "Blocked thread consuming:" (a/<!! my-chan)))
+```
 
 Example message: blocking operation inside go block
 
