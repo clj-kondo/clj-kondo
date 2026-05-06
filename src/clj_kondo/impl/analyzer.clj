@@ -2981,7 +2981,24 @@
                                              (-> (assoc-in [:recur-arity :fixed-arity] 0)
                                                  (assoc :seen-recur? (volatile! nil))
                                                  (dissoc :protocol-fn)))]
-                              (analyze-children next-ctx children false))))]
+                        
+                              (cond
+                                (and (= resolved-namespace 'clojure.core.async)
+                                     (= resolved-name 'go))
+                                (do
+                                  (analyze-children (assoc next-ctx :inside-go? true) children))
+                                (and (= resolved-namespace 'clojure.core.async)
+                                     (contains? '#{<!! >!!} resolved-name))
+                                (do
+                                  (when (:inside-go? ctx)
+                                    (findings/reg-finding!
+                                      ctx
+                                      (node->line (:filename ctx) expr :blocking-inside-go 
+                                                    "blocking operation inside go block")))
+                                  (analyze-children next-ctx children false))
+                                  
+                                  :else
+                                  (analyze-children next-ctx children false)))))]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed
                       (let [in-def (:in-def ctx)
