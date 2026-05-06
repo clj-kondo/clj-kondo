@@ -7,7 +7,7 @@
   {:linters {:conditional-build-up {:level :warning}}})
 
 
-(deftest conditional-build-up-test
+(deftest conditional-build-up-positive-test
   (testing "two consecutive conditional assocs (minimum case)"
     (assert-submaps2
       [{:file "<stdin>"
@@ -35,6 +35,120 @@
                m)"
              config)))
 
+  (testing "nested expressions inside assoc still count"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m {:k0 (f0 in)}
+               m (if (p1 in) (assoc m :k1 (if (p2 in) (f1 in) (f2 in))) m)
+               m (if (p3 in) (assoc m :k2 (f3 in)) m)]
+           m))")))
+
+  
+  (testing "different symbol name also triggers"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [acc {:k0 (f0 in)}
+               acc (if (p1 in) (assoc acc :k1 (f1 in)) acc)
+               acc (if (p2 in) (assoc acc :k2 (f2 in)) acc)]
+           acc))"))))
+
+  (testing "starts from empty map literal"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m {}
+               m (if (p1 in) (assoc m :k1 (f1 in)) m)
+               m (if (p2 in) (assoc m :k2 (f2 in)) m)
+               m (if (p3 in) (assoc m :k3 (f3 in)) m)]
+           m))")))
+
+  (testing "starts from (hash-map)"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m (hash-map)
+               m (if (p1 in) (assoc m :k1 (f1 in)) m)
+               m (if (p2 in) (assoc m :k2 (f2 in)) m)]
+           m))")))
+
+  (testing "starts from (sorted-map)"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m (sorted-map)
+               m (if (p1 in) (assoc m :k1 (f1 in)) m)
+               m (if (p2 in) (assoc m :k2 (f2 in)) m)]
+           m))")))
+
+  (testing "starts from (zipmap ...)"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m (zipmap [] [])
+               m (if (p1 in) (assoc m :k1 (f1 in)) m)
+               m (if (p2 in) (assoc m :k2 (f2 in)) m)]
+           m))")))
+
+  (testing "starts from pre-populated map"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m {:base true}
+               m (if (p1 in) (assoc m :k1 (f1 in)) m)
+               m (if (p2 in) (assoc m :k2 (f2 in)) m)]
+           m))")))
+
+  (testing "starts from function returning map"
+    (assert-submaps2
+     '({:file "<stdin>",
+        :row 2,
+        :col 15,
+        :level :info,
+        :message "Prefer cond-> to build a map with successive conditional assocs."})
+     (lint!
+      "(defn foo [in]
+         (let [m (f0 in)
+               m (if (p1 in) (assoc m :k1 (f1 in)) m)
+               m (if (p2 in) (assoc m :k2 (f2 in)) m)]
+           m))")))
+
   (testing "warning with :error level"
     (assert-submaps2
       [{:file "<stdin>"
@@ -46,10 +160,10 @@
                    m (if (pos? in) (assoc m :k1 1) m)
                    m (if (even? in) (assoc m :k2 2) m)]
                m)"
-             {:linters {:conditional-build-up {:level :error}}}))))
+             {:linters {:conditional-build-up {:level :error}}})))
 
 
-(deftest no-warning-test
+(deftest conditional-build-up-negative-test
   (testing "only one conditional assoc (below threshold)"
     (is (empty? (lint! "(let [m {:k0 0}
                               m (if (pos? in) (assoc m :k1 1) m)]
