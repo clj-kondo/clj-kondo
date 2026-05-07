@@ -72,6 +72,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing docstring](#missing-docstring)
     - [Missing else branch](#missing-else-branch)
     - [Missing map value](#missing-map-value)
+    - [Multi require each on own line](#multi-require-each-on-own-line)
     - [Unresolved protocol method](#unresolved-protocol-method)
     - [Missing protocol method](#missing-protocol-method)
     - [Protocol method arity mismatch](#protocol-method-arity-mismatch)
@@ -1324,6 +1325,18 @@ misses a value.
 *Example trigger:* `{:a 1 :b}`
 
 *Example message:* `missing value for key :b`.
+
+### Multi require each on own line
+
+*Keyword:* `:multi-require-each-on-own-line`.
+
+*Description:* when requiring multiple namespaces from one `:require` or `:require-macros` form, warn when entries are not each on their own line. A single require entry may be on the same line as `:require`.
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:require [foo.bar] [bar.baz]))`.
+
+*Example message:* `When requiring multiple namespaces, each :require entry must be on its own line`.
 
 ### Unresolved protocol method
 

@@ -3369,6 +3369,46 @@ app.api/my-var"
                                                                  :sort :case-sensitive}}}
                        "--lang" "cljs")))))
 
+(deftest multi-require-each-on-own-line-test
+  (testing "single require on same line is ok"
+    (is (empty? (lint! "(ns foo (:require [foo.bar]))"
+                       {:linters {:multi-require-each-on-own-line {:level :warning}}}))))
+  (testing "multiple requires on same line as :require"
+    (assert-submaps
+     [{:file "<stdin>"
+       :row 1
+       :col 19
+       :level :warning
+       :message "When requiring multiple namespaces, each :require entry must be on its own line"}
+      {:file "<stdin>"
+       :row 1
+       :col 29
+       :level :warning
+       :message "When requiring multiple namespaces, each :require entry must be on its own line"}]
+     (lint! "(ns foo (:require [foo.bar] [bar.baz]))"
+            {:linters {:multi-require-each-on-own-line {:level :warning}}})))
+  (testing "multiple requires on one line after :require"
+    (assert-submaps
+     [{:file "<stdin>"
+       :row 3
+       :col 4
+       :level :warning
+       :message "When requiring multiple namespaces, each :require entry must be on its own line"}
+      {:file "<stdin>"
+       :row 3
+       :col 14
+       :level :warning
+       :message "When requiring multiple namespaces, each :require entry must be on its own line"}]
+     (lint! "(ns foo\n  (:require\n   [foo.bar] [bar.baz]))"
+            {:linters {:multi-require-each-on-own-line {:level :warning}}})))
+  (testing "multiple requires on separate lines are ok"
+    (is (empty? (lint! "(ns foo\n  (:require\n   [foo.bar]\n   [bar.baz]))"
+                       {:linters {:multi-require-each-on-own-line {:level :warning}}}))))
+  (testing "use clauses are ignored"
+    (is (empty? (lint! "(ns foo (:use [foo.bar] [bar.baz]))"
+                       {:linters {:multi-require-each-on-own-line {:level :warning}
+                                  :use {:level :off}}})))))
+
 (deftest unsorted-imports-test
   (assert-submaps2
    [{:file "<stdin>"

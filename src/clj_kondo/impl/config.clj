@@ -39,6 +39,7 @@
               :duplicate-field {:level :error}
               :duplicate-key-args {:level :warning}
               :missing-map-value {:level :error}
+              :multi-require-each-on-own-line {:level :off}
               :redefined-var {:level :warning}
               :redundant-declare {:level :warning}
               :var-same-name-except-case {:level :warning}

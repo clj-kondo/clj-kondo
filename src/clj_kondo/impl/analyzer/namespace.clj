@@ -385,11 +385,32 @@
                {}))
     nil))
 
+(defn- lint-multi-require-each-on-own-line! [ctx require-kw-node libspecs]
+  (when-not (linter-disabled? ctx :multi-require-each-on-own-line)
+    (when (and (one-of (:k require-kw-node) [:require :require-macros])
+               (> (count libspecs) 1))
+      (let [require-row (:row (meta require-kw-node))
+            by-line (group-by #(-> % meta :row) libspecs)
+            crowded-rows (->> by-line
+                              (filter #(> (count (val %)) 1))
+                              (map key)
+                              set)
+            invalid-entry? #(or (= require-row (-> % meta :row))
+                                (contains? crowded-rows (-> % meta :row)))]
+        (doseq [libspec-expr (filter invalid-entry? libspecs)]
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       libspec-expr
+                       :multi-require-each-on-own-line
+                       "When requiring multiple namespaces, each :require entry must be on its own line")))))))
+
 (defn analyze-require-clauses [ctx ns-name kw+libspecs]
   (let [lang (:lang ctx)
         unused-namespace-disabled? (identical? :off (-> ctx :config :linters :unused-namespace :level))
         analyzed
         (map (fn [[require-kw libspecs]]
+               (lint-multi-require-each-on-own-line! ctx require-kw libspecs)
                (when-not libspecs
                  (findings/reg-finding!
                   ctx (node->line (:filename ctx) require-kw :syntax
