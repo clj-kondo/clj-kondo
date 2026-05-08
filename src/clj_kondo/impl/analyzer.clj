@@ -2986,24 +2986,25 @@
                                                       [clojure.core lazy-cat]])
                                              (-> (assoc-in [:recur-arity :fixed-arity] 0)
                                                  (assoc :seen-recur? (volatile! nil))
-                                                 (dissoc :protocol-fn)))]
-                        
-                              (cond
-                                (and (= resolved-namespace 'clojure.core.async)
-                                     (= resolved-name 'go))
-                                (analyze-children (assoc next-ctx :inside-go? true) children)
-                                (and (= resolved-namespace 'clojure.core.async)
-                                     (contains? '#{<!! >!! alts!!} resolved-name))
-                                (do
-                                  (when (:inside-go? ctx)
-                                    (findings/reg-finding!
-                                      ctx
-                                      (node->line (:filename ctx) expr :blocking-inside-go 
-                                                    "blocking operation inside go block")))
-                                  (analyze-children next-ctx children false))
-                                  
-                                  :else
-                                  (analyze-children next-ctx children false)))))]
+                                                 (dissoc :protocol-fn)))
+
+                                    next-ctx
+                                    (if (and (= resolved-namespace 'clojure.core.async)
+                                            (contains? '#{go go-loop} resolved-name))
+                                      (assoc next-ctx :inside-go? true)
+                                      next-ctx)]
+
+                                (when (and (= resolved-namespace 'clojure.core.async)
+                                          (contains? '#{<!! >!! alts!!} resolved-name)
+                                          (:inside-go? ctx))
+                                  (findings/reg-finding!
+                                    ctx
+                                    (node->line (:filename ctx)
+                                                expr
+                                                :blocking-inside-go
+                                                "blocking operation inside go block")))
+
+                                (analyze-children next-ctx children false))))]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed
                       (let [in-def (:in-def ctx)
