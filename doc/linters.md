@@ -10,6 +10,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Aliased namespace symbol](#aliased-namespace-symbol)
     - [Aliased namespace var usage](#aliased-namespace-var-usage)
     - [Aliased referred var](#aliased-referred-var)
+    - [Blocking inside go](#blocking-inside-go)
     - [Case](#case)
     - [Case duplicate test](#case-duplicate-test)
         - [Case quoted test](#case-quoted-test)
@@ -202,6 +203,24 @@ configuration. For general configurations options, go [here](config.md).
 ```
 
 *Example message:* `Var union is referred but used via alias: set`
+
+### Blocking inside go
+
+*Keyword:* `:blocking-inside-go`.
+
+*Description:* Warns when a blocking core.async operation, e.g., `<!!`, `>!!`, or `alts!!`, is used inside a `go` or `go-loop` block. Since these blocks run on a finite thread pool, blocking inside them may prevent further progress and cause starvation or performance issues.
+
+*Default level:* `:warning`
+
+*Example trigger:*
+
+```clojure
+(a/go
+  (a/alts!! [started-chan (a/timeout 1000)])
+  (a/close! result-chan))
+```
+
+Example message: blocking operation inside go block
 
 ### Case
 

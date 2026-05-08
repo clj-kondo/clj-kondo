@@ -1855,6 +1855,16 @@
   :langs (),
   :message "Unresolved symbol: re=",
   :row 22}
+ {:end-row 34,
+  :type :blocking-inside-go,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/server/statistics_handler_test.clj",
+  :col 11,
+  :end-col 37,
+  :langs (),
+  :message "blocking operation inside go block",
+  :row 34}
  {:end-row 121,
   :type :unresolved-symbol,
   :level :error,
@@ -1938,6 +1948,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 1018}
+ {:end-row 41,
+  :type :blocking-inside-go,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/util/async_test.clj",
+  :col 11,
+  :end-col 53,
+  :langs (),
+  :message "blocking operation inside go block",
+  :row 41}
  {:end-row 54,
   :type :unresolved-symbol,
   :level :error,
