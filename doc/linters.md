@@ -208,18 +208,16 @@ configuration. For general configurations options, go [here](config.md).
 
 *Keyword:* `:blocking-inside-go`.
 
-*Description:* Warns when a blocking operation (`<!!`, `>!!`, `alts!!`) is called inside a `go` block. `go` blocks are designed for non-blocking, cooperative concurrency and execute on a small, fixed-size thread pool. Blocking inside a `go` block defeats this purpose, risking thread starvation, deadlocks, and system-wide performance degradation.
+*Description:* Warns when a blocking core.async operation, e.g., `<!!`, `>!!`, or `alts!!`, is used inside a `go` or `go-loop` block. Since these blocks run on a finite thread pool, blocking inside them may prevent further progress and cause starvation or performance issues.
 
 *Default level:* `:warning`
 
 *Example trigger:*
 
 ```clojure
-(ns my-app.async-fail
-  (:require [clojure.core.async :as a]))
-(def my-chan (a/chan))
 (a/go
-  (println "Blocked thread consuming:" (a/<!! my-chan)))
+  (a/alts!! [started-chan (a/timeout 1000)])
+  (a/close! result-chan))
 ```
 
 Example message: blocking operation inside go block
