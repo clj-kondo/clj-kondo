@@ -390,14 +390,12 @@
     (when (and (one-of (:k require-kw-node) [:require :require-macros])
                (> (count libspecs) 1))
       (let [require-row (:row (meta require-kw-node))
-            by-line (group-by #(-> % meta :row) libspecs)
-            crowded-rows (->> by-line
-                              (filter #(> (count (val %)) 1))
-                              (map key)
-                              set)
-            invalid-entry? #(or (= require-row (-> % meta :row))
-                                (contains? crowded-rows (-> % meta :row)))]
-        (doseq [libspec-expr (filter invalid-entry? libspecs)]
+            by-row (partition-by #(-> % meta :row) libspecs)
+            invalid-row? (fn [[first-libspec & more-libspecs]]
+                           (or (= require-row (-> first-libspec meta :row))
+                               (seq more-libspecs)))]
+        (doseq [invalid-row (filter invalid-row? by-row)
+                libspec-expr invalid-row]
           (findings/reg-finding!
            ctx
            (node->line (:filename ctx)
