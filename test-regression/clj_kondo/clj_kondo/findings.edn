@@ -1665,7 +1665,7 @@
   :langs (:clj :cljs),
   :message "unused binding op",
   :row 2306}
- {:end-row 2396,
+ {:end-row 2402,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1675,8 +1675,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 2396}
- {:end-row 2396,
+  :row 2402}
+ {:end-row 2402,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1686,8 +1686,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding name",
-  :row 2396}
- {:end-row 2451,
+  :row 2402}
+ {:end-row 2457,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1697,8 +1697,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 2451}
- {:end-row 2528,
+  :row 2457}
+ {:end-row 2534,
   :type :redundant-let,
   :level :warning,
   :lang :clj,
@@ -1708,8 +1708,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant let expression.",
-  :row 2490}
- {:end-row 2595,
+  :row 2496}
+ {:end-row 2601,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1719,8 +1719,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 2595}
- {:end-row 2599,
+  :row 2601}
+ {:end-row 2605,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1730,8 +1730,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 2599}
- {:end-row 2603,
+  :row 2605}
+ {:end-row 2609,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1741,8 +1741,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 2603}
- {:end-row 2604,
+  :row 2609}
+ {:end-row 2610,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1752,8 +1752,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding context",
-  :row 2604}
- {:end-row 2781,
+  :row 2610}
+ {:end-row 2787,
   :type :missing-else-branch,
   :level :warning,
   :lang :clj,
@@ -1763,8 +1763,8 @@
   :cljc true,
   :langs (:clj),
   :message "Missing else branch.",
-  :row 2780}
- {:end-row 2791,
+  :row 2786}
+ {:end-row 2797,
   :type :missing-else-branch,
   :level :warning,
   :lang :clj,
@@ -1774,8 +1774,8 @@
   :cljc true,
   :langs (:clj),
   :message "Missing else branch.",
-  :row 2790}
- {:end-row 2820,
+  :row 2796}
+ {:end-row 2826,
   :type :unused-binding,
   :level :warning,
   :lang :cljs,
@@ -1785,8 +1785,8 @@
   :cljc true,
   :langs (:cljs),
   :message "unused binding opts",
-  :row 2820}
- {:end-row 2841,
+  :row 2826}
+ {:end-row 2847,
   :type :missing-body-in-when,
   :level :warning,
   :lang :cljs,
@@ -1796,8 +1796,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Missing body in when",
-  :row 2838}
- {:end-row 2885,
+  :row 2844}
+ {:end-row 2891,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1807,8 +1807,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 2885}
- {:end-row 2890,
+  :row 2891}
+ {:end-row 2896,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1818,8 +1818,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 2890}
- {:end-row 2895,
+  :row 2896}
+ {:end-row 2901,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1829,8 +1829,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 2895}
- {:end-row 2896,
+  :row 2901}
+ {:end-row 2902,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1840,8 +1840,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding cenv",
-  :row 2896}
- {:end-row 2900,
+  :row 2902}
+ {:end-row 2906,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1851,8 +1851,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 2900}
- {:end-row 2901,
+  :row 2906}
+ {:end-row 2907,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1862,8 +1862,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding cenv",
-  :row 2901}
- {:end-row 2905,
+  :row 2907}
+ {:end-row 2911,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1873,8 +1873,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 2905}
- {:end-row 2920,
+  :row 2911}
+ {:end-row 2926,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1884,8 +1884,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding cenv",
-  :row 2920}
- {:end-row 2969,
+  :row 2926}
+ {:end-row 2975,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1895,8 +1895,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding macros?",
-  :row 2969}
- {:end-row 3271,
+  :row 2975}
+ {:end-row 3278,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1906,8 +1906,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding segs",
-  :row 3271}
- {:end-row 3382,
+  :row 3278}
+ {:end-row 3389,
   :type :unused-private-var,
   :level :warning,
   :lang :cljs,
@@ -1917,8 +1917,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unused private var cljs.analyzer/check-duplicate-aliases",
-  :row 3382}
- {:end-row 3398,
+  :row 3389}
+ {:end-row 3405,
   :type :unused-binding,
   :level :warning,
   :lang :cljs,
@@ -1928,8 +1928,8 @@
   :cljc true,
   :langs (:cljs),
   :message "unused binding env",
-  :row 3398}
- {:end-row 3469,
+  :row 3405}
+ {:end-row 3476,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1939,8 +1939,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding params",
-  :row 3469}
- {:end-row 3532,
+  :row 3476}
+ {:end-row 3539,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1950,8 +1950,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding opts",
-  :row 3532}
- {:end-row 3570,
+  :row 3539}
+ {:end-row 3577,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -1961,8 +1961,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding params",
-  :row 3570}
- {:end-row 3661,
+  :row 3577}
+ {:end-row 3668,
   :type :def-fn,
   :level :warning,
   :lang :clj,
@@ -1972,8 +1972,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row 3661}
- {:end-row 3666,
+  :row 3668}
+ {:end-row 3673,
   :type :cond-else,
   :level :warning,
   :lang :clj,
@@ -1983,8 +1983,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "use :else as the catch-all test expression in cond",
-  :row 3666}
- {:end-row 3670,
+  :row 3673}
+ {:end-row 3677,
   :type :cond-else,
   :level :warning,
   :lang :clj,
@@ -1994,8 +1994,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "use :else as the catch-all test expression in cond",
-  :row 3670}
- {:end-row 3672,
+  :row 3677}
+ {:end-row 3679,
   :type :cond-else,
   :level :warning,
   :lang :clj,
@@ -2005,8 +2005,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "use :else as the catch-all test expression in cond",
-  :row 3672}
- {:end-row 3685,
+  :row 3679}
+ {:end-row 3692,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2016,8 +2016,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding target",
-  :row 3685}
- {:end-row 3904,
+  :row 3692}
+ {:end-row 3911,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2027,8 +2027,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op-match?",
-  :row 3904}
- {:end-row 3923,
+  :row 3911}
+ {:end-row 3930,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2038,8 +2038,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 3923}
- {:end-row 4006,
+  :row 3930}
+ {:end-row 4013,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2049,8 +2049,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding cur-ns",
-  :row 4006}
- {:end-row 4020,
+  :row 4013}
+ {:end-row 4027,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2060,8 +2060,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding ns",
-  :row 4020}
- {:end-row 4020,
+  :row 4027}
+ {:end-row 4027,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2071,8 +2071,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding macro",
-  :row 4020}
- {:end-row 4054,
+  :row 4027}
+ {:end-row 4061,
   :type :redundant-nested-call,
   :level :info,
   :lang :clj,
@@ -2082,8 +2082,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant nested call: and",
-  :row 4053}
- {:end-row 4124,
+  :row 4060}
+ {:end-row 4131,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2093,8 +2093,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding cur-ns",
-  :row 4124}
- {:end-row 4368,
+  :row 4131}
+ {:end-row 4375,
   :type :redundant-let,
   :level :warning,
   :lang :clj,
@@ -2104,8 +2104,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant let expression.",
-  :row 4362}
- {:end-row 4477,
+  :row 4369}
+ {:end-row 4484,
   :type :unused-private-var,
   :level :warning,
   :lang :cljs,
@@ -2115,8 +2115,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unused private var cljs.analyzer/repl-self-require?",
-  :row 4477}
- {:end-row 4538,
+  :row 4484}
+ {:end-row 4545,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2126,8 +2126,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding opts",
-  :row 4538}
- {:end-row 4648,
+  :row 4545}
+ {:end-row 4655,
   :type :cond-else,
   :level :warning,
   :lang :clj,
@@ -2137,8 +2137,8 @@
   :cljc true,
   :langs (:clj),
   :message "use :else as the catch-all test expression in cond",
-  :row 4648}
- {:end-row 4671,
+  :row 4655}
+ {:end-row 4678,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2148,8 +2148,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding t",
-  :row 4671}
- {:end-row 4685,
+  :row 4678}
+ {:end-row 4692,
   :type :missing-else-branch,
   :level :warning,
   :lang :clj,
@@ -2159,8 +2159,8 @@
   :cljc true,
   :langs (:clj),
   :message "Missing else branch.",
-  :row 4684}
- {:end-row 4868,
+  :row 4691}
+ {:end-row 4875,
   :type :non-arg-vec-return-type-hint,
   :level :warning,
   :lang :clj,
@@ -2170,7 +2170,7 @@
   :cljc true,
   :langs (:clj),
   :message "Prefer placing return type hint on arg vector: File",
-  :row 4868}
+  :row 4875}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
@@ -2179,8 +2179,8 @@
   :cljc true,
   :langs (:clj),
   :message "Var ns->relpath is referred but used via alias: util",
-  :row 4883}
- {:end-row 5003,
+  :row 4890}
+ {:end-row 5010,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2190,8 +2190,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding t",
-  :row 5003}
- {:end-row 5157,
+  :row 5010}
+ {:end-row 5164,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -2201,7 +2201,7 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding e",
-  :row 5157}
+  :row 5164}
  {:end-row 210,
   :type :unused-binding,
   :level :warning,
@@ -2351,7 +2351,7 @@
   :langs (),
   :message "unused binding cfg",
   :row 315}
- {:end-row 346,
+ {:end-row 347,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/cli.clj",
@@ -2359,8 +2359,8 @@
   :end-col 77,
   :langs (),
   :message "unused binding cfg",
-  :row 346}
- {:end-row 473,
+  :row 347}
+ {:end-row 474,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/cli.clj",
@@ -2368,8 +2368,8 @@
   :end-col 28,
   :langs (),
   :message "unused binding args",
-  :row 473}
- {:end-row 473,
+  :row 474}
+ {:end-row 474,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/cli.clj",
@@ -2377,8 +2377,8 @@
   :end-col 54,
   :langs (),
   :message "unused binding cfg",
-  :row 473}
- {:end-row 486,
+  :row 474}
+ {:end-row 487,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/cli.clj",
@@ -2386,8 +2386,8 @@
   :end-col 32,
   :langs (),
   :message "unused binding cfg",
-  :row 486}
- {:end-row 489,
+  :row 487}
+ {:end-row 490,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/cli.clj",
@@ -2395,8 +2395,8 @@
   :end-col 47,
   :langs (),
   :message "unused binding cfg",
-  :row 489}
- {:end-row 692,
+  :row 490}
+ {:end-row 693,
   :type :redundant-str-call,
   :level :warning,
   :filename "cljs/cli.clj",
@@ -2404,7 +2404,7 @@
   :end-col 102,
   :langs (),
   :message "Single argument to str already is a string",
-  :row 692}
+  :row 693}
  {:end-row 13,
   :ns cljs.core,
   :type :unused-namespace,
@@ -3408,7 +3408,7 @@
   :langs (:clj :cljs),
   :message "unused binding distinct-constants?",
   :row 619}
- {:end-row 896,
+ {:end-row 904,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3418,8 +3418,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 896}
- {:end-row 900,
+  :row 904}
+ {:end-row 908,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3429,8 +3429,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 900}
- {:end-row 1157,
+  :row 908}
+ {:end-row 1171,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3440,8 +3440,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 1157}
- {:end-row 1214,
+  :row 1171}
+ {:end-row 1228,
   :type :condition-always-true,
   :level :warning,
   :lang :clj,
@@ -3451,8 +3451,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Condition always true",
-  :row 1214}
- {:end-row 1305,
+  :row 1228}
+ {:end-row 1319,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3462,8 +3462,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding args",
-  :row 1305}
- {:end-row 1347,
+  :row 1319}
+ {:end-row 1361,
   :type :unused-binding,
   :level :warning,
   :lang :cljs,
@@ -3473,8 +3473,8 @@
   :cljc true,
   :langs (:cljs),
   :message "unused binding nodejs-rt",
-  :row 1347}
- {:end-row 1386,
+  :row 1361}
+ {:end-row 1400,
   :type :missing-else-branch,
   :level :warning,
   :lang :clj,
@@ -3484,8 +3484,8 @@
   :cljc true,
   :langs (:clj),
   :message "Missing else branch.",
-  :row 1383}
- {:end-row 1430,
+  :row 1397}
+ {:end-row 1444,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3495,8 +3495,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding require-macros",
-  :row 1430}
- {:end-row 1437,
+  :row 1444}
+ {:end-row 1451,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3506,8 +3506,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding require-macros",
-  :row 1437}
- {:end-row 1437,
+  :row 1451}
+ {:end-row 1451,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3517,8 +3517,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding env",
-  :row 1437}
- {:end-row 1493,
+  :row 1451}
+ {:end-row 1507,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3528,8 +3528,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding op",
-  :row 1493}
- {:end-row 1722,
+  :row 1507}
+ {:end-row 1736,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3539,8 +3539,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding ns-info",
-  :row 1722}
- {:end-row 1903,
+  :row 1736}
+ {:end-row 1917,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3550,8 +3550,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding ns",
-  :row 1903}
- {:end-row 1904,
+  :row 1917}
+ {:end-row 1918,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -3561,7 +3561,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding name",
-  :row 1904}
+  :row 1918}
  {:end-row 10,
   :type :unused-excluded-var,
   :level :info,
@@ -3581,17 +3581,6 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unused excluded var: aclone",
-  :row 10}
- {:end-row 10,
-  :type :unresolved-excluded-var,
-  :level :info,
-  :lang :clj,
-  :filename "cljs/core.cljc",
-  :col 78,
-  :end-col 89,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Unresolved excluded var: assert-args",
   :row 10}
  {:end-row 18,
   :type :unused-excluded-var,
@@ -4011,17 +4000,17 @@
   :langs (:cljs),
   :message "unused binding body",
   :row 156}
- {:end-row 292,
+ {:end-row 290,
   :type :redundant-str-call,
   :level :warning,
-  :lang :cljs,
+  :lang :clj,
   :filename "cljs/core.cljc",
-  :col 37,
-  :end-col 79,
+  :col 33,
+  :end-col 75,
   :cljc true,
-  :langs (:cljs),
+  :langs (:clj :cljs),
   :message "Single argument to str already is a string",
-  :row 292}
+  :row 290}
  {:clj-kondo.impl/fn-has-first-arg true,
   :end-row 582,
   :type :redundant-fn-wrapper,
@@ -4059,7 +4048,7 @@
   :message
   "Unresolved namespace cljs.analyzer. Are you missing a require?",
   :row 845}
- {:end-row 896,
+ {:end-row 894,
   :type :unused-private-var,
   :level :warning,
   :lang :clj,
@@ -4069,8 +4058,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unused private var cljs.core/simple-test-expr?",
-  :row 896}
- {:end-row 971,
+  :row 894}
+ {:end-row 969,
   :type :redundant-nested-call,
   :level :info,
   :lang :clj,
@@ -4080,8 +4069,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant nested call: str",
-  :row 971}
- {:end-row 1165,
+  :row 969}
+ {:end-row 1167,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4091,8 +4080,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding x",
-  :row 1165}
- {:end-row 1170,
+  :row 1167}
+ {:end-row 1172,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4102,8 +4091,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding x",
-  :row 1170}
- {:end-row 1175,
+  :row 1172}
+ {:end-row 1177,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4113,8 +4102,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding x",
-  :row 1175}
- {:end-row 1180,
+  :row 1177}
+ {:end-row 1182,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4124,8 +4113,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding x",
-  :row 1180}
- {:end-row 1185,
+  :row 1182}
+ {:end-row 1187,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4135,8 +4124,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding x",
-  :row 1185}
- {:end-row 1302,
+  :row 1187}
+ {:end-row 1304,
   :type :unused-private-var,
   :level :warning,
   :lang :clj,
@@ -4146,8 +4135,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unused private var cljs.core/defcurried",
-  :row 1302}
- {:end-row 1319,
+  :row 1304}
+ {:end-row 1321,
   :type :unused-private-var,
   :level :warning,
   :lang :clj,
@@ -4157,8 +4146,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unused private var cljs.core/rfn",
-  :row 1319}
- {:end-row 1404,
+  :row 1321}
+ {:end-row 1406,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4168,8 +4157,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding munge",
-  :row 1404}
- {:end-row 1488,
+  :row 1406}
+ {:end-row 1490,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4179,8 +4168,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding sym",
-  :row 1488}
- {:end-row 1497,
+  :row 1490}
+ {:end-row 1499,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4190,8 +4179,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding sig",
-  :row 1497}
- {:end-row 1501,
+  :row 1499}
+ {:end-row 1503,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4201,8 +4190,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding sig",
-  :row 1501}
- {:end-row 1509,
+  :row 1503}
+ {:end-row 1511,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4212,8 +4201,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding sig",
-  :row 1509}
- {:end-row 1514,
+  :row 1511}
+ {:end-row 1516,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4223,8 +4212,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding sig",
-  :row 1514}
- {:end-row 1534,
+  :row 1516}
+ {:end-row 1536,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4234,8 +4223,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 1534}
- {:end-row 1542,
+  :row 1536}
+ {:end-row 1544,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4245,8 +4234,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 1542}
- {:end-row 1570,
+  :row 1544}
+ {:end-row 1572,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4256,8 +4245,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding body",
-  :row 1570}
- {:end-row 1730,
+  :row 1572}
+ {:end-row 1732,
   :type :missing-else-branch,
   :level :warning,
   :lang :clj,
@@ -4267,8 +4256,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Missing else branch.",
-  :row 1717}
- {:end-row 1740,
+  :row 1719}
+ {:end-row 1742,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4278,8 +4267,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding fields",
-  :row 1740}
- {:end-row 1840,
+  :row 1742}
+ {:end-row 1842,
   :type :missing-else-branch,
   :level :warning,
   :lang :clj,
@@ -4289,8 +4278,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Missing else branch.",
-  :row 1839}
- {:end-row 1958,
+  :row 1841}
+ {:end-row 1960,
   :type :redundant-let,
   :level :warning,
   :lang :clj,
@@ -4300,8 +4289,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Redundant let expression.",
-  :row 1865}
- {:end-row 2196,
+  :row 1867}
+ {:end-row 2198,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4311,8 +4300,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding amp",
-  :row 2196}
- {:end-row 2378,
+  :row 2198}
+ {:end-row 2380,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4322,8 +4311,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding gres",
-  :row 2378}
- {:end-row 2386,
+  :row 2380}
+ {:end-row 2388,
   :type :unresolved-var,
   :level :warning,
   :lang :clj,
@@ -4333,8 +4322,8 @@
   :cljc true,
   :langs (:clj),
   :message "Unresolved var: clojure.core/IllegalArgumentException.",
-  :row 2386}
- {:end-row 2476,
+  :row 2388}
+ {:end-row 2478,
   :type :unused-private-var,
   :level :warning,
   :lang :clj,
@@ -4344,8 +4333,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unused private var cljs.core/when-assert",
-  :row 2476}
- {:end-row 2513,
+  :row 2478}
+ {:end-row 2515,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4355,8 +4344,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding expr",
-  :row 2513}
- {:end-row 2517,
+  :row 2515}
+ {:end-row 2519,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4366,8 +4355,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding pair",
-  :row 2517}
- {:end-row 2543,
+  :row 2519}
+ {:end-row 2545,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4377,18 +4366,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding pair",
-  :row 2543}
- {:end-row 2651,
-  :type :unused-binding,
-  :level :warning,
-  :lang :clj,
-  :filename "cljs/core.cljc",
-  :col 5,
-  :end-col 9,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "unused binding type",
-  :row 2651}
+  :row 2545}
  {:end-row 2653,
   :type :unused-binding,
   :level :warning,
@@ -4400,7 +4378,18 @@
   :langs (:clj :cljs),
   :message "unused binding type",
   :row 2653}
- {:end-row 3029,
+ {:end-row 2655,
+  :type :unused-binding,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/core.cljc",
+  :col 5,
+  :end-col 9,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "unused binding type",
+  :row 2655}
+ {:end-row 3031,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4410,8 +4399,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding x",
-  :row 3029}
- {:end-row 3033,
+  :row 3031}
+ {:end-row 3035,
   :type :unused-private-var,
   :level :warning,
   :lang :clj,
@@ -4421,8 +4410,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unused private var cljs.core/ns-special-form",
-  :row 3033}
- {:end-row 3190,
+  :row 3035}
+ {:end-row 3192,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4432,8 +4421,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding method",
-  :row 3190}
- {:end-row 3237,
+  :row 3192}
+ {:end-row 3239,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4443,8 +4432,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding body",
-  :row 3237}
- {:end-row 3237,
+  :row 3239}
+ {:end-row 3239,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4454,36 +4443,14 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding fdecl",
-  :row 3237}
- {:end-row 3269,
-  :type :invalid-arity,
-  :level :error,
-  :lang :clj,
-  :filename "cljs/core.cljc",
-  :col 14,
-  :end-col 47,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "cljs.core/variadic-fn is called with 3 args but expects 4",
-  :row 3269}
- {:end-row 3270,
-  :type :invalid-arity,
-  :level :error,
-  :lang :clj,
-  :filename "cljs/core.cljc",
-  :col 14,
-  :end-col 52,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "cljs.core/variadic-fn is called with 3 args but expects 4",
-  :row 3270}
+  :row 3239}
  {:end-row 3271,
   :type :invalid-arity,
   :level :error,
   :lang :clj,
   :filename "cljs/core.cljc",
   :col 14,
-  :end-col 54,
+  :end-col 47,
   :cljc true,
   :langs (:clj :cljs),
   :message "cljs.core/variadic-fn is called with 3 args but expects 4",
@@ -4494,12 +4461,34 @@
   :lang :clj,
   :filename "cljs/core.cljc",
   :col 14,
-  :end-col 61,
+  :end-col 52,
   :cljc true,
   :langs (:clj :cljs),
   :message "cljs.core/variadic-fn is called with 3 args but expects 4",
   :row 3272}
- {:end-row 3285,
+ {:end-row 3273,
+  :type :invalid-arity,
+  :level :error,
+  :lang :clj,
+  :filename "cljs/core.cljc",
+  :col 14,
+  :end-col 54,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "cljs.core/variadic-fn is called with 3 args but expects 4",
+  :row 3273}
+ {:end-row 3274,
+  :type :invalid-arity,
+  :level :error,
+  :lang :clj,
+  :filename "cljs/core.cljc",
+  :col 14,
+  :end-col 61,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "cljs.core/variadic-fn is called with 3 args but expects 4",
+  :row 3274}
+ {:end-row 3287,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4509,8 +4498,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding body",
-  :row 3285}
- {:end-row 3320,
+  :row 3287}
+ {:end-row 3322,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4520,8 +4509,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding args-sym",
-  :row 3320}
- {:end-row 3356,
+  :row 3322}
+ {:end-row 3358,
   :type :duplicate-require,
   :level :warning,
   :lang :cljs,
@@ -4532,8 +4521,8 @@
   :cljc true,
   :langs (:cljs),
   :message "duplicate require of cljs.pprint",
-  :row 3356}
- {:end-row 3356,
+  :row 3358}
+ {:end-row 3358,
   :type :duplicate-require,
   :level :warning,
   :lang :clj,
@@ -4544,8 +4533,8 @@
   :cljc true,
   :langs (:clj),
   :message "duplicate require of clojure.pprint",
-  :row 3356}
- {:end-row 3357,
+  :row 3358}
+ {:end-row 3359,
   :type :invalid-arity,
   :level :error,
   :lang :clj,
@@ -4556,8 +4545,8 @@
   :langs (:clj :cljs),
   :message
   "cljs.core/multi-arity-fn is called with 3 args but expects 4",
-  :row 3357}
- {:end-row 3358,
+  :row 3359}
+ {:end-row 3360,
   :type :invalid-arity,
   :level :error,
   :lang :clj,
@@ -4568,8 +4557,8 @@
   :langs (:clj :cljs),
   :message
   "cljs.core/multi-arity-fn is called with 3 args but expects 4",
-  :row 3358}
- {:end-row 3359,
+  :row 3360}
+ {:end-row 3361,
   :type :invalid-arity,
   :level :error,
   :lang :clj,
@@ -4580,8 +4569,8 @@
   :langs (:clj :cljs),
   :message
   "cljs.core/multi-arity-fn is called with 3 args but expects 4",
-  :row 3359}
- {:end-row 3361,
+  :row 3361}
+ {:end-row 3363,
   :type :invalid-arity,
   :level :error,
   :lang :clj,
@@ -4592,8 +4581,8 @@
   :langs (:clj :cljs),
   :message
   "cljs.core/multi-arity-fn is called with 3 args but expects 4",
-  :row 3361}
- {:end-row 3435,
+  :row 3363}
+ {:end-row 3437,
   :type :def-fn,
   :level :warning,
   :lang :clj,
@@ -4603,8 +4592,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row 3372}
- {:end-row 3372,
+  :row 3374}
+ {:end-row 3374,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4614,8 +4603,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding &form",
-  :row 3372}
- {:end-row 3447,
+  :row 3374}
+ {:end-row 3449,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4625,8 +4614,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding &form",
-  :row 3447}
- {:end-row 3447,
+  :row 3449}
+ {:end-row 3449,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4636,8 +4625,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding &env",
-  :row 3447}
- {:end-row 3498,
+  :row 3449}
+ {:end-row 3500,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -4647,8 +4636,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding t",
-  :row 3498}
- {:end-row 3498,
+  :row 3500}
+ {:end-row 3500,
   :type :unused-binding,
   :level :warning,
   :lang :cljs,
@@ -4658,7 +4647,7 @@
   :cljc true,
   :langs (:cljs),
   :message "unused binding e",
-  :row 3498}
+  :row 3500}
  {:end-row 19,
   :type :earmuffed-var-not-dynamic,
   :level :warning,
@@ -4699,7 +4688,7 @@
   :message
   "Var has earmuffed name but is not declared dynamic: *warn-on-infer*",
   :row 33}
- {:end-row 189,
+ {:end-row 188,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4707,8 +4696,8 @@
   :end-col 15,
   :langs (),
   :message "Unused private var cljs.core/pr-opts",
-  :row 189}
- {:end-row 215,
+  :row 188}
+ {:end-row 214,
   :type :uninitialized-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4716,8 +4705,8 @@
   :end-col 6,
   :langs (),
   :message "Uninitialized var",
-  :row 212}
- {:end-row 220,
+  :row 211}
+ {:end-row 219,
   :type :uninitialized-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4725,8 +4714,8 @@
   :end-col 6,
   :langs (),
   :message "Uninitialized var",
-  :row 217}
- {:end-row 225,
+  :row 216}
+ {:end-row 224,
   :type :uninitialized-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4734,8 +4723,8 @@
   :end-col 6,
   :langs (),
   :message "Uninitialized var",
-  :row 222}
- {:end-row 230,
+  :row 221}
+ {:end-row 229,
   :type :uninitialized-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4743,8 +4732,8 @@
   :end-col 6,
   :langs (),
   :message "Uninitialized var",
-  :row 227}
- {:end-row 290,
+  :row 226}
+ {:end-row 289,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4752,8 +4741,8 @@
   :end-col 19,
   :langs (),
   :message "Unused private var cljs.core/pr-opts-dup",
-  :row 290}
- {:end-row 319,
+  :row 289}
+ {:end-row 318,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4761,8 +4750,8 @@
   :end-col 5,
   :langs (),
   :message "unused binding x",
-  :row 319}
- {:end-row 340,
+  :row 318}
+ {:end-row 339,
   :type :earmuffed-var-not-dynamic,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4771,8 +4760,8 @@
   :langs (),
   :message
   "Var has earmuffed name but is not declared dynamic: *main-cli-fn*",
-  :row 340}
- {:end-row 345,
+  :row 339}
+ {:end-row 344,
   :type :earmuffed-var-not-dynamic,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4781,8 +4770,8 @@
   :langs (),
   :message
   "Var has earmuffed name but is not declared dynamic: *command-line-args*",
-  :row 345}
- {:end-row 365,
+  :row 344}
+ {:end-row 364,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -4790,8 +4779,8 @@
   :end-col 14,
   :langs (),
   :message "cljs.core/str_ is called with 1 arg but expects 2",
-  :row 365}
- {:end-row 459,
+  :row 364}
+ {:end-row 458,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4799,8 +4788,8 @@
   :end-col 9,
   :langs (),
   :message "unused binding type",
-  :row 459}
- {:end-row 461,
+  :row 458}
+ {:end-row 460,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4808,8 +4797,8 @@
   :end-col 9,
   :langs (),
   :message "unused binding type",
-  :row 461}
- {:end-row 480,
+  :row 460}
+ {:end-row 479,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4817,8 +4806,8 @@
   :end-col 12,
   :langs (),
   :message "unused binding var-args",
-  :row 480}
- {:end-row 496,
+  :row 479}
+ {:end-row 495,
   :type :unresolved-symbol,
   :level :error,
   :filename "cljs/core.cljs",
@@ -4826,8 +4815,8 @@
   :end-col 16,
   :langs (),
   :message "Unresolved symbol: when-assert",
-  :row 496}
- {:end-row 508,
+  :row 495}
+ {:end-row 507,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4835,8 +4824,8 @@
   :end-col 20,
   :langs (),
   :message "Unused private var cljs.core/checked-aset",
-  :row 508}
- {:end-row 530,
+  :row 507}
+ {:end-row 529,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4844,8 +4833,8 @@
   :end-col 21,
   :langs (),
   :message "Unused private var cljs.core/checked-aset'",
-  :row 530}
- {:end-row 565,
+  :row 529}
+ {:end-row 564,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4853,8 +4842,8 @@
   :end-col 9,
   :langs (),
   :message "unused binding type",
-  :row 565}
- {:end-row 1125,
+  :row 564}
+ {:end-row 1124,
   :type :cond-else,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4862,8 +4851,8 @@
   :end-col 12,
   :langs (),
   :message "use :else as the catch-all test expression in cond",
-  :row 1125}
- {:end-row 1161,
+  :row 1124}
+ {:end-row 1160,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4871,8 +4860,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding o",
-  :row 1161}
- {:end-row 1183,
+  :row 1160}
+ {:end-row 1182,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -4880,8 +4869,8 @@
   :end-col 38,
   :langs (),
   :message "cljs.core/str_ is called with 3 args but expects 2",
-  :row 1183}
- {:end-row 1206,
+  :row 1182}
+ {:end-row 1205,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4889,8 +4878,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: -hash",
-  :row 1206}
- {:end-row 1347,
+  :row 1205}
+ {:end-row 1346,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4898,8 +4887,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 1347}
- {:end-row 1436,
+  :row 1346}
+ {:end-row 1435,
   :type :redundant-declare,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4907,8 +4896,8 @@
   :end-col 41,
   :langs (),
   :message "Redundant declare: list",
-  :row 1436}
- {:end-row 1456,
+  :row 1435}
+ {:end-row 1455,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -4916,8 +4905,8 @@
   :end-col 67,
   :langs (),
   :message "cljs.core/str_ is called with 4 args but expects 2",
-  :row 1456}
- {:end-row 1513,
+  :row 1455}
+ {:end-row 1512,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4925,8 +4914,8 @@
   :end-col 13,
   :langs (),
   :message "unused binding o",
-  :row 1513}
- {:end-row 1677,
+  :row 1512}
+ {:end-row 1676,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4934,8 +4923,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 1677}
- {:end-row 1679,
+  :row 1676}
+ {:end-row 1678,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4943,8 +4932,8 @@
   :end-col 14,
   :langs (),
   :message "Unresolved protocol method: -with-meta",
-  :row 1679}
- {:end-row 1709,
+  :row 1678}
+ {:end-row 1708,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4952,8 +4941,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -nth",
-  :row 1709}
- {:end-row 1709,
+  :row 1708}
+ {:end-row 1708,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4961,8 +4950,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 1709}
- {:end-row 1714,
+  :row 1708}
+ {:end-row 1713,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4970,8 +4959,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -nth",
-  :row 1714}
- {:end-row 1714,
+  :row 1713}
+ {:end-row 1713,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4979,8 +4968,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 1714}
- {:end-row 1725,
+  :row 1713}
+ {:end-row 1724,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4988,8 +4977,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding coll",
-  :row 1725}
- {:end-row 1732,
+  :row 1724}
+ {:end-row 1731,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -4997,8 +4986,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 1732}
- {:end-row 1735,
+  :row 1731}
+ {:end-row 1734,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5006,8 +4995,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 1735}
- {:end-row 1737,
+  :row 1734}
+ {:end-row 1736,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5015,8 +5004,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 1737}
- {:end-row 1747,
+  :row 1736}
+ {:end-row 1746,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5024,8 +5013,8 @@
   :end-col 34,
   :langs (),
   :message "Missing else branch.",
-  :row 1746}
- {:end-row 1766,
+  :row 1745}
+ {:end-row 1765,
   :type :redundant-declare,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5033,8 +5022,8 @@
   :end-col 31,
   :langs (),
   :message "Redundant declare: with-meta",
-  :row 1766}
- {:end-row 1787,
+  :row 1765}
+ {:end-row 1786,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5042,8 +5031,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 1787}
- {:end-row 1795,
+  :row 1786}
+ {:end-row 1794,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5051,8 +5040,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 1795}
- {:end-row 1802,
+  :row 1794}
+ {:end-row 1801,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5060,8 +5049,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 1802}
- {:end-row 1804,
+  :row 1801}
+ {:end-row 1803,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5069,8 +5058,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 1804}
- {:end-row 1810,
+  :row 1803}
+ {:end-row 1809,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5078,8 +5067,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 1810}
- {:end-row 1815,
+  :row 1809}
+ {:end-row 1814,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5087,8 +5076,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 1815}
- {:end-row 1822,
+  :row 1814}
+ {:end-row 1821,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5096,8 +5085,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 1822}
- {:end-row 1964,
+  :row 1821}
+ {:end-row 1963,
   :type :single-logical-operand,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5105,8 +5094,8 @@
   :end-col 41,
   :langs (),
   :message "Single arg use of and always returns the arg itself",
-  :row 1964}
- {:end-row 1969,
+  :row 1963}
+ {:end-row 1968,
   :type :single-logical-operand,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5114,8 +5103,8 @@
   :end-col 41,
   :langs (),
   :message "Single arg use of and always returns the arg itself",
-  :row 1969}
- {:end-row 1997,
+  :row 1968}
+ {:end-row 1996,
   :type :single-logical-operand,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5123,8 +5112,8 @@
   :end-col 41,
   :langs (),
   :message "Single arg use of and always returns the arg itself",
-  :row 1997}
- {:end-row 2002,
+  :row 1996}
+ {:end-row 2001,
   :type :single-logical-operand,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5132,8 +5121,8 @@
   :end-col 41,
   :langs (),
   :message "Single arg use of and always returns the arg itself",
-  :row 2002}
- {:end-row 2116,
+  :row 2001}
+ {:end-row 2115,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5141,8 +5130,8 @@
   :end-col 14,
   :langs (),
   :message "Unresolved protocol method: -with-meta",
-  :row 2116}
- {:end-row 2483,
+  :row 2115}
+ {:end-row 2482,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5150,8 +5139,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 2483}
- {:end-row 2514,
+  :row 2482}
+ {:end-row 2513,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -5159,8 +5148,8 @@
   :end-col 71,
   :langs (),
   :message "cljs.core/str_ is called with 4 args but expects 2",
-  :row 2514}
- {:end-row 2523,
+  :row 2513}
+ {:end-row 2522,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -5168,8 +5157,8 @@
   :end-col 59,
   :langs (),
   :message "cljs.core/str_ is called with 4 args but expects 2",
-  :row 2523}
- {:end-row 2758,
+  :row 2522}
+ {:end-row 2757,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5177,8 +5166,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 2758}
- {:end-row 2770,
+  :row 2757}
+ {:end-row 2769,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5186,8 +5175,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 2770}
- {:end-row 2782,
+  :row 2769}
+ {:end-row 2781,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5195,8 +5184,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 2782}
- {:end-row 2794,
+  :row 2781}
+ {:end-row 2793,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5204,8 +5193,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 2794}
- {:end-row 3068,
+  :row 2793}
+ {:end-row 3067,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5213,8 +5202,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 3068}
- {:end-row 3125,
+  :row 3067}
+ {:end-row 3124,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -5222,8 +5211,8 @@
   :end-col 55,
   :langs (),
   :message "cljs.core/str_ is called with 1 arg but expects 2",
-  :row 3125}
- {:end-row 3166,
+  :row 3124}
+ {:end-row 3165,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5231,8 +5220,8 @@
   :end-col 17,
   :langs (),
   :message "Unused private var cljs.core/hash-coll",
-  :row 3166}
- {:end-row 3176,
+  :row 3165}
+ {:end-row 3175,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5240,8 +5229,8 @@
   :end-col 17,
   :langs (),
   :message "Unused private var cljs.core/hash-imap",
-  :row 3176}
- {:end-row 3186,
+  :row 3175}
+ {:end-row 3185,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5249,8 +5238,8 @@
   :end-col 17,
   :langs (),
   :message "Unused private var cljs.core/hash-iset",
-  :row 3186}
- {:end-row 3195,
+  :row 3185}
+ {:end-row 3194,
   :type :redundant-declare,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5258,8 +5247,8 @@
   :end-col 38,
   :langs (),
   :message "Redundant declare: name",
-  :row 3195}
- {:end-row 3197,
+  :row 3194}
+ {:end-row 3196,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5267,8 +5256,8 @@
   :end-col 22,
   :langs (),
   :message "Unused private var cljs.core/extend-object!",
-  :row 3197}
- {:end-row 3211,
+  :row 3196}
+ {:end-row 3210,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5276,8 +5265,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved protocol method: toString",
-  :row 3211}
- {:end-row 3213,
+  :row 3210}
+ {:end-row 3212,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5285,8 +5274,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: equiv",
-  :row 3213}
- {:end-row 3215,
+  :row 3212}
+ {:end-row 3214,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5294,8 +5283,8 @@
   :end-col 11,
   :langs (),
   :message "Unresolved protocol method: indexOf",
-  :row 3215}
- {:end-row 3217,
+  :row 3214}
+ {:end-row 3216,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5303,8 +5292,8 @@
   :end-col 11,
   :langs (),
   :message "Unresolved protocol method: indexOf",
-  :row 3217}
- {:end-row 3219,
+  :row 3216}
+ {:end-row 3218,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5312,8 +5301,8 @@
   :end-col 15,
   :langs (),
   :message "Unresolved protocol method: lastIndexOf",
-  :row 3219}
- {:end-row 3221,
+  :row 3218}
+ {:end-row 3220,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5321,8 +5310,8 @@
   :end-col 15,
   :langs (),
   :message "Unresolved protocol method: lastIndexOf",
-  :row 3221}
- {:end-row 3236,
+  :row 3220}
+ {:end-row 3235,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5330,8 +5319,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: -meta",
-  :row 3236}
- {:end-row 3236,
+  :row 3235}
+ {:end-row 3235,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5339,8 +5328,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3236}
- {:end-row 3240,
+  :row 3235}
+ {:end-row 3239,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5348,8 +5337,17 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
+  :row 3239}
+ {:end-row 3240,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 11,
+  :end-col 15,
+  :langs (),
+  :message "unused binding coll",
   :row 3240}
- {:end-row 3241,
+ {:end-row 3246,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5357,8 +5355,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3241}
- {:end-row 3247,
+  :row 3246}
+ {:end-row 3252,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5366,17 +5364,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3247}
- {:end-row 3253,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 11,
-  :end-col 15,
-  :langs (),
-  :message "unused binding coll",
-  :row 3253}
- {:end-row 3260,
+  :row 3252}
+ {:end-row 3259,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5384,8 +5373,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 3260}
- {:end-row 3260,
+  :row 3259}
+ {:end-row 3259,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5393,8 +5382,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3260}
- {:end-row 3273,
+  :row 3259}
+ {:end-row 3272,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5402,8 +5391,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3273}
- {:end-row 3288,
+  :row 3272}
+ {:end-row 3287,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5411,8 +5400,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved protocol method: toString",
-  :row 3288}
- {:end-row 3288,
+  :row 3287}
+ {:end-row 3287,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5420,8 +5409,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding coll",
-  :row 3288}
- {:end-row 3289,
+  :row 3287}
+ {:end-row 3288,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5429,8 +5418,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: equiv",
-  :row 3289}
- {:end-row 3291,
+  :row 3288}
+ {:end-row 3290,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5438,8 +5427,8 @@
   :end-col 11,
   :langs (),
   :message "Unresolved protocol method: indexOf",
-  :row 3291}
- {:end-row 3293,
+  :row 3290}
+ {:end-row 3292,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5447,8 +5436,8 @@
   :end-col 11,
   :langs (),
   :message "Unresolved protocol method: indexOf",
-  :row 3293}
- {:end-row 3295,
+  :row 3292}
+ {:end-row 3294,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5456,8 +5445,8 @@
   :end-col 15,
   :langs (),
   :message "Unresolved protocol method: lastIndexOf",
-  :row 3295}
- {:end-row 3297,
+  :row 3294}
+ {:end-row 3296,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5465,8 +5454,8 @@
   :end-col 15,
   :langs (),
   :message "Unresolved protocol method: lastIndexOf",
-  :row 3297}
- {:end-row 3312,
+  :row 3296}
+ {:end-row 3311,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5474,8 +5463,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3312}
- {:end-row 3315,
+  :row 3311}
+ {:end-row 3314,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5483,8 +5472,17 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
+  :row 3314}
+ {:end-row 3315,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 11,
+  :end-col 15,
+  :langs (),
+  :message "unused binding coll",
   :row 3315}
- {:end-row 3316,
+ {:end-row 3318,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5492,8 +5490,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3316}
- {:end-row 3319,
+  :row 3318}
+ {:end-row 3321,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5501,17 +5499,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3319}
+  :row 3321}
  {:end-row 3322,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 11,
-  :end-col 15,
-  :langs (),
-  :message "unused binding coll",
-  :row 3322}
- {:end-row 3323,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5519,8 +5508,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 3323}
- {:end-row 3326,
+  :row 3322}
+ {:end-row 3325,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5528,8 +5517,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3326}
- {:end-row 3329,
+  :row 3325}
+ {:end-row 3328,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5537,8 +5526,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 3329}
- {:end-row 3333,
+  :row 3328}
+ {:end-row 3332,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5546,8 +5535,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3333}
- {:end-row 3340,
+  :row 3332}
+ {:end-row 3339,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5555,8 +5544,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3340}
- {:end-row 3343,
+  :row 3339}
+ {:end-row 3342,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5564,8 +5553,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 3343}
- {:end-row 3346,
+  :row 3342}
+ {:end-row 3345,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5573,8 +5562,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3346}
- {:end-row 3393,
+  :row 3345}
+ {:end-row 3392,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5582,8 +5571,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved protocol method: toString",
-  :row 3393}
- {:end-row 3395,
+  :row 3392}
+ {:end-row 3394,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5591,8 +5580,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: equiv",
-  :row 3395}
- {:end-row 3397,
+  :row 3394}
+ {:end-row 3396,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5600,8 +5589,8 @@
   :end-col 11,
   :langs (),
   :message "Unresolved protocol method: indexOf",
-  :row 3397}
- {:end-row 3399,
+  :row 3396}
+ {:end-row 3398,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5609,8 +5598,8 @@
   :end-col 11,
   :langs (),
   :message "Unresolved protocol method: indexOf",
-  :row 3399}
- {:end-row 3401,
+  :row 3398}
+ {:end-row 3400,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5618,8 +5607,8 @@
   :end-col 15,
   :langs (),
   :message "Unresolved protocol method: lastIndexOf",
-  :row 3401}
- {:end-row 3403,
+  :row 3400}
+ {:end-row 3402,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5627,8 +5616,8 @@
   :end-col 15,
   :langs (),
   :message "Unresolved protocol method: lastIndexOf",
-  :row 3403}
- {:end-row 3418,
+  :row 3402}
+ {:end-row 3417,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5636,8 +5625,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: -meta",
-  :row 3418}
- {:end-row 3418,
+  :row 3417}
+ {:end-row 3417,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5645,8 +5634,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3418}
- {:end-row 3422,
+  :row 3417}
+ {:end-row 3421,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5654,8 +5643,17 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
+  :row 3421}
+ {:end-row 3422,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 11,
+  :end-col 15,
+  :langs (),
+  :message "unused binding coll",
   :row 3422}
- {:end-row 3423,
+ {:end-row 3425,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5663,17 +5661,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3423}
- {:end-row 3426,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 11,
-  :end-col 15,
-  :langs (),
-  :message "unused binding coll",
-  :row 3426}
- {:end-row 3433,
+  :row 3425}
+ {:end-row 3432,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5681,8 +5670,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 3433}
- {:end-row 3433,
+  :row 3432}
+ {:end-row 3432,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5690,8 +5679,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3433}
- {:end-row 3457,
+  :row 3432}
+ {:end-row 3456,
   :type :cond-else,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5699,8 +5688,8 @@
   :end-col 13,
   :langs (),
   :message "use :else as the catch-all test expression in cond",
-  :row 3457}
- {:end-row 3472,
+  :row 3456}
+ {:end-row 3471,
   :type :cond-else,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5708,8 +5697,8 @@
   :end-col 12,
   :langs (),
   :message "use :else as the catch-all test expression in cond",
-  :row 3472}
- {:end-row 3500,
+  :row 3471}
+ {:end-row 3499,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5717,8 +5706,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding o",
-  :row 3500}
- {:end-row 3590,
+  :row 3499}
+ {:end-row 3589,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5726,8 +5715,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 3590}
- {:end-row 3607,
+  :row 3589}
+ {:end-row 3606,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5735,8 +5724,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 3607}
- {:end-row 3617,
+  :row 3606}
+ {:end-row 3616,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5744,8 +5733,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3617}
- {:end-row 3640,
+  :row 3616}
+ {:end-row 3639,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5753,8 +5742,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 3640}
- {:end-row 3640,
+  :row 3639}
+ {:end-row 3639,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5762,8 +5751,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3640}
- {:end-row 3695,
+  :row 3639}
+ {:end-row 3694,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5771,8 +5760,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 3695}
- {:end-row 3697,
+  :row 3694}
+ {:end-row 3696,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5780,8 +5769,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 3697}
- {:end-row 3703,
+  :row 3696}
+ {:end-row 3702,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5789,8 +5778,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding coll",
-  :row 3703}
- {:end-row 3709,
+  :row 3702}
+ {:end-row 3708,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5798,8 +5787,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 3709}
- {:end-row 3711,
+  :row 3708}
+ {:end-row 3710,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5807,8 +5796,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 3711}
- {:end-row 3744,
+  :row 3710}
+ {:end-row 3743,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5816,8 +5805,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: -meta",
-  :row 3744}
- {:end-row 3744,
+  :row 3743}
+ {:end-row 3743,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5825,8 +5814,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3744}
- {:end-row 3751,
+  :row 3743}
+ {:end-row 3750,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5834,8 +5823,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 3751}
- {:end-row 3755,
+  :row 3750}
+ {:end-row 3754,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5843,8 +5832,17 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
+  :row 3754}
+ {:end-row 3755,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 11,
+  :end-col 15,
+  :langs (),
+  :message "unused binding coll",
   :row 3755}
- {:end-row 3756,
+ {:end-row 3763,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5852,17 +5850,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 3756}
- {:end-row 3764,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 11,
-  :end-col 15,
-  :langs (),
-  :message "unused binding coll",
-  :row 3764}
- {:end-row 3771,
+  :row 3763}
+ {:end-row 3770,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5870,8 +5859,17 @@
   :end-col 24,
   :langs (),
   :message "unused binding coll",
+  :row 3770}
+ {:end-row 3771,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 19,
+  :end-col 23,
+  :langs (),
+  :message "unused binding coll",
   :row 3771}
- {:end-row 3772,
+ {:end-row 3777,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5879,17 +5877,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 3772}
- {:end-row 3778,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 19,
-  :end-col 23,
-  :langs (),
-  :message "unused binding coll",
-  :row 3778}
- {:end-row 3788,
+  :row 3777}
+ {:end-row 3787,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5897,8 +5886,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 3788}
- {:end-row 4107,
+  :row 3787}
+ {:end-row 4106,
   :type :unresolved-symbol,
   :level :error,
   :filename "cljs/core.cljs",
@@ -5906,8 +5895,8 @@
   :end-col 19,
   :langs (),
   :message "Unresolved symbol: apply-to",
-  :row 4107}
- {:end-row 4189,
+  :row 4106}
+ {:end-row 4188,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5915,8 +5904,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding x",
-  :row 4189}
- {:end-row 4240,
+  :row 4188}
+ {:end-row 4239,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5924,8 +5913,8 @@
   :end-col 34,
   :langs (),
   :message "Missing else branch.",
-  :row 4239}
- {:end-row 4267,
+  :row 4238}
+ {:end-row 4266,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5933,8 +5922,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding this",
-  :row 4267}
- {:end-row 4269,
+  :row 4266}
+ {:end-row 4268,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5942,8 +5931,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding this",
-  :row 4269}
- {:end-row 4271,
+  :row 4268}
+ {:end-row 4270,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5951,8 +5940,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding this",
-  :row 4271}
- {:end-row 4284,
+  :row 4270}
+ {:end-row 4283,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5960,8 +5949,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding this",
-  :row 4284}
- {:end-row 4286,
+  :row 4283}
+ {:end-row 4285,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -5969,8 +5958,8 @@
   :end-col 67,
   :langs (),
   :message "cljs.core/str_ is called with 1 arg but expects 2",
-  :row 4286}
- {:end-row 4290,
+  :row 4285}
+ {:end-row 4289,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5978,8 +5967,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding this",
-  :row 4290}
- {:end-row 4292,
+  :row 4289}
+ {:end-row 4291,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5987,8 +5976,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding this",
-  :row 4292}
- {:end-row 4297,
+  :row 4291}
+ {:end-row 4296,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -5996,8 +5985,8 @@
   :end-col 13,
   :langs (),
   :message "unused binding this",
-  :row 4297}
- {:end-row 4299,
+  :row 4296}
+ {:end-row 4298,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6005,8 +5994,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding this",
-  :row 4299}
- {:end-row 4300,
+  :row 4298}
+ {:end-row 4299,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -6014,8 +6003,8 @@
   :end-col 65,
   :langs (),
   :message "cljs.core/str_ is called with 1 arg but expects 2",
-  :row 4300}
- {:end-row 4301,
+  :row 4299}
+ {:end-row 4300,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6023,8 +6012,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding this",
-  :row 4301}
- {:end-row 4303,
+  :row 4300}
+ {:end-row 4302,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6032,8 +6021,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding this",
-  :row 4303}
- {:end-row 4337,
+  :row 4302}
+ {:end-row 4336,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6041,8 +6030,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding this",
-  :row 4337}
- {:end-row 4466,
+  :row 4336}
+ {:end-row 4465,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6050,8 +6039,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding args",
-  :row 4466}
- {:end-row 4615,
+  :row 4465}
+ {:end-row 4614,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6059,8 +6048,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: equiv",
-  :row 4615}
- {:end-row 5050,
+  :row 4614}
+ {:end-row 5049,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6068,8 +6057,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 5050}
- {:end-row 5058,
+  :row 5049}
+ {:end-row 5057,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6077,8 +6066,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 5058}
- {:end-row 5068,
+  :row 5057}
+ {:end-row 5067,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6086,8 +6075,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 5068}
- {:end-row 5086,
+  :row 5067}
+ {:end-row 5085,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6095,8 +6084,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 5086}
- {:end-row 5086,
+  :row 5085}
+ {:end-row 5085,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6104,8 +6093,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5086}
- {:end-row 5134,
+  :row 5085}
+ {:end-row 5133,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6113,8 +6102,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 5134}
- {:end-row 5143,
+  :row 5133}
+ {:end-row 5142,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6122,8 +6111,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 5143}
- {:end-row 5146,
+  :row 5142}
+ {:end-row 5145,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6131,8 +6120,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5146}
- {:end-row 5183,
+  :row 5145}
+ {:end-row 5182,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6140,8 +6129,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5183}
- {:end-row 5186,
+  :row 5182}
+ {:end-row 5185,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6149,8 +6138,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: -hash",
-  :row 5186}
- {:end-row 5196,
+  :row 5185}
+ {:end-row 5195,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6158,8 +6147,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 5196}
- {:end-row 5209,
+  :row 5195}
+ {:end-row 5208,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6167,8 +6156,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 5209}
- {:end-row 5250,
+  :row 5208}
+ {:end-row 5249,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6176,8 +6165,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 5250}
- {:end-row 5260,
+  :row 5249}
+ {:end-row 5259,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6185,8 +6174,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 5260}
- {:end-row 5263,
+  :row 5259}
+ {:end-row 5262,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6194,8 +6183,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5263}
- {:end-row 5280,
+  :row 5262}
+ {:end-row 5279,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6203,8 +6192,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 5280}
- {:end-row 5280,
+  :row 5279}
+ {:end-row 5279,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6212,8 +6201,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5280}
- {:end-row 5346,
+  :row 5279}
+ {:end-row 5345,
   :type :unused-private-var,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6221,8 +6210,8 @@
   :end-col 16,
   :langs (),
   :message "Unused private var cljs.core/flatten1",
-  :row 5346}
- {:end-row 5622,
+  :row 5345}
+ {:end-row 5621,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -6230,8 +6219,8 @@
   :end-col 68,
   :langs (),
   :message "cljs.core/str_ is called with 4 args but expects 2",
-  :row 5622}
- {:end-row 5674,
+  :row 5621}
+ {:end-row 5673,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6239,8 +6228,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding this",
-  :row 5674}
- {:end-row 5676,
+  :row 5673}
+ {:end-row 5675,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6248,8 +6237,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding this",
-  :row 5676}
- {:end-row 5738,
+  :row 5675}
+ {:end-row 5737,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6257,8 +6246,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 5738}
- {:end-row 5778,
+  :row 5737}
+ {:end-row 5777,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6266,8 +6255,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 5778}
- {:end-row 5778,
+  :row 5777}
+ {:end-row 5777,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6275,8 +6264,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5778}
- {:end-row 5816,
+  :row 5777}
+ {:end-row 5815,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6284,8 +6273,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 5816}
- {:end-row 5837,
+  :row 5815}
+ {:end-row 5836,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6293,8 +6282,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding coll",
-  :row 5837}
- {:end-row 5843,
+  :row 5836}
+ {:end-row 5842,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6302,8 +6291,8 @@
   :end-col 9,
   :langs (),
   :message "Unresolved protocol method: -find",
-  :row 5843}
- {:end-row 5858,
+  :row 5842}
+ {:end-row 5857,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -6311,8 +6300,8 @@
   :end-col 78,
   :langs (),
   :message "cljs.core/str_ is called with 5 args but expects 2",
-  :row 5858}
- {:end-row 5905,
+  :row 5857}
+ {:end-row 5904,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6320,8 +6309,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 5905}
- {:end-row 5989,
+  :row 5904}
+ {:end-row 5988,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6329,8 +6318,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 5989}
- {:end-row 5992,
+  :row 5988}
+ {:end-row 5991,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6338,8 +6327,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 5992}
- {:end-row 5996,
+  :row 5991}
+ {:end-row 5995,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6347,8 +6336,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -equiv",
-  :row 5996}
- {:end-row 6000,
+  :row 5995}
+ {:end-row 5999,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6356,8 +6345,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6000}
- {:end-row 6020,
+  :row 5999}
+ {:end-row 6019,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6365,8 +6354,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6020}
- {:end-row 6035,
+  :row 6019}
+ {:end-row 6034,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6374,8 +6363,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6035}
- {:end-row 6039,
+  :row 6034}
+ {:end-row 6038,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6383,8 +6372,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6039}
- {:end-row 6043,
+  :row 6038}
+ {:end-row 6042,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6392,8 +6381,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding coll",
-  :row 6043}
- {:end-row 6045,
+  :row 6042}
+ {:end-row 6044,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6401,8 +6390,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 6045}
- {:end-row 6052,
+  :row 6044}
+ {:end-row 6051,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6410,8 +6399,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 6052}
- {:end-row 6061,
+  :row 6051}
+ {:end-row 6060,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6419,8 +6408,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 6061}
- {:end-row 6064,
+  :row 6060}
+ {:end-row 6063,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6428,8 +6417,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 6064}
- {:end-row 6102,
+  :row 6063}
+ {:end-row 6101,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6437,8 +6426,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6102}
- {:end-row 6105,
+  :row 6101}
+ {:end-row 6104,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6446,8 +6435,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6105}
- {:end-row 6108,
+  :row 6104}
+ {:end-row 6107,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6455,8 +6444,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 6108}
- {:end-row 6114,
+  :row 6107}
+ {:end-row 6113,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6464,8 +6453,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6114}
- {:end-row 6118,
+  :row 6113}
+ {:end-row 6117,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6473,8 +6462,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 6118}
- {:end-row 6118,
+  :row 6117}
+ {:end-row 6117,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6482,8 +6471,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6118}
- {:end-row 6128,
+  :row 6117}
+ {:end-row 6127,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6491,8 +6480,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 6128}
- {:end-row 6139,
+  :row 6127}
+ {:end-row 6138,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6500,8 +6489,8 @@
   :end-col 44,
   :langs (),
   :message "Missing else branch.",
-  :row 6138}
- {:end-row 6142,
+  :row 6137}
+ {:end-row 6141,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6509,8 +6498,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6142}
- {:end-row 6145,
+  :row 6141}
+ {:end-row 6144,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6518,8 +6507,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 6145}
- {:end-row 6149,
+  :row 6144}
+ {:end-row 6148,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6527,8 +6516,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 6149}
- {:end-row 6165,
+  :row 6148}
+ {:end-row 6164,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6536,8 +6525,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding coll",
-  :row 6165}
- {:end-row 6171,
+  :row 6164}
+ {:end-row 6170,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6545,8 +6534,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6171}
- {:end-row 6181,
+  :row 6170}
+ {:end-row 6180,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -6554,8 +6543,8 @@
   :end-col 83,
   :langs (),
   :message "cljs.core/str_ is called with 5 args but expects 2",
-  :row 6181}
- {:end-row 6195,
+  :row 6180}
+ {:end-row 6194,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6563,8 +6552,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 6195}
- {:end-row 6369,
+  :row 6194}
+ {:end-row 6368,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -6572,8 +6561,8 @@
   :end-col 79,
   :langs (),
   :message "cljs.core/str_ is called with 4 args but expects 2",
-  :row 6369}
- {:end-row 6398,
+  :row 6368}
+ {:end-row 6397,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6581,8 +6570,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6398}
- {:end-row 6469,
+  :row 6397}
+ {:end-row 6468,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6590,8 +6579,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6469}
- {:end-row 6472,
+  :row 6468}
+ {:end-row 6471,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6599,8 +6588,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6472}
- {:end-row 6481,
+  :row 6471}
+ {:end-row 6480,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6608,8 +6597,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6481}
- {:end-row 6491,
+  :row 6480}
+ {:end-row 6490,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6617,8 +6606,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 6491}
- {:end-row 6491,
+  :row 6490}
+ {:end-row 6490,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6626,8 +6615,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6491}
- {:end-row 6521,
+  :row 6490}
+ {:end-row 6520,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6635,8 +6624,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6521}
- {:end-row 6524,
+  :row 6520}
+ {:end-row 6523,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6644,8 +6633,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding coll",
-  :row 6524}
- {:end-row 6534,
+  :row 6523}
+ {:end-row 6533,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6653,8 +6642,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6534}
- {:end-row 6537,
+  :row 6533}
+ {:end-row 6536,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6662,8 +6651,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6537}
- {:end-row 6541,
+  :row 6536}
+ {:end-row 6540,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6671,8 +6660,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6541}
- {:end-row 6550,
+  :row 6540}
+ {:end-row 6549,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6680,8 +6669,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6550}
- {:end-row 6556,
+  :row 6549}
+ {:end-row 6555,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6689,8 +6678,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 6556}
- {:end-row 6556,
+  :row 6555}
+ {:end-row 6555,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6698,8 +6687,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6556}
- {:end-row 6566,
+  :row 6555}
+ {:end-row 6565,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6707,8 +6696,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 6566}
- {:end-row 6569,
+  :row 6565}
+ {:end-row 6568,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6716,8 +6705,8 @@
   :end-col 56,
   :langs (),
   :message "Missing else branch.",
-  :row 6568}
- {:end-row 6572,
+  :row 6567}
+ {:end-row 6571,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6725,8 +6714,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6572}
- {:end-row 6583,
+  :row 6571}
+ {:end-row 6582,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6734,8 +6723,8 @@
   :end-col 13,
   :langs (),
   :message "unused binding o",
-  :row 6583}
- {:end-row 6583,
+  :row 6582}
+ {:end-row 6582,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6743,7 +6732,16 @@
   :end-col 19,
   :langs (),
   :message "unused binding other",
-  :row 6583}
+  :row 6582}
+ {:end-row 6733,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 10,
+  :end-col 14,
+  :langs (),
+  :message "unused binding node",
+  :row 6733}
  {:end-row 6734,
   :type :unused-binding,
   :level :warning,
@@ -6753,16 +6751,7 @@
   :langs (),
   :message "unused binding node",
   :row 6734}
- {:end-row 6735,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 10,
-  :end-col 14,
-  :langs (),
-  :message "unused binding node",
-  :row 6735}
- {:end-row 6744,
+ {:end-row 6743,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6770,8 +6759,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 6744}
- {:end-row 6747,
+  :row 6743}
+ {:end-row 6746,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6779,8 +6768,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding node",
-  :row 6747}
- {:end-row 6751,
+  :row 6746}
+ {:end-row 6750,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6788,8 +6777,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 6751}
- {:end-row 6753,
+  :row 6750}
+ {:end-row 6752,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6797,8 +6786,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 6753}
- {:end-row 6756,
+  :row 6752}
+ {:end-row 6755,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6806,8 +6795,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 6756}
- {:end-row 6759,
+  :row 6755}
+ {:end-row 6758,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6815,8 +6804,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 6759}
- {:end-row 6759,
+  :row 6758}
+ {:end-row 6758,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6824,8 +6813,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 6759}
- {:end-row 6763,
+  :row 6758}
+ {:end-row 6762,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6833,8 +6822,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 6763}
- {:end-row 6766,
+  :row 6762}
+ {:end-row 6765,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6842,8 +6831,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 6766}
- {:end-row 6769,
+  :row 6765}
+ {:end-row 6768,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6851,8 +6840,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 6769}
- {:end-row 6772,
+  :row 6768}
+ {:end-row 6771,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6860,8 +6849,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 6772}
- {:end-row 6778,
+  :row 6771}
+ {:end-row 6777,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6869,8 +6858,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 6778}
- {:end-row 6789,
+  :row 6777}
+ {:end-row 6788,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6878,8 +6867,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 6789}
- {:end-row 6791,
+  :row 6788}
+ {:end-row 6790,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6887,8 +6876,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding node",
-  :row 6791}
- {:end-row 6798,
+  :row 6790}
+ {:end-row 6797,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6896,8 +6885,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 6798}
- {:end-row 6805,
+  :row 6797}
+ {:end-row 6804,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6905,8 +6894,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding node",
-  :row 6805}
- {:end-row 6843,
+  :row 6804}
+ {:end-row 6842,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6914,8 +6903,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6843}
- {:end-row 6852,
+  :row 6842}
+ {:end-row 6851,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6923,8 +6912,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6852}
- {:end-row 6856,
+  :row 6851}
+ {:end-row 6855,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6932,8 +6921,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 6856}
- {:end-row 6867,
+  :row 6855}
+ {:end-row 6866,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6941,8 +6930,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6867}
- {:end-row 6873,
+  :row 6866}
+ {:end-row 6872,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6950,8 +6939,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6873}
- {:end-row 6876,
+  :row 6872}
+ {:end-row 6875,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6959,8 +6948,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6876}
- {:end-row 6882,
+  :row 6875}
+ {:end-row 6881,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6968,8 +6957,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6882}
- {:end-row 6942,
+  :row 6881}
+ {:end-row 6941,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6977,8 +6966,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 6942}
- {:end-row 6958,
+  :row 6941}
+ {:end-row 6957,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6986,8 +6975,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6958}
- {:end-row 6961,
+  :row 6957}
+ {:end-row 6960,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -6995,8 +6984,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6961}
- {:end-row 6982,
+  :row 6960}
+ {:end-row 6981,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7004,8 +6993,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding this",
-  :row 6982}
- {:end-row 6986,
+  :row 6981}
+ {:end-row 6985,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7013,8 +7002,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 6986}
- {:end-row 6995,
+  :row 6985}
+ {:end-row 6994,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7022,8 +7011,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 6995}
- {:end-row 7055,
+  :row 6994}
+ {:end-row 7054,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7031,8 +7020,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 7055}
- {:end-row 7079,
+  :row 7054}
+ {:end-row 7078,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7040,8 +7029,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 7079}
- {:end-row 7202,
+  :row 7078}
+ {:end-row 7201,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7049,8 +7038,8 @@
   :end-col 39,
   :langs (),
   :message "Missing else branch.",
-  :row 7185}
- {:end-row 7214,
+  :row 7184}
+ {:end-row 7213,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7058,8 +7047,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding tcoll",
-  :row 7214}
- {:end-row 7249,
+  :row 7213}
+ {:end-row 7248,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7067,8 +7056,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding tcoll",
-  :row 7249}
- {:end-row 7360,
+  :row 7248}
+ {:end-row 7359,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7076,8 +7065,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding this",
-  :row 7360}
- {:end-row 7416,
+  :row 7359}
+ {:end-row 7415,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7085,8 +7074,8 @@
   :end-col 51,
   :langs (),
   :message "Missing else branch.",
-  :row 7408}
- {:end-row 7463,
+  :row 7407}
+ {:end-row 7462,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7094,8 +7083,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding inode",
-  :row 7463}
- {:end-row 7474,
+  :row 7462}
+ {:end-row 7473,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7103,8 +7092,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding inode",
-  :row 7474}
- {:end-row 7485,
+  :row 7473}
+ {:end-row 7484,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7112,8 +7101,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding inode",
-  :row 7485}
- {:end-row 7541,
+  :row 7484}
+ {:end-row 7540,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7121,8 +7110,8 @@
   :end-col 51,
   :langs (),
   :message "Missing else branch.",
-  :row 7533}
- {:end-row 7591,
+  :row 7532}
+ {:end-row 7590,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7130,8 +7119,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding inode",
-  :row 7591}
- {:end-row 7595,
+  :row 7590}
+ {:end-row 7594,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7139,8 +7128,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding coll",
-  :row 7595}
- {:end-row 7615,
+  :row 7594}
+ {:end-row 7614,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7148,8 +7137,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding this",
-  :row 7615}
- {:end-row 7663,
+  :row 7614}
+ {:end-row 7662,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7157,8 +7146,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding inode",
-  :row 7663}
- {:end-row 7670,
+  :row 7662}
+ {:end-row 7669,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7166,8 +7155,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding inode",
-  :row 7670}
- {:end-row 7677,
+  :row 7669}
+ {:end-row 7676,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7175,8 +7164,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding inode",
-  :row 7677}
- {:end-row 7717,
+  :row 7676}
+ {:end-row 7716,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7184,8 +7173,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding inode",
-  :row 7717}
- {:end-row 7731,
+  :row 7716}
+ {:end-row 7730,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7193,8 +7182,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding coll",
-  :row 7731}
- {:end-row 7765,
+  :row 7730}
+ {:end-row 7764,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7202,8 +7191,8 @@
   :end-col 30,
   :langs (),
   :message "unused binding shift",
-  :row 7765}
- {:end-row 7765,
+  :row 7764}
+ {:end-row 7764,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7211,8 +7200,8 @@
   :end-col 35,
   :langs (),
   :message "unused binding hash",
-  :row 7765}
- {:end-row 7771,
+  :row 7764}
+ {:end-row 7770,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7220,8 +7209,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding inode",
-  :row 7771}
- {:end-row 7771,
+  :row 7770}
+ {:end-row 7770,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7229,8 +7218,8 @@
   :end-col 29,
   :langs (),
   :message "unused binding shift",
-  :row 7771}
- {:end-row 7771,
+  :row 7770}
+ {:end-row 7770,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7238,8 +7227,8 @@
   :end-col 34,
   :langs (),
   :message "unused binding hash",
-  :row 7771}
- {:end-row 7776,
+  :row 7770}
+ {:end-row 7775,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7247,8 +7236,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding inode",
-  :row 7776}
- {:end-row 7776,
+  :row 7775}
+ {:end-row 7775,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7256,8 +7245,8 @@
   :end-col 27,
   :langs (),
   :message "unused binding shift",
-  :row 7776}
- {:end-row 7776,
+  :row 7775}
+ {:end-row 7775,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7265,8 +7254,8 @@
   :end-col 32,
   :langs (),
   :message "unused binding hash",
-  :row 7776}
- {:end-row 7781,
+  :row 7775}
+ {:end-row 7780,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7274,8 +7263,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding inode",
-  :row 7781}
- {:end-row 7820,
+  :row 7780}
+ {:end-row 7819,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7283,8 +7272,8 @@
   :end-col 36,
   :langs (),
   :message "unused binding shift",
-  :row 7820}
- {:end-row 7820,
+  :row 7819}
+ {:end-row 7819,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7292,8 +7281,8 @@
   :end-col 41,
   :langs (),
   :message "unused binding hash",
-  :row 7820}
- {:end-row 7836,
+  :row 7819}
+ {:end-row 7835,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7301,8 +7290,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding inode",
-  :row 7836}
- {:end-row 7840,
+  :row 7835}
+ {:end-row 7839,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7310,8 +7299,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding coll",
-  :row 7840}
- {:end-row 7877,
+  :row 7839}
+ {:end-row 7876,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7319,8 +7308,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 7877}
- {:end-row 7889,
+  :row 7876}
+ {:end-row 7888,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7328,8 +7317,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 7889}
- {:end-row 7889,
+  :row 7888}
+ {:end-row 7888,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7337,8 +7326,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 7889}
- {:end-row 7893,
+  :row 7888}
+ {:end-row 7892,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7346,8 +7335,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 7893}
- {:end-row 7898,
+  :row 7892}
+ {:end-row 7897,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7355,8 +7344,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 7898}
- {:end-row 7905,
+  :row 7897}
+ {:end-row 7904,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7364,8 +7353,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 7905}
- {:end-row 7939,
+  :row 7904}
+ {:end-row 7938,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7373,8 +7362,8 @@
   :end-col 36,
   :langs (),
   :message "Missing else branch.",
-  :row 7932}
- {:end-row 7958,
+  :row 7931}
+ {:end-row 7957,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7382,8 +7371,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 7958}
- {:end-row 7970,
+  :row 7957}
+ {:end-row 7969,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7391,8 +7380,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 7970}
- {:end-row 7970,
+  :row 7969}
+ {:end-row 7969,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7400,7 +7389,16 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 7970}
+  :row 7969}
+ {:end-row 7973,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 12,
+  :end-col 16,
+  :langs (),
+  :message "unused binding coll",
+  :row 7973}
  {:end-row 7974,
   :type :unused-binding,
   :level :warning,
@@ -7410,16 +7408,7 @@
   :langs (),
   :message "unused binding coll",
   :row 7974}
- {:end-row 7975,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 12,
-  :end-col 16,
-  :langs (),
-  :message "unused binding coll",
-  :row 7975}
- {:end-row 7980,
+ {:end-row 7979,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7427,8 +7416,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 7980}
- {:end-row 8009,
+  :row 7979}
+ {:end-row 8008,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7436,8 +7425,8 @@
   :end-col 33,
   :langs (),
   :message "Missing else branch.",
-  :row 8004}
- {:end-row 8048,
+  :row 8003}
+ {:end-row 8047,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7445,8 +7434,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding coll",
-  :row 8048}
- {:end-row 8061,
+  :row 8047}
+ {:end-row 8060,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7454,8 +7443,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 8061}
- {:end-row 8077,
+  :row 8060}
+ {:end-row 8076,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7463,8 +7452,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 8077}
- {:end-row 8086,
+  :row 8076}
+ {:end-row 8085,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7472,8 +7461,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 8086}
- {:end-row 8088,
+  :row 8085}
+ {:end-row 8087,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7481,8 +7470,8 @@
   :end-col 53,
   :langs (),
   :message "Missing else branch.",
-  :row 8088}
- {:end-row 8094,
+  :row 8087}
+ {:end-row 8093,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7490,8 +7479,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 8094}
- {:end-row 8100,
+  :row 8093}
+ {:end-row 8099,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7499,8 +7488,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 8100}
- {:end-row 8122,
+  :row 8099}
+ {:end-row 8121,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7508,8 +7497,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding coll",
-  :row 8122}
- {:end-row 8129,
+  :row 8121}
+ {:end-row 8128,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7517,8 +7506,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 8129}
- {:end-row 8148,
+  :row 8128}
+ {:end-row 8147,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7526,8 +7515,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 8148}
- {:end-row 8163,
+  :row 8147}
+ {:end-row 8162,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7535,8 +7524,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 8163}
- {:end-row 8246,
+  :row 8162}
+ {:end-row 8245,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7544,8 +7533,8 @@
   :end-col 38,
   :langs (),
   :message "Missing else branch.",
-  :row 8245}
- {:end-row 8268,
+  :row 8244}
+ {:end-row 8267,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7553,8 +7542,8 @@
   :end-col 40,
   :langs (),
   :message "Missing else branch.",
-  :row 8267}
- {:end-row 8272,
+  :row 8266}
+ {:end-row 8271,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7562,8 +7551,8 @@
   :end-col 22,
   :langs (),
   :message "unused binding tcoll",
-  :row 8272}
- {:end-row 8279,
+  :row 8271}
+ {:end-row 8278,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7571,8 +7560,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 8279}
- {:end-row 8285,
+  :row 8278}
+ {:end-row 8284,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7580,8 +7569,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding tcoll",
-  :row 8285}
- {:end-row 8288,
+  :row 8284}
+ {:end-row 8287,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7589,8 +7578,8 @@
   :end-col 17,
   :langs (),
   :message "Missing else branch.",
-  :row 8287}
- {:end-row 8293,
+  :row 8286}
+ {:end-row 8292,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7598,8 +7587,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding tcoll",
-  :row 8293}
- {:end-row 8344,
+  :row 8292}
+ {:end-row 8343,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7607,17 +7596,26 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 8344}
+  :row 8343}
+ {:end-row 8347,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 12,
+  :end-col 16,
+  :langs (),
+  :message "unused binding this",
+  :row 8347}
  {:end-row 8348,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
-  :col 12,
-  :end-col 16,
+  :col 11,
+  :end-col 15,
   :langs (),
   :message "unused binding this",
   :row 8348}
- {:end-row 8349,
+ {:end-row 8357,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7625,17 +7623,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding this",
-  :row 8349}
- {:end-row 8358,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 11,
-  :end-col 15,
-  :langs (),
-  :message "unused binding this",
-  :row 8358}
- {:end-row 8379,
+  :row 8357}
+ {:end-row 8378,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7643,8 +7632,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 8379}
- {:end-row 8385,
+  :row 8378}
+ {:end-row 8384,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7652,8 +7641,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 8385}
- {:end-row 8510,
+  :row 8384}
+ {:end-row 8509,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7661,8 +7650,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding node",
-  :row 8510}
- {:end-row 8513,
+  :row 8509}
+ {:end-row 8512,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7670,8 +7659,8 @@
   :end-col 22,
   :langs (),
   :message "unused binding node",
-  :row 8513}
- {:end-row 8518,
+  :row 8512}
+ {:end-row 8517,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7679,8 +7668,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8518}
- {:end-row 8526,
+  :row 8517}
+ {:end-row 8525,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7688,7 +7677,16 @@
   :end-col 17,
   :langs (),
   :message "unused binding node",
-  :row 8526}
+  :row 8525}
+ {:end-row 8541,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 10,
+  :end-col 14,
+  :langs (),
+  :message "unused binding node",
+  :row 8541}
  {:end-row 8542,
   :type :unused-binding,
   :level :warning,
@@ -7698,16 +7696,7 @@
   :langs (),
   :message "unused binding node",
   :row 8542}
- {:end-row 8543,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 10,
-  :end-col 14,
-  :langs (),
-  :message "unused binding node",
-  :row 8543}
- {:end-row 8552,
+ {:end-row 8551,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7715,8 +7704,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8552}
- {:end-row 8555,
+  :row 8551}
+ {:end-row 8554,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7724,8 +7713,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding node",
-  :row 8555}
- {:end-row 8559,
+  :row 8554}
+ {:end-row 8558,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7733,8 +7722,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8559}
- {:end-row 8561,
+  :row 8558}
+ {:end-row 8560,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7742,8 +7731,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8561}
- {:end-row 8564,
+  :row 8560}
+ {:end-row 8563,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7751,8 +7740,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8564}
- {:end-row 8567,
+  :row 8563}
+ {:end-row 8566,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7760,8 +7749,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 8567}
- {:end-row 8567,
+  :row 8566}
+ {:end-row 8566,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7769,8 +7758,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8567}
- {:end-row 8571,
+  :row 8566}
+ {:end-row 8570,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7778,8 +7767,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8571}
- {:end-row 8574,
+  :row 8570}
+ {:end-row 8573,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7787,8 +7776,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8574}
- {:end-row 8577,
+  :row 8573}
+ {:end-row 8576,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7796,8 +7785,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8577}
- {:end-row 8580,
+  :row 8576}
+ {:end-row 8579,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7805,8 +7794,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8580}
- {:end-row 8585,
+  :row 8579}
+ {:end-row 8584,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7814,8 +7803,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8585}
- {:end-row 8595,
+  :row 8584}
+ {:end-row 8594,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7823,8 +7812,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8595}
- {:end-row 8597,
+  :row 8594}
+ {:end-row 8596,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7832,8 +7821,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding node",
-  :row 8597}
- {:end-row 8601,
+  :row 8596}
+ {:end-row 8600,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7841,8 +7830,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8601}
- {:end-row 8608,
+  :row 8600}
+ {:end-row 8607,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7850,8 +7839,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding node",
-  :row 8608}
- {:end-row 8629,
+  :row 8607}
+ {:end-row 8628,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7859,8 +7848,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding node",
-  :row 8629}
- {:end-row 8632,
+  :row 8628}
+ {:end-row 8631,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7868,8 +7857,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding node",
-  :row 8632}
- {:end-row 8635,
+  :row 8631}
+ {:end-row 8634,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7877,8 +7866,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding node",
-  :row 8635}
- {:end-row 8638,
+  :row 8634}
+ {:end-row 8637,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7886,8 +7875,8 @@
   :end-col 22,
   :langs (),
   :message "unused binding node",
-  :row 8638}
- {:end-row 8641,
+  :row 8637}
+ {:end-row 8640,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7895,8 +7884,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding node",
-  :row 8641}
- {:end-row 8644,
+  :row 8640}
+ {:end-row 8643,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7904,8 +7893,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8644}
- {:end-row 8690,
+  :row 8643}
+ {:end-row 8689,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7913,7 +7902,16 @@
   :end-col 17,
   :langs (),
   :message "unused binding node",
-  :row 8690}
+  :row 8689}
+ {:end-row 8705,
+  :type :unused-binding,
+  :level :warning,
+  :filename "cljs/core.cljs",
+  :col 10,
+  :end-col 14,
+  :langs (),
+  :message "unused binding node",
+  :row 8705}
  {:end-row 8706,
   :type :unused-binding,
   :level :warning,
@@ -7923,16 +7921,7 @@
   :langs (),
   :message "unused binding node",
   :row 8706}
- {:end-row 8707,
-  :type :unused-binding,
-  :level :warning,
-  :filename "cljs/core.cljs",
-  :col 10,
-  :end-col 14,
-  :langs (),
-  :message "unused binding node",
-  :row 8707}
- {:end-row 8716,
+ {:end-row 8715,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7940,8 +7929,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8716}
- {:end-row 8719,
+  :row 8715}
+ {:end-row 8718,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7949,8 +7938,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding node",
-  :row 8719}
- {:end-row 8723,
+  :row 8718}
+ {:end-row 8722,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7958,8 +7947,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8723}
- {:end-row 8725,
+  :row 8722}
+ {:end-row 8724,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7967,8 +7956,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8725}
- {:end-row 8728,
+  :row 8724}
+ {:end-row 8727,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7976,8 +7965,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8728}
- {:end-row 8731,
+  :row 8727}
+ {:end-row 8730,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7985,8 +7974,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 8731}
- {:end-row 8731,
+  :row 8730}
+ {:end-row 8730,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -7994,8 +7983,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8731}
- {:end-row 8735,
+  :row 8730}
+ {:end-row 8734,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8003,8 +7992,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8735}
- {:end-row 8738,
+  :row 8734}
+ {:end-row 8737,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8012,8 +8001,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8738}
- {:end-row 8741,
+  :row 8737}
+ {:end-row 8740,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8021,8 +8010,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8741}
- {:end-row 8744,
+  :row 8740}
+ {:end-row 8743,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8030,8 +8019,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8744}
- {:end-row 8749,
+  :row 8743}
+ {:end-row 8748,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8039,8 +8028,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding node",
-  :row 8749}
- {:end-row 8759,
+  :row 8748}
+ {:end-row 8758,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8048,8 +8037,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding node",
-  :row 8759}
- {:end-row 8761,
+  :row 8758}
+ {:end-row 8760,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8057,8 +8046,8 @@
   :end-col 24,
   :langs (),
   :message "unused binding node",
-  :row 8761}
- {:end-row 8765,
+  :row 8760}
+ {:end-row 8764,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8066,8 +8055,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding node",
-  :row 8765}
- {:end-row 8772,
+  :row 8764}
+ {:end-row 8771,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8075,8 +8064,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding node",
-  :row 8772}
- {:end-row 8803,
+  :row 8771}
+ {:end-row 8802,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8084,8 +8073,8 @@
   :end-col 34,
   :langs (),
   :message "Missing else branch.",
-  :row 8802}
- {:end-row 8808,
+  :row 8801}
+ {:end-row 8807,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8093,8 +8082,8 @@
   :end-col 35,
   :langs (),
   :message "Missing else branch.",
-  :row 8807}
- {:end-row 8887,
+  :row 8806}
+ {:end-row 8886,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8102,8 +8091,8 @@
   :end-col 79,
   :langs (),
   :message "Missing else branch.",
-  :row 8868}
- {:end-row 8880,
+  :row 8867}
+ {:end-row 8879,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8111,8 +8100,8 @@
   :end-col 76,
   :langs (),
   :message "Missing else branch.",
-  :row 8877}
- {:end-row 8887,
+  :row 8876}
+ {:end-row 8886,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8120,8 +8109,8 @@
   :end-col 75,
   :langs (),
   :message "Missing else branch.",
-  :row 8884}
- {:end-row 8896,
+  :row 8883}
+ {:end-row 8895,
   :type :redundant-declare,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8129,8 +8118,8 @@
   :end-col 14,
   :langs (),
   :message "Redundant declare: key",
-  :row 8896}
- {:end-row 8918,
+  :row 8895}
+ {:end-row 8917,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8138,8 +8127,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding coll",
-  :row 8918}
- {:end-row 8924,
+  :row 8917}
+ {:end-row 8923,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8147,8 +8136,8 @@
   :end-col 49,
   :langs (),
   :message "Missing else branch.",
-  :row 8920}
- {:end-row 8936,
+  :row 8919}
+ {:end-row 8935,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8156,8 +8145,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 8936}
- {:end-row 8952,
+  :row 8935}
+ {:end-row 8951,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8165,8 +8154,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 8952}
- {:end-row 8961,
+  :row 8951}
+ {:end-row 8960,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8174,8 +8163,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 8961}
- {:end-row 8964,
+  :row 8960}
+ {:end-row 8963,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8183,8 +8172,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 8964}
- {:end-row 8977,
+  :row 8963}
+ {:end-row 8976,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8192,8 +8181,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 8977}
- {:end-row 8979,
+  :row 8976}
+ {:end-row 8978,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8201,8 +8190,8 @@
   :end-col 43,
   :langs (),
   :message "Missing else branch.",
-  :row 8978}
- {:end-row 8982,
+  :row 8977}
+ {:end-row 8981,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8210,8 +8199,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 8982}
- {:end-row 8984,
+  :row 8981}
+ {:end-row 8983,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8219,8 +8208,8 @@
   :end-col 44,
   :langs (),
   :message "Missing else branch.",
-  :row 8983}
- {:end-row 9025,
+  :row 8982}
+ {:end-row 9024,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8228,8 +8217,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding coll",
-  :row 9025}
- {:end-row 9027,
+  :row 9024}
+ {:end-row 9026,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8237,8 +8226,8 @@
   :end-col 49,
   :langs (),
   :message "Missing else branch.",
-  :row 9026}
- {:end-row 9029,
+  :row 9025}
+ {:end-row 9028,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8246,8 +8235,8 @@
   :end-col 26,
   :langs (),
   :message "unused binding coll",
-  :row 9029}
- {:end-row 9043,
+  :row 9028}
+ {:end-row 9042,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8255,8 +8244,8 @@
   :end-col 68,
   :langs (),
   :message "Missing else branch.",
-  :row 9030}
- {:end-row 9045,
+  :row 9029}
+ {:end-row 9044,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8264,8 +8253,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 9045}
- {:end-row 9047,
+  :row 9044}
+ {:end-row 9046,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8273,8 +8262,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding coll",
-  :row 9047}
- {:end-row 9123,
+  :row 9046}
+ {:end-row 9122,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8282,8 +8271,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9123}
- {:end-row 9132,
+  :row 9122}
+ {:end-row 9131,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8291,8 +8280,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 9132}
- {:end-row 9143,
+  :row 9131}
+ {:end-row 9142,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8300,8 +8289,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9143}
- {:end-row 9149,
+  :row 9142}
+ {:end-row 9148,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8309,8 +8298,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9149}
- {:end-row 9153,
+  :row 9148}
+ {:end-row 9152,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8318,8 +8307,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9153}
- {:end-row 9162,
+  :row 9152}
+ {:end-row 9161,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8327,8 +8316,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9162}
- {:end-row 9202,
+  :row 9161}
+ {:end-row 9201,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8336,8 +8325,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9202}
- {:end-row 9211,
+  :row 9201}
+ {:end-row 9210,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8345,8 +8334,8 @@
   :end-col 8,
   :langs (),
   :message "Unresolved protocol method: -seq",
-  :row 9211}
- {:end-row 9222,
+  :row 9210}
+ {:end-row 9221,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8354,8 +8343,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9222}
- {:end-row 9228,
+  :row 9221}
+ {:end-row 9227,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8363,8 +8352,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9228}
- {:end-row 9232,
+  :row 9227}
+ {:end-row 9231,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8372,8 +8361,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9232}
- {:end-row 9241,
+  :row 9231}
+ {:end-row 9240,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8381,8 +8370,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9241}
- {:end-row 9339,
+  :row 9240}
+ {:end-row 9338,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8390,8 +8379,8 @@
   :end-col 19,
   :langs (),
   :message "unused binding coll",
-  :row 9339}
- {:end-row 9349,
+  :row 9338}
+ {:end-row 9348,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8399,8 +8388,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9349}
- {:end-row 9359,
+  :row 9348}
+ {:end-row 9358,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8408,8 +8397,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9359}
- {:end-row 9371,
+  :row 9358}
+ {:end-row 9370,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8417,8 +8406,8 @@
   :end-col 26,
   :langs (),
   :message "unused binding ex",
-  :row 9371}
- {:end-row 9378,
+  :row 9370}
+ {:end-row 9377,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8426,8 +8415,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 9378}
- {:end-row 9381,
+  :row 9377}
+ {:end-row 9380,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8435,8 +8424,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9381}
- {:end-row 9386,
+  :row 9380}
+ {:end-row 9385,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8444,8 +8433,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 9386}
- {:end-row 9405,
+  :row 9385}
+ {:end-row 9404,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8453,8 +8442,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding coll",
-  :row 9405}
- {:end-row 9414,
+  :row 9404}
+ {:end-row 9413,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8462,8 +8451,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding arr",
-  :row 9414}
- {:end-row 9451,
+  :row 9413}
+ {:end-row 9450,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8471,8 +8460,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding tcoll",
-  :row 9451}
- {:end-row 9460,
+  :row 9450}
+ {:end-row 9459,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8480,8 +8469,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding tcoll",
-  :row 9460}
- {:end-row 9466,
+  :row 9459}
+ {:end-row 9465,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8489,8 +8478,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding tcoll",
-  :row 9466}
- {:end-row 9472,
+  :row 9465}
+ {:end-row 9471,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8498,8 +8487,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding tcoll",
-  :row 9472}
- {:end-row 9477,
+  :row 9471}
+ {:end-row 9476,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8507,8 +8496,8 @@
   :end-col 18,
   :langs (),
   :message "unused binding tcoll",
-  :row 9477}
- {:end-row 9510,
+  :row 9476}
+ {:end-row 9509,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8516,8 +8505,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9510}
- {:end-row 9520,
+  :row 9509}
+ {:end-row 9519,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8525,8 +8514,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9520}
- {:end-row 9532,
+  :row 9519}
+ {:end-row 9531,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8534,8 +8523,8 @@
   :end-col 26,
   :langs (),
   :message "unused binding ex",
-  :row 9532}
- {:end-row 9539,
+  :row 9531}
+ {:end-row 9538,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8543,8 +8532,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 9539}
- {:end-row 9542,
+  :row 9538}
+ {:end-row 9541,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8552,8 +8541,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding coll",
-  :row 9542}
- {:end-row 9545,
+  :row 9541}
+ {:end-row 9544,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8561,8 +8550,8 @@
   :end-col 26,
   :langs (),
   :message "unused binding coll",
-  :row 9545}
- {:end-row 9548,
+  :row 9544}
+ {:end-row 9547,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8570,8 +8559,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 9548}
- {:end-row 9550,
+  :row 9547}
+ {:end-row 9549,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8579,8 +8568,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding coll",
-  :row 9550}
- {:end-row 9553,
+  :row 9549}
+ {:end-row 9552,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8588,8 +8577,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding coll",
-  :row 9553}
- {:end-row 9555,
+  :row 9552}
+ {:end-row 9554,
   :type :missing-else-branch,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8597,8 +8586,8 @@
   :end-col 33,
   :langs (),
   :message "Missing else branch.",
-  :row 9554}
- {:end-row 9558,
+  :row 9553}
+ {:end-row 9557,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8606,8 +8595,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9558}
- {:end-row 9563,
+  :row 9557}
+ {:end-row 9562,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8615,8 +8604,8 @@
   :end-col 17,
   :langs (),
   :message "unused binding coll",
-  :row 9563}
- {:end-row 9706,
+  :row 9562}
+ {:end-row 9705,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8624,8 +8613,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding k",
-  :row 9706}
- {:end-row 9715,
+  :row 9705}
+ {:end-row 9714,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8633,8 +8622,8 @@
   :end-col 6,
   :langs (),
   :message "unused binding k",
-  :row 9715}
- {:end-row 9860,
+  :row 9714}
+ {:end-row 9859,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8642,8 +8631,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9860}
- {:end-row 9862,
+  :row 9859}
+ {:end-row 9861,
   :protocol-ns cljs.core,
   :protocol-name ISeq,
   :type :missing-protocol-method,
@@ -8654,8 +8643,8 @@
   :end-col 7,
   :langs (),
   :message "Missing protocol method(s): -rest",
-  :row 9862}
- {:end-row 9863,
+  :row 9861}
+ {:end-row 9862,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8663,8 +8652,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding coll",
-  :row 9863}
- {:end-row 9866,
+  :row 9862}
+ {:end-row 9865,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8672,8 +8661,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 9866}
- {:end-row 9868,
+  :row 9865}
+ {:end-row 9867,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8681,8 +8670,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding coll",
-  :row 9868}
- {:end-row 9874,
+  :row 9867}
+ {:end-row 9873,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8690,8 +8679,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding coll",
-  :row 9874}
- {:end-row 9920,
+  :row 9873}
+ {:end-row 9919,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8699,8 +8688,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding rng",
-  :row 9920}
- {:end-row 9926,
+  :row 9919}
+ {:end-row 9925,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8708,8 +8697,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding rng",
-  :row 9926}
- {:end-row 9938,
+  :row 9925}
+ {:end-row 9937,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8717,8 +8706,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding rng",
-  :row 9938}
- {:end-row 9954,
+  :row 9937}
+ {:end-row 9953,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8726,8 +8715,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding rng",
-  :row 9954}
- {:end-row 9956,
+  :row 9953}
+ {:end-row 9955,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8735,8 +8724,8 @@
   :end-col 22,
   :langs (),
   :message "unused binding rng",
-  :row 9956}
- {:end-row 9984,
+  :row 9955}
+ {:end-row 9983,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8744,8 +8733,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 9984}
- {:end-row 9984,
+  :row 9983}
+ {:end-row 9983,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8753,8 +8742,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding rng",
-  :row 9984}
- {:end-row 9994,
+  :row 9983}
+ {:end-row 9993,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8762,8 +8751,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding rng",
-  :row 9994}
- {:end-row 10013,
+  :row 9993}
+ {:end-row 10012,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8771,8 +8760,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding rng",
-  :row 10013}
- {:end-row 10038,
+  :row 10012}
+ {:end-row 10037,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8780,8 +8769,8 @@
   :end-col 20,
   :langs (),
   :message "unused binding coll",
-  :row 10038}
- {:end-row 10066,
+  :row 10037}
+ {:end-row 10065,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8789,8 +8778,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding rng",
-  :row 10066}
- {:end-row 10072,
+  :row 10065}
+ {:end-row 10071,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8798,8 +8787,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding rng",
-  :row 10072}
- {:end-row 10084,
+  :row 10071}
+ {:end-row 10083,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8807,8 +8796,8 @@
   :end-col 14,
   :langs (),
   :message "unused binding rng",
-  :row 10084}
- {:end-row 10109,
+  :row 10083}
+ {:end-row 10108,
   :type :unresolved-protocol-method,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8816,8 +8805,8 @@
   :end-col 10,
   :langs (),
   :message "Unresolved protocol method: -empty",
-  :row 10109}
- {:end-row 10109,
+  :row 10108}
+ {:end-row 10108,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8825,8 +8814,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding rng",
-  :row 10109}
- {:end-row 10120,
+  :row 10108}
+ {:end-row 10119,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/core.cljs",
@@ -8834,8 +8823,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding rng",
-  :row 10120}
- {:end-row 10434,
+  :row 10119}
+ {:end-row 10433,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -8843,8 +8832,8 @@
   :end-col 11,
   :langs (),
   :message "cljs.core/str_ is called with 3 args but expects 2",
-  :row 10431}
- {:end-row 10466,
+  :row 10430}
+ {:end-row 10465,
   :type :invalid-arity,
   :level :error,
   :filename "cljs/core.cljs",
@@ -8852,7 +8841,7 @@
   :end-col 34,
   :langs (),
   :message "cljs.core/str_ is called with 1 arg but expects 2",
-  :row 10466}
+  :row 10465}
  {:end-row 10474,
   :type :invalid-arity,
   :level :error,
@@ -13448,8 +13437,8 @@
   :type :unused-binding,
   :level :warning,
   :filename "cljs/repl/browser.clj",
-  :col 78,
-  :end-col 82,
+  :col 92,
+  :end-col 96,
   :langs (),
   :message "unused binding opts",
   :row 185}
@@ -13462,7 +13451,7 @@
   :langs (),
   :message "Condition always true",
   :row 194}
- {:end-row 321,
+ {:end-row 326,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/repl/browser.clj",
@@ -13470,8 +13459,8 @@
   :end-col 27,
   :langs (),
   :message "unused binding e",
-  :row 321}
- {:end-row 331,
+  :row 326}
+ {:end-row 336,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/repl/browser.clj",
@@ -13479,8 +13468,8 @@
   :end-col 12,
   :langs (),
   :message "unused binding repl-env",
-  :row 331}
- {:end-row 331,
+  :row 336}
+ {:end-row 336,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/repl/browser.clj",
@@ -13488,8 +13477,8 @@
   :end-col 21,
   :langs (),
   :message "unused binding provides",
-  :row 331}
- {:end-row 425,
+  :row 336}
+ {:end-row 430,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/repl/browser.clj",
@@ -13497,8 +13486,8 @@
   :end-col 23,
   :langs (),
   :message "unused binding this",
-  :row 425}
- {:end-row 452,
+  :row 430}
+ {:end-row 457,
   :type :unused-binding,
   :level :warning,
   :filename "cljs/repl/browser.clj",
@@ -13506,8 +13495,8 @@
   :end-col 31,
   :langs (),
   :message "unused binding opts",
-  :row 452}
- {:end-row 507,
+  :row 457}
+ {:end-row 512,
   :type :duplicate-require,
   :level :warning,
   :duplicate-ns cljs.repl,
@@ -13516,8 +13505,8 @@
   :end-col 23,
   :langs (),
   :message "duplicate require of cljs.repl",
-  :row 507}
- {:end-row 513,
+  :row 512}
+ {:end-row 518,
   :type :unresolved-symbol,
   :level :error,
   :filename "cljs/repl/browser.clj",
@@ -13525,7 +13514,7 @@
   :end-col 18,
   :langs (),
   :message "Unresolved symbol: ClojureScript:>",
-  :row 513}
+  :row 518}
  {:end-row 51,
   :type :non-arg-vec-return-type-hint,
   :level :warning,
@@ -14684,7 +14673,7 @@
   :langs (:clj :cljs),
   :message "unused binding menv",
   :row 132}
- {:end-row 337,
+ {:end-row 343,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -14694,8 +14683,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding quote",
-  :row 337}
- {:end-row 362,
+  :row 343}
+ {:end-row 368,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -14705,8 +14694,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding quote",
-  :row 362}
- {:end-row 362,
+  :row 368}
+ {:end-row 368,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -14716,8 +14705,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding ns",
-  :row 362}
- {:end-row 378,
+  :row 368}
+ {:end-row 384,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -14727,8 +14716,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding v",
-  :row 378}
- {:end-row 393,
+  :row 384}
+ {:end-row 399,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -14738,8 +14727,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding quote",
-  :row 393}
- {:end-row 393,
+  :row 399}
+ {:end-row 399,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -14749,7 +14738,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding ns",
-  :row 393}
+  :row 399}
  {:end-row 244,
   :ns clojure.template,
   :type :unused-namespace,
@@ -29590,6 +29579,15 @@
   :langs (),
   :message "Unused excluded var: future",
   :row 3}
+ {:end-row 202,
+  :type :redefined-var,
+  :level :warning,
+  :filename "sci/async.cljs",
+  :col 1,
+  :end-col 11,
+  :langs (),
+  :message "await already refers to #'cljs.core/await",
+  :row 197}
  {:end-row 4,
   :type :unused-excluded-var,
   :level :info,
