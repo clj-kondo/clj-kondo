@@ -253,6 +253,30 @@ namespaces.
 - `:unused-value`: warns about unused values.
 - `:redundant-call`: warns about redundant calls, mostly macros and functions that return their first argument as a no-op
 - `:redundant-str-call`: warn about unnecessary `str` calls
+- `:def-fn`: warn when `def` + `fn` can be replaced by `defn`.
+- `:redundant-let-binding`: warn on redundant let bindings.
+- `:unsorted-imports`: warns on non-alphabetically sorted imports in `ns` and `require` forms.
+- `:reduce-without-init`: warn when reduce is called without an explicit initial value.
+- `:not-nil?`: warn on `(not (nil? x))` and suggest `(some? x)` instead.
+- `:if-nil-return`: warn when if-like form explicitly returns nil from either branch.
+- `:case-symbol-test`: warn on symbol test constants in `case`.
+- `:bb.edn-task-missing-docstring`: warn on missing docstring for map tasks.
+- `:main-without-gen-class`: warn when -main function is present without corresponding `:gen-class`.
+- `:redundant-fn-wrapper`: warn on redundant function wrapper.
+- `:keyword-binding`: warn on keywords in binding vectors.
+- `:aliased-namespace-symbol`: warn when the namespace of a qualified symbol has a defined alias.
+- `:dynamic-var-not-earmuffed`: warn when dynamic var doesn't have an earmuffed name.
+- `:equals-false`: warn on usage of `(= false x)` or `(= x false)` rather than `(false? x)`.
+- `:equals-true`: warn on usage of `(= true x)` or `(= x true)` rather than `(true? x)`.
+- `:equals-nil`: warn on usage of `(= nil x)` or `(= x nil)` rather than `(nil? x)`.
+- `:equals-float`: warn on usage of comparison with `=` on floating point numbers.
+- `:plus-one`: warn on usages of `+` that can be replaced with `inc`.
+- `:minus-one`: warn on usages of `-` that can be replaced with `dec`.
+- `:unused-alias`: warn on unused alias introduced in ns form.
+- `:condition-always-true`: warn on a condition that evaluates to an always truthy constant.
+- `:equals-expected-position`: warn on usage of `=` with the expected constant not in the expected position.
+- `:missing-protocol-method-arity`: warn when a protocol method is implemented but not all declared arities are covered.
+- `:destructured-or-always-evaluates`: warn when an `:or` default value in a destructuring contains an expression that always evaluates.
 
 You can enable these linters by setting the `:level`:
 
