@@ -425,6 +425,43 @@ namespace (which may not be SCI-loadable).
 A marker macro can call itself recursively; clj-kondo fires the macroexpand
 hook again for each nested self-call.
 
+### Branching on "are we inside clj-kondo?"
+
+When the real macro body does I/O, reads resources, or calls JVM-only code
+that won't run inside SCI, you can branch on whether the extraction
+context is in effect. The trick: `declare` a var that exists in the real
+namespace but is unknown to SCI, then `resolve` it at expand time.
+
+``` clojure
+(ns my.app)
+
+(declare -not-in-kondo)
+
+(defmacro if-kondo
+  "Picks `kondo-form` at expand time when the surrounding context is
+  clj-kondo's SCI runtime (which won't have `-not-in-kondo` interned),
+  and `runtime-form` otherwise."
+  {:clj-kondo/macro true}
+  [kondo-form runtime-form]
+  (if-not (resolve '-not-in-kondo)
+    kondo-form
+    runtime-form))
+
+(defmacro embed-config
+  "Inline a config map at compile time. When linted by clj-kondo, return
+  a stub so the body still type-checks; at runtime, read it from disk."
+  {:clj-kondo/macro true}
+  []
+  (if-kondo
+    {:host "localhost" :port 8080}
+    (clojure.edn/read-string (slurp "resources/config.edn"))))
+```
+
+Inside the macro body, the `runtime-form` branch is never executed by
+clj-kondo's SCI evaluator, so I/O like `slurp` is safely skipped during
+linting. The kondo branch produces a value with the same shape so the
+expanded call sites lint correctly.
+
 ### Caveats
 
 - `&form` and `&env` are passed through to the extracted macro.
