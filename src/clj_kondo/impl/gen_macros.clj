@@ -3,7 +3,6 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.cache :as cache]
-   [clj-kondo.impl.parser :as parser]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import [java.io File]))
@@ -43,9 +42,8 @@
     (reduce
      (fn [m {:keys [ns kind]}]
        (if-let [alias-key (get ns->alias-key ns)]
-         (let [alias-sym (with-meta (symbol (name alias-key)) {})
-               src-as-alias? (:as-alias (meta alias-key))
-               kind (if src-as-alias? :as-alias kind)
+         (let [alias-sym (symbol (name alias-key))
+               kind (if (:as-alias (meta alias-key)) :as-alias kind)
                redirected-ns (let [gen-ns (gen-ns-sym ns)]
                                (if (and cfg-dir (fs/exists? (gen-file cfg-dir gen-ns)))
                                  gen-ns
@@ -102,9 +100,6 @@
 (defmacro ^:private with-gen-lock [cfg-dir & body]
   `(with-gen-lock* ~cfg-dir (fn [] ~@body)))
 
-(defn- parse-form [s]
-  (first (:children (parser/parse-string s))))
-
 (def ^:private reserved-ns-prefix "clj-kondo.gen-macros.")
 
 (defn reserved-ns?
@@ -134,10 +129,9 @@
             f (gen-file cfg-dir gen-ns)
             new-aliases (aggregate-alias-usages alias-usages source-aliases cfg-dir)
             entries (swap! (:gen-macros ctx) conj
-                           {:orig-ns orig-ns :fn-name fn-name :gen-ns gen-ns
-                            :form-str (str expr) :aliases new-aliases})]
+                           {:form expr :aliases new-aliases})]
         (with-gen-lock cfg-dir
-          (let [forms (mapv (fn [{:keys [form-str]}] (parse-form form-str)) entries)
+          (let [forms (mapv :form entries)
                 aliases (reduce merge-alias-maps {} (map :aliases entries))]
             (write-file! f gen-ns aliases forms)))))))
 
