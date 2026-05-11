@@ -195,7 +195,8 @@
               :missing-protocol-method-arity {:level :off}
               :locking-suspicious-lock {:level :warning}
               :destructured-or-always-evaluates {:level :off}
-              :unquote-not-syntax-quoted {:level :warning}}
+              :unquote-not-syntax-quoted {:level :warning}
+              :await-without-async-fn {:level :error}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>
