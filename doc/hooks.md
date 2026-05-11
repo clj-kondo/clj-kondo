@@ -350,8 +350,8 @@ There are several special cases to watch out for when using the `:macroexpand` f
 
 When a `defmacro` in your source code carries the metadata
 `{:clj-kondo/macro true}`, clj-kondo extracts the macro into the configuration
-directory and registers it as a `:macroexpand` hook for that var. There is no
-need to copy the macro into `.clj-kondo/` by hand.
+directory and registers it as a `:macroexpand` hook for that var. No need to
+copy the macro into `.clj-kondo/` by hand.
 
 ``` clojure
 (ns my.app)
@@ -365,17 +365,78 @@ need to copy the macro into `.clj-kondo/` by hand.
 clj-kondo writes `.clj-kondo/clj_kondo/gen_macros/my/app.clj` defining
 `clj-kondo.gen-macros.my.app/my-let` and configures
 `{:hooks {:macroexpand {my.app/my-let clj-kondo.gen-macros.my.app/my-let}}}`
-under `.clj-kondo/inline-configs/...`. The configuration is auto-loaded on
-the next clj-kondo run via `:auto-load-configs`.
+under `.clj-kondo/inline-configs/...`. The configuration is auto-loaded on the
+next clj-kondo run via `:auto-load-configs`.
 
-Caveats:
+### Helper functions and vars
 
-- The macro body must be self-contained: every symbol must be either a
-  `clojure.core` var or fully qualified. Aliases from the surrounding
-  namespace are not available in the extracted file.
+The same marker can be put on `defn`/`defn-`/`def` forms. Marked helpers get
+extracted alongside the marker macros into the same generated namespace, but
+do not themselves register a macroexpand hook. Use this when a marker macro
+needs to call a helper at expand time:
+
+``` clojure
+(ns my.app)
+
+(defn ^{:clj-kondo/macro true} double-it [n]
+  (* 2 n))
+
+(defmacro defdouble
+  {:clj-kondo/macro true}
+  [sym n]
+  `(def ~sym ~(double-it n)))
+```
+
+### Aliases inside the macro body
+
+Aliases from the surrounding namespace are picked up automatically and emitted
+in the generated namespace's `(:require ...)` clause:
+
+- Aliases used at expand time (outside any syntax-quote) get `:as`.
+- Aliases used only inside syntax-quote, plus auto-resolved keywords like
+  `::str/foo`, get `:as-alias`.
+- Aliases whose source declaration is `:as-alias` are always emitted as
+  `:as-alias` regardless of how they appear in the body.
+
+If a body uses an aliased var that lives in another namespace that itself
+contains marker forms, the generated `:require` is rewritten to point at the
+extracted gen namespace rather than the original. That lets the helper get
+resolved against the SCI-loadable extracted copy instead of the original
+namespace (which may not be SCI-loadable).
+
+``` clojure
+(ns blub.utils)
+
+(defn ^{:clj-kondo/macro true} binding-vec? [v]
+  (and (vector? v) (even? (count v))))
+
+(ns blub.kondo
+  (:require [blub.utils :as u]))
+
+(defmacro when-vec
+  {:clj-kondo/macro true}
+  [bindings & body]
+  {:pre [(u/binding-vec? bindings)]}
+  `(let ~bindings ~@body))
+```
+
+### Recursive macros
+
+A marker macro can call itself recursively; clj-kondo fires the macroexpand
+hook again for each nested self-call.
+
+### Caveats
+
 - `&form` and `&env` are passed through to the extracted macro.
 - Cross-file usages of a freshly marked macro may take two runs to clear,
   matching the behaviour of `:clj-kondo/config` inline configs.
+- One generated namespace is owned by exactly one source file. Splitting
+  marker forms for a single source namespace across multiple files is not
+  supported.
+- The macro/helper body runs in SCI, which supports most of Clojure
+  (including some Java interop and `deftype`/`defrecord`), but not
+  everything. If extraction breaks for a particular form, fall back to a
+  hand-written `:macroexpand` hook.
 - With `:auto-load-configs false`, the feature is disabled and any
   generated artifacts are deleted.
 
