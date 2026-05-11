@@ -697,13 +697,15 @@
         _ (when fn-name
             (namespace/reg-var!
              ctx ns-name fn-name expr {:temp true}))
-        parsed-bodies (map #(analyze-fn-body
-                             (-> ctx
-                                 (assoc :docstring docstring
-                                        :in-def fn-name
-                                        :macro? macro?))
-                             %)
-                           bodies)
+        body-ctx (linters/enter-fn-scope ctx expr)
+        parsed-bodies (doall (map #(analyze-fn-body
+                                    (-> body-ctx
+                                        (assoc :docstring docstring
+                                               :in-def fn-name
+                                               :macro? macro?))
+                                    %)
+                                  bodies))
+        _ (linters/report-fn-scope! body-ctx ctx)
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
@@ -1106,20 +1108,22 @@
         arity (fn-arity ctx bodies)
         bodies (:bodies arity)
         filename (:filename ctx)
+        body-ctx (linters/enter-fn-scope ctx expr)
         parsed-bodies
-        (let [ctx (-> ctx
-                      (assoc :fn-body-count (count bodies))
-                      (assoc :fn-parent-loc (meta expr)))
-              ctx (if ?fn-name
-                    (-> ctx
-                        (update :bindings conj [?fn-name
-                                                (assoc (meta ?name-expr)
-                                                       :name ?fn-name
-                                                       :filename filename)])
-                        (update :arities assoc ?fn-name
-                                arity))
-                    ctx)]
-          (map #(analyze-fn-body ctx %) bodies))
+        (let [bctx (-> body-ctx
+                       (assoc :fn-body-count (count bodies))
+                       (assoc :fn-parent-loc (meta expr)))
+              bctx (if ?fn-name
+                     (-> bctx
+                         (update :bindings conj [?fn-name
+                                                 (assoc (meta ?name-expr)
+                                                        :name ?fn-name
+                                                        :filename filename)])
+                         (update :arities assoc ?fn-name
+                                 arity))
+                     bctx)]
+          (doall (map #(analyze-fn-body bctx %) bodies)))
+        _ (linters/report-fn-scope! body-ctx ctx)
         arities
         (when-not (some-> ctx :def-meta :macro)
           (extract-arity-info ctx parsed-bodies))
@@ -1583,6 +1587,7 @@
                                  :defined-by->lint-as defined-by->lint-as)))))
 
 (defn analyze-catch [ctx expr]
+  (linters/bump-complexity! ctx 1)
   (let [ctx (update ctx :callstack conj [nil 'catch])
         [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
@@ -2729,6 +2734,9 @@
                                                 (when (and resolved-as-name resolved-as-namespace)
                                                   (symbol (name resolved-as-namespace)
                                                           (name resolved-as-name))))
+                        _ (when resolved-as-clojure-var-name
+                            (linters/bump-complexity-for-core-call!
+                             ctx resolved-as-clojure-var-name expr))
                         analyzed
                         (case resolved-as-clojure-var-name
                           (assoc assoc! sorted-map-by struct-map) (analyze-assoc ctx expr)
@@ -3521,12 +3529,13 @@
 (defn analyze-expression*
   "NOTE: :used-namespaces is used in the cache to load namespaces that were actually used."
   [ctx expression]
-  (loop [ctx (assoc ctx
-                    :bindings {}
-                    :top-level? true)
-         ns (:ns ctx)
-         [first-parsed & rest-parsed :as all]
-         (analyze-expression** ctx expression)]
+  (let [ctx (-> ctx
+                (assoc :bindings {} :top-level? true)
+                (linters/install-complexity-tracking expression))]
+    (loop [ctx ctx
+           ns (:ns ctx)
+           [first-parsed & rest-parsed :as all]
+           (analyze-expression** ctx expression)]
     (if (seq all)
       (case (:type first-parsed)
         nil (recur ctx ns rest-parsed)
@@ -3564,7 +3573,9 @@
            (assoc ctx :config config)
            ns
            rest-parsed)))
-      (assoc ctx :ns ns))))
+      (let [ctx (assoc ctx :ns ns)]
+        (linters/report-complexity! ctx)
+        ctx)))))
 
 (defn analyze-expressions
   "Analyzes expressions and collects defs and calls into a map. To

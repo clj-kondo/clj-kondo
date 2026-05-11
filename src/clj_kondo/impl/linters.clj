@@ -1156,6 +1156,95 @@
                                    (format "Protocol method %s arities %s are not implemented"
                                            method-name (str/join ", " missing)))))))))))))
 
+(def ^:private branch-bump
+  '{if 1, if-not 1, when 1, when-not 1, while 1
+    when-let 1, when-some 1, when-first 1, if-let 1, if-some 1})
+
+(defn- count-cond-pairs [forms]
+  (let [n (count forms)
+        pairs (quot n 2)
+        last-test (when (>= n 2) (nth forms (- n 2)))
+        last-test-val (or (:k last-test) (:value last-test))]
+    (if (contains? '#{:else :default} last-test-val)
+      (dec pairs)
+      pairs)))
+
+(defn- complexity-for-core-call [op children]
+  (or (get branch-bump op)
+      (case op
+        cond (count-cond-pairs (next children))
+        case (let [forms (drop 2 children)
+                   n (count forms)]
+               (if (odd? n) (quot (dec n) 2) (quot n 2)))
+        condp (let [forms (drop 3 children)
+                    n (count forms)]
+                (if (odd? n) (quot (dec n) 2) (quot n 2)))
+        (and or) (max 0 (dec (count (next children))))
+        (some-> some->>) (max 0 (- (count children) 2))
+        ;; cond->/cond->> macroexpand into real `if` nodes; those ifs will
+        ;; bump complexity themselves, so don't double-count here.
+        (cond-> cond->>) 0
+        0)))
+
+(defn- open-scope [ctx expr]
+  (assoc ctx :complexity-volatile (volatile! 1) :complexity-node expr))
+
+(defn install-complexity-tracking
+  "Open the outer complexity scope on ctx when the linter is enabled.
+  No-op otherwise, so disabled linters add zero overhead."
+  [ctx expr]
+  (cond-> ctx
+    (not (utils/linter-disabled? ctx :cyclomatic-complexity))
+    (open-scope expr)))
+
+(defn enter-fn-scope
+  "Open a fresh scope for a function-form body (defn/fn/method).
+  No-op when tracking is off or analyzer is inside `(comment ...)`."
+  [ctx expr]
+  (cond-> ctx
+    (and (:complexity-volatile ctx) (not (:in-comment ctx)))
+    (open-scope expr)))
+
+(defn report-complexity!
+  "Emit a finding if the tracked complexity exceeds the configured threshold."
+  [ctx]
+  (when-let [v (:complexity-volatile ctx)]
+    (let [threshold (or (get-in ctx [:config :linters :cyclomatic-complexity :threshold]) 10)
+          complexity @v]
+      (when (> complexity threshold)
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx)
+                     (:complexity-node ctx)
+                     :cyclomatic-complexity
+                     (str "Cyclomatic complexity is " complexity
+                          ", exceeds threshold of " threshold
+                          ". Consider breaking this into smaller functions.")))))))
+
+(defn report-fn-scope!
+  "Emit a finding for the inner function scope, if one was opened."
+  [inner-ctx outer-ctx]
+  (when-not (identical? (:complexity-volatile inner-ctx)
+                        (:complexity-volatile outer-ctx))
+    (report-complexity! inner-ctx)))
+
+(defn bump-complexity!
+  "Add n to the current scope's complexity counter.
+  No-op when linter disabled or analyzer is inside `(comment ...)`."
+  [ctx n]
+  (when-let [v (:complexity-volatile ctx)]
+    (when-not (:in-comment ctx)
+      (vswap! v + n))))
+
+(defn bump-complexity-for-core-call!
+  "Bump current scope's complexity for a clojure.core/cljs.core branching op.
+  resolved-as-name is the post-:lint-as core symbol from analyze-call."
+  [ctx resolved-as-name expr]
+  (when-let [v (:complexity-volatile ctx)]
+    (when-not (:in-comment ctx)
+      (let [n (complexity-for-core-call resolved-as-name (:children expr))]
+        (when (pos? n) (vswap! v + n))))))
+
 ;;;; scratch
 
 (comment)
