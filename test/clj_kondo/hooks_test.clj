@@ -595,17 +595,21 @@ my-ns/special-map \"
                    (fs/delete-tree (fs/file cfg-dir "inline-configs"))
                    (fs/delete-tree (fs/file cfg-dir ".cache")))]
     (cleanup!)
-    (testing "helper-only ns generates a gen file even without a marker defmacro"
+    (testing "first run extracts both namespaces' marker forms"
       (lint! src-dir
              {:linters {:unresolved-symbol {:level :error}}}
              "--config-dir" (str cfg-dir))
       (is (fs/exists? helpers-gen))
-      (is (str/includes? (slurp (fs/file helpers-gen)) "(defn binding-vec?")))
-    (testing "consumer ns redirects its alias to the gen ns of the helper"
-      (is (fs/exists? main-gen))
+      (is (str/includes? (slurp (fs/file helpers-gen)) "(defn binding-vec?"))
+      (is (fs/exists? main-gen)))
+    (testing "second run redirects the consumer's alias to the helper's gen ns
+    (after the first run produced the helper gen file)"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
       (let [gen (slurp (fs/file main-gen))]
         (is (str/includes? gen "[clj-kondo.gen-macros.helpers :as h]"))))
-    (testing "second run lints clean - macro expands using the redirected helper"
+    (testing "subsequent run lints clean - macro expands using the redirected helper"
       (assert-submaps2
        []
        (lint! src-dir
