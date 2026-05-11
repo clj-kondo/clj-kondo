@@ -151,33 +151,57 @@
   [f form]
   (walk (partial prewalk f) identity (f form)))
 
+(def ^:private gen-ns-prefix "clj-kondo.gen-macros.")
+
+(defn- unprefix-gen-token
+  "If `node` is a token holding a symbol whose namespace is one of our
+  generated `clj-kondo.gen-macros.<orig>` namespaces, rewrite it back to
+  `<orig>/<name>`. Syntax-quote in the gen file auto-qualifies bare
+  symbols to the gen namespace; without this rewrite, recursive macro
+  calls in the expansion would point at the gen ns and miss the
+  macroexpand hook (which is keyed by the original source ns)."
+  [node]
+  (if (and (instance? clj_kondo.impl.rewrite_clj.node.token.TokenNode node)
+           (let [v (:value node)]
+             (and (symbol? v)
+                  (when-let [n (namespace v)]
+                    (str/starts-with? n gen-ns-prefix)))))
+    (let [v (:value node)
+          v' (with-meta (symbol (subs (namespace v) (count gen-ns-prefix))
+                                (name v))
+               (meta v))]
+      (with-meta (assoc node :value v' :string-value (str v'))
+        (meta node)))
+    node))
+
 (defn annotate
   {:no-doc true}
   [node original-meta]
   (let [!!last-meta (volatile! (assoc original-meta :derived-location true))]
     (prewalk (fn [node]
-               (cond
-                 (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
-                      (identical? :list (utils/tag node)))
-                 (if-let [m (meta node)]
-                   (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
-                     (do (vreset! !!last-meta (assoc m :derived-location true))
-                         node #_(utils/mark-generate node))
-                     (-> (with-meta node
-                           (merge @!!last-meta (meta node)))
-                         utils/mark-generate))
-                   (->
-                    (with-meta node
-                      @!!last-meta)
-                    utils/mark-generate))
-                 (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
-                 (let [m (meta node)]
-                   (if (:row m)
-                     node
-                     (-> (with-meta node
-                           (merge @!!last-meta m))
-                         utils/mark-generate)))
-                 :else node))
+               (let [node (unprefix-gen-token node)]
+                 (cond
+                   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode node)
+                        (identical? :list (utils/tag node)))
+                   (if-let [m (meta node)]
+                     (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
+                       (do (vreset! !!last-meta (assoc m :derived-location true))
+                           node #_(utils/mark-generate node))
+                       (-> (with-meta node
+                             (merge @!!last-meta (meta node)))
+                           utils/mark-generate))
+                     (->
+                      (with-meta node
+                        @!!last-meta)
+                      utils/mark-generate))
+                   (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
+                   (let [m (meta node)]
+                     (if (:row m)
+                       node
+                       (-> (with-meta node
+                             (merge @!!last-meta m))
+                           utils/mark-generate)))
+                   :else node)))
              node)))
 
 (defn macroexpand [macro node bindings]

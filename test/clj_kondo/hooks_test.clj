@@ -613,6 +613,28 @@ my-ns/special-map \"
               "--config-dir" (str cfg-dir))))
     (cleanup!)))
 
+(deftest macro-from-source-recursive-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-recursive" ".clj-kondo")
+        src-dir (fs/file "corpus" "macro-from-source-recursive" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "recursive marker macro expands all the way - inner self-call fires the hook again"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir)))
+      ;; second run with auto-loaded config exercises the same code path
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
 (deftest stackoverflow-in-hook-result-test
   (testing "StackOverflowError during analysis reports correct filename, not directory"
     (let [findings (lint! (fs/file "corpus" "stackoverflow_hook" "foo.clj")
