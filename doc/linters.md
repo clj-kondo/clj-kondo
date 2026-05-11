@@ -2631,3 +2631,24 @@ Clojure namespaces.
 *Example trigger:* `(ns special_files)`
 
 *Example message:* `Avoid underscore in namespace name: special_files`
+
+### Cyclomatic complexity
+
+*Keyword:* `:cyclomatic-complexity`.
+
+*Description:* warns when a top-level form's cyclomatic complexity exceeds the configured threshold. Each branching construct (`if`, `cond`, `case`, `and`, `or`, `catch`, etc.) adds to a base complexity of 1.
+
+*Default level:* `:off`.
+
+*Example trigger:* a `defn` containing more than 10 branching constructs.
+
+*Example message:* `Cyclomatic complexity is 12, exceeds threshold of 10. Consider breaking this into smaller functions.`
+
+*Config:*
+
+``` clojure
+:cyclomatic-complexity {:level :off
+                        :threshold 10}
+```
+
+Each function form (`defn`, `defn-`, `defmacro`, `defmethod`, `fn`, `reify`/`defrecord`/`extend-protocol` method bodies) gets its own scope and is scored independently. Branches outside any function form (e.g. inside a top-level `let` or `def` initializer) are scored on the top-level form.
