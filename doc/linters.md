@@ -8,7 +8,7 @@ configuration. For general configurations options, go [here](config.md).
 
 - [Linters](#linters)
     - [Aliased namespace symbol](#aliased-namespace-symbol)
-    - [Await outside async fn](#await-outside-async-fn)
+    - [Await without async fn](#await-without-async-fn)
     - [Aliased namespace var usage](#aliased-namespace-var-usage)
     - [Aliased referred var](#aliased-referred-var)
     - [Case](#case)
@@ -2480,9 +2480,9 @@ Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensiti
 
 *Example message:* `Unquote (~) used outside syntax-quote`.
 
-### Await outside async fn
+### Await without async fn
 
-*Keyword:* `:await-outside-async-fn`.
+*Keyword:* `:await-without-async-fn`.
 
 *Description:* warns when `cljs.core/await` is used outside a function carrying `^:async` metadata. ClojureScript only.
 

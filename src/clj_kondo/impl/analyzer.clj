@@ -2820,7 +2820,7 @@
                                        (not (:async-fn? ctx)))
                               (findings/reg-finding!
                                ctx (node->line (:filename ctx) expr
-                                               :await-outside-async-fn
+                                               :await-without-async-fn
                                                "Use of await is only allowed in functions with ^:async metadata.")))
                             (analyze-children ctx children))
                           memfn (analyze-memfn ctx expr)
