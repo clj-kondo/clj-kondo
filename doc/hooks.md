@@ -474,10 +474,8 @@ expanded call sites lint correctly.
   (including some Java interop and `deftype`/`defrecord`), but not
   everything. If extraction breaks for a particular form, fall back to a
   hand-written `:macroexpand` hook.
-- The marker only attaches to a `defmacro`/`defn`/`defn-`/`def` var.
-  Macros that close over helpers via `letfn` at the top level (where
-  there is no enclosing var to mark) are not auto-extracted - hoist the
-  helper to a marked `defn` instead.
+- The marker only attaches to a `defmacro`/`defn`/`defn-`/`def` form.
+  Other shapes are not auto-extracted.
 - With `:auto-load-configs false`, the feature is disabled and any
   generated artifacts are deleted.
 
