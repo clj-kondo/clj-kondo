@@ -297,7 +297,7 @@
            ret)
          v))
      (catch Exception e
-       (let [msg (str "error while trying to load hook for "
+       (let [msg (str "Error while trying to load hook for "
                       ns-sym "/" var-sym ": " (.getMessage e))]
          (binding [*out* *err*]
            (println (str "WARNING: " msg))
