@@ -1,7 +1,7 @@
 (ns failing-macro)
 
 (defmacro broken
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [x]
   (undefined-helper x))
 

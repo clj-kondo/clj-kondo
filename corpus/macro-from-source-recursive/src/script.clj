@@ -4,7 +4,7 @@
   "Recursive marker macro: each call expands to a `let` of the first
   binding pair, then a recursive call on the rest. Exercises whether
   clj-kondo re-fires the macroexpand hook on the inner self-call."
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [bindings & body]
   (if (seq bindings)
     `(let ~(subvec bindings 0 2)

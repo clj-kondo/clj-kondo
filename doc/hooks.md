@@ -349,7 +349,7 @@ There are several special cases to watch out for when using the `:macroexpand` f
 ## Macros from source
 
 When a `defmacro` in your source code carries the metadata
-`{:clj-kondo/macro true}`, clj-kondo extracts the macro into the configuration
+`{:clj-kondo/macroexpand-hook true}`, clj-kondo extracts the macro into the configuration
 directory and registers it as a `:macroexpand` hook for that var. No need to
 copy the macro into `.clj-kondo/` by hand.
 
@@ -357,7 +357,7 @@ copy the macro into `.clj-kondo/` by hand.
 (ns my.app)
 
 (defmacro my-let
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [bnds & body]
   `(let [~@bnds] ~@body))
 ```
@@ -378,11 +378,11 @@ needs to call a helper at expand time:
 ``` clojure
 (ns my.app)
 
-(defn ^{:clj-kondo/macro true} double-it [n]
+(defn ^{:clj-kondo/macroexpand-hook true} double-it [n]
   (* 2 n))
 
 (defmacro defdouble
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [sym n]
   `(def ~sym ~(double-it n)))
 ```
@@ -407,14 +407,14 @@ namespace (which may not be SCI-loadable).
 ``` clojure
 (ns blub.utils)
 
-(defn ^{:clj-kondo/macro true} binding-vec? [v]
+(defn ^{:clj-kondo/macroexpand-hook true} binding-vec? [v]
   (and (vector? v) (even? (count v))))
 
 (ns blub.kondo
   (:require [blub.utils :as u]))
 
 (defmacro when-vec
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [bindings & body]
   {:pre [(u/binding-vec? bindings)]}
   `(let ~bindings ~@body))
@@ -441,7 +441,7 @@ namespace but is unknown to SCI, then `resolve` it at expand time.
   "Picks `kondo-form` at expand time when the surrounding context is
   clj-kondo's SCI runtime (which won't have `-not-in-kondo` interned),
   and `runtime-form` otherwise."
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [kondo-form runtime-form]
   (if-not (resolve '-not-in-kondo)
     kondo-form
@@ -450,7 +450,7 @@ namespace but is unknown to SCI, then `resolve` it at expand time.
 (defmacro embed-config
   "Inline a config map at compile time. When linted by clj-kondo, return
   a stub so the body still type-checks; at runtime, read it from disk."
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   []
   (if-kondo
     {:host "localhost" :port 8080}

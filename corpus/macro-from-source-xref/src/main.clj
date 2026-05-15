@@ -3,7 +3,7 @@
 
 (defmacro mylet
   "Marker macro that calls a helper from another namespace at expand time."
-  {:clj-kondo/macro true}
+  {:clj-kondo/macroexpand-hook true}
   [bindings & body]
   {:pre [(h/binding-vec? bindings)]}
   `(let ~bindings ~@body))

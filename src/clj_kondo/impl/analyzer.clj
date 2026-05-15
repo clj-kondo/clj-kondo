@@ -676,7 +676,7 @@
                                   cljs.core/defmacro])
                          (:macro var-meta))
                  true)
-        gen-marked? (and (:clj-kondo/macro var-meta)
+        gen-marked? (and (:clj-kondo/macroexpand-hook var-meta)
                          ns-name fn-name
                          (not (gen-macros/reserved-ns? ns-name)))
         gen-macro? (and gen-marked?
