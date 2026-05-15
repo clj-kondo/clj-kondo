@@ -3,6 +3,7 @@
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.cache :as cache]
+   [clj-kondo.impl.rewrite-clj.node.keyword :as keyword-node]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import [java.io File]))
@@ -131,9 +132,14 @@
             entries (swap! (:gen-macros ctx) conj
                            {:form expr :aliases new-aliases})]
         (with-gen-lock cfg-dir
-          (let [forms (mapv :form entries)
-                aliases (reduce merge-alias-maps {} (map :aliases entries))]
-            (write-file! f gen-ns aliases forms)))))))
+          ;; Bind keyword-node's autoresolve-ns so bare `::foo` keywords
+          ;; in the macro/helper body serialize as `:<orig-ns>/foo` and
+          ;; SCI reads them back to the same value regardless of the gen
+          ;; ns's current-ns at load time.
+          (binding [keyword-node/*autoresolve-ns* orig-ns]
+            (let [forms (mapv :form entries)
+                  aliases (reduce merge-alias-maps {} (map :aliases entries))]
+              (write-file! f gen-ns aliases forms))))))))
 
 (defn delete-for-file!
   "Delete the gen file owned by this source file. Called when the source

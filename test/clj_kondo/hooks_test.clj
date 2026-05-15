@@ -647,6 +647,24 @@ my-ns/special-map \"
                           hook-findings)))))
         (cleanup!)))))
 
+(deftest macro-from-source-autoresolve-keyword-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-keywords" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "myns.clj")
+        src-dir (fs/file "corpus" "macro-from-source-keywords" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "bare ::foo in the macro body is rewritten to :<orig-ns>/foo at extraction
+    so SCI reads back to the source-ns-qualified keyword regardless of gen ns"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (let [gen (slurp (fs/file gen-file))]
+        (is (str/includes? gen ":myns/foo"))))
+    (cleanup!)))
+
 (deftest macro-from-source-recursive-test
   (let [cfg-dir (fs/file "corpus" "macro-from-source-recursive" ".clj-kondo")
         src-dir (fs/file "corpus" "macro-from-source-recursive" "src")
