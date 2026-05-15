@@ -12,3 +12,13 @@
     'not-matched))
 
 (maybe-foo :myns/foo)
+
+(defmacro tagged-map
+  "Auto-resolved namespaced map literal. Same risk as bare `::foo`:
+  without rewriting, SCI in the gen ns would resolve the map's ns
+  prefix to the gen ns instead of the source ns."
+  {:clj-kondo/macroexpand-hook true}
+  [v]
+  #::{:tag v})
+
+(tagged-map 42)

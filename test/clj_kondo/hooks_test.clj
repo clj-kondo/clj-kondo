@@ -656,13 +656,16 @@ my-ns/special-map \"
                    (fs/delete-tree (fs/file cfg-dir "inline-configs"))
                    (fs/delete-tree (fs/file cfg-dir ".cache")))]
     (cleanup!)
-    (testing "bare ::foo in the macro body is rewritten to :<orig-ns>/foo at extraction
-    so SCI reads back to the source-ns-qualified keyword regardless of gen ns"
+    (testing "auto-resolved current-ns keywords and namespaced maps are rewritten at
+    extraction so SCI reads back to source-ns-qualified values regardless of gen ns"
       (lint! src-dir
              {:linters {:unresolved-symbol {:level :error}}}
              "--config-dir" (str cfg-dir))
       (let [gen (slurp (fs/file gen-file))]
-        (is (str/includes? gen ":myns/foo"))))
+        (testing "bare ::foo -> :<orig-ns>/foo"
+          (is (str/includes? gen ":myns/foo")))
+        (testing "#::{...} namespaced map -> #:<orig-ns>{...}"
+          (is (str/includes? gen "#:myns{")))))
     (cleanup!)))
 
 (deftest macro-from-source-recursive-test
