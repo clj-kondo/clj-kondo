@@ -39,16 +39,19 @@
   (let [ns->alias-key (reduce-kv (fn [m alias-key full-ns]
                                    (assoc m full-ns alias-key))
                                  {}
-                                 source-aliases)]
+                                 source-aliases)
+        redirect (memoize
+                  (fn [ns]
+                    (let [gen-ns (gen-ns-sym ns)]
+                      (if (and cfg-dir (fs/exists? (gen-file cfg-dir gen-ns)))
+                        gen-ns
+                        ns))))]
     (reduce
      (fn [m {:keys [ns kind]}]
        (if-let [alias-key (get ns->alias-key ns)]
          (let [alias-sym (symbol (name alias-key))
                kind (if (:as-alias (meta alias-key)) :as-alias kind)
-               redirected-ns (let [gen-ns (gen-ns-sym ns)]
-                               (if (and cfg-dir (fs/exists? (gen-file cfg-dir gen-ns)))
-                                 gen-ns
-                                 ns))
+               redirected-ns (redirect ns)
                cur (get m alias-sym)]
            (cond
              (nil? cur) (assoc m alias-sym {:ns redirected-ns :kind kind})
@@ -71,7 +74,7 @@
          (and (= :as-alias (:kind cur)) (= :as (:kind v)))
          (assoc m a v)
          :else m)))
-   (or existing {})
+   existing
    new))
 
 (defn- ns-form-string [gen-ns aliases]
@@ -123,8 +126,7 @@
   the alias symbol for each used namespace and to honor `:as-alias`
   intent (preserved as meta on the alias key)."
   [ctx {:keys [orig-ns expr alias-usages source-aliases]}]
-  (when (and (identical? :clj (:lang ctx))
-             orig-ns expr)
+  (when (identical? :clj (:lang ctx))
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
