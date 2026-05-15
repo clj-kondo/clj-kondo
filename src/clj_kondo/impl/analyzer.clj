@@ -722,7 +722,6 @@
         varargs-min-arity (get-in arities [:varargs :min-arity])]
     (when gen-marked?
       (gen-macros/record! ctx {:orig-ns ns-name
-                               :fn-name fn-name
                                :expr expr
                                :alias-usages @gen-macros-acc
                                :source-aliases (:aliases (:ns ctx))})

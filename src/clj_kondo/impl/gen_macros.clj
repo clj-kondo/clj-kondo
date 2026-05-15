@@ -121,9 +121,9 @@
   alias map of the source namespace (`{alias full-ns}`), used to look up
   the alias symbol for each used namespace and to honor `:as-alias`
   intent (preserved as meta on the alias key)."
-  [ctx {:keys [orig-ns fn-name expr alias-usages source-aliases]}]
+  [ctx {:keys [orig-ns expr alias-usages source-aliases]}]
   (when (and (identical? :clj (:lang ctx))
-             orig-ns fn-name expr)
+             orig-ns expr)
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
