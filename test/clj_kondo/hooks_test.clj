@@ -66,7 +66,7 @@
                                   {:hooks {:__dangerously-allow-string-hooks__ true}
                                    :linters {:unresolved-symbol {:level :error}
                                              :invalid-arity {:level :error}}}))
-      (is (str/includes? (str err) "WARNING: Error while trying to load hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
+      (is (str/includes? (str err) "WARNING: Error while loading hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
 (deftest re-frame-test
   (assert-submaps
@@ -638,7 +638,7 @@ my-ns/special-map \"
                                                      :config-dir (str cfg-dir)})))]
           (testing "stderr WARNING preserved for backward compat"
             (is (str/includes? (str err)
-                               "WARNING: Error while trying to load hook for failing-macro/broken")))
+                               "WARNING: Error while loading hook for failing-macro/broken")))
           (testing ":hook finding registered at each failing call site"
             (let [hook-findings (filter #(= :hook (:type %)) findings)]
               (is (= 2 (count hook-findings)))
