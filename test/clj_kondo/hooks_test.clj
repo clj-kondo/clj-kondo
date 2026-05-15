@@ -617,6 +617,36 @@ my-ns/special-map \"
               "--config-dir" (str cfg-dir))))
     (cleanup!)))
 
+(deftest hook-failure-surfaces-as-finding-test
+  (testing "When a macroexpand hook fails (e.g. SCI can't resolve a symbol in
+  the gen ns), clj-kondo registers a :hook :error finding at the call site so
+  the failure is visible to editors via the structured findings list rather
+  than only as a stderr WARNING."
+    (when-not native?
+      (let [src-dir (fs/file "corpus" "macro-from-source-hook-error" "src")
+            cfg-dir (fs/file "corpus" "macro-from-source-hook-error" ".clj-kondo")
+            cleanup! (fn []
+                       (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                       (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                       (fs/delete-tree (fs/file cfg-dir ".cache")))]
+        (cleanup!)
+        ;; first run extracts; hook isn't auto-loaded yet, no error.
+        (clj-kondo/run! {:lint [(str src-dir)] :config-dir (str cfg-dir)})
+        (let [err (java.io.StringWriter.)
+              findings (binding [*err* err]
+                         (:findings (clj-kondo/run! {:lint [(str src-dir)]
+                                                     :config-dir (str cfg-dir)})))]
+          (testing "stderr WARNING preserved for backward compat"
+            (is (str/includes? (str err)
+                               "WARNING: error while trying to read hook for failing-macro/broken")))
+          (testing ":hook finding registered at each failing call site"
+            (let [hook-findings (filter #(= :hook (:type %)) findings)]
+              (is (= 2 (count hook-findings)))
+              (is (every? #(= :error (:level %)) hook-findings))
+              (is (every? #(str/includes? (:message %) "Could not resolve symbol: undefined-helper")
+                          hook-findings)))))
+        (cleanup!)))))
+
 (deftest macro-from-source-recursive-test
   (let [cfg-dir (fs/file "corpus" "macro-from-source-recursive" ".clj-kondo")
         src-dir (fs/file "corpus" "macro-from-source-recursive" "src")

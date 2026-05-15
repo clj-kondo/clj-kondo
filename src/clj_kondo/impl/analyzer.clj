@@ -2631,7 +2631,7 @@
                     (let [visited (:visited expr)]
                       (when-not (and visited (= visited [resolved-namespace resolved-name]))
                         (or
-                         (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                         (hooks/hook-fn ctx config resolved-namespace resolved-name expr-meta)
                          (case [resolved-namespace resolved-name]
                            ([clojure.test testing] [cljs.test testing])
                            (when (:analysis-context ctx)

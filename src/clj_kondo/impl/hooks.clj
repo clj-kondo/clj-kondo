@@ -3,6 +3,7 @@
   (:require
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
+   [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
@@ -275,29 +276,38 @@
 (def ^:private hook-not-found (Object.))
 
 (defn hook-fn
-  [ctx config ns-sym var-sym]
-  (try
-    (let [hooks-cfg (:hooks config)
-          ;; invalidate hook lookups when hooks config changes, but keep the
-          ;; per-file stamps so we don't re-hash on every config reload
-          _ (vswap! hook-resolve-cache
-                    (fn [cv]
-                      (if (identical? hooks-cfg (:hooks-cfg cv))
-                        cv
-                        {:hooks-cfg hooks-cfg
-                         :file-stamps (:file-stamps cv)})))
-          k [ns-sym var-sym]
-          v (get @hook-resolve-cache k hook-not-found)]
-      (if (identical? v hook-not-found)
-        (let [ret (hook-fn* ctx config ns-sym var-sym)]
-          (vswap! hook-resolve-cache assoc k ret)
-          ret)
-        v))
-    (catch Exception e
-      (binding [*out* *err*]
-        (println "WARNING: error while trying to read hook for"
-                 (str ns-sym "/" var-sym ":")
-                 (.getMessage e))
-        (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-          (println e)))
-      nil)))
+  ([ctx config ns-sym var-sym]
+   (hook-fn ctx config ns-sym var-sym nil))
+  ([ctx config ns-sym var-sym expr-meta]
+   (try
+     (let [hooks-cfg (:hooks config)
+           ;; invalidate hook lookups when hooks config changes, but keep the
+           ;; per-file stamps so we don't re-hash on every config reload
+           _ (vswap! hook-resolve-cache
+                     (fn [cv]
+                       (if (identical? hooks-cfg (:hooks-cfg cv))
+                         cv
+                         {:hooks-cfg hooks-cfg
+                          :file-stamps (:file-stamps cv)})))
+           k [ns-sym var-sym]
+           v (get @hook-resolve-cache k hook-not-found)]
+       (if (identical? v hook-not-found)
+         (let [ret (hook-fn* ctx config ns-sym var-sym)]
+           (vswap! hook-resolve-cache assoc k ret)
+           ret)
+         v))
+     (catch Exception e
+       (let [msg (str "error while trying to read hook for "
+                      ns-sym "/" var-sym ": " (.getMessage e))]
+         (binding [*out* *err*]
+           (println (str "WARNING: " msg))
+           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+             (println e)))
+         (findings/reg-finding!
+          ctx
+          (assoc (select-keys expr-meta [:row :col :end-row :end-col])
+                 :filename (:filename ctx)
+                 :type :hook
+                 :level :error
+                 :message msg)))
+       nil))))
