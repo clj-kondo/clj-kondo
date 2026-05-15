@@ -25,7 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2814](https://github.com/clj-kondo/clj-kondo/issues/2814): fix false positive `:protocol-method-arity-mismatch` when a `definterface` declares the same method name with multiple arities ([@jramosg](https://github.com/jramosg))
 - [#2817](https://github.com/clj-kondo/clj-kondo/issues/2817): warn on `recur` inside a vector, map or set literal, `recur` is never in tail position there
 - [##2821](https://github.com/clj-kondo/clj-kondo/issues/2821): do not omit findings when `:cljc` `:features` specified ([@lread](https://github.com/lread))
-- macros from source: a `defmacro` tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
+- macros from source: a `defmacro` (and any supporting `defn`/`defn-`/`def`) tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
 - Bump built-in ClojureScript analysis to 1.12.145, recognize `cljs.core/await`
 - NEW linter: `:await-without-async-fn` which warns when `cljs.core/await` is used outside a function with `^:async` metadata
 
