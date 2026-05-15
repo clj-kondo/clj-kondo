@@ -680,6 +680,54 @@ my-ns/special-map \"
           (is (str/includes? gen "#:myns{")))))
     (cleanup!)))
 
+(deftest macro-from-source-cljc-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-cljc" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "myns.clj")
+        inline-config (fs/file cfg-dir "inline-configs" "myns.cljc" "config.edn")
+        src-dir (fs/file "corpus" "macro-from-source-cljc" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "marker on a defmacro in a .cljc source extracts on the :clj feature pass"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (is (fs/exists? gen-file))
+      (is (str/includes? (slurp (fs/file gen-file)) "(defmacro my-when"))
+      (is (fs/exists? inline-config))
+      (is (str/includes? (slurp (fs/file inline-config))
+                         "clj-kondo.gen-macros.myns/my-when")))
+    (testing "second run lints clean - hook fires for the .cljc usage"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
+(deftest macro-from-source-if-kondo-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-if-kondo" ".clj-kondo")
+        src-dir (fs/file "corpus" "macro-from-source-if-kondo" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    ;; first run extracts the markers; hook isn't loaded yet.
+    (lint! src-dir
+           {:linters {:unresolved-symbol {:level :error}}}
+           "--config-dir" (str cfg-dir))
+    (testing "if-kondo picks the kondo branch under SCI - runtime branch
+    references an unresolved symbol but never fires, so no hook errors"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
 (deftest macro-from-source-recursive-test
   (let [cfg-dir (fs/file "corpus" "macro-from-source-recursive" ".clj-kondo")
         src-dir (fs/file "corpus" "macro-from-source-recursive" "src")

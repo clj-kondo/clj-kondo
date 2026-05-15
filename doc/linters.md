@@ -970,6 +970,25 @@ e.g. `(= 0.1 x)`. In many cases this can lead to issues due to rounding errors.
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
 
+### Hook
+
+*Keyword:* `:hook`.
+
+*Description:* a `:macroexpand` or `:analyze-call` hook (including
+auto-extracted [macros from source](hooks.md#macros-from-source))
+threw while loading or while expanding a call. The finding points at
+the call site so editors via flycheck/clojure-lsp surface the
+failure.
+
+*Default level:* `:error`.
+
+*Example trigger:* a `defmacro` marked with
+`{:clj-kondo/macroexpand-hook true}` whose body references an
+unresolved symbol.
+
+*Example message:* `Error while loading hook for my.app/my-let: Could
+not resolve symbol: undefined-helper`.
+
 ### Def + fn instead of defn
 
 *Keyword:* `:def-fn`.

@@ -476,6 +476,9 @@ expanded call sites lint correctly.
   hand-written `:macroexpand` hook.
 - The marker only attaches to a `defmacro`/`defn`/`defn-`/`def` form.
   Other shapes are not auto-extracted.
+- Files without an `(ns ...)` declaration (linted as `user`) are
+  skipped - no gen file is produced. Add an `(ns ...)` form to the
+  source file if you need extraction.
 - With `:auto-load-configs false`, the feature is disabled and any
   generated artifacts are deleted.
 
