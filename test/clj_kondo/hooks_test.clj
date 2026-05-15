@@ -56,17 +56,24 @@
 
 (deftest error-in-macro-fn-test
   (when-not native?
-    (let [err (java.io.StringWriter.)]
-      (binding [*err* err] (lint! "
+    (let [prog "
 (ns bar
   {:clj-kondo/config '{:hooks {:analyze-call {foo/fixed-arity \"(fn [{:keys [:node]}] {:a :sexpr 1})\"}}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
-                                  {:hooks {:__dangerously-allow-string-hooks__ true}
-                                   :linters {:unresolved-symbol {:level :error}
-                                             :invalid-arity {:level :error}}}))
-      (is (str/includes? (str err) "WARNING: Error while loading hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
+          findings (with-in-str prog
+                     (:findings
+                      (clj-kondo/run!
+                       {:lint ["-"]
+                        :config {:hooks {:__dangerously-allow-string-hooks__ true}
+                                 :linters {:unresolved-symbol {:level :error}
+                                           :invalid-arity {:level :error}}}})))
+          hook-findings (filter #(= :hook (:type %)) findings)]
+      (is (= 1 (count hook-findings)))
+      (is (= :error (-> hook-findings first :level)))
+      (is (str/includes? (-> hook-findings first :message)
+                         "Error while loading hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
 (deftest re-frame-test
   (assert-submaps
@@ -540,7 +547,10 @@ my-ns/special-map \"
          :message "Unresolved symbol: x"}
         {:file "corpus/macro-from-source/src/usage.clj"
          :row 11 :col 19 :level :error
-         :message "Unresolved symbol: forty-two"}]
+         :message "Unresolved symbol: forty-two"}
+        {:file "corpus/macro-from-source/src/usage.clj"
+         :row 13 :col 14 :level :error
+         :message "Unresolved symbol: forty-two-too"}]
        (lint! src-dir
               {:linters {:unresolved-symbol {:level :error}
                          :unresolved-namespace {:level :warning}}}
@@ -550,10 +560,12 @@ my-ns/special-map \"
       (let [gen (slurp (fs/file gen-file))]
         (testing "every marker macro is extracted"
           (doseq [name ["my-let" "shout" "joined" "tagged"
-                        "mixed" "literal" "setty" "defdouble"]]
+                        "mixed" "literal" "setty" "defdouble" "defk"]]
             (is (str/includes? gen (str "(defmacro " name)))))
         (testing "marker helper defns are extracted alongside the macros"
           (is (str/includes? gen "(defn double-it")))
+        (testing "marker def constants are extracted alongside the macros"
+          (is (str/includes? gen "(def k-default")))
         (testing "alias kinds in :require reflect macro-body usage"
           (testing "expand-time call only -> :as"
             (is (str/includes? gen "[clojure.set :as set]")))
@@ -565,10 +577,11 @@ my-ns/special-map \"
       (let [cfg (slurp (fs/file inline-config))]
         (testing "macros register macroexpand hooks"
           (doseq [name ["my-let" "shout" "joined" "tagged"
-                        "mixed" "literal" "setty" "defdouble"]]
+                        "mixed" "literal" "setty" "defdouble" "defk"]]
             (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name)))))
-        (testing "helper defns do not register a macroexpand hook"
-          (is (not (str/includes? cfg "/double-it"))))))
+        (testing "helper defns/defs do not register a macroexpand hook"
+          (is (not (str/includes? cfg "/double-it")))
+          (is (not (str/includes? cfg "/k-default"))))))
     (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
       (assert-submaps2
        []
@@ -620,8 +633,8 @@ my-ns/special-map \"
 (deftest hook-failure-surfaces-as-finding-test
   (testing "When a macroexpand hook fails (e.g. SCI can't resolve a symbol in
   the gen ns), clj-kondo registers a :hook :error finding at the call site so
-  the failure is visible to editors via the structured findings list rather
-  than only as a stderr WARNING."
+  the failure is visible to editors via the structured findings list. No
+  stderr WARNING is emitted - findings are the single source of truth."
     (when-not native?
       (let [src-dir (fs/file "corpus" "macro-from-source-hook-error" "src")
             cfg-dir (fs/file "corpus" "macro-from-source-hook-error" ".clj-kondo")
@@ -636,9 +649,8 @@ my-ns/special-map \"
               findings (binding [*err* err]
                          (:findings (clj-kondo/run! {:lint [(str src-dir)]
                                                      :config-dir (str cfg-dir)})))]
-          (testing "stderr WARNING preserved for backward compat"
-            (is (str/includes? (str err)
-                               "WARNING: Error while loading hook for failing-macro/broken")))
+          (testing "no stderr WARNING - findings are the single source of truth"
+            (is (not (str/includes? (str err) "WARNING:"))))
           (testing ":hook finding registered at each failing call site"
             (let [hook-findings (filter #(= :hook (:type %)) findings)]
               (is (= 2 (count hook-findings)))

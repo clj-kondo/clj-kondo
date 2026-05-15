@@ -111,7 +111,7 @@
           (when (pos? n)
             (.update md buf 0 n)
             (recur))))
-      (apply str (map #(format "%02x" %) (.digest md))))))
+      (utils/bytes->hex (.digest md)))))
 
 (defn- hook-file-for-ns ^java.io.File [ns-str]
   (when ns-str
@@ -120,18 +120,25 @@
 
 (defn- file-changed?
   "Detect whether the on-disk content of `f` has changed since the last
-  observation cached under `:file-stamps` in `hook-resolve-cache`. Fast
-  path: if mtime matches the cached value, return false without re-hashing.
-  Slow path: mtime differs, hash the content and compare. Updates the
-  cache either way."
+  observation cached under `:file-stamps` in `hook-resolve-cache`. First
+  observation in this JVM: record mtime, skip hashing, return false (a
+  fresh `require` is itself a load - no reload needed). Same mtime as
+  prior observation: return false. Differing mtime: hash and compare,
+  return true only when content actually changed."
   [^java.io.File f]
   (when (and f (.exists f))
     (let [path (.getAbsolutePath f)
           mtime (.lastModified f)
           {prev-mtime :mtime prev-hash :hash}
           (get-in @hook-resolve-cache [:file-stamps path])]
-      (if (and prev-mtime (= mtime prev-mtime))
+      (cond
+        (nil? prev-mtime)
+        (do (vswap! hook-resolve-cache assoc-in [:file-stamps path]
+                    {:mtime mtime :hash nil})
+            false)
+        (= mtime prev-mtime)
         false
+        :else
         (let [h (file-sha256 f)]
           (vswap! hook-resolve-cache assoc-in [:file-stamps path]
                   {:mtime mtime :hash h})
@@ -299,9 +306,8 @@
      (catch Exception e
        (let [msg (str "Error while loading hook for "
                       ns-sym "/" var-sym ": " (.getMessage e))]
-         (binding [*out* *err*]
-           (println (str "WARNING: " msg))
-           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+         (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+           (binding [*out* *err*]
              (println e)))
          (findings/reg-finding!
           ctx

@@ -58,4 +58,12 @@
   [sym n]
   `(def ~sym ~(double-it n)))
 
+(def ^{:clj-kondo/macroexpand-hook true} k-default 42)
+
+(defmacro defk
+  "Marker macro that uses a same-ns marked def constant at expand time."
+  {:clj-kondo/macroexpand-hook true}
+  [sym]
+  `(def ~sym ~k-default))
+
 (my-let [x 1] (inc x))

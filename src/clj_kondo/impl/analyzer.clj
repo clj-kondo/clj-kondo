@@ -1383,11 +1383,25 @@
         children (if (:analyze-var-defs-shallowly? ctx)
                    []
                    children)
+        ns-name (-> ctx :ns :name)
+        gen-marked? (and core-def?
+                         (:clj-kondo/macroexpand-hook metadata)
+                         ns-name var-name
+                         (not (gen-macros/reserved-ns? ns-name)))
+        gen-macros-acc (when gen-marked? (atom []))
+        init-ctx (cond-> ctx
+                   gen-macros-acc
+                   (assoc :gen-macros-aliases-acc gen-macros-acc))
         def-init (when (and core-def?
                             (= 1 (count children)))
-                   (or (analyze-expression** ctx (first children))
+                   (or (analyze-expression** init-ctx (first children))
                        ;; prevent analysis of only child more than once
                        []))
+        _ (when gen-marked?
+            (gen-macros/record! ctx {:orig-ns ns-name
+                                     :expr expr
+                                     :alias-usages @gen-macros-acc
+                                     :source-aliases (:aliases (:ns ctx))}))
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!

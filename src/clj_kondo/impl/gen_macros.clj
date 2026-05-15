@@ -40,7 +40,11 @@
                                    (assoc m full-ns alias-key))
                                  {}
                                  source-aliases)
-        redirect (memoize
+        ;; Memoize is local to one call - no cross-call retention,
+        ;; no leak. Saves redundant `fs/exists?` stats when many
+        ;; marker forms share an alias.
+        redirect #_{:clj-kondo/ignore [:discouraged-var]}
+                 (memoize
                   (fn [ns]
                     (let [gen-ns (gen-ns-sym ns)]
                       (if (and cfg-dir (fs/exists? (gen-file cfg-dir gen-ns)))
@@ -119,6 +123,10 @@
   order). A gen namespace is owned by exactly one source file - aliases
   and forms removed from the source disappear from the gen ns on the next
   rewrite.
+
+  Writes per marker (not batched at post-file) so that subsequent forms
+  in the same source file can expand the marker macro mid-analysis: the
+  gen file must exist on disk before SCI's `require` of it runs.
 
   `:alias-usages` is the per-usage `{:ns :kind}` vector produced by the
   analyzer while walking the macro/helper body. `:source-aliases` is the
