@@ -371,6 +371,33 @@ foo/foo ;; this does use the private var
                    :message "cljs.core/for is called with 4 args but expects 2"}
                  (first (lint! "(for [x []] 1 2 3)" "--lang" "cljs"))))
 
+(deftest cljs-await-test
+  (testing "await inside ^:async defn is allowed"
+    (is (empty? (lint! "(defn ^:async f [] (await (js/Promise.resolve 1)))"
+                       "--lang" "cljs"))))
+  (testing "await inside non-async defn is flagged"
+    (assert-submap '{:file "<stdin>",
+                     :row 1,
+                     :col 12,
+                     :level :error,
+                     :message "Use of await is only allowed in functions with ^:async metadata."}
+                   (first (lint! "(defn f [] (await 1))" "--lang" "cljs"))))
+  (testing "await inside nested non-async fn within ^:async defn is flagged"
+    (assert-submap '{:file "<stdin>",
+                     :level :error,
+                     :message "Use of await is only allowed in functions with ^:async metadata."}
+                   (first (lint! "(defn ^:async f [] (fn [] (await 1)))"
+                                 "--lang" "cljs"))))
+  (testing "await inside ^:async fn form is allowed"
+    (is (empty? (lint! "(fn ^:async f [] (await 1))" "--lang" "cljs"))))
+  (testing "clojure agent await is not flagged"
+    (is (empty? (lint! "(defn f [] (await (agent 1)))" "--lang" "clj"))))
+  (testing "await from non-cljs.core namespace is not flagged"
+    (is (empty? (lint! "(ns foo (:require [other.ns :refer [await]])) (defn f [] (await 1))"
+                       "--lang" "cljs"))))
+  (testing "await as local binding is not flagged"
+    (is (empty? (lint! "(defn f [await] (await 1))" "--lang" "cljs")))))
+
 (deftest built-in-test
   (is (= {:file "<stdin>",
           :row 1,

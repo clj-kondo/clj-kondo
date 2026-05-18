@@ -701,6 +701,7 @@
                              (-> ctx
                                  (assoc :docstring docstring
                                         :in-def fn-name
+                                        :async-fn? (:async var-meta)
                                         :macro? macro?))
                              %)
                            bodies)
@@ -1099,6 +1100,10 @@
         ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
+        ctx (assoc ctx :async-fn?
+                   (:async (or (when ?name-expr
+                                 (meta (meta/lift-meta-content2 ctx ?name-expr)))
+                               (meta expr))))
         _ (when (and ?name-expr (identical? :token (tag ?name-expr)))
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
@@ -2809,6 +2814,15 @@
                           as-> (analyze-as-> ctx expr)
                           areduce (analyze-areduce ctx expr)
                           this-as (analyze-this-as ctx expr)
+                          await
+                          (do
+                            (when (and (= 'cljs.core resolved-as-namespace)
+                                       (not (:async-fn? ctx)))
+                              (findings/reg-finding!
+                               ctx (node->line (:filename ctx) expr
+                                               :await-without-async-fn
+                                               "Use of await is only allowed in functions with ^:async metadata.")))
+                            (analyze-children ctx children))
                           memfn (analyze-memfn ctx expr)
                           (format printf) (analyze-format ctx expr)
                           (use require)

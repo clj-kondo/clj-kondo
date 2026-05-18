@@ -22,7 +22,7 @@
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.10.3 {:dependencies [[org.clojure/clojure "1.10.3"]]}
              :test {:dependencies [[nubank/matcher-combinators "3.9.1"]
-                                   [org.clojure/clojurescript "1.12.134"]
+                                   [org.clojure/clojurescript "1.12.145"]
                                    [clj-commons/conch "0.9.2"]
                                    [org.clojure/tools.deps "0.24.1523"]
                                    [jonase/eastwood "1.4.3"]
