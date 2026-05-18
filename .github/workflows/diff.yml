@@ -11,6 +11,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: "Prepare Java"
+        uses: "actions/setup-java@v5"
+        with:
+          distribution: "temurin"
+          java-version: "8"
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@13.6.0
+        with:
+          cli: latest
+
       - name: Configure Maven Central mirror
         run: |
           mkdir -p ~/.m2
@@ -26,21 +37,6 @@ jobs:
             </mirrors>
           </settings>
           EOF
-          mkdir -p ~/.clojure
-          cat > ~/.clojure/deps.edn <<'EOF'
-          {:mvn/repos {"central" {:url "https://maven-central.storage-download.googleapis.com/maven2/"}}}
-          EOF
-
-      - name: "Prepare Java"
-        uses: "actions/setup-java@v5"
-        with:
-          distribution: "temurin"
-          java-version: "8"
-
-      - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@13.6.0
-        with:
-          cli: latest
 
       - name: Cache
         uses: actions/cache@v5
