@@ -26,6 +26,10 @@ jobs:
             </mirrors>
           </settings>
           EOF
+          mkdir -p ~/.clojure
+          cat > ~/.clojure/deps.edn <<'EOF'
+          {:mvn/repos {"central" {:url "https://maven-central.storage-download.googleapis.com/maven2/"}}}
+          EOF
 
       - name: "Prepare Java"
         uses: "actions/setup-java@v5"
