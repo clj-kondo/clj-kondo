@@ -11,6 +11,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configure Maven Central mirror
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'EOF'
+          <settings>
+            <mirrors>
+              <mirror>
+                <id>google-maven-central</id>
+                <name>Google Maven Central Mirror</name>
+                <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+                <mirrorOf>central</mirrorOf>
+              </mirror>
+            </mirrors>
+          </settings>
+          EOF
+
       - name: "Prepare Java"
         uses: "actions/setup-java@v5"
         with:
