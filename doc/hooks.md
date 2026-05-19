@@ -350,7 +350,7 @@ There are several special cases to watch out for when using the `:macroexpand` f
 
 When a `defmacro` in your source code carries the metadata
 `{:clj-kondo/macroexpand-hook true}`, clj-kondo extracts the macro into the configuration
-directory and registers it as a `:macroexpand` hook for that var. No need to
+directory and registers it as a `:macroexpand` hook for that var, so you don't have to
 copy the macro into `.clj-kondo/` by hand.
 
 ``` clojure
@@ -366,14 +366,14 @@ clj-kondo writes `.clj-kondo/clj_kondo/gen_macros/my/app.clj` defining
 `clj-kondo.gen-macros.my.app/my-let` and configures
 `{:hooks {:macroexpand {my.app/my-let clj-kondo.gen-macros.my.app/my-let}}}`
 under `.clj-kondo/inline-configs/...`. The configuration is auto-loaded on the
-next clj-kondo run via `:auto-load-configs`.
+next clj-kondo run.
 
 ### Helper functions and vars
 
-The same marker can be put on `defn`/`defn-`/`def` forms. Marked helpers get
-extracted alongside the marker macros into the same generated namespace, but
-do not themselves register a macroexpand hook. Use this when a marker macro
-needs to call a helper at expand time:
+The same marker can be put on `defn`/`defn-`/`def` forms for macro helper
+functions or vars. Helpers get extracted alongside the marker macros into the
+same generated namespace, but do not themselves register a macroexpand hook. Use
+this when a marker macro needs to call a helper at _expand time_:
 
 ``` clojure
 (ns my.app)
@@ -389,7 +389,7 @@ needs to call a helper at expand time:
 
 ### Aliases inside the macro body
 
-Aliases from the surrounding namespace are picked up automatically and emitted
+Aliases from the macro's namespace are picked up automatically and emitted
 in the generated namespace's `(:require ...)` clause:
 
 - Aliases used at expand time (outside any syntax-quote) get `:as`.
@@ -409,7 +409,9 @@ namespace (which may not be SCI-loadable).
 
 (defn ^{:clj-kondo/macroexpand-hook true} binding-vec? [v]
   (and (vector? v) (even? (count v))))
+```
 
+``` clojure
 (ns blub.kondo
   (:require [blub.utils :as u]))
 
@@ -420,16 +422,11 @@ namespace (which may not be SCI-loadable).
   `(let ~bindings ~@body))
 ```
 
-### Recursive macros
-
-A marker macro can call itself recursively; clj-kondo fires the macroexpand
-hook again for each nested self-call.
-
 ### Branching on "are we inside clj-kondo?"
 
-When the real macro body does I/O, reads resources, or calls JVM-only code
-that won't run inside SCI, you can branch on whether the extraction
-context is in effect. The trick: `declare` a var that exists in the real
+When the real macro body does I/O, reads resources, or calls JVM-only code that
+won't run inside SCI, you can branch on whether the extraction context is in
+effect, by using the following trick: `declare` a var that exists in the real
 namespace but is unknown to SCI, then `resolve` it at expand time.
 
 ``` clojure
@@ -464,20 +461,19 @@ expanded call sites lint correctly.
 
 ### Caveats
 
-- `&form` and `&env` are passed through to the extracted macro.
 - Cross-file usages of a freshly marked macro may take two runs to clear,
-  matching the behaviour of `:clj-kondo/config` inline configs.
+  matching the behavior of `:clj-kondo/config` inline configs.
 - One generated namespace is owned by exactly one source file. Splitting
   marker forms for a single source namespace across multiple files is not
   supported.
 - The macro/helper body runs in SCI, which supports most of Clojure
-  (including some Java interop and `deftype`/`defrecord`), but not
+  (including some Java interop and limited support for `deftype`/`defrecord`), but not
   everything. If extraction breaks for a particular form, fall back to a
   hand-written `:macroexpand` hook.
 - The marker only attaches to a `defmacro`/`defn`/`defn-`/`def` form.
   Other shapes are not auto-extracted.
 - Files without an `(ns ...)` declaration (linted as `user`) are
-  skipped - no gen file is produced. Add an `(ns ...)` form to the
+  not supported. Add an `(ns ...)` form to the
   source file if you need extraction.
 - With `:auto-load-configs false`, the feature is disabled and any
   generated artifacts are deleted.
