@@ -3783,14 +3783,10 @@
                 (if auto-load?
                   (do
                     (when configs
-                      (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                        (cache/with-thread-lock
-                          (cache/with-cache ;; lock config dir for concurrent writes
-                            cfg-dir
-                            10
-                            (binding [*print-namespace-maps* false]
-                              (spit (doto inline-file
-                                      (io/make-parents)) (apply config/merge-config! configs)))))))
+                      (cache/with-named-lock (str (io/file ".cache" ".config-lock")) cfg-dir 10
+                        (binding [*print-namespace-maps* false]
+                          (spit (doto inline-file
+                                  (io/make-parents)) (apply config/merge-config! configs)))))
                     (when-not gen-macros?
                       (gen-macros/delete-for-file! ctx lang))
                     (when (and (not configs) (fs/exists? inline-file))

@@ -99,14 +99,10 @@
     (when (fs/exists? f)
       (fs/delete f))))
 
-(defn- with-gen-lock* [cfg-dir body-fn]
-  (binding [cache/*lock-file-name* (str (io/file ".cache" ".gen-macros-lock"))]
-    (cache/with-thread-lock
-      (cache/with-cache cfg-dir 10
-        (body-fn)))))
+(def ^:private gen-lock-file (str (io/file ".cache" ".gen-macros-lock")))
 
 (defmacro ^:private with-gen-lock [cfg-dir & body]
-  `(with-gen-lock* ~cfg-dir (fn [] ~@body)))
+  `(cache/with-named-lock gen-lock-file ~cfg-dir 10 ~@body))
 
 (def ^:private reserved-ns-prefix "clj-kondo.gen-macros.")
 
@@ -134,6 +130,10 @@
   the alias symbol for each used namespace and to honor `:as-alias`
   intent (preserved as meta on the alias key)."
   [ctx {:keys [orig-ns expr alias-usages source-aliases]}]
+  ;; `(:lang ctx)` here is the per-pass lang during walking: `:clj` or
+  ;; `:cljs`. For .cljc files the analyzer runs both passes; we only want
+  ;; to write the gen file once, so positive-check `:clj`. See
+  ;; `delete-for-file!` for the asymmetric file-level counterpart.
   (when (identical? :clj (:lang ctx))
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
@@ -158,6 +158,10 @@
   assumption: the gen file's owning namespace is derived from the source
   file's `(ns ...)` declaration."
   [ctx lang]
+  ;; `lang` here is the file-level lang from `analyze-expressions`:
+  ;; `:clj`, `:cljs`, `:cljc`, or `:edn` (not the per-pass lang used in
+  ;; `record!`). Negative-check `:cljs` so `:cljc` files are still
+  ;; cleaned up - `(identical? :clj lang)` would miss them.
   (when-not (identical? :cljs lang)
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (when-let [main-ns (some-> ctx :main-ns deref)]
