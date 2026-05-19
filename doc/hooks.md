@@ -436,11 +436,11 @@ namespace but is unknown to SCI, then `resolve` it at expand time.
 
 (defmacro if-kondo
   "Picks `kondo-form` at expand time when the surrounding context is
-  clj-kondo's SCI runtime (which won't have `-not-in-kondo` interned),
+  clj-kondo's SCI runtime (which won't have `my.app/-not-in-kondo` interned),
   and `runtime-form` otherwise."
   {:clj-kondo/macroexpand-hook true}
   [kondo-form runtime-form]
-  (if-not (resolve '-not-in-kondo)
+  (if-not (resolve 'my.app/-not-in-kondo)
     kondo-form
     runtime-form))
 
