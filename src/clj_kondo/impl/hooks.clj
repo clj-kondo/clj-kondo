@@ -121,28 +121,27 @@
 (defn- file-changed?
   "Detect whether the on-disk content of `f` has changed since the last
   observation cached under `:file-stamps` in `hook-resolve-cache`. First
-  observation in this JVM: record mtime, skip hashing, return false (a
-  fresh `require` is itself a load - no reload needed). Same mtime as
-  prior observation: return false. Differing mtime: hash and compare,
-  return true only when content actually changed."
+  observation in this JVM: record content hash, return false (a fresh
+  `require` is itself a load - no reload needed). Subsequent observations:
+  rehash and compare to detect changes. mtime alone is unreliable because
+  generated hook files can be rewritten within the same filesystem mtime
+  tick (millisecond on ext4)."
   [^java.io.File f]
   (when (and f (.exists f))
     (let [path (.getAbsolutePath f)
-          mtime (.lastModified f)
-          {prev-mtime :mtime prev-hash :hash}
-          (get-in @hook-resolve-cache [:file-stamps path])]
+          prev-hash (get-in @hook-resolve-cache [:file-stamps path :hash])
+          h (file-sha256 f)]
       (cond
-        (nil? prev-mtime)
+        (nil? prev-hash)
         (do (vswap! hook-resolve-cache assoc-in [:file-stamps path]
-                    {:mtime mtime :hash nil})
+                    {:hash h})
             false)
-        (= mtime prev-mtime)
+        (= h prev-hash)
         false
         :else
-        (let [h (file-sha256 f)]
-          (vswap! hook-resolve-cache assoc-in [:file-stamps path]
-                  {:mtime mtime :hash h})
-          (not= h prev-hash))))))
+        (do (vswap! hook-resolve-cache assoc-in [:file-stamps path]
+                    {:hash h})
+            true)))))
 
 (defn- hook-needs-reload? [ns-str]
   (or api/*reload*
