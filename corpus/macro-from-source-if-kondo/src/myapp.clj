@@ -4,10 +4,10 @@
 
 (defmacro if-kondo
   "Picks `kondo-form` at expand time when running inside clj-kondo's SCI
-  (where `-not-in-kondo` is unresolved), and `runtime-form` otherwise."
+  (where `myapp/-not-in-kondo` is unresolved), and `runtime-form` otherwise."
   {:clj-kondo/macroexpand-hook true}
   [kondo-form runtime-form]
-  (if-not (resolve '-not-in-kondo)
+  (if-not (resolve 'myapp/-not-in-kondo)
     kondo-form
     runtime-form))
 
