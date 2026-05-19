@@ -28856,7 +28856,7 @@
   :langs (),
   :message "Missing else branch.",
   :row 14}
- {:end-row 7,
+ {:end-row 15,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/keyword.clj",
@@ -28864,8 +28864,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/Node",
-  :row 7}
- {:end-row 17,
+  :row 15}
+ {:end-row 25,
   :type :unused-binding,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/keyword.clj",
@@ -28873,8 +28873,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding this",
-  :row 17}
- {:end-row 30,
+  :row 25}
+ {:end-row 42,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/keyword.clj",
@@ -28882,7 +28882,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 30}
+  :row 42}
  {:end-row 9,
   :type :unresolved-var,
   :level :warning,
@@ -29118,7 +29118,7 @@
   :message
   "Unresolved var: clj-kondo.impl.rewrite-clj.node.protocols/Node",
   :row 8}
- {:end-row 13,
+ {:end-row 14,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29126,8 +29126,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/Node",
-  :row 13}
- {:end-row 14,
+  :row 14}
+ {:end-row 15,
   :type :unused-binding,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29135,8 +29135,8 @@
   :end-col 13,
   :langs (),
   :message "unused binding this",
-  :row 14}
- {:end-row 23,
+  :row 15}
+ {:end-row 24,
   :type :unused-binding,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29144,8 +29144,8 @@
   :end-col 16,
   :langs (),
   :message "unused binding this",
-  :row 23}
- {:end-row 27,
+  :row 24}
+ {:end-row 28,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29153,8 +29153,8 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/InnerNode",
-  :row 27}
- {:end-row 39,
+  :row 28}
+ {:end-row 40,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29162,8 +29162,8 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 39}
- {:end-row 41,
+  :row 40}
+ {:end-row 42,
   :type :unused-private-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29172,8 +29172,8 @@
   :langs (),
   :message
   "Unused private var clj-kondo.impl.rewrite-clj.node.seq/assert-namespaced-map-children",
-  :row 41}
- {:end-row 53,
+  :row 42}
+ {:end-row 54,
   :type :unused-binding,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29181,8 +29181,8 @@
   :end-col 13,
   :langs (),
   :message "unused binding this",
-  :row 53}
- {:end-row 56,
+  :row 54}
+ {:end-row 57,
   :type :unused-binding,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29190,8 +29190,8 @@
   :end-col 15,
   :langs (),
   :message "unused binding this",
-  :row 56}
- {:end-row 70,
+  :row 57}
+ {:end-row 71,
   :type :unused-binding,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/seq.clj",
@@ -29199,7 +29199,7 @@
   :end-col 16,
   :langs (),
   :message "unused binding this",
-  :row 70}
+  :row 71}
  {:end-row 17,
   :type :unresolved-var,
   :level :warning,
@@ -33023,6 +33023,18 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
+ {:end-row 46,
+  :type :redundant-ignore,
+  :level :info,
+  :lang :clj,
+  :filename "src/clj_kondo/impl/gen_macros.clj",
+  :linters nil,
+  :col 20,
+  :end-col 58,
+  :cljc nil,
+  :langs (:clj),
+  :message "Redundant ignore",
+  :row 46}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,

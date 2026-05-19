@@ -1,5 +1,6 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.seq
-  (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]))
+  (:require [clj-kondo.impl.rewrite-clj.node.keyword :as kw-node]
+            [clj-kondo.impl.rewrite-clj.node.protocols :as node]))
 
 ;; ## Nodes
 
@@ -68,7 +69,12 @@
   (length [_]
     (+ 1 (node/sum-lengths children)))
   (string [this]
-    (str "#" ns (node/concat-strings children)))
+    (let [current-ns-sentinel? (and (:namespaced? ns)
+                                    (= :__current-ns__ (:k ns)))
+          ns-str (if (and kw-node/*autoresolve-ns* current-ns-sentinel?)
+                   (str ":" (name kw-node/*autoresolve-ns*))
+                   (str ns))]
+      (str "#" ns-str (node/concat-strings children))))
 
   node/InnerNode
   (inner? [_] true)
