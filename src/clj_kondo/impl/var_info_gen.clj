@@ -1081,6 +1081,7 @@ assoc!
 assoc-in
 associative?
 atom
+await
 bases
 binding
 bit-and
