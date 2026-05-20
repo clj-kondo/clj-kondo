@@ -93,7 +93,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant call](#redundant-call)
     - [Redundant declare](#redundant-declare)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
-    - [Redundant if](#redundant-if)
+    - [If same branches](#if-same-branches)
     - [Redundant ignore](#redundant-ignore)
     - [Redundant nested call](#redundant-nested-call)
     - [Redundant let](#redundant-let)
@@ -1755,9 +1755,9 @@ Note: Format strings containing only `%%` (escaped percent) or `%n` (newline) ar
 
 *Example message:* `Redundant fn wrapper`.
 
-### Redundant if
+### If same branches
 
-*Keyword:* `:redundant-if`
+*Keyword:* `:if-same-branches`
 
 *Description:* warn on `(if x x y)` and suggest `(or x y)` instead when `x` is a
 simple symbol, so the rewrite does not change evaluation count.
@@ -1766,12 +1766,12 @@ simple symbol, so the rewrite does not change evaluation count.
 
 *Example trigger:* `(if x x y)`
 
-*Example message:* `Use (or x y) instead of (if x x y)`
+*Example message:* `If condition and then branch are the same; use (or x y)`
 
 *Config:*
 
 ```clojure
-{:linters {:redundant-if {:level :warning}}}
+{:linters {:if-same-branches {:level :warning}}}
 ```
 
 ### Redundant ignore

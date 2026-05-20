@@ -149,11 +149,11 @@
                                        (node->line (:filename ctx) expr :if-nil-return
                                                    (format "For nil return, prefer %s." preferred)))))))))
 
-(defn lint-redundant-if
+(defn lint-if-same-branches
   "Lint `(if x x y)` patterns that can be simplified to `(or x y)` without
    changing evaluation count."
   [ctx expr]
-  (when-not (utils/linter-disabled? ctx :redundant-if)
+  (when-not (utils/linter-disabled? ctx :if-same-branches)
     (let [[condition then-branch else-branch] (rest (:children expr))]
       (when (and else-branch
                  (= (:value condition) (:value then-branch))
@@ -163,8 +163,8 @@
                           (:clj-kondo.impl/generated else-branch))))
         (findings/reg-finding!
          ctx
-         (node->line (:filename ctx) expr :redundant-if
-                     "Use (or x y) instead of (if x x y)"))))))
+         (node->line (:filename ctx) expr :if-same-branches
+                     "If condition and then branch are the same; use (or x y)"))))))
 
 (defn lint-single-key-in [ctx called-name call]
   (when-not (utils/linter-disabled? ctx :single-key-in)
@@ -197,7 +197,7 @@
     (when (= 'if (:name call))
       (lint-missing-else-branch ctx (:expr call))
       (lint-if-nil-return ctx (:expr call))
-      (lint-redundant-if ctx (:expr call)))
+      (lint-if-same-branches ctx (:expr call)))
     (when (and (= 'nil? called-name)
                (utils/one-of called-ns [clojure.core cljs.core])
                (not (utils/linter-disabled? ctx :not-nil?)))
