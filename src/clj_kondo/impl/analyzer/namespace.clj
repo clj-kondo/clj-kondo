@@ -676,7 +676,8 @@
             (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                           :imports imports
                           :gen-class gen-class?
-                          :deprecated deprecated)
+                          :deprecated deprecated
+                          :synthetic-init (:synthetic-ns-init ctx))
                    (merge-with into
                                analyzed-require-clauses
                                refer-clj

@@ -1,5 +1,7 @@
 (ns clj-kondo.redundant-ignore-test
-  (:require [clj-kondo.test-utils :refer [lint! assert-submaps2]]
+  (:require [clj-kondo.core :as clj-kondo]
+            [clj-kondo.test-utils :refer [lint! assert-submaps2 with-temp-dir]]
+            [clojure.java.io :as io]
             [clojure.test :refer [deftest is testing]]))
 
 (def config {:linters {:redundant-ignore {:level :warning}
@@ -42,3 +44,14 @@
   [#?(:cljs z)]) ;; x is only used in cljs, but unused is ignored for clj, so no warning
 "
                      config "--filename" "foo.cljc"))))
+
+(deftest issue-2818-cross-file-redefined-var-test
+  (testing "two files declaring the same ns + def do not trigger cross-file :redefined-var"
+    (with-temp-dir [dir "clj-kondo-2818"]
+      (let [a (io/file dir "env_dev.clj")
+            b (io/file dir "env_prod.clj")]
+        (spit a "(ns demo.env)\n(def defaults {:mode :dev})\n")
+        (spit b "(ns demo.env)\n(def defaults {:mode :prod})\n")
+        (let [findings (:findings (clj-kondo/run! {:lint [(.getPath a) (.getPath b)]
+                                                   :cache false}))]
+          (is (empty? (filter #(= :redefined-var (:type %)) findings))))))))
