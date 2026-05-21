@@ -839,96 +839,57 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
-(defn- references-symbol?
-  [node sym]
+(defn- references-symbol? [node sym]
   (when node
-    (or (and (= :token (tag node))
-             (= sym (:value node)))
+    (or (and (= :token (tag node)) (= sym (:value node)))
         (some #(references-symbol? % sym) (:children node)))))
 
-(defn- conditional-build-up-step?
+(defn- if-assoc-rebind?
+  "Match `(if pred (assoc map-sym k v ...) map-sym)` where pred does not
+   reference map-sym."
   [value-node map-sym]
-  (when (and value-node map-sym (= :list (tag value-node)))
-    (let [if-children (:children value-node)]
-      (when (= 4 (count if-children))
-        (let [if-operator (nth if-children 0)
-              if-predicate (nth if-children 1)
-              then-branch (nth if-children 2)
-              else-branch (nth if-children 3)]
-          (when (and (= :token (tag if-operator))
-                     (= 'if (:value if-operator))
-                     (not (references-symbol? if-predicate map-sym))
-                     (= :list (tag then-branch))
-                     else-branch)
-            (let [then-children (:children then-branch)
-                  then-operator (first then-children)
-                  assoc-map-arg (second then-children)]
-              (boolean
-               (and (<= 4 (count then-children))
-                    (= :token (tag then-operator))
-                    (= 'assoc (:value then-operator))
-                    (= :token (tag assoc-map-arg))
-                    (= map-sym (:value assoc-map-arg))
-                    (= :token (tag else-branch))
-                    (= map-sym (:value else-branch)))))))))))
+  (when (and value-node (= :list (tag value-node)))
+    (let [[op pred then else :as ch] (:children value-node)]
+      (and (= 4 (count ch))
+           (= :token (tag op)) (= 'if (:value op))
+           (= :list (tag then))
+           (let [[a m] (:children then)]
+             (and a m
+                  (= :token (tag a)) (= 'assoc (:value a))
+                  (= :token (tag m)) (= map-sym (:value m))
+                  (>= (count (:children then)) 4)
+                  (= :token (tag else)) (= map-sym (:value else))
+                  (not (references-symbol? pred map-sym))))))))
 
-(defn- base-binding-candidate?
-  [value-node map-sym]
-  (and value-node
-       (not (conditional-build-up-step? value-node map-sym))
-       (not (references-symbol? value-node map-sym))))
+(defn- binding-name-sym [name-node]
+  (when (and name-node (= :token (tag name-node)))
+    (let [v (:value name-node)]
+      (when (simple-symbol? v) v))))
 
-(defn- lint-conditional-build-up!
-  [ctx binding-vector-node]
-  (when (and binding-vector-node
-             (not (linter-disabled? ctx :conditional-build-up))
-             (= :vector (tag binding-vector-node)))
-    (loop [vec-children (:children binding-vector-node)
-           current-name-sym nil
-           has-base-binding? false
-           conditional-rebind-count 0
-           best-count 0]
-      (if (< (count vec-children) 2)
-        (when (> (max conditional-rebind-count best-count) 1)
-          (findings/reg-finding!
-           ctx
-           (node->line (:filename ctx) binding-vector-node :conditional-build-up
-                       "Prefer cond-> to build a map with successive conditional assocs.")))
-        (let [name-node (first vec-children)
-              value-node (second vec-children)
-              rest-children (nnext vec-children)
-              new-name-sym (when (and name-node (= :token (tag name-node)))
-                             (let [v (:value name-node)]
-                               (when (simple-symbol? v) v)))
-              best-count' (max best-count conditional-rebind-count)]
-          (cond
-            (or (nil? new-name-sym)
-                (nil? value-node))
-            (recur rest-children nil false 0 best-count')
-
-            (or (nil? current-name-sym)
-                (not= new-name-sym current-name-sym))
-            (recur rest-children
-                   new-name-sym
-                   (base-binding-candidate? value-node new-name-sym)
-                   0
-                   best-count')
-
-            (and has-base-binding?
-                 (conditional-build-up-step? value-node new-name-sym))
-            (let [count' (inc conditional-rebind-count)]
-              (recur rest-children
-                     new-name-sym
-                     has-base-binding?
-                     count'
-                     (max best-count' count')))
-
-            :else
-            (recur rest-children
-                   new-name-sym
-                   (base-binding-candidate? value-node new-name-sym)
-                   0
-                   best-count')))))))
+(defn- lint-conditional-build-up! [ctx bv]
+  (when (and bv (= :vector (tag bv))
+             (not (linter-disabled? ctx :conditional-build-up)))
+    (let [report! #(findings/reg-finding!
+                    ctx (node->line (:filename ctx) bv :conditional-build-up
+                                    "Prefer cond-> to build a map with successive conditional assocs."))]
+      (loop [pairs (partition 2 (:children bv))
+             prev-sym nil
+             base-clean? false
+             run 0
+             reported? false]
+        (if-let [[nn vn] (first pairs)]
+          (let [sym (binding-name-sym nn)]
+            (if (and sym (= sym prev-sym) base-clean?
+                     (if-assoc-rebind? vn sym))
+              (recur (next pairs) sym true (inc run) reported?)
+              (let [report? (and (>= run 2) (not reported?))
+                    clean? (boolean (and sym vn
+                                         (not (references-symbol? vn sym))
+                                         (not (if-assoc-rebind? vn sym))))]
+                (when report? (report!))
+                (recur (next pairs) sym clean? 0 (or reported? report?)))))
+          (when (and (>= run 2) (not reported?))
+            (report!)))))))
 
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)

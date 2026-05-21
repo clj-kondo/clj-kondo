@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2807](https://github.com/clj-kondo/clj-kondo/issues/2807): NEW linter: `:conditional-build-up` which warns inside `let` when the same local map is rebound via successive `(if pred (assoc m ...) m)` patterns, suggesting `cond->` instead (default level: `:info`) ([@walber-araujo](https://github.com/walber-araujo))
 - Docs: update `doc/config.md` optional-linters section to include linters that are `:off` by default ([@jramosg](https://github.com/jramosg))
 - [#2811](https://github.com/clj-kondo/clj-kondo/issues/2811): report correct location for `:missing-map-value` when the malformed map is nested in a set or in map-key position, and no longer suppress subsequent lint errors in the file
 - [#2813](https://github.com/clj-kondo/clj-kondo/issues/2813): fix false positive `:unused-excluded-var` when a core var is excluded to make room for a `:refer` with `:rename` ([@jramosg](https://github.com/jramosg))
