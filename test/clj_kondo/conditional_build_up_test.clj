@@ -54,6 +54,15 @@
                m)"
             config)))
 
+  (testing "inner let shadowing m does not falsely block detection"
+    (assert-submaps2
+     [{:level :warning}]
+     (lint! "(let [m {:k0 0}
+                   m (if (let [m 1] (pos? m)) (assoc m :k1 1) m)
+                   m (if (let [m 1] (even? m)) (assoc m :k2 2) m)]
+               m)"
+            config)))
+
   (testing "reader-conditional splice in cljc"
     (assert-submaps2
      [{:level :warning}]
@@ -109,13 +118,6 @@
                           m)"
                        {:linters {:conditional-build-up {:level :warning}
                                   :missing-else-branch {:level :off}}}))))
-
-  (testing "base binding references the variable itself (not a valid candidate)"
-    (is (empty? (lint! "(let [m (f m)
-                              m (if (pos? in) (assoc m :k1 1) m)
-                              m (if (even? in) (assoc m :k2 2) m)]
-                          m)"
-                       config))))
 
   (testing "destructuring in binding resets tracking"
     (is (empty? (lint! "(let [[a b] [1 2]

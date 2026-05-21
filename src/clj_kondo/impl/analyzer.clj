@@ -839,17 +839,12 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
-(defn- references-symbol? [node sym]
-  (when node
-    (or (and (= :token (tag node)) (= sym (:value node)))
-        (some #(references-symbol? % sym) (:children node)))))
-
-(defn- if-assoc-rebind?
-  "Match `(if pred (assoc map-sym k v ...) map-sym)` where pred does not
-   reference map-sym."
+(defn- if-assoc-rebind-shape?
+  "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)`. Does not
+   inspect pred for self-reference - that is handled via binding-use tracking."
   [value-node map-sym]
   (when (and value-node (= :list (tag value-node)))
-    (let [[op pred then else :as ch] (:children value-node)]
+    (let [[op _pred then else :as ch] (:children value-node)]
       (and (= 4 (count ch))
            (= :token (tag op)) (= 'if (:value op))
            (= :list (tag then))
@@ -858,38 +853,31 @@
                   (= :token (tag a)) (= 'assoc (:value a))
                   (= :token (tag m)) (= map-sym (:value m))
                   (>= (count (:children then)) 4)
-                  (= :token (tag else)) (= map-sym (:value else))
-                  (not (references-symbol? pred map-sym))))))))
+                  (= :token (tag else)) (= map-sym (:value else))))))))
 
-(defn- binding-name-sym [name-node]
-  (when (and name-node (= :token (tag name-node)))
-    (let [v (:value name-node)]
-      (when (simple-symbol? v) v))))
-
-(defn- lint-conditional-build-up! [ctx bv]
-  (when (and bv (= :vector (tag bv))
-             (not (linter-disabled? ctx :conditional-build-up)))
-    (let [report! #(findings/reg-finding!
-                    ctx (node->line (:filename ctx) bv :conditional-build-up
-                                    "Prefer cond-> to build a map with successive conditional assocs."))]
-      (loop [pairs (partition 2 (:children bv))
-             prev-sym nil
-             base-clean? false
-             run 0
-             reported? false]
-        (if-let [[nn vn] (first pairs)]
-          (let [sym (binding-name-sym nn)]
-            (if (and sym (= sym prev-sym) base-clean?
-                     (if-assoc-rebind? vn sym))
-              (recur (next pairs) sym true (inc run) reported?)
-              (let [report? (and (>= run 2) (not reported?))
-                    clean? (boolean (and sym vn
-                                         (not (references-symbol? vn sym))
-                                         (not (if-assoc-rebind? vn sym))))]
-                (when report? (report!))
-                (recur (next pairs) sym clean? 0 (or reported? report?)))))
-          (when (and (>= run 2) (not reported?))
-            (report!)))))))
+(defn- lint-conditional-build-up! [ctx bv collected]
+  (let [report! #(findings/reg-finding!
+                  ctx (node->line (:filename ctx) bv :conditional-build-up
+                                  "Prefer cond-> to build a map with successive conditional assocs."))]
+    (loop [entries collected
+           prev-sym nil
+           run 0
+           reported? false]
+      (if-let [{:keys [sym value prev-binding prev-ref-count]} (first entries)]
+        ;; A valid chain step is: same sym as previous binding, value matches
+        ;; if-assoc-rebind shape, and exactly 2 references to the previous
+        ;; binding occurred during value analysis (the `assoc m` head and the
+        ;; `else m` branch). More than 2 means the pred or assoc args also
+        ;; reference m, which would break a `cond->` rewrite.
+        (if (and sym (= sym prev-sym) prev-binding
+                 (= 2 prev-ref-count)
+                 (if-assoc-rebind-shape? value sym))
+          (recur (next entries) sym (inc run) reported?)
+          (let [report? (and (>= run 2) (not reported?))]
+            (when report? (report!))
+            (recur (next entries) sym 0 (or reported? report?))))
+        (when (and (>= run 2) (not reported?))
+          (report!))))))
 
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
@@ -941,8 +929,23 @@
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
                   value-id (gensym)
+                  cb-up-collector (:cb-up-collector ctx)
+                  prev-binding (when cb-up-collector
+                                 (get bindings binding-val))
+                  pair-tracker (when cb-up-collector (atom []))
+                  ctx** (if pair-tracker
+                          (assoc ctx* :local-use-tracker pair-tracker)
+                          ctx*)
                   analyzed-value (when (and value (not for-let?))
-                                   (analyze-expression** ctx* (assoc value :id value-id)))
+                                   (analyze-expression** ctx** (assoc value :id value-id)))
+                  _ (when cb-up-collector
+                      (swap! cb-up-collector conj
+                             {:value value
+                              :sym binding-val
+                              :prev-binding prev-binding
+                              :prev-ref-count (when (and pair-tracker prev-binding)
+                                                (count (filter #(identical? % prev-binding)
+                                                               @pair-tracker)))}))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
@@ -1034,10 +1037,16 @@
         analyzed))))
 
 (defn analyze-let [ctx expr]
-  (let [bv (-> expr :children second)]
+  (let [bv (-> expr :children second)
+        cbu? (and bv (= :vector (tag bv))
+                  (not (linter-disabled? ctx :conditional-build-up)))
+        collector (when cbu? (atom []))
+        ctx (cond-> ctx collector (assoc :cb-up-collector collector))]
     (analyze-redundant-bindings ctx bv)
-    (lint-conditional-build-up! ctx bv))
-  (analyze-like-let ctx expr))
+    (let [result (analyze-like-let ctx expr)]
+      (when collector
+        (lint-conditional-build-up! ctx bv @collector))
+      result)))
 
 (defn analyze-do [{:keys [filename callstack] :as ctx} expr]
   (let [parent-call (second callstack)
