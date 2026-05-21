@@ -23,6 +23,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.gen-macros :as gen-macros]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.linters.config :as lint-config]
@@ -675,6 +676,14 @@
                                   cljs.core/defmacro])
                          (:macro var-meta))
                  true)
+        gen-marked? (and (:clj-kondo/macroexpand-hook var-meta)
+                         ns-name fn-name
+                         (not (gen-macros/reserved-ns? ns-name)))
+        gen-macro? (and gen-marked?
+                        (one-of defined-by->lint-as
+                                [clojure.core/defmacro
+                                 cljs.core/defmacro]))
+        gen-macros-acc (when gen-marked? (atom []))
         deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
@@ -698,16 +707,30 @@
             (namespace/reg-var!
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
-                             (-> ctx
-                                 (assoc :docstring docstring
-                                        :in-def fn-name
-                                        :macro? macro?))
+                             (cond-> (-> ctx
+                                         (assoc :docstring docstring
+                                                :in-def fn-name
+                                                :async-fn? (:async var-meta)
+                                                :macro? macro?))
+                               gen-macros-acc
+                               (assoc :gen-macros-aliases-acc gen-macros-acc))
                              %)
                            bodies)
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
+    (when gen-marked?
+      (gen-macros/record! ctx {:orig-ns ns-name
+                               :expr expr
+                               :alias-usages @gen-macros-acc
+                               :source-aliases (:aliases (:ns ctx))})
+      (when gen-macro?
+        (let [fq-sym (symbol (str ns-name) (str fn-name))
+              gen-ns (gen-macros/gen-ns-sym ns-name)
+              hook-cfg {:hooks {:macroexpand
+                                {fq-sym (symbol (str gen-ns) (str fn-name))}}}]
+          (swap! (:inline-configs ctx) conj hook-cfg))))
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -1099,6 +1122,10 @@
         ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
+        ctx (assoc ctx :async-fn?
+                   (:async (or (when ?name-expr
+                                 (meta (meta/lift-meta-content2 ctx ?name-expr)))
+                               (meta expr))))
         _ (when (and ?name-expr (identical? :token (tag ?name-expr)))
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
@@ -1192,6 +1219,20 @@
         cse
         (recur (rest callstack))))))
 
+(defn mark-non-tail-recur
+  "Marks ctx as a non-tail position for recur (e.g. inside a collection
+  literal). An empty map is used as the sentinel so that downstream
+  `assoc-in [:recur-arity :fixed-arity] 0` calls still work."
+  [ctx]
+  (assoc ctx :recur-arity {}))
+
+(defn non-tail-recur?
+  "Inverse of `mark-non-tail-recur`: true when the ctx's :recur-arity
+  signals a non-tail position. Distinguished from a nil :recur-arity,
+  which means there is no enclosing fn or loop at all."
+  [recur-arity]
+  (and (map? recur-arity) (empty? recur-arity)))
+
 (defn analyze-recur [ctx expr]
   (let [filename (:filename ctx)
         recur-arity (:recur-arity ctx)
@@ -1199,46 +1240,53 @@
     (when seen-recur? (vreset! seen-recur? true))
     (when-not (or (linter-disabled? ctx :invalid-arity)
                   (config/skip? (:config ctx) :invalid-arity (:callstack ctx)))
-      (let [arg-count (count (rest (:children expr)))
-            expected-arity
-            (or (:fixed-arity recur-arity)
-                ;; varargs must be passed as a seq or nil in recur
-                (when-let [min-arity (:min-arity recur-arity)]
-                  (inc min-arity)))
-            expected-arity (if (:protocol-fn ctx)
-                             ;; compensate for this argument
-                             (dec expected-arity)
-                             expected-arity)]
-        (let [len (:len ctx)
-              idx (:idx ctx)
-              parent (-> (:callstack ctx)
-                         rest first-callstack-elt-ignoring-macros second)]
-          (when (and len idx
-                     (not= (dec len) idx)
-                     (not (one-of parent [if case cond if-let if-not if-some condp])))
+      (if (non-tail-recur? recur-arity)
+        (findings/reg-finding!
+         ctx
+         (node->line
+          filename
+          expr
+          :unexpected-recur "Recur can only be used in tail position."))
+        (let [arg-count (count (rest (:children expr)))
+              expected-arity
+              (or (:fixed-arity recur-arity)
+                  ;; varargs must be passed as a seq or nil in recur
+                  (when-let [min-arity (:min-arity recur-arity)]
+                    (inc min-arity)))
+              expected-arity (if (:protocol-fn ctx)
+                               ;; compensate for this argument
+                               (dec expected-arity)
+                               expected-arity)]
+          (let [len (:len ctx)
+                idx (:idx ctx)
+                parent (-> (:callstack ctx)
+                           rest first-callstack-elt-ignoring-macros second)]
+            (when (and len idx
+                       (not= (dec len) idx)
+                       (not (one-of parent [if case cond if-let if-not if-some condp])))
+              (findings/reg-finding!
+               ctx
+               (node->line
+                filename
+                expr
+                :unexpected-recur "Recur can only be used in tail position."))))
+          (cond
+            (not expected-arity)
             (findings/reg-finding!
              ctx
              (node->line
               filename
               expr
-              :unexpected-recur "Recur can only be used in tail position."))))
-        (cond
-          (not expected-arity)
-          (findings/reg-finding!
-           ctx
-           (node->line
-            filename
-            expr
-            :unexpected-recur "Unexpected usage of recur."))
-          (not= expected-arity arg-count)
-          (findings/reg-finding!
-           ctx
-           (node->line
-            filename
-            expr
-            :invalid-arity
-            (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
-          :else nil))))
+              :unexpected-recur "Unexpected usage of recur."))
+            (not= expected-arity arg-count)
+            (findings/reg-finding!
+             ctx
+             (node->line
+              filename
+              expr
+              :invalid-arity
+              (format "recur argument count mismatch (expected %d, got %d)" expected-arity arg-count)))
+            :else nil)))))
   (analyze-children ctx (rest (:children expr))))
 
 (defn analyze-letfn [ctx expr]
@@ -1335,11 +1383,25 @@
         children (if (:analyze-var-defs-shallowly? ctx)
                    []
                    children)
+        ns-name (-> ctx :ns :name)
+        gen-marked? (and core-def?
+                         (:clj-kondo/macroexpand-hook metadata)
+                         ns-name var-name
+                         (not (gen-macros/reserved-ns? ns-name)))
+        gen-macros-acc (when gen-marked? (atom []))
+        init-ctx (cond-> ctx
+                   gen-macros-acc
+                   (assoc :gen-macros-aliases-acc gen-macros-acc))
         def-init (when (and core-def?
                             (= 1 (count children)))
-                   (or (analyze-expression** ctx (first children))
+                   (or (analyze-expression** init-ctx (first children))
                        ;; prevent analysis of only child more than once
                        []))
+        _ (when gen-marked?
+            (gen-macros/record! ctx {:orig-ns ns-name
+                                     :expr expr
+                                     :alias-usages @gen-macros-acc
+                                     :source-aliases (:aliases (:ns ctx))}))
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!
@@ -2560,10 +2622,11 @@
                   :message "Default :or value is always evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
-                (namespace/reg-unresolved-namespace! ctx ns-name
-                                                     (with-meta unresolved-ns
-                                                       (assoc (meta full-fn-name)
-                                                              :name fn-name)))
+                (when-not (:clj-kondo.impl/generated expr)
+                  (namespace/reg-unresolved-namespace! ctx ns-name
+                                                       (with-meta unresolved-ns
+                                                         (assoc (meta full-fn-name)
+                                                                :name fn-name))))
                 (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
                                                                fn-name])
                                   children))
@@ -2581,7 +2644,7 @@
                     (let [visited (:visited expr)]
                       (when-not (and visited (= visited [resolved-namespace resolved-name]))
                         (or
-                         (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                         (hooks/hook-fn ctx config resolved-namespace resolved-name expr-meta)
                          (case [resolved-namespace resolved-name]
                            ([clojure.test testing] [cljs.test testing])
                            (when (:analysis-context ctx)
@@ -2788,6 +2851,15 @@
                           as-> (analyze-as-> ctx expr)
                           areduce (analyze-areduce ctx expr)
                           this-as (analyze-this-as ctx expr)
+                          await
+                          (do
+                            (when (and (= 'cljs.core resolved-as-namespace)
+                                       (not (:async-fn? ctx)))
+                              (findings/reg-finding!
+                               ctx (node->line (:filename ctx) expr
+                                               :await-without-async-fn
+                                               "Use of await is only allowed in functions with ^:async metadata.")))
+                            (analyze-children ctx children))
                           memfn (analyze-memfn ctx expr)
                           (format printf) (analyze-format ctx expr)
                           (use require)
@@ -3276,16 +3348,18 @@
                                 children)
                      children (mapv #(assoc % :id (gensym)) children)
                      analyzed (analyze-children
-                               (update ctx
-                                       :callstack #(cons [nil t] %)) children)]
+                               (-> ctx
+                                   mark-non-tail-recur
+                                   (update :callstack #(cons [nil t] %))) children)]
                  (types/add-arg-type-from-expr ctx (assoc expr
                                                           :children children
                                                           :analyzed analyzed))
                  analyzed))
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
-                 (analyze-children (update ctx
-                                           :callstack #(cons [nil t] %))
+                 (analyze-children (-> ctx
+                                       mark-non-tail-recur
+                                       (update :callstack #(cons [nil t] %)))
                                    children))
         :fn (do
               (lint-unused-value ctx expr)
@@ -3466,8 +3540,9 @@
         :vector
         (do
           (lint-unused-value ctx expr)
-          (analyze-children (update ctx
-                                    :callstack #(cons [nil t] %))
+          (analyze-children (-> ctx
+                                mark-non-tail-recur
+                                (update :callstack #(cons [nil t] %)))
                             children))
         :deref
         (recur ctx (with-meta
@@ -3552,6 +3627,7 @@
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
                                        (dissoc :analysis)
+                                       (assoc :synthetic-ns-init true)
                                        (utils/ctx-with-linter-disabled :namespace-name-mismatch))
                                    (if (= "project.clj" (fs/file-name (:filename ctx)))
                                      (parse-string "(ns leiningen.core.project)")
@@ -3660,11 +3736,10 @@
                     ctx)
               ctx (assoc ctx
                          :inline-configs (atom [])
+                         :gen-macros (atom [])
                          :main-ns (atom nil))
-              cljc-config (:cljc config)
               features (when (identical? :cljc lang)
-                         (or (:features cljc-config)
-                             [:clj :cljs]))
+                         (config/cljc-features config ))
               parsed (binding [*reader-features* features]
                        (p/parse-string input))
               fname (fs/file-name filename)
@@ -3700,21 +3775,27 @@
           (when-let [cfg-dir (-> ctx :config :cfg-dir)]
             (when-let [main-ns @(:main-ns ctx)]
               (let [configs (-> ctx :inline-configs deref seq)
+                    gen-macros? (-> ctx :gen-macros deref seq boolean)
+                    auto-load? (not (false? (:auto-load-configs config)))
                     inline-file (io/file cfg-dir "inline-configs"
                                          (str (namespace-munge main-ns)
                                               (when-let [ext (fs/extension (:filename ctx))]
                                                 (str "." ext))) "config.edn")]
-                (if (and configs (not (false? (:auto-load-configs config))))
-                  (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                    (cache/with-thread-lock
-                      (cache/with-cache ;; lock config dir for concurrent writes
-                        cfg-dir
-                        10
+                (if auto-load?
+                  (do
+                    (when configs
+                      (cache/with-named-lock (str (io/file ".cache" ".config-lock")) cfg-dir 10
                         (binding [*print-namespace-maps* false]
                           (spit (doto inline-file
-                                  (io/make-parents)) (apply config/merge-config! configs))))))
-                  (when (fs/exists? inline-file)
-                    (fs/delete-tree (fs/parent inline-file)))))))
+                                  (io/make-parents)) (apply config/merge-config! configs)))))
+                    (when-not gen-macros?
+                      (gen-macros/delete-for-file! ctx lang))
+                    (when (and (not configs) (fs/exists? inline-file))
+                      (fs/delete-tree (fs/parent inline-file))))
+                  (do
+                    (gen-macros/delete-for-file! ctx lang)
+                    (when (fs/exists? inline-file)
+                      (fs/delete-tree (fs/parent inline-file))))))))
           (doseq [f line-length-findings]
             (findings/reg-finding! ctx f)))
         (catch Exception e
