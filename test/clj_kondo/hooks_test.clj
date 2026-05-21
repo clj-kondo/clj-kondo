@@ -56,17 +56,24 @@
 
 (deftest error-in-macro-fn-test
   (when-not native?
-    (let [err (java.io.StringWriter.)]
-      (binding [*err* err] (lint! "
+    (let [prog "
 (ns bar
   {:clj-kondo/config '{:hooks {:analyze-call {foo/fixed-arity \"(fn [{:keys [:node]}] {:a :sexpr 1})\"}}}}
   (:require [foo :refer [fixed-arity]]))
 
 (fixed-arity 1 2 3)"
-                                  {:hooks {:__dangerously-allow-string-hooks__ true}
-                                   :linters {:unresolved-symbol {:level :error}
-                                             :invalid-arity {:level :error}}}))
-      (is (str/includes? (str err) "WARNING: error while trying to read hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
+          findings (with-in-str prog
+                     (:findings
+                      (clj-kondo/run!
+                       {:lint ["-"]
+                        :config {:hooks {:__dangerously-allow-string-hooks__ true}
+                                 :linters {:unresolved-symbol {:level :error}
+                                           :invalid-arity {:level :error}}}})))
+          hook-findings (filter #(= :hook (:type %)) findings)]
+      (is (= 1 (count hook-findings)))
+      (is (= :error (-> hook-findings first :level)))
+      (is (str/includes? (-> hook-findings first :message)
+                         "Error while loading hook for foo/fixed-arity: The map literal starting with :a contains 3 form(s).")))))
 
 (deftest re-frame-test
   (assert-submaps
@@ -522,6 +529,226 @@ my-ns/special-map \"
     (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2636" "src" "usage.clj")]
                      :config (edn/read-string (slurp (fs/file "corpus" "issue-2636" ".clj-kondo" "config.edn")))
                      :config-dir (fs/file "corpus" "issue-2636" ".clj-kondo")}))))
+
+(deftest macro-from-source-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "script.clj")
+        inline-config (fs/file cfg-dir "inline-configs" "script.clj" "config.edn")
+        src-dir (fs/file "corpus" "macro-from-source" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "first run extracts macro; cross-file usage warns until config is auto-loaded"
+      (assert-submaps2
+       [{:file "corpus/macro-from-source/src/usage.clj"
+         :row 4 :col 17 :level :error
+         :message "Unresolved symbol: x"}
+        {:file "corpus/macro-from-source/src/usage.clj"
+         :row 11 :col 19 :level :error
+         :message "Unresolved symbol: forty-two"}
+        {:file "corpus/macro-from-source/src/usage.clj"
+         :row 13 :col 14 :level :error
+         :message "Unresolved symbol: forty-two-too"}]
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}
+                         :unresolved-namespace {:level :warning}}}
+              "--config-dir" (str cfg-dir))))
+    (testing "generated source file and inline-config are written"
+      (is (fs/exists? gen-file))
+      (let [gen (slurp (fs/file gen-file))]
+        (testing "every marker macro is extracted"
+          (doseq [name ["my-let" "shout" "joined" "tagged"
+                        "mixed" "literal" "setty" "defdouble" "defk"]]
+            (is (str/includes? gen (str "(defmacro " name)))))
+        (testing "marker helper defns are extracted alongside the macros"
+          (is (str/includes? gen "(defn double-it")))
+        (testing "marker def constants are extracted alongside the macros"
+          (is (str/includes? gen "(def k-default")))
+        (testing "alias kinds in :require reflect macro-body usage"
+          (testing "expand-time call only -> :as"
+            (is (str/includes? gen "[clojure.set :as set]")))
+          (testing "mixed expand-time + syntax-quote use -> :as wins"
+            (is (str/includes? gen "[clojure.string :as str]")))
+          (testing "auto-resolved keyword + source :as-alias intent -> :as-alias"
+            (is (str/includes? gen "[some.stub :as-alias stub]")))))
+      (is (fs/exists? inline-config))
+      (let [cfg (slurp (fs/file inline-config))]
+        (testing "macros register macroexpand hooks"
+          (doseq [name ["my-let" "shout" "joined" "tagged"
+                        "mixed" "literal" "setty" "defdouble" "defk"]]
+            (is (str/includes? cfg (str "clj-kondo.gen-macros.script/" name)))))
+        (testing "helper defns/defs do not register a macroexpand hook"
+          (is (not (str/includes? cfg "/double-it")))
+          (is (not (str/includes? cfg "/k-default"))))))
+    (testing "second run applies hook cross-file - macro-introduced namespaces are treated as safe"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}
+                         :unresolved-namespace {:level :warning}}}
+              "--config-dir" (str cfg-dir))))
+    (testing ":auto-load-configs false removes generated artifacts"
+      (lint! src-dir
+             {:auto-load-configs false
+              :linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (is (not (fs/exists? gen-file)))
+      (is (not (fs/exists? inline-config))))
+    (cleanup!)))
+
+(deftest macro-from-source-cross-ns-helper-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-xref" ".clj-kondo")
+        helpers-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "helpers.clj")
+        main-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "main.clj")
+        src-dir (fs/file "corpus" "macro-from-source-xref" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "first run extracts both namespaces' marker forms"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (is (fs/exists? helpers-gen))
+      (is (str/includes? (slurp (fs/file helpers-gen)) "(defn binding-vec?"))
+      (is (fs/exists? main-gen)))
+    (testing "second run redirects the consumer's alias to the helper's gen ns
+    (after the first run produced the helper gen file)"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (let [gen (slurp (fs/file main-gen))]
+        (is (str/includes? gen "[clj-kondo.gen-macros.helpers :as h]"))))
+    (testing "subsequent run lints clean - macro expands using the redirected helper"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
+(deftest hook-failure-surfaces-as-finding-test
+  (testing "When a macroexpand hook fails (e.g. SCI can't resolve a symbol in
+  the gen ns), clj-kondo registers a :hook :error finding at the call site so
+  the failure is visible to editors via the structured findings list. No
+  stderr WARNING is emitted - findings are the single source of truth."
+    (when-not native?
+      (let [src-dir (fs/file "corpus" "macro-from-source-hook-error" "src")
+            cfg-dir (fs/file "corpus" "macro-from-source-hook-error" ".clj-kondo")
+            cleanup! (fn []
+                       (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                       (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                       (fs/delete-tree (fs/file cfg-dir ".cache")))]
+        (cleanup!)
+        ;; first run extracts; hook isn't auto-loaded yet, no error.
+        (clj-kondo/run! {:lint [(str src-dir)] :config-dir (str cfg-dir)})
+        (let [err (java.io.StringWriter.)
+              findings (binding [*err* err]
+                         (:findings (clj-kondo/run! {:lint [(str src-dir)]
+                                                     :config-dir (str cfg-dir)})))]
+          (testing "no stderr WARNING - findings are the single source of truth"
+            (is (not (str/includes? (str err) "WARNING:"))))
+          (testing ":hook finding registered at each failing call site"
+            (let [hook-findings (filter #(= :hook (:type %)) findings)]
+              (is (= 2 (count hook-findings)))
+              (is (every? #(= :error (:level %)) hook-findings))
+              (is (every? #(str/includes? (:message %) "undefined-helper")
+                          hook-findings)))))
+        (cleanup!)))))
+
+(deftest macro-from-source-autoresolve-keyword-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-keywords" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "myns.clj")
+        src-dir (fs/file "corpus" "macro-from-source-keywords" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "auto-resolved current-ns keywords and namespaced maps are rewritten at
+    extraction so SCI reads back to source-ns-qualified values regardless of gen ns"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (let [gen (slurp (fs/file gen-file))]
+        (testing "bare ::foo -> :<orig-ns>/foo"
+          (is (str/includes? gen ":myns/foo")))
+        (testing "#::{...} namespaced map -> #:<orig-ns>{...}"
+          (is (str/includes? gen "#:myns{")))))
+    (cleanup!)))
+
+(deftest macro-from-source-cljc-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-cljc" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "myns.clj")
+        inline-config (fs/file cfg-dir "inline-configs" "myns.cljc" "config.edn")
+        src-dir (fs/file "corpus" "macro-from-source-cljc" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "marker on a defmacro in a .cljc source extracts on the :clj feature pass"
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}}}
+             "--config-dir" (str cfg-dir))
+      (is (fs/exists? gen-file))
+      (is (str/includes? (slurp (fs/file gen-file)) "(defmacro my-when"))
+      (is (fs/exists? inline-config))
+      (is (str/includes? (slurp (fs/file inline-config))
+                         "clj-kondo.gen-macros.myns/my-when")))
+    (testing "second run lints clean - hook fires for the .cljc usage"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
+(deftest macro-from-source-if-kondo-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-if-kondo" ".clj-kondo")
+        src-dir (fs/file "corpus" "macro-from-source-if-kondo" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    ;; first run extracts the markers; hook isn't loaded yet.
+    (lint! src-dir
+           {:linters {:unresolved-symbol {:level :error}}}
+           "--config-dir" (str cfg-dir))
+    (testing "if-kondo picks the kondo branch under SCI - runtime branch
+    references an unresolved symbol but never fires, so no hook errors"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
+(deftest macro-from-source-recursive-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-recursive" ".clj-kondo")
+        src-dir (fs/file "corpus" "macro-from-source-recursive" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (testing "recursive marker macro expands all the way - inner self-call fires the hook again"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir)))
+      ;; second run with auto-loaded config exercises the same code path
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
 
 (deftest stackoverflow-in-hook-result-test
   (testing "StackOverflowError during analysis reports correct filename, not directory"

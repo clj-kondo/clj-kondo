@@ -81,7 +81,7 @@
              {resolved-ns :ns}
              (namespace/resolve-name ctx false ns-name symbol-val nil)]
          (if resolved-ns
-           (namespace/reg-used-namespace! ctx
+           (namespace/reg-used-namespace! (assoc ctx :gen-macros-as-alias-only? true)
                                           (-> ns :name)
                                           resolved-ns)
            (namespace/reg-unresolved-namespace! ctx ns-name

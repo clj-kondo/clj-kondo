@@ -1,6 +1,14 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.keyword
   (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]))
 
+(def ^:dynamic *autoresolve-ns*
+  "When bound to a symbol, KeywordNode's `string` method emits bare
+  auto-resolved current-ns keywords (`::foo`) as their fully-qualified
+  literal form `:<*autoresolve-ns*>/foo`. Used by gen-macros so the
+  extracted gen file reads back to the same value regardless of SCI's
+  current namespace at hook-load time."
+  nil)
+
 ;; ## Node
 
 (defrecord KeywordNode [k namespaced?]
@@ -22,8 +30,12 @@
           (+ 1 c (count nspace))
           c))))
   (string [_]
-    (str (when namespaced? ":")
-         (pr-str k)))
+    (if (and namespaced?
+             (not (namespace k))
+             *autoresolve-ns*)
+      (str ":" (name *autoresolve-ns*) "/" (name k))
+      (str (when namespaced? ":")
+           (pr-str k))))
 
   Object
   (toString [this]

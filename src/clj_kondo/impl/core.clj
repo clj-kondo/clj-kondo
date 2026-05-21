@@ -756,10 +756,8 @@
 
 (defn config-hash [cfg]
   (let [config-bytes (.getBytes (str cfg))
-        digest (java.security.MessageDigest/getInstance "SHA-256")
-        config-hash (.digest digest config-bytes)
-        config-hash (format "%032x" (BigInteger. 1 config-hash))]
-    config-hash))
+        digest (java.security.MessageDigest/getInstance "SHA-256")]
+    (utils/bytes->hex (.digest digest config-bytes))))
 
 ;;;; Scratch
 

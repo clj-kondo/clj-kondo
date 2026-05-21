@@ -3,7 +3,7 @@
         io.replikativ/datalog-parser {:mvn/version "0.2.30"}
         cheshire/cheshire {:mvn/version "5.13.0"}
         nrepl/bencode {:mvn/version "1.2.0"}
-        org.babashka/sci {:mvn/version "0.10.47"}
+        org.babashka/sci {:mvn/version "0.12.51"}
         babashka/fs {:mvn/version "0.5.31"}
         org.ow2.asm/asm {:mvn/version "9.7"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
@@ -24,7 +24,7 @@
             {org.clojure/data.json {:mvn/version "2.5.0"}}}
            :test
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.12.134"} ;; for extraction
+            {org.clojure/clojurescript {:mvn/version "1.12.145"} ;; for extraction
              cognitect/test-runner
              {:git/url "https://github.com/cognitect-labs/test-runner"
               :git/sha "9d36f36ff541dac680a05010e4348c744333f191"}
@@ -54,7 +54,7 @@
             :main-opts ["-m" "clj-kondo.profile"]}
            :cljs ;; for performance and regression testing
            {:extra-deps
-            {org.clojure/clojurescript {:mvn/version "1.12.134"}}}
+            {org.clojure/clojurescript {:mvn/version "1.12.145"}}}
            :pod-test
            {:extra-paths ["pod-test"]
             :extra-deps

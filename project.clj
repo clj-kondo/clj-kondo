@@ -15,14 +15,14 @@
                  [io.replikativ/datalog-parser "0.2.30"]
                  [cheshire/cheshire "5.13.0"]
                  [nrepl/bencode "1.2.0"]
-                 [org.babashka/sci "0.10.47"]
+                 [org.babashka/sci "0.12.51"]
                  [babashka/fs "0.5.31"]
                  [org.ow2.asm/asm "9.7"]
                  [com.github.javaparser/javaparser-core "3.26.1"]]
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.10.3 {:dependencies [[org.clojure/clojure "1.10.3"]]}
              :test {:dependencies [[nubank/matcher-combinators "3.9.1"]
-                                   [org.clojure/clojurescript "1.12.134"]
+                                   [org.clojure/clojurescript "1.12.145"]
                                    [clj-commons/conch "0.9.2"]
                                    [org.clojure/tools.deps "0.24.1523"]
                                    [jonase/eastwood "1.4.3"]
