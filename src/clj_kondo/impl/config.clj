@@ -82,7 +82,7 @@
               :misplaced-docstring {:level :warning}
               :not-empty? {:level :warning}
               :not-nil? {:level :off}
-              :if-same-branches {:level :off}
+              :if-x-x-y {:level :off}
               :deprecated-var {:level :warning
                                #_:exclude
                                #_{foo.foo/deprecated-fn

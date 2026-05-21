@@ -1,13 +1,13 @@
-(ns clj-kondo.if-same-branches-test
+(ns clj-kondo.if-x-x-y-test
   (:require
    [clj-kondo.test-utils :refer [assert-submaps2 lint!]]
    [clojure.test :refer [deftest is testing]]))
 
 (def ^:private config
-  {:linters {:if-same-branches {:level :warning}
+  {:linters {:if-x-x-y {:level :warning}
              :missing-else-branch {:level :off}}})
 
-(deftest if-same-branches-test
+(deftest if-x-x-y-test
   (testing "(if x x y) -> (or x y)"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 1, :level :warning,
@@ -26,16 +26,16 @@
     (is (empty? (lint! "(if (foo) (foo) y)" config)))
     (is (empty? (lint! "(if [1] [1] y)" config)))))
 
-(deftest if-same-branches-ignore-test
+(deftest if-x-x-y-ignore-test
   (testing "off at default level"
     (is (empty? (lint! "(if x x y)"))))
 
   (testing "no warning when linter is disabled"
     (is (empty? (lint! "(if x x y)"
-                       {:linters {:if-same-branches {:level :off}}}))))
+                       {:linters {:if-x-x-y {:level :off}}}))))
 
   (testing "linter-specific ignore suppresses finding"
-    (is (empty? (lint! "#_{:clj-kondo/ignore [:if-same-branches]} (if x x y)"
+    (is (empty? (lint! "#_{:clj-kondo/ignore [:if-x-x-y]} (if x x y)"
                        config))))
 
   (testing "bare ^:clj-kondo/ignore suppresses all linters"
