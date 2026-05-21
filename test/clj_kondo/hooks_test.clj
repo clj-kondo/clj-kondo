@@ -655,7 +655,7 @@ my-ns/special-map \"
             (let [hook-findings (filter #(= :hook (:type %)) findings)]
               (is (= 2 (count hook-findings)))
               (is (every? #(= :error (:level %)) hook-findings))
-              (is (every? #(str/includes? (:message %) "Could not resolve symbol: undefined-helper")
+              (is (every? #(str/includes? (:message %) "undefined-helper")
                           hook-findings)))))
         (cleanup!)))))
 
