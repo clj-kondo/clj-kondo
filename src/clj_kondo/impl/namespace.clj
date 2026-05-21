@@ -108,12 +108,34 @@
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
-  with the same name. Returns updated namespace."
+  with the same name. Returns updated namespace.
+
+  When a full `(ns ...)` form re-declares a namespace that was previously
+  registered via another `(ns ...)` form in a different file, the
+  var-tracking state is reset so :redefined-var does not fire cross-file.
+  `(in-ns ...)` continuations are treated as temporary state that a
+  subsequent `(ns ...)` form leaves intact, so multi-file namespaces such
+  as clojure.core (core.clj + core_deftype.clj + ... via in-ns) are not
+  affected, even when files are processed in non-topological order. The
+  synthetic `(ns user)` that analyze-expressions bootstraps every file
+  with does not count either. See #2818."
   [{:keys [base-lang lang namespaces]} ns]
-  (let [{ns-name :name} ns
+  (let [{ns-name :name new-filename :filename ns-type :type} ns
         path [base-lang lang ns-name]]
-    (get-in (swap! namespaces update-in
-                   path deep-merge ns)
+    (get-in (swap! namespaces update-in path
+                   (fn [prev]
+                     (let [prev (if (and prev
+                                         (identical? :ns ns-type)
+                                         (identical? :ns (:type prev))
+                                         (not (:synthetic-init ns))
+                                         (not (:synthetic-init prev))
+                                         (:filename prev)
+                                         (not= (:filename prev) new-filename))
+                                  (-> prev
+                                      (assoc :vars nil)
+                                      (dissoc :var-counts))
+                                  prev)]
+                       (deep-merge prev ns))))
             path)))
 
 (defn- var-classfile
