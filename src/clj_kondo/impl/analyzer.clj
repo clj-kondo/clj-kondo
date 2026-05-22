@@ -957,11 +957,6 @@
                                                                    :types types-by-arity))
                                  arities)]
               (when cbu-collector
-                ;; Each entry collapses to a single truthy/falsy step value:
-                ;; the pair counts as a chain step iff exactly 2 references
-                ;; to the previous same-name binding occurred AND the shape
-                ;; matches. Shape + assoc resolution evaluated while ctx*
-                ;; still carries this pair's lexical bindings.
                 (swap! cbu-collector conj
                        (and (= 2 (some-> pair-tracker deref))
                             (if-assoc-rebind-shape? ctx* value binding-val))))
@@ -1041,14 +1036,17 @@
 (defn analyze-let [ctx expr]
   (let [bv (-> expr :children second)
         collector (when (and bv (= :vector (tag bv))
+                             ;; chain needs >=3 bindings (1 base + 2 rebinds),
+                             ;; i.e. >=6 binding-vector children
+                             (>= (count (:children bv)) 6)
                              (not (linter-disabled? ctx :conditional-build-up)))
                     (atom []))
-        ctx (cond-> ctx collector (assoc :conditional-build-up-collector collector))]
-    (analyze-redundant-bindings ctx bv)
-    (let [result (analyze-like-let ctx expr)]
-      (when collector
-        (lint-conditional-build-up! ctx bv @collector))
-      result)))
+        ctx (cond-> ctx collector (assoc :conditional-build-up-collector collector))
+        _ (analyze-redundant-bindings ctx bv)
+        analyzed (analyze-like-let ctx expr)]
+    (when collector
+      (lint-conditional-build-up! ctx bv @collector))
+    analyzed))
 
 (defn analyze-do [{:keys [filename callstack] :as ctx} expr]
   (let [parent-call (second callstack)
