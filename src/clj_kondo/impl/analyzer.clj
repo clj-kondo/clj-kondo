@@ -839,17 +839,6 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
-(defn- core-assoc-in-scope?
-  "True when bare `assoc` in this ctx still refers to clojure.core/assoc (or
-   cljs.core/assoc). Pure ns/bindings lookup - avoids `resolve-name`'s side
-   effects (`reg-used-referred-var!`, `reg-used-import!`, etc.)."
-  [ctx]
-  (let [ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
-    (and (not (contains? (:bindings ctx) 'assoc))
-         (not (contains? (:referred-vars ns) 'assoc))
-         (not (contains? (:vars ns) 'assoc))
-         (not (contains? (:clojure-excluded ns) 'assoc)))))
-
 (defn- if-assoc-rebind-shape?
   "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)` where `assoc`
    still resolves to core. Does not inspect pred for self-reference - that is
@@ -867,7 +856,7 @@
                   (= :token (tag m)) (= map-sym (:value m))
                   (>= (count (:children then)) 4)
                   (= :token (tag else)) (= map-sym (:value else))
-                  (core-assoc-in-scope? ctx)))))))
+                  (namespace/core-symbol-in-scope? ctx 'assoc)))))))
 
 (defn- lint-conditional-build-up! [ctx bv collected]
   (let [report! #(findings/reg-finding!
