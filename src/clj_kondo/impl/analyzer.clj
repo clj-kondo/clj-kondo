@@ -839,12 +839,22 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
+(defn- core-assoc-in-scope?
+  "True when bare `assoc` in this ctx still refers to clojure.core/assoc (or
+   cljs.core/assoc). Pure ns/bindings lookup - avoids `resolve-name`'s side
+   effects (`reg-used-referred-var!`, `reg-used-import!`, etc.)."
+  [ctx]
+  (let [ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
+    (and (not (contains? (:bindings ctx) 'assoc))
+         (not (contains? (:referred-vars ns) 'assoc))
+         (not (contains? (:vars ns) 'assoc))
+         (not (contains? (:clojure-excluded ns) 'assoc)))))
+
 (defn- if-assoc-rebind-shape?
   "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)` where `assoc`
-   resolves to clojure.core/assoc (or cljs.core/assoc). Does not inspect pred
-   for self-reference - that is handled via binding-use tracking. Must run with
-   the ctx active at the value's lexical scope, so local shadows of `assoc`
-   are detected via the bindings map before consulting var resolution."
+   still resolves to core. Does not inspect pred for self-reference - that is
+   handled via binding-use tracking. Must run with the ctx active at the value's
+   lexical scope so local shadows of `assoc` are detected."
   [ctx value-node map-sym]
   (when (and value-node (= :list (tag value-node)))
     (let [[op _pred then else :as ch] (:children value-node)]
@@ -857,10 +867,7 @@
                   (= :token (tag m)) (= map-sym (:value m))
                   (>= (count (:children then)) 4)
                   (= :token (tag else)) (= map-sym (:value else))
-                  (not (contains? (:bindings ctx) 'assoc))
-                  (let [{:keys [ns]} (resolve-name ctx false (-> ctx :ns :name)
-                                                   'assoc a)]
-                    (or (= 'clojure.core ns) (= 'cljs.core ns)))))))))
+                  (core-assoc-in-scope? ctx)))))))
 
 (defn- lint-conditional-build-up! [ctx bv collected]
   (let [report! #(findings/reg-finding!
@@ -948,16 +955,6 @@
                           cbu-collector (dissoc :conditional-build-up-collector))
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
-                  _ (when cbu-collector
-                      (swap! cbu-collector conj
-                             {:value value
-                              :sym binding-val
-                              :prev-binding prev-binding
-                              :prev-ref-count (some-> pair-tracker deref)
-                              ;; Compute shape + assoc-resolution while ctx*
-                              ;; still has the lexical bindings of this pair.
-                              :rebind-shape? (when prev-binding
-                                               (if-assoc-rebind-shape? ctx* value binding-val))}))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
@@ -975,6 +972,14 @@
                                  (assoc arities binding-val (assoc arity
                                                                    :types types-by-arity))
                                  arities)]
+              (when cbu-collector
+                (swap! cbu-collector conj
+                       {:prev-binding prev-binding
+                        :prev-ref-count (some-> pair-tracker deref)
+                        ;; Shape + assoc resolution computed while ctx* still
+                        ;; carries this pair's lexical bindings.
+                        :rebind-shape? (when prev-binding
+                                         (if-assoc-rebind-shape? ctx* value binding-val))}))
               (recur rest-bindings
                      (merge bindings new-bindings)
                      next-arities
