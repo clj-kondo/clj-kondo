@@ -845,38 +845,33 @@
    handled via binding-use tracking. Must run with the ctx active at the value's
    lexical scope so local shadows of `assoc` are detected."
   [ctx value-node map-sym]
-  (when (and value-node (= :list (tag value-node)))
-    (let [[op _pred then else :as ch] (:children value-node)]
+  (when (= :list (tag value-node))
+    (let [[op _pred then else :as ch] (:children value-node)
+          then-children (:children then)]
       (and (= 4 (count ch))
            (= :token (tag op)) (= 'if (:value op))
            (= :list (tag then))
-           (let [[a m] (:children then)]
-             (and a m
-                  (= :token (tag a)) (= 'assoc (:value a))
+           (>= (count then-children) 4)
+           (let [[a m] then-children]
+             (and (= :token (tag a)) (= 'assoc (:value a))
                   (= :token (tag m)) (= map-sym (:value m))
-                  (>= (count (:children then)) 4)
                   (= :token (tag else)) (= map-sym (:value else))
                   (namespace/core-symbol-in-scope? ctx 'assoc)))))))
 
-(defn- lint-conditional-build-up! [ctx bv collected]
-  (let [report! #(findings/reg-finding!
-                  ctx (node->line (:filename ctx) bv :conditional-build-up
-                                  "Prefer cond-> to build a map with successive conditional assocs."))]
-    ;; A valid chain step has: prev-binding (the same name was bound before),
-    ;; exactly 2 references to that previous binding (the `assoc m` head and
-    ;; `else m` branch - more means pred or assoc args also reference it,
-    ;; which would break a `cond->` rewrite), and the if-assoc-rebind shape.
-    (loop [entries collected
-           run 0
-           reported? false]
-      (if-let [{:keys [prev-binding prev-ref-count rebind-shape?]} (first entries)]
-        (if (and prev-binding (= 2 prev-ref-count) rebind-shape?)
-          (recur (next entries) (inc run) reported?)
-          (let [report? (and (>= run 2) (not reported?))]
-            (when report? (report!))
-            (recur (next entries) 0 (or reported? report?))))
-        (when (and (>= run 2) (not reported?))
-          (report!))))))
+(defn- lint-conditional-build-up!
+  "A valid chain step needs exactly 2 references to the previous binding for
+   `m` (the `assoc m` head and `else m` branch - more means pred or assoc args
+   also reference it, which breaks a `cond->` rewrite) plus the if-assoc shape.
+   Both conditions are pre-computed per pair into a single truthy entry."
+  [ctx bv collected]
+  (loop [entries collected run 0]
+    (cond
+      (>= run 2)
+      (findings/reg-finding!
+       ctx (node->line (:filename ctx) bv :conditional-build-up
+                       "Prefer cond-> to build a map with successive conditional assocs."))
+      (seq entries)
+      (recur (next entries) (if (first entries) (inc run) 0)))))
 
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
@@ -962,13 +957,14 @@
                                                                    :types types-by-arity))
                                  arities)]
               (when cbu-collector
+                ;; Each entry collapses to a single truthy/falsy step value:
+                ;; the pair counts as a chain step iff exactly 2 references
+                ;; to the previous same-name binding occurred AND the shape
+                ;; matches. Shape + assoc resolution evaluated while ctx*
+                ;; still carries this pair's lexical bindings.
                 (swap! cbu-collector conj
-                       {:prev-binding prev-binding
-                        :prev-ref-count (some-> pair-tracker deref)
-                        ;; Shape + assoc resolution computed while ctx* still
-                        ;; carries this pair's lexical bindings.
-                        :rebind-shape? (when prev-binding
-                                         (if-assoc-rebind-shape? ctx* value binding-val))}))
+                       (and (= 2 (some-> pair-tracker deref))
+                            (if-assoc-rebind-shape? ctx* value binding-val))))
               (recur rest-bindings
                      (merge bindings new-bindings)
                      next-arities
