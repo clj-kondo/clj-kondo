@@ -86,6 +86,18 @@
                                                     :config {:linters {:conditional-build-up {:level :warning}}}}))]
       (is (= 1 (count (filter #(= :conditional-build-up (:type %)) findings))))))
 
+  (testing "two disjoint chains in same let report only once (reported? gate)"
+    (let [{:keys [findings]}
+          (with-in-str "(let [m {:k0 0}
+                              m (if (p1 in) (assoc m :k1 1) m)
+                              m (if (p2 in) (assoc m :k2 2) m)
+                              m (assoc m :break 1)
+                              m (if (p3 in) (assoc m :k3 3) m)
+                              m (if (p4 in) (assoc m :k4 4) m)] m)"
+            (clj-kondo/run! {:lint ["-"]
+                             :config {:linters {:conditional-build-up {:level :warning}}}}))]
+      (is (= 1 (count (filter #(= :conditional-build-up (:type %)) findings))))))
+
   (testing "reader-conditional splice in cljc"
     (assert-submaps2
      [{:level :warning}]

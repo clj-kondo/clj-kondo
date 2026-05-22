@@ -383,14 +383,15 @@
   nil)
 
 (defn reg-used-binding!
-  [{:keys [base-lang lang namespaces filename dependencies local-use-tracker] :as ctx} ns-sym binding usage]
+  [{:keys [base-lang lang namespaces filename dependencies
+           local-use-tracker local-use-target] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (when-not dependencies
     (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
            conj binding))
-  (when (and local-use-tracker binding)
-    (swap! local-use-tracker conj binding))
+  (when (and local-use-tracker (identical? binding local-use-target))
+    (swap! local-use-tracker inc))
   nil)
 
 (defn reg-required-namespaces!

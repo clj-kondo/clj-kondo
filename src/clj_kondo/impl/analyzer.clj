@@ -926,27 +926,28 @@
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
                   value-id (gensym)
-                  cb-up-collector (:cb-up-collector ctx)
-                  prev-binding (when cb-up-collector
-                                 (get bindings binding-val))
-                  pair-tracker (when cb-up-collector (atom []))
-                  ;; Drop :cb-up-collector when descending into value so that
-                  ;; nested let-like forms (loop, for, when-let, ...) do not
-                  ;; pollute the outer let's collector. A nested `let` re-runs
+                  cbu-collector (:conditional-build-up-collector ctx)
+                  ;; Only allocate a tracker when there's a previous binding
+                  ;; of the same name to count refs against; otherwise no
+                  ;; chain step is possible.
+                  prev-binding (when cbu-collector (get bindings binding-val))
+                  pair-tracker (when prev-binding (atom 0))
+                  ;; Drop the collector when descending into value so nested
+                  ;; let-like forms (loop, for, when-let, ...) do not pollute
+                  ;; the outer let's collector. A nested `let` re-runs
                   ;; `analyze-let` which installs its own collector.
                   ctx** (cond-> ctx*
-                          pair-tracker (assoc :local-use-tracker pair-tracker)
-                          cb-up-collector (dissoc :cb-up-collector))
+                          pair-tracker (assoc :local-use-tracker pair-tracker
+                                              :local-use-target prev-binding)
+                          cbu-collector (dissoc :conditional-build-up-collector))
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
-                  _ (when cb-up-collector
-                      (swap! cb-up-collector conj
+                  _ (when cbu-collector
+                      (swap! cbu-collector conj
                              {:value value
                               :sym binding-val
                               :prev-binding prev-binding
-                              :prev-ref-count (when (and pair-tracker prev-binding)
-                                                (count (filter #(identical? % prev-binding)
-                                                               @pair-tracker)))}))
+                              :prev-ref-count (some-> pair-tracker deref)}))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
@@ -1039,10 +1040,10 @@
 
 (defn analyze-let [ctx expr]
   (let [bv (-> expr :children second)
-        cbu? (and bv (= :vector (tag bv))
-                  (not (linter-disabled? ctx :conditional-build-up)))
-        collector (when cbu? (atom []))
-        ctx (cond-> ctx collector (assoc :cb-up-collector collector))]
+        collector (when (and bv (= :vector (tag bv))
+                             (not (linter-disabled? ctx :conditional-build-up)))
+                    (atom []))
+        ctx (cond-> ctx collector (assoc :conditional-build-up-collector collector))]
     (analyze-redundant-bindings ctx bv)
     (let [result (analyze-like-let ctx expr)]
       (when collector
