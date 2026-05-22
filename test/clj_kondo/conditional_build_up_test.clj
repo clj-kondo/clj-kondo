@@ -1,5 +1,6 @@
 (ns clj-kondo.conditional-build-up-test
   (:require
+   [clj-kondo.core :as clj-kondo]
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.test :refer [deftest is testing]]))
 
@@ -62,6 +63,28 @@
                    m (if (let [m 1] (even? m)) (assoc m :k2 2) m)]
                m)"
             config)))
+
+  (testing "nested for binding same sym does not pollute outer chain detection"
+    (assert-submaps2
+     [{:level :warning}]
+     (lint! "(let [m {:k0 0}
+                   _ (for [m [1 2] m (range m)] m)
+                   m (if (pos? in) (assoc m :k1 1) m)
+                   m (if (even? in) (assoc m :k2 2) m)]
+               m)"
+            config)))
+
+  (testing "chain reports once even for long chains"
+    (let [{:keys [findings]} (with-in-str "(let [m {:k0 0}
+                                                 m (if (p1 in) (assoc m :k1 1) m)
+                                                 m (if (p2 in) (assoc m :k2 2) m)
+                                                 m (if (p3 in) (assoc m :k3 3) m)
+                                                 m (if (p4 in) (assoc m :k4 4) m)
+                                                 m (if (p5 in) (assoc m :k5 5) m)]
+                                             m)"
+                                   (clj-kondo/run! {:lint ["-"]
+                                                    :config {:linters {:conditional-build-up {:level :warning}}}}))]
+      (is (= 1 (count (filter #(= :conditional-build-up (:type %)) findings))))))
 
   (testing "reader-conditional splice in cljc"
     (assert-submaps2

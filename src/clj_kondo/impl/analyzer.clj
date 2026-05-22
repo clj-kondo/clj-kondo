@@ -859,23 +859,20 @@
   (let [report! #(findings/reg-finding!
                   ctx (node->line (:filename ctx) bv :conditional-build-up
                                   "Prefer cond-> to build a map with successive conditional assocs."))]
+    ;; A valid chain step has: prev-binding (the same name was bound before),
+    ;; exactly 2 references to that previous binding (the `assoc m` head and
+    ;; `else m` branch - more means pred or assoc args also reference it,
+    ;; which would break a `cond->` rewrite), and the if-assoc-rebind shape.
     (loop [entries collected
-           prev-sym nil
            run 0
            reported? false]
       (if-let [{:keys [sym value prev-binding prev-ref-count]} (first entries)]
-        ;; A valid chain step is: same sym as previous binding, value matches
-        ;; if-assoc-rebind shape, and exactly 2 references to the previous
-        ;; binding occurred during value analysis (the `assoc m` head and the
-        ;; `else m` branch). More than 2 means the pred or assoc args also
-        ;; reference m, which would break a `cond->` rewrite.
-        (if (and sym (= sym prev-sym) prev-binding
-                 (= 2 prev-ref-count)
+        (if (and prev-binding (= 2 prev-ref-count)
                  (if-assoc-rebind-shape? value sym))
-          (recur (next entries) sym (inc run) reported?)
+          (recur (next entries) (inc run) reported?)
           (let [report? (and (>= run 2) (not reported?))]
             (when report? (report!))
-            (recur (next entries) sym 0 (or reported? report?))))
+            (recur (next entries) 0 (or reported? report?))))
         (when (and (>= run 2) (not reported?))
           (report!))))))
 
@@ -933,9 +930,13 @@
                   prev-binding (when cb-up-collector
                                  (get bindings binding-val))
                   pair-tracker (when cb-up-collector (atom []))
-                  ctx** (if pair-tracker
-                          (assoc ctx* :local-use-tracker pair-tracker)
-                          ctx*)
+                  ;; Drop :cb-up-collector when descending into value so that
+                  ;; nested let-like forms (loop, for, when-let, ...) do not
+                  ;; pollute the outer let's collector. A nested `let` re-runs
+                  ;; `analyze-let` which installs its own collector.
+                  ctx** (cond-> ctx*
+                          pair-tracker (assoc :local-use-tracker pair-tracker)
+                          cb-up-collector (dissoc :cb-up-collector))
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
                   _ (when cb-up-collector
