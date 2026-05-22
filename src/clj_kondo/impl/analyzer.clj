@@ -840,9 +840,12 @@
       (when (seq rest-bindings) (recur rest-bindings)))))
 
 (defn- if-assoc-rebind-shape?
-  "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)`. Does not
-   inspect pred for self-reference - that is handled via binding-use tracking."
-  [value-node map-sym]
+  "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)` where `assoc`
+   resolves to clojure.core/assoc (or cljs.core/assoc). Does not inspect pred
+   for self-reference - that is handled via binding-use tracking. Must run with
+   the ctx active at the value's lexical scope, so local shadows of `assoc`
+   are detected via the bindings map before consulting var resolution."
+  [ctx value-node map-sym]
   (when (and value-node (= :list (tag value-node)))
     (let [[op _pred then else :as ch] (:children value-node)]
       (and (= 4 (count ch))
@@ -853,7 +856,11 @@
                   (= :token (tag a)) (= 'assoc (:value a))
                   (= :token (tag m)) (= map-sym (:value m))
                   (>= (count (:children then)) 4)
-                  (= :token (tag else)) (= map-sym (:value else))))))))
+                  (= :token (tag else)) (= map-sym (:value else))
+                  (not (contains? (:bindings ctx) 'assoc))
+                  (let [{:keys [ns]} (resolve-name ctx false (-> ctx :ns :name)
+                                                   'assoc a)]
+                    (or (= 'clojure.core ns) (= 'cljs.core ns)))))))))
 
 (defn- lint-conditional-build-up! [ctx bv collected]
   (let [report! #(findings/reg-finding!
@@ -866,9 +873,8 @@
     (loop [entries collected
            run 0
            reported? false]
-      (if-let [{:keys [sym value prev-binding prev-ref-count]} (first entries)]
-        (if (and prev-binding (= 2 prev-ref-count)
-                 (if-assoc-rebind-shape? value sym))
+      (if-let [{:keys [prev-binding prev-ref-count rebind-shape?]} (first entries)]
+        (if (and prev-binding (= 2 prev-ref-count) rebind-shape?)
           (recur (next entries) (inc run) reported?)
           (let [report? (and (>= run 2) (not reported?))]
             (when report? (report!))
@@ -947,7 +953,11 @@
                              {:value value
                               :sym binding-val
                               :prev-binding prev-binding
-                              :prev-ref-count (some-> pair-tracker deref)}))
+                              :prev-ref-count (some-> pair-tracker deref)
+                              ;; Compute shape + assoc-resolution while ctx*
+                              ;; still has the lexical bindings of this pair.
+                              :rebind-shape? (when prev-binding
+                                               (if-assoc-rebind-shape? ctx* value binding-val))}))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)

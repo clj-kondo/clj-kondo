@@ -161,6 +161,23 @@
                           m)"
                        config))))
 
+  (testing "non-core assoc (referred from another ns) does not fire"
+    (is (empty? (lint! "(ns my.ns (:refer-clojure :exclude [assoc])
+                          (:require [my.other :refer [assoc]]))
+                        (let [m {:k0 0}
+                              m (if (pos? in) (assoc m :k1 1) m)
+                              m (if (even? in) (assoc m :k2 2) m)]
+                          m)"
+                       (assoc-in config [:linters :unresolved-namespace :level] :off)))))
+
+  (testing "local shadow of assoc does not fire"
+    (is (empty? (lint! "(let [assoc (fn [_ _ _] {})
+                              m {:k0 0}
+                              m (if (pos? in) (assoc m :k1 1) m)
+                              m (if (even? in) (assoc m :k2 2) m)]
+                          m)"
+                       config))))
+
   (testing "idiomatic cond-> does not produce a warning"
     (is (empty? (lint! "(defn foo-ok [in]
                           (cond-> {:k0 (f0 in)}
