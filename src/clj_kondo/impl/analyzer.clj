@@ -1163,8 +1163,8 @@
        ctx
        (node->line (:filename ctx)
                    alias-expr
-                   :redundant-alias
-                   (str "redundant alias: " alias-sym))))
+                   :alias-same-ns-name
+                   (str "alias same as namespace name: " alias-sym))))
     (if (and alias-sym (symbol? alias-sym) ns-sym (symbol? ns-sym))
       (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
       (analyze-children ctx children))

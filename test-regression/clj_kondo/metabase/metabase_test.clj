@@ -33,7 +33,7 @@
                                        ;; enable extra linters here that we want to test
                                        :config {:linters {:redundant-let-binding {:level :warning}
                                                           :redundant-primitive-coercion {:level :warning}
-                                                          :redundant-alias {:level :warning}}}})
+                                                          :alias-same-ns-name {:level :warning}}}})
           findings (:findings lint-result)
           ;; Uncomment this to reset expected findings:
           _ (when (System/getenv "CLJ_KONDO_REGRESSION_UPDATE")

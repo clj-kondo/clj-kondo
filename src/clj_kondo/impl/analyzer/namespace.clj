@@ -249,8 +249,8 @@
                      ctx
                      (node->line (:filename ctx)
                                  opt-expr
-                                 :redundant-alias
-                                 (str "redundant alias: " opt))))
+                                 :alias-same-ns-name
+                                 (str "alias same as namespace name: " opt))))
                   (recur
                    (nnext children)
                    (assoc m
