@@ -8,6 +8,7 @@ configuration. For general configurations options, go [here](config.md).
 
 - [Linters](#linters)
     - [Aliased namespace symbol](#aliased-namespace-symbol)
+    - [Await without async fn](#await-without-async-fn)
     - [Aliased namespace var usage](#aliased-namespace-var-usage)
     - [Aliased referred var](#aliased-referred-var)
     - [Case](#case)
@@ -16,6 +17,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
+    - [Conditional build-up](#conditional-build-up)
     - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
@@ -93,6 +95,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant call](#redundant-call)
     - [Redundant declare](#redundant-declare)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
+    - [If x x y](#if-x-x-y)
     - [Redundant ignore](#redundant-ignore)
     - [Redundant nested call](#redundant-nested-call)
     - [Redundant let](#redundant-let)
@@ -303,6 +306,28 @@ doesn't check for literally `true` values of vars since this is often a dev/prod
 *Example trigger:* `(if odd? :odd :even)`.
 
 *Example message:* `Condition always true`.
+
+### Conditional build-up
+
+*Keyword:* `:conditional-build-up`.
+
+*Description:* warn when a `let` repeatedly rebinds the same local map using forms like `(if pred (assoc m ...) m)`, which can often be written more clearly with `cond->`.
+
+*Default level:* `:off`.
+
+*Example trigger:*
+
+``` clojure
+(let [m {}
+      m (if (:a input) (assoc m :a 1) m)
+      m (if (:b input) (assoc m :b 2) m)
+      m (if (:c input) (assoc m :c 3) m)
+      m (if (:d input) (assoc m :d 4) m)
+      m (if (:e input) (assoc m :e 5) m)]
+  m)
+```
+
+*Example message:* `Prefer cond-> to build a map with successive conditional assocs.`
 
 ### Conflicting-alias
 
@@ -969,6 +994,25 @@ e.g. `(= 0.1 x)`. In many cases this can lead to issues due to rounding errors.
 *Example trigger:* `(format "%s" 1 2)`.
 
 *Example message:* `Format string expects 1 arguments instead of 2.`.
+
+### Hook
+
+*Keyword:* `:hook`.
+
+*Description:* a `:macroexpand` or `:analyze-call` hook (including
+auto-extracted [macros from source](hooks.md#macros-from-source))
+threw while loading or while expanding a call. The finding points at
+the call site so editors via flycheck/clojure-lsp surface the
+failure.
+
+*Default level:* `:error`.
+
+*Example trigger:* a `defmacro` marked with
+`{:clj-kondo/macroexpand-hook true}` whose body references an
+unresolved symbol.
+
+*Example message:* `Error while loading hook for my.app/my-let: Could
+not resolve symbol: undefined-helper`.
 
 ### Def + fn instead of defn
 
@@ -1747,6 +1791,25 @@ Note: Format strings containing only `%%` (escaped percent) or `%n` (newline) ar
 
 *Example message:* `Redundant fn wrapper`.
 
+### If x x y
+
+*Keyword:* `:if-x-x-y`
+
+*Description:* warn on `(if x x y)` and suggest `(or x y)` instead when `x` is a
+simple symbol, so the rewrite does not change evaluation count.
+
+*Default level:* `:off`
+
+*Example trigger:* `(if x x y)`
+
+*Example message:* `If condition and then branch are the same; use (or x y)`
+
+*Config:*
+
+```clojure
+{:linters {:if-x-x-y {:level :warning}}}
+```
+
 ### Redundant ignore
 
 *Keyword*: `:redundant-ignore`
@@ -2491,6 +2554,18 @@ Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensiti
 *Example trigger:* `~x`
 
 *Example message:* `Unquote (~) used outside syntax-quote`.
+
+### Await without async fn
+
+*Keyword:* `:await-without-async-fn`.
+
+*Description:* warns when `cljs.core/await` is used outside a function carrying `^:async` metadata. ClojureScript only.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(defn f [] (await (js/Promise.resolve 1)))`
+
+*Example message:* `Use of await is only allowed in functions with ^:async metadata.`
 
 ### Unused namespace
 

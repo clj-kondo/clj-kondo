@@ -20,12 +20,18 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2822](https://github.com/clj-kondo/clj-kondo/issues/2822): NEW linter: `alias-same-ns-name` which warns when an alias (`:as`) is the same as the namespace it's aliasing. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
+- [#2807](https://github.com/clj-kondo/clj-kondo/issues/2807): NEW linter: `:conditional-build-up` which warns inside `let` when the same local map is rebound via successive `(if pred (assoc m ...) m)` patterns, suggesting `cond->` instead (default level: `:off`) ([@walber-araujo](https://github.com/walber-araujo))
+- [#2062](https://github.com/clj-kondo/clj-kondo/issues/2062): NEW linter: `:if-x-x-y` which suggests `(or x y)` instead of `(if x x y)` when the condition is a simple symbol (default level: `:off`) ([@jramosg](https://github.com/jramosg))
 - Docs: update `doc/config.md` optional-linters section to include linters that are `:off` by default ([@jramosg](https://github.com/jramosg))
 - [#2811](https://github.com/clj-kondo/clj-kondo/issues/2811): report correct location for `:missing-map-value` when the malformed map is nested in a set or in map-key position, and no longer suppress subsequent lint errors in the file
 - [#2813](https://github.com/clj-kondo/clj-kondo/issues/2813): fix false positive `:unused-excluded-var` when a core var is excluded to make room for a `:refer` with `:rename` ([@jramosg](https://github.com/jramosg))
 - [#2814](https://github.com/clj-kondo/clj-kondo/issues/2814): fix false positive `:protocol-method-arity-mismatch` when a `definterface` declares the same method name with multiple arities ([@jramosg](https://github.com/jramosg))
+- [#2818](https://github.com/clj-kondo/clj-kondo/issues/2818): do not fire `:redefined-var` across files when the same namespace is declared via `(ns ...)` in multiple files
 - [#2817](https://github.com/clj-kondo/clj-kondo/issues/2817): warn on `recur` inside a vector, map or set literal, `recur` is never in tail position there
 - [##2821](https://github.com/clj-kondo/clj-kondo/issues/2821): do not omit findings when `:cljc` `:features` specified ([@lread](https://github.com/lread))
+- macros from source: a `defmacro` (and any supporting `defn`/`defn-`/`def`) tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
+- Bump built-in ClojureScript analysis to 1.12.145, recognize `cljs.core/await`
+- NEW linter: `:await-without-async-fn` which warns when `cljs.core/await` is used outside a function with `^:async` metadata
 
 ## 2026.04.15
 

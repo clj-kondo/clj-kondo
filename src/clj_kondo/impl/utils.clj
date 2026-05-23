@@ -62,6 +62,13 @@
     (apply println strs))
   nil)
 
+(defn bytes->hex
+  "Lowercase hex-encode a byte array. Output is exactly `2 * (alength bs)`
+  chars. Use this instead of `(map #(format \"%02x\" %) bs)` - that idiom
+  sign-extends negative `byte` primitives to 8-char ints (`-1` -> `\"ffffffff\"`)."
+  ^String [^bytes bs]
+  (format (str "%0" (* 2 (alength bs)) "x") (BigInteger. 1 bs)))
+
 (defn symbol-call
   "Returns symbol of call"
   [expr]
