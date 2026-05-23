@@ -420,16 +420,15 @@
      :qualify-ns (reduce (fn [acc sc]
                            (let [n (:ns sc)
                                  as (:as sc)
-                                 new? (not (contains? acc n))
-                                 ;; if alias foo exists and there is a
-                                 ;; namespaces fully written as foo, the alias
-                                 ;; wins, see #864
-                                 acc (if new? (assoc acc n n) acc)
-                                 ;; For the same reason, if there is an alias,
-                                 ;; assoc it regardless of whether there was
-                                 ;; already a namespace name here
-                                 acc (if as (assoc acc as n) acc)]
-                             acc))
+                                 new? (not (contains? acc n))]
+                             ;; if alias foo exists and there is a namespace
+                             ;; fully written as foo, the alias wins, see #864.
+                             ;; For the same reason, if there is an alias,
+                             ;; assoc it regardless of whether there was
+                             ;; already a namespace name here.
+                             (cond-> acc
+                               new? (assoc n n)
+                               as (assoc as n))))
                          {ns-name ns-name}
                          analyzed)
      :aliases (into {} (comp (filter :as) (map (juxt :as :ns))) analyzed)

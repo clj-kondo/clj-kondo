@@ -383,12 +383,15 @@
   nil)
 
 (defn reg-used-binding!
-  [{:keys [base-lang lang namespaces filename dependencies] :as ctx} ns-sym binding usage]
+  [{:keys [base-lang lang namespaces filename dependencies
+           local-use-tracker local-use-target] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (when-not dependencies
     (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
            conj binding))
+  (when (and local-use-tracker (identical? binding local-use-target))
+    (swap! local-use-tracker inc))
   nil)
 
 (defn reg-required-namespaces!
@@ -515,6 +518,24 @@
 
 (defn get-namespace [ctx base-lang lang ns-sym]
   (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
+
+(defn core-symbol-in-scope?
+  "Cheap check that the bare symbol `sym` in this ctx still refers to
+   clojure.core/`sym` (or cljs.core/`sym`). Pure ns/bindings lookup with no
+   side effects. Use as a fast alternative to `resolve-name` when you only
+   need to know whether a simple unqualified core symbol has been shadowed
+   by a local, redefined in the current ns, refer'd from elsewhere, or
+   excluded via `:refer-clojure :exclude`.
+
+   Returns false if `sym` is shadowed/redefined/referred/excluded, true
+   otherwise. Caller is responsible for confirming `sym` IS actually a core
+   var to begin with - this helper does not consult `var-info/core-sym?`."
+  [ctx sym]
+  (let [ns (get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
+    (and (not (contains? (:bindings ctx) sym))
+         (not (contains? (:referred-vars ns) sym))
+         (not (contains? (:vars ns) sym))
+         (not (contains? (:clojure-excluded ns) sym)))))
 
 (defn next-token [^StringTokenizer st]
   (when (.hasMoreTokens st)

@@ -197,7 +197,8 @@
               :locking-suspicious-lock {:level :warning}
               :destructured-or-always-evaluates {:level :off}
               :unquote-not-syntax-quoted {:level :warning}
-              :await-without-async-fn {:level :error}}
+              :await-without-async-fn {:level :error}
+              :conditional-build-up {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

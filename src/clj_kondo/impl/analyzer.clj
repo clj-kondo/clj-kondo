@@ -839,6 +839,40 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
+(defn- if-assoc-rebind-shape?
+  "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)` where `assoc`
+   still resolves to core. Does not inspect pred for self-reference - that is
+   handled via binding-use tracking. Must run with the ctx active at the value's
+   lexical scope so local shadows of `assoc` are detected."
+  [ctx value-node map-sym]
+  (when (= :list (tag value-node))
+    (let [[op _pred then else :as ch] (:children value-node)
+          then-children (:children then)]
+      (and (= 4 (count ch))
+           (= :token (tag op)) (= 'if (:value op))
+           (= :list (tag then))
+           (>= (count then-children) 4)
+           (let [[a m] then-children]
+             (and (= :token (tag a)) (= 'assoc (:value a))
+                  (= :token (tag m)) (= map-sym (:value m))
+                  (= :token (tag else)) (= map-sym (:value else))
+                  (namespace/core-symbol-in-scope? ctx 'assoc)))))))
+
+(defn- lint-conditional-build-up!
+  "A valid chain step needs exactly 2 references to the previous binding for
+   `m` (the `assoc m` head and `else m` branch - more means pred or assoc args
+   also reference it, which breaks a `cond->` rewrite) plus the if-assoc shape.
+   Both conditions are pre-computed per pair into a single truthy entry."
+  [ctx bv collected]
+  (loop [entries collected run 0]
+    (cond
+      (>= run 2)
+      (findings/reg-finding!
+       ctx (node->line (:filename ctx) bv :conditional-build-up
+                       "Prefer cond-> to build a map with successive conditional assocs."))
+      (seq entries)
+      (recur (next entries) (if (first entries) (inc run) 0)))))
+
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
         for-like? (one-of resolved-as-clojure-var-name [for doseq])
@@ -889,8 +923,22 @@
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
                   value-id (gensym)
+                  cbu-collector (:conditional-build-up-collector ctx)
+                  ;; Only allocate a tracker when there's a previous binding
+                  ;; of the same name to count refs against; otherwise no
+                  ;; chain step is possible.
+                  prev-binding (when cbu-collector (get bindings binding-val))
+                  pair-tracker (when prev-binding (atom 0))
+                  ;; Drop the collector when descending into value so nested
+                  ;; let-like forms (loop, for, when-let, ...) do not pollute
+                  ;; the outer let's collector. A nested `let` re-runs
+                  ;; `analyze-let` which installs its own collector.
+                  ctx** (cond-> ctx*
+                          pair-tracker (assoc :local-use-tracker pair-tracker
+                                              :local-use-target prev-binding)
+                          cbu-collector (dissoc :conditional-build-up-collector))
                   analyzed-value (when (and value (not for-let?))
-                                   (analyze-expression** ctx* (assoc value :id value-id)))
+                                   (analyze-expression** ctx** (assoc value :id value-id)))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
@@ -908,6 +956,10 @@
                                  (assoc arities binding-val (assoc arity
                                                                    :types types-by-arity))
                                  arities)]
+              (when cbu-collector
+                (swap! cbu-collector conj
+                       (and (= 2 (some-> pair-tracker deref))
+                            (if-assoc-rebind-shape? ctx* value binding-val))))
               (recur rest-bindings
                      (merge bindings new-bindings)
                      next-arities
@@ -982,8 +1034,19 @@
         analyzed))))
 
 (defn analyze-let [ctx expr]
-  (analyze-redundant-bindings ctx (-> expr :children second))
-  (analyze-like-let ctx expr))
+  (let [bv (-> expr :children second)
+        collector (when (and bv (= :vector (tag bv))
+                             ;; chain needs >=3 bindings (1 base + 2 rebinds),
+                             ;; i.e. >=6 binding-vector children
+                             (>= (count (:children bv)) 6)
+                             (not (linter-disabled? ctx :conditional-build-up)))
+                    (atom []))
+        ctx (cond-> ctx collector (assoc :conditional-build-up-collector collector))
+        _ (analyze-redundant-bindings ctx bv)
+        analyzed (analyze-like-let ctx expr)]
+    (when collector
+      (lint-conditional-build-up! ctx bv @collector))
+    analyzed))
 
 (defn analyze-do [{:keys [filename callstack] :as ctx} expr]
   (let [parent-call (second callstack)
