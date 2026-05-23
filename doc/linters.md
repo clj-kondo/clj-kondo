@@ -312,7 +312,7 @@ doesn't check for literally `true` values of vars since this is often a dev/prod
 
 *Description:* warn when a `let` repeatedly rebinds the same local map using forms like `(if pred (assoc m ...) m)`, which can often be written more clearly with `cond->`.
 
-*Default level:* `:info`.
+*Default level:* `:off`.
 
 *Example trigger:*
 
