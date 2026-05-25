@@ -68,6 +68,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Locking: suspicious lock](#locking-suspicious-lock)
     - [Main without gen-class](#main-without-gen-class)
     - [Minus one](#minus-one)
+    - [Misplaced async meta](#misplaced-async-meta)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
     - [Missing clause in try](#missing-clause-in-try)
@@ -1295,6 +1296,18 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 *Example message:* `Prefer (dec x) over (- x 1)`
 
 Also see `:plus-one`.
+
+### Misplaced async meta
+
+*Keyword:* `:misplaced-async-meta`.
+
+*Description:* warns when `^:async` metadata is placed where ClojureScript ignores it: on a function's argument vector or on the whole `(fn ...)` form. It must go on the function name. ClojureScript only.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(defn f ^:async [] (js/Promise.resolve 1))`
+
+*Example message:* `The ^:async metadata on the argument vector is ignored; put it on the function name.`
 
 ### Misplaced docstring
 
