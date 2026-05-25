@@ -390,6 +390,8 @@ foo/foo ;; this does use the private var
                                  "--lang" "cljs"))))
   (testing "await inside ^:async fn form is allowed"
     (is (empty? (lint! "(fn ^:async f [] (await 1))" "--lang" "cljs"))))
+  (testing "await inside fn with ^:async on the fn symbol is allowed"
+    (is (empty? (lint! "((^:async fn [] (await 1)))" "--lang" "cljs"))))
   (testing "clojure agent await is not flagged"
     (is (empty? (lint! "(defn f [] (await (agent 1)))" "--lang" "clj"))))
   (testing "await from non-cljs.core namespace is not flagged"
@@ -397,6 +399,32 @@ foo/foo ;; this does use the private var
                        "--lang" "cljs"))))
   (testing "await as local binding is not flagged"
     (is (empty? (lint! "(defn f [await] (await 1))" "--lang" "cljs")))))
+
+(deftest cljs-misplaced-async-metadata-test
+  (testing "^:async on defn argument vector is flagged, suggests the name only"
+    (assert-submap '{:file "<stdin>",
+                     :row 1,
+                     :col 17,
+                     :level :warning,
+                     :message "Misplaced ^:async metadata: expected on fn name instead"}
+                   (first (lint! "(defn f ^:async [] 1)" "--lang" "cljs"))))
+  (testing "^:async on fn argument vector is flagged, suggests name or fn sym"
+    (assert-submap '{:level :warning,
+                     :message "Misplaced ^:async metadata: expected on fn name or fn sym instead"}
+                   (first (lint! "(fn ^:async [] 1)" "--lang" "cljs"))))
+  (testing "^:async on one arity of a multi-arity fn is flagged"
+    (assert-submap '{:level :warning,
+                     :message "Misplaced ^:async metadata: expected on fn name instead"}
+                   (first (lint! "(defn f (^:async [] 1) ([x] x))" "--lang" "cljs"))))
+  (testing "^:async on the whole fn form is flagged"
+    (assert-submap '{:level :warning,
+                     :message "Misplaced ^:async metadata: expected on fn name or fn sym instead"}
+                   (first (lint! "(def f ^:async (fn [] 1))" "--lang" "cljs"))))
+  (testing "^:async on the function name is not flagged"
+    (is (empty? (lint! "(defn ^:async f [] 1)" "--lang" "cljs")))
+    (is (empty? (lint! "(fn ^:async f [] 1)" "--lang" "cljs"))))
+  (testing "^:async on argument vector in clj is not flagged"
+    (is (empty? (lint! "(defn f ^:async [] 1)" "--lang" "clj")))))
 
 (deftest built-in-test
   (is (= {:file "<stdin>",

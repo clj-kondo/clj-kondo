@@ -32,6 +32,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - macros from source: a `defmacro` (and any supporting `defn`/`defn-`/`def`) tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
 - Bump built-in ClojureScript analysis to 1.12.145, recognize `cljs.core/await`
 - NEW linter: `:await-without-async-fn` which warns when `cljs.core/await` is used outside a function with `^:async` metadata
+- NEW linter: `:misplaced-async-metadata` which warns when `^:async` metadata is placed on a function's argument vector or on the whole `(fn ...)` form, where ClojureScript ignores it; it must go on the function name
 
 ## 2026.04.15
 
