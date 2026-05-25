@@ -241,15 +241,25 @@
                          (assoc m :referred-all opt-expr)
                          :else m)))
                 (:as :as-alias)
-                (recur
-                 (nnext children)
-                 (assoc m
-                        :as (when opt
-                              (with-meta opt
-                                (cond-> (assoc (meta opt-expr)
-                                               :filename (:filename ctx))
-                                  (identical? :as-alias child-k)
-                                  (assoc :as-alias true))))))
+                (do
+                  (when (and (= ns-name opt)
+                             ;; Compare with raw-name too, to avoid warning on e.g. ["foo" :as foo]
+                             (= (:raw-name (meta ns-name)) opt))
+                    (findings/reg-finding!
+                     ctx
+                     (node->line (:filename ctx)
+                                 opt-expr
+                                 :alias-same-as-ns
+                                 (str "Alias same as namespace name: " opt))))
+                  (recur
+                   (nnext children)
+                   (assoc m
+                          :as (when opt
+                                (with-meta opt
+                                  (cond-> (assoc (meta opt-expr)
+                                                 :filename (:filename ctx))
+                                    (identical? :as-alias child-k)
+                                    (assoc :as-alias true)))))))
                 ;; shadow-cljs:
                 ;; https://shadow-cljs.github.io/docs/UsersGuide.html#_about_default_exports
                 :default
@@ -420,16 +430,15 @@
      :qualify-ns (reduce (fn [acc sc]
                            (let [n (:ns sc)
                                  as (:as sc)
-                                 new? (not (contains? acc n))
-                                 ;; if alias foo exists and there is a
-                                 ;; namespaces fully written as foo, the alias
-                                 ;; wins, see #864
-                                 acc (if new? (assoc acc n n) acc)
-                                 ;; For the same reason, if there is an alias,
-                                 ;; assoc it regardless of whether there was
-                                 ;; already a namespace name here
-                                 acc (if as (assoc acc as n) acc)]
-                             acc))
+                                 new? (not (contains? acc n))]
+                             ;; if alias foo exists and there is a namespace
+                             ;; fully written as foo, the alias wins, see #864.
+                             ;; For the same reason, if there is an alias,
+                             ;; assoc it regardless of whether there was
+                             ;; already a namespace name here.
+                             (cond-> acc
+                               new? (assoc n n)
+                               as (assoc as n))))
                          {ns-name ns-name}
                          analyzed)
      :aliases (into {} (comp (filter :as) (map (juxt :as :ns))) analyzed)
@@ -676,7 +685,8 @@
             (merge (assoc (new-namespace filename base-lang lang ns-name :ns row col)
                           :imports imports
                           :gen-class gen-class?
-                          :deprecated deprecated)
+                          :deprecated deprecated
+                          :synthetic-init (:synthetic-ns-init ctx))
                    (merge-with into
                                analyzed-require-clauses
                                refer-clj

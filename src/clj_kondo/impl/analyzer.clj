@@ -23,6 +23,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.docstring :as docstring]
    [clj-kondo.impl.findings :as findings]
+   [clj-kondo.impl.gen-macros :as gen-macros]
    [clj-kondo.impl.hooks :as hooks]
    [clj-kondo.impl.linters :as linters]
    [clj-kondo.impl.linters.config :as lint-config]
@@ -537,6 +538,20 @@
                                                    first-child
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
+        _ (when (and (not (identical? :clj (:lang ctx)))
+                     arg-vec
+                     (:async (meta (meta/lift-meta-content2 ctx arg-vec))))
+            ;; defn can only carry ^:async on its name, fn literals also on the fn symbol
+            (let [defn? (one-of (first (:callstack ctx))
+                                [[cljs.core defn]
+                                 [cljs.core defn-]])]
+              (findings/reg-finding!
+               ctx (node->line (:filename ctx)
+                               arg-vec
+                               :misplaced-async-metadata
+                               (str "Misplaced ^:async metadata: expected on fn name"
+                                    (when-not defn? " or fn sym")
+                                    " instead")))))
         ctx (-> ctx
                 (assoc :fn-args (:children arg-vec))
                 (assoc :body-children-count (count children))
@@ -675,6 +690,14 @@
                                   cljs.core/defmacro])
                          (:macro var-meta))
                  true)
+        gen-marked? (and (:clj-kondo/macroexpand-hook var-meta)
+                         ns-name fn-name
+                         (not (gen-macros/reserved-ns? ns-name)))
+        gen-macro? (and gen-marked?
+                        (one-of defined-by->lint-as
+                                [clojure.core/defmacro
+                                 cljs.core/defmacro]))
+        gen-macros-acc (when gen-marked? (atom []))
         deprecated (:deprecated var-meta)
         ctx (if macro?
               (ctx-with-bindings ctx '{&env {}
@@ -698,16 +721,30 @@
             (namespace/reg-var!
              ctx ns-name fn-name expr {:temp true}))
         parsed-bodies (map #(analyze-fn-body
-                             (-> ctx
-                                 (assoc :docstring docstring
-                                        :in-def fn-name
-                                        :macro? macro?))
+                             (cond-> (-> ctx
+                                         (assoc :docstring docstring
+                                                :in-def fn-name
+                                                :async-fn? (:async var-meta)
+                                                :macro? macro?))
+                               gen-macros-acc
+                               (assoc :gen-macros-aliases-acc gen-macros-acc))
                              %)
                            bodies)
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
         varargs-min-arity (get-in arities [:varargs :min-arity])]
+    (when gen-marked?
+      (gen-macros/record! ctx {:orig-ns ns-name
+                               :expr expr
+                               :alias-usages @gen-macros-acc
+                               :source-aliases (:aliases (:ns ctx))})
+      (when gen-macro?
+        (let [fq-sym (symbol (str ns-name) (str fn-name))
+              gen-ns (gen-macros/gen-ns-sym ns-name)
+              hook-cfg {:hooks {:macroexpand
+                                {fq-sym (symbol (str gen-ns) (str fn-name))}}}]
+          (swap! (:inline-configs ctx) conj hook-cfg))))
     (when fn-name
       (namespace/reg-var!
        ctx ns-name fn-name expr
@@ -816,6 +853,40 @@
                                             :message (str "Redundant let binding: " binding-val)))))
       (when (seq rest-bindings) (recur rest-bindings)))))
 
+(defn- if-assoc-rebind-shape?
+  "AST shape check: `(if pred (assoc map-sym k v ...) map-sym)` where `assoc`
+   still resolves to core. Does not inspect pred for self-reference - that is
+   handled via binding-use tracking. Must run with the ctx active at the value's
+   lexical scope so local shadows of `assoc` are detected."
+  [ctx value-node map-sym]
+  (when (= :list (tag value-node))
+    (let [[op _pred then else :as ch] (:children value-node)
+          then-children (:children then)]
+      (and (= 4 (count ch))
+           (= :token (tag op)) (= 'if (:value op))
+           (= :list (tag then))
+           (>= (count then-children) 4)
+           (let [[a m] then-children]
+             (and (= :token (tag a)) (= 'assoc (:value a))
+                  (= :token (tag m)) (= map-sym (:value m))
+                  (= :token (tag else)) (= map-sym (:value else))
+                  (namespace/core-symbol-in-scope? ctx 'assoc)))))))
+
+(defn- lint-conditional-build-up!
+  "A valid chain step needs exactly 2 references to the previous binding for
+   `m` (the `assoc m` head and `else m` branch - more means pred or assoc args
+   also reference it, which breaks a `cond->` rewrite) plus the if-assoc shape.
+   Both conditions are pre-computed per pair into a single truthy entry."
+  [ctx bv collected]
+  (loop [entries collected run 0]
+    (cond
+      (>= run 2)
+      (findings/reg-finding!
+       ctx (node->line (:filename ctx) bv :conditional-build-up
+                       "Prefer cond-> to build a map with successive conditional assocs."))
+      (seq entries)
+      (recur (next entries) (if (first entries) (inc run) 0)))))
+
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
   (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
         for-like? (one-of resolved-as-clojure-var-name [for doseq])
@@ -866,8 +937,22 @@
                            (ctx-with-bindings bindings)
                            (update :arities merge arities))
                   value-id (gensym)
+                  cbu-collector (:conditional-build-up-collector ctx)
+                  ;; Only allocate a tracker when there's a previous binding
+                  ;; of the same name to count refs against; otherwise no
+                  ;; chain step is possible.
+                  prev-binding (when cbu-collector (get bindings binding-val))
+                  pair-tracker (when prev-binding (atom 0))
+                  ;; Drop the collector when descending into value so nested
+                  ;; let-like forms (loop, for, when-let, ...) do not pollute
+                  ;; the outer let's collector. A nested `let` re-runs
+                  ;; `analyze-let` which installs its own collector.
+                  ctx** (cond-> ctx*
+                          pair-tracker (assoc :local-use-tracker pair-tracker
+                                              :local-use-target prev-binding)
+                          cbu-collector (dissoc :conditional-build-up-collector))
                   analyzed-value (when (and value (not for-let?))
-                                   (analyze-expression** ctx* (assoc value :id value-id)))
+                                   (analyze-expression** ctx** (assoc value :id value-id)))
                   tag (when (and let? binding (= :token (tag binding)))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
@@ -885,6 +970,10 @@
                                  (assoc arities binding-val (assoc arity
                                                                    :types types-by-arity))
                                  arities)]
+              (when cbu-collector
+                (swap! cbu-collector conj
+                       (and (= 2 (some-> pair-tracker deref))
+                            (if-assoc-rebind-shape? ctx* value binding-val))))
               (recur rest-bindings
                      (merge bindings new-bindings)
                      next-arities
@@ -959,8 +1048,19 @@
         analyzed))))
 
 (defn analyze-let [ctx expr]
-  (analyze-redundant-bindings ctx (-> expr :children second))
-  (analyze-like-let ctx expr))
+  (let [bv (-> expr :children second)
+        collector (when (and bv (= :vector (tag bv))
+                             ;; chain needs >=3 bindings (1 base + 2 rebinds),
+                             ;; i.e. >=6 binding-vector children
+                             (>= (count (:children bv)) 6)
+                             (not (linter-disabled? ctx :conditional-build-up)))
+                    (atom []))
+        ctx (cond-> ctx collector (assoc :conditional-build-up-collector collector))
+        _ (analyze-redundant-bindings ctx bv)
+        analyzed (analyze-like-let ctx expr)]
+    (when collector
+      (lint-conditional-build-up! ctx bv @collector))
+    analyzed))
 
 (defn analyze-do [{:keys [filename callstack] :as ctx} expr]
   (let [parent-call (second callstack)
@@ -1095,10 +1195,25 @@
         protocol-fn (:protocol-fn expr)
         ctx (assoc ctx :protocol-fn protocol-fn)
         children (:children expr)
+        fn-sym (first children)
         ?name-expr (second children)
         ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
+        ;; CLJS only honors ^:async on the fn symbol or the function name.
+        ;; Metadata on the whole (fn ...) form lands on the list's own metadata
+        ;; and is ignored.
+        _ (when (and (not (identical? :clj (:lang ctx)))
+                     (:async (meta expr)))
+            (findings/reg-finding!
+             ctx (node->line (:filename ctx)
+                             expr
+                             :misplaced-async-metadata
+                             "Misplaced ^:async metadata: expected on fn name or fn sym instead")))
+        ctx (assoc ctx :async-fn?
+                   (or (:async (meta (meta/lift-meta-content2 ctx fn-sym)))
+                       (when ?fn-name
+                         (:async (meta (meta/lift-meta-content2 ctx ?name-expr))))))
         _ (when (and ?name-expr (identical? :token (tag ?name-expr)))
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
@@ -1158,6 +1273,13 @@
                   (when (= 'quote (some-> children first
                                           utils/symbol-from-token))
                     (utils/symbol-from-token (second children)))))))]
+    (when (= alias-expr ns-expr)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   alias-expr
+                   :alias-same-as-ns
+                   (str "Alias same as namespace name: " alias-sym))))
     (if (and alias-sym (symbol? alias-sym) ns-sym (symbol? ns-sym))
       (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
       (analyze-children ctx children))
@@ -1356,11 +1478,25 @@
         children (if (:analyze-var-defs-shallowly? ctx)
                    []
                    children)
+        ns-name (-> ctx :ns :name)
+        gen-marked? (and core-def?
+                         (:clj-kondo/macroexpand-hook metadata)
+                         ns-name var-name
+                         (not (gen-macros/reserved-ns? ns-name)))
+        gen-macros-acc (when gen-marked? (atom []))
+        init-ctx (cond-> ctx
+                   gen-macros-acc
+                   (assoc :gen-macros-aliases-acc gen-macros-acc))
         def-init (when (and core-def?
                             (= 1 (count children)))
-                   (or (analyze-expression** ctx (first children))
+                   (or (analyze-expression** init-ctx (first children))
                        ;; prevent analysis of only child more than once
                        []))
+        _ (when gen-marked?
+            (gen-macros/record! ctx {:orig-ns ns-name
+                                     :expr expr
+                                     :alias-usages @gen-macros-acc
+                                     :source-aliases (:aliases (:ns ctx))}))
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!
@@ -2581,10 +2717,11 @@
                   :message "Default :or value is always evaluated.")))
         (cond unresolved-ns
               (let [fn-name (-> full-fn-name name symbol)]
-                (namespace/reg-unresolved-namespace! ctx ns-name
-                                                     (with-meta unresolved-ns
-                                                       (assoc (meta full-fn-name)
-                                                              :name fn-name)))
+                (when-not (:clj-kondo.impl/generated expr)
+                  (namespace/reg-unresolved-namespace! ctx ns-name
+                                                       (with-meta unresolved-ns
+                                                         (assoc (meta full-fn-name)
+                                                                :name fn-name))))
                 (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
                                                                fn-name])
                                   children))
@@ -2602,7 +2739,7 @@
                     (let [visited (:visited expr)]
                       (when-not (and visited (= visited [resolved-namespace resolved-name]))
                         (or
-                         (hooks/hook-fn ctx config resolved-namespace resolved-name)
+                         (hooks/hook-fn ctx config resolved-namespace resolved-name expr-meta)
                          (case [resolved-namespace resolved-name]
                            ([clojure.test testing] [cljs.test testing])
                            (when (:analysis-context ctx)
@@ -2809,6 +2946,15 @@
                           as-> (analyze-as-> ctx expr)
                           areduce (analyze-areduce ctx expr)
                           this-as (analyze-this-as ctx expr)
+                          await
+                          (do
+                            (when (and (= 'cljs.core resolved-as-namespace)
+                                       (not (:async-fn? ctx)))
+                              (findings/reg-finding!
+                               ctx (node->line (:filename ctx) expr
+                                               :await-without-async-fn
+                                               "Use of await is only allowed in functions with ^:async metadata.")))
+                            (analyze-children ctx children))
                           memfn (analyze-memfn ctx expr)
                           (format printf) (analyze-format ctx expr)
                           (use require)
@@ -3576,6 +3722,7 @@
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
                                        (dissoc :analysis)
+                                       (assoc :synthetic-ns-init true)
                                        (utils/ctx-with-linter-disabled :namespace-name-mismatch))
                                    (if (= "project.clj" (fs/file-name (:filename ctx)))
                                      (parse-string "(ns leiningen.core.project)")
@@ -3684,6 +3831,7 @@
                     ctx)
               ctx (assoc ctx
                          :inline-configs (atom [])
+                         :gen-macros (atom [])
                          :main-ns (atom nil))
               features (when (identical? :cljc lang)
                          (config/cljc-features config ))
@@ -3722,21 +3870,27 @@
           (when-let [cfg-dir (-> ctx :config :cfg-dir)]
             (when-let [main-ns @(:main-ns ctx)]
               (let [configs (-> ctx :inline-configs deref seq)
+                    gen-macros? (-> ctx :gen-macros deref seq boolean)
+                    auto-load? (not (false? (:auto-load-configs config)))
                     inline-file (io/file cfg-dir "inline-configs"
                                          (str (namespace-munge main-ns)
                                               (when-let [ext (fs/extension (:filename ctx))]
                                                 (str "." ext))) "config.edn")]
-                (if (and configs (not (false? (:auto-load-configs config))))
-                  (binding [cache/*lock-file-name* (str (io/file ".cache" ".config-lock"))]
-                    (cache/with-thread-lock
-                      (cache/with-cache ;; lock config dir for concurrent writes
-                        cfg-dir
-                        10
+                (if auto-load?
+                  (do
+                    (when configs
+                      (cache/with-named-lock (str (io/file ".cache" ".config-lock")) cfg-dir 10
                         (binding [*print-namespace-maps* false]
                           (spit (doto inline-file
-                                  (io/make-parents)) (apply config/merge-config! configs))))))
-                  (when (fs/exists? inline-file)
-                    (fs/delete-tree (fs/parent inline-file)))))))
+                                  (io/make-parents)) (apply config/merge-config! configs)))))
+                    (when-not gen-macros?
+                      (gen-macros/delete-for-file! ctx lang))
+                    (when (and (not configs) (fs/exists? inline-file))
+                      (fs/delete-tree (fs/parent inline-file))))
+                  (do
+                    (gen-macros/delete-for-file! ctx lang)
+                    (when (fs/exists? inline-file)
+                      (fs/delete-tree (fs/parent inline-file))))))))
           (doseq [f line-length-findings]
             (findings/reg-finding! ctx f)))
         (catch Exception e

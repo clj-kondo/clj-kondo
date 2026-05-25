@@ -80,8 +80,10 @@
               :reduce-without-init {:level :off
                                     :exclude [#_foo.bar/baz]}
               :misplaced-docstring {:level :warning}
+              :misplaced-async-metadata {:level :warning}
               :not-empty? {:level :warning}
               :not-nil? {:level :off}
+              :if-x-x-y {:level :off}
               :deprecated-var {:level :warning
                                #_:exclude
                                #_{foo.foo/deprecated-fn
@@ -175,6 +177,7 @@
               :minus-one {:level :off}
               :protocol-method-varargs {:level :error}
               :unused-alias {:level :off}
+              :alias-same-as-ns {:level :off}
               :self-requiring-namespace {:level :warning}
               :condition-always-true {:level :off}
               :underscore-in-namespace {:level :warning}
@@ -195,7 +198,9 @@
               :missing-protocol-method-arity {:level :off}
               :locking-suspicious-lock {:level :warning}
               :destructured-or-always-evaluates {:level :off}
-              :unquote-not-syntax-quoted {:level :warning}}
+              :unquote-not-syntax-quoted {:level :warning}
+              :await-without-async-fn {:level :error}
+              :conditional-build-up {:level :off}}
     ;; :hooks {:macroexpand ... :analyze-call ...}
     :lint-as {cats.core/->= clojure.core/->
               cats.core/->>= clojure.core/->>

@@ -108,12 +108,34 @@
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
-  with the same name. Returns updated namespace."
+  with the same name. Returns updated namespace.
+
+  When a full `(ns ...)` form re-declares a namespace that was previously
+  registered via another `(ns ...)` form in a different file, the
+  var-tracking state is reset so :redefined-var does not fire cross-file.
+  `(in-ns ...)` continuations are treated as temporary state that a
+  subsequent `(ns ...)` form leaves intact, so multi-file namespaces such
+  as clojure.core (core.clj + core_deftype.clj + ... via in-ns) are not
+  affected, even when files are processed in non-topological order. The
+  synthetic `(ns user)` that analyze-expressions bootstraps every file
+  with does not count either. See #2818."
   [{:keys [base-lang lang namespaces]} ns]
-  (let [{ns-name :name} ns
+  (let [{ns-name :name new-filename :filename ns-type :type} ns
         path [base-lang lang ns-name]]
-    (get-in (swap! namespaces update-in
-                   path deep-merge ns)
+    (get-in (swap! namespaces update-in path
+                   (fn [prev]
+                     (let [prev (if (and prev
+                                         (identical? :ns ns-type)
+                                         (identical? :ns (:type prev))
+                                         (not (:synthetic-init ns))
+                                         (not (:synthetic-init prev))
+                                         (:filename prev)
+                                         (not= (:filename prev) new-filename))
+                                  (-> prev
+                                      (assoc :vars nil)
+                                      (dissoc :var-counts))
+                                  prev)]
+                       (deep-merge prev ns))))
             path)))
 
 (defn- var-classfile
@@ -308,9 +330,18 @@
 
 (defn reg-used-namespace!
   "Registers usage of required namespaced in ns."
-  [{:keys [base-lang lang namespaces]} ns-sym required-ns-sym]
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym required-ns-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
-         conj required-ns-sym))
+         conj required-ns-sym)
+  ;; Capture per-usage kind for the macros-from-source feature so the
+  ;; generated hook file can decide between :as and :as-alias on the
+  ;; same evidence the analyzer already collects.
+  (when-let [acc (:gen-macros-aliases-acc ctx)]
+    (let [kind (cond
+                 (:gen-macros-as-alias-only? ctx) :as-alias
+                 (pos? (or (:syntax-quote-level ctx) 0)) :as-alias
+                 :else :as)]
+      (swap! acc conj {:ns required-ns-sym :kind kind}))))
 
 (defn reg-proxied-namespaces!
   [{:keys [base-lang lang namespaces]} ns-sym proxied-ns-syms]
@@ -352,12 +383,15 @@
   nil)
 
 (defn reg-used-binding!
-  [{:keys [base-lang lang namespaces filename dependencies] :as ctx} ns-sym binding usage]
+  [{:keys [base-lang lang namespaces filename dependencies
+           local-use-tracker local-use-target] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (when-not dependencies
     (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
            conj binding))
+  (when (and local-use-tracker (identical? binding local-use-target))
+    (swap! local-use-tracker inc))
   nil)
 
 (defn reg-required-namespaces!
@@ -484,6 +518,24 @@
 
 (defn get-namespace [ctx base-lang lang ns-sym]
   (get-in @(:namespaces ctx) [base-lang lang ns-sym]))
+
+(defn core-symbol-in-scope?
+  "Cheap check that the bare symbol `sym` in this ctx still refers to
+   clojure.core/`sym` (or cljs.core/`sym`). Pure ns/bindings lookup with no
+   side effects. Use as a fast alternative to `resolve-name` when you only
+   need to know whether a simple unqualified core symbol has been shadowed
+   by a local, redefined in the current ns, refer'd from elsewhere, or
+   excluded via `:refer-clojure :exclude`.
+
+   Returns false if `sym` is shadowed/redefined/referred/excluded, true
+   otherwise. Caller is responsible for confirming `sym` IS actually a core
+   var to begin with - this helper does not consult `var-info/core-sym?`."
+  [ctx sym]
+  (let [ns (get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
+    (and (not (contains? (:bindings ctx) sym))
+         (not (contains? (:referred-vars ns) sym))
+         (not (contains? (:vars ns) sym))
+         (not (contains? (:clojure-excluded ns) sym)))))
 
 (defn next-token [^StringTokenizer st]
   (when (.hasMoreTokens st)
