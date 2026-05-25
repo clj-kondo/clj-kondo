@@ -548,10 +548,10 @@
               (findings/reg-finding!
                ctx (node->line (:filename ctx)
                                arg-vec
-                               :misplaced-async-meta
-                               (str "The ^:async metadata on the argument vector is ignored; put it on the function name"
-                                    (when-not defn? " or fn symbol")
-                                    ".")))))
+                               :misplaced-async-metadata
+                               (str "Misplaced ^:async metadata: expected on fn name"
+                                    (when-not defn? " or fn sym")
+                                    " instead")))))
         ctx (-> ctx
                 (assoc :fn-args (:children arg-vec))
                 (assoc :body-children-count (count children))
@@ -1208,8 +1208,8 @@
             (findings/reg-finding!
              ctx (node->line (:filename ctx)
                              expr
-                             :misplaced-async-meta
-                             "The ^:async metadata on the function form is ignored; put it on the function name or fn symbol.")))
+                             :misplaced-async-metadata
+                             "Misplaced ^:async metadata: expected on fn name or fn sym instead")))
         ctx (assoc ctx :async-fn?
                    (or (:async (meta (meta/lift-meta-content2 ctx fn-sym)))
                        (when ?fn-name
