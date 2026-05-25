@@ -19,6 +19,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## 2026.05.25
 
+- Deprecation: this is the last release to include the clj-kondo LSP server and the bundled [VS Code extension](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo). For LSP-based editor integration, use [clojure-lsp](https://clojure-lsp.io/), which embeds clj-kondo.
 - Macros from source: a `defmacro` (and any supporting `defn`/`defn-`/`def`) tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
 - [#2822](https://github.com/clj-kondo/clj-kondo/issues/2822): NEW linter: `:alias-same-as-ns` which warns when an alias (`:as`) is the same as the namespace it's aliasing. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 - [#2807](https://github.com/clj-kondo/clj-kondo/issues/2807): NEW linter: `:conditional-build-up` which warns inside `let` when the same local map is rebound via successive `(if pred (assoc m ...) m)` patterns, suggesting `cond->` instead (default level: `:off`) ([@walber-araujo](https://github.com/walber-araujo))
