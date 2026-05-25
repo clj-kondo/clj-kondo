@@ -1698,7 +1698,7 @@ message is: `inc already refers to #'clojure.core/inc`
 
 ### Alias same as ns name
 
-*Keyword:* `:alias-same-ns-name`.
+*Keyword:* `:alias-same-as-ns`.
 
 *Description:* warn when alias is the same as the namespace it is aliasing
 
@@ -1706,7 +1706,7 @@ message is: `inc already refers to #'clojure.core/inc`
 
 *Example trigger:* `(ns foo (:require [bar :as bar]))`.
 
-*Example message:* `alias same as namespace name: bar`.
+*Example message:* `Alias same as namespace name: bar`.
 
 ### Redundant do
 

@@ -249,8 +249,8 @@
                      ctx
                      (node->line (:filename ctx)
                                  opt-expr
-                                 :alias-same-ns-name
-                                 (str "alias same as namespace name: " opt))))
+                                 :alias-same-as-ns
+                                 (str "Alias same as namespace name: " opt))))
                   (recur
                    (nnext children)
                    (assoc m

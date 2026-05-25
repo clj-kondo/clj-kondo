@@ -177,7 +177,7 @@
               :minus-one {:level :off}
               :protocol-method-varargs {:level :error}
               :unused-alias {:level :off}
-              :alias-same-ns-name {:level :off}
+              :alias-same-as-ns {:level :off}
               :self-requiring-namespace {:level :warning}
               :condition-always-true {:level :off}
               :underscore-in-namespace {:level :warning}
