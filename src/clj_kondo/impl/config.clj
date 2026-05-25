@@ -80,6 +80,7 @@
               :reduce-without-init {:level :off
                                     :exclude [#_foo.bar/baz]}
               :misplaced-docstring {:level :warning}
+              :misplaced-async-metadata {:level :warning}
               :not-empty? {:level :warning}
               :not-nil? {:level :off}
               :if-x-x-y {:level :off}

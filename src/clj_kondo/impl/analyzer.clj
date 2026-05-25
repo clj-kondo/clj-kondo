@@ -538,6 +538,20 @@
                                                    first-child
                                                    :misplaced-docstring
                                                    "Misplaced docstring."))))
+        _ (when (and (not (identical? :clj (:lang ctx)))
+                     arg-vec
+                     (:async (meta (meta/lift-meta-content2 ctx arg-vec))))
+            ;; defn can only carry ^:async on its name, fn literals also on the fn symbol
+            (let [defn? (one-of (first (:callstack ctx))
+                                [[cljs.core defn]
+                                 [cljs.core defn-]])]
+              (findings/reg-finding!
+               ctx (node->line (:filename ctx)
+                               arg-vec
+                               :misplaced-async-metadata
+                               (str "Misplaced ^:async metadata: expected on fn name"
+                                    (when-not defn? " or fn sym")
+                                    " instead")))))
         ctx (-> ctx
                 (assoc :fn-args (:children arg-vec))
                 (assoc :body-children-count (count children))
@@ -1181,14 +1195,25 @@
         protocol-fn (:protocol-fn expr)
         ctx (assoc ctx :protocol-fn protocol-fn)
         children (:children expr)
+        fn-sym (first children)
         ?name-expr (second children)
         ?fn-name (when ?name-expr
                    (when-let [n (utils/symbol-from-token ?name-expr)]
                      n))
+        ;; CLJS only honors ^:async on the fn symbol or the function name.
+        ;; Metadata on the whole (fn ...) form lands on the list's own metadata
+        ;; and is ignored.
+        _ (when (and (not (identical? :clj (:lang ctx)))
+                     (:async (meta expr)))
+            (findings/reg-finding!
+             ctx (node->line (:filename ctx)
+                             expr
+                             :misplaced-async-metadata
+                             "Misplaced ^:async metadata: expected on fn name or fn sym instead")))
         ctx (assoc ctx :async-fn?
-                   (:async (or (when ?name-expr
-                                 (meta (meta/lift-meta-content2 ctx ?name-expr)))
-                               (meta expr))))
+                   (or (:async (meta (meta/lift-meta-content2 ctx fn-sym)))
+                       (when ?fn-name
+                         (:async (meta (meta/lift-meta-content2 ctx ?name-expr))))))
         _ (when (and ?name-expr (identical? :token (tag ?name-expr)))
             (lint-fn-name! ctx ?name-expr))
         bodies (fn-bodies ctx (next children) expr)
