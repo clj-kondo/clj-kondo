@@ -8,14 +8,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 <!-- - [ ] fill in empty doc links in changelogs -->
 <!-- - [ ] script/bump_version release -->
-<!-- - [ ] clj-kondo lsp: bb publish -->
 <!-- - [ ] github release -->
 <!-- - [ ] homebrew: ./update-clj-kondo -->
 <!-- - [ ] clj-kondo pod -->
 <!-- - [ ] script/bump_version post-release -->
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update lein-clj-kondo -->
-<!-- - [ ] update carve -->
 
 ## 2026.05.25
 
