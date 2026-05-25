@@ -55,6 +55,14 @@
                m)"
             config)))
 
+  (testing "successive as-> forms also trigger"
+    (assert-submaps2
+     [{:level :warning}]
+     (lint! "(as-> {:k0 (f0 in)} m
+               (if (p1 in) (assoc m :k1 (f1 in)) m)
+               (if (p2 in) (assoc m :k2 (f2 in)) m))"
+            config)))
+
   (testing "inner let shadowing m does not falsely block detection"
     (assert-submaps2
      [{:level :warning}]
@@ -131,11 +139,29 @@
                           m)"
                        config))))
 
+  (testing "as-> predicate references map symbol"
+    (is (empty? (lint! "(as-> {} m
+                         (if (:a m) (assoc m :a 1) m)
+                         (if (:b m) (assoc m :b 2) m))"
+                       config))))
+
   (testing "else branch returns a different value from the variable itself"
     (is (empty? (lint! "(let [m {:k0 0}
                               m (if (pos? in) (assoc m :k1 1) m)
                               m (if (even? in) (assoc m :k2 2) {:other 3})]
                           m)"
+                       config))))
+
+  (testing "only one as-> conditional assoc (below threshold)"
+    (is (empty? (lint! "(as-> {:k0 0} m
+                         (if (pos? in) (assoc m :k1 1) m))"
+                       config))))
+
+  (testing "intermediate as-> non-conditional step breaks the sequence"
+    (is (empty? (lint! "(as-> {:k0 0} m
+                         (if true (assoc m :k1 1) m)
+                         ((fn [m'] m'))
+                         (if true (assoc m :k2 2) m))"
                        config))))
 
   (testing "intermediate non-conditional step breaks the sequence"
@@ -176,6 +202,13 @@
                               m (if (pos? in) (assoc m :k1 1) m)
                               m (if (even? in) (assoc m :k2 2) m)]
                           m)"
+                       config))))
+
+  (testing "as-> with local shadow of assoc does not fire"
+    (is (empty? (lint! "(let [assoc (fn [_ _ _] {})]
+                          (as-> {:k0 0} m
+                            (if (pos? in) (assoc m :k1 1) m)
+                            (if (even? in) (assoc m :k2 2) m)))"
                        config))))
 
   (testing "idiomatic cond-> does not produce a warning"

@@ -15,6 +15,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] update clj-kondo-bb -->
 <!-- - [ ] update lein-clj-kondo -->
 
+## Unreleased
+
+- [#2846](https://github.com/clj-kondo/clj-kondo/issues/2846): `:conditional-build-up` now also warns for successive conditional assoc patterns in `as->` forms ([@jramosg](https://github.com/jramosg))
+
 ## 2026.05.25
 
 - Macros from source: a `defmacro` (and any supporting `defn`/`defn-`/`def`) tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
