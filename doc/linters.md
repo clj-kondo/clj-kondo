@@ -91,6 +91,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Protocol method varargs](#protocol-method-varargs)
     - [Redefined var](#redefined-var)
     - [Var same name except case](#var-same-name-except-case)
+    - [Alias same as ns name](#alias-same-ns-name)
     - [Redundant do](#redundant-do)
     - [Redundant call](#redundant-call)
     - [Redundant declare](#redundant-declare)
@@ -1694,6 +1695,18 @@ message is: `inc already refers to #'clojure.core/inc`
 *Example trigger:* `(defmacro One [] 1) (defn one [] 1)`
 
 *Example message:* `warning: Var name one differs only in case from: One`.
+
+### Alias same as ns name
+
+*Keyword:* `:alias-same-as-ns`.
+
+*Description:* warn when alias is the same as the namespace it is aliasing
+
+*Default level:* `:off`.
+
+*Example trigger:* `(ns foo (:require [bar :as bar]))`.
+
+*Example message:* `Alias same as namespace name: bar`.
 
 ### Redundant do
 

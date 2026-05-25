@@ -1273,6 +1273,13 @@
                   (when (= 'quote (some-> children first
                                           utils/symbol-from-token))
                     (utils/symbol-from-token (second children)))))))]
+    (when (= alias-expr ns-expr)
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx)
+                   alias-expr
+                   :alias-same-as-ns
+                   (str "Alias same as namespace name: " alias-sym))))
     (if (and alias-sym (symbol? alias-sym) ns-sym (symbol? ns-sym))
       (namespace/reg-alias! ctx (:name ns) alias-sym ns-sym)
       (analyze-children ctx children))
