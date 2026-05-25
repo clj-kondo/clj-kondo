@@ -27,7 +27,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2818](https://github.com/clj-kondo/clj-kondo/issues/2818): do not fire `:redefined-var` across files when the same namespace is declared via `(ns ...)` in multiple files
 - [#2817](https://github.com/clj-kondo/clj-kondo/issues/2817): warn on `recur` inside a vector, map or set literal, `recur` is never in tail position there
 - [##2821](https://github.com/clj-kondo/clj-kondo/issues/2821): do not omit findings when `:cljc` `:features` specified ([@lread](https://github.com/lread))
-- Deprecation: this is the last release to include the clj-kondo LSP server and the bundled [VS Code extension](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo). For LSP-based editor integration, use [clojure-lsp](https://clojure-lsp.io/), which embeds clj-kondo.
+- Deprecation: this is the last release to include the clj-kondo LSP server and the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=borkdude.clj-kondo). For LSP-based editor integration, use [clojure-lsp](https://clojure-lsp.io/), which embeds clj-kondo.
 
 ## 2026.04.15
 
