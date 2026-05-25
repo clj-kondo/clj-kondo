@@ -8,12 +8,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 <!-- - [ ] fill in empty doc links in changelogs -->
 <!-- - [ ] script/bump_version release -->
-<!-- - [ ] github release -->
-<!-- - [ ] homebrew: ./update-clj-kondo -->
-<!-- - [ ] clj-kondo pod -->
-<!-- - [ ] script/bump_version post-release -->
-<!-- - [ ] update clj-kondo-bb -->
-<!-- - [ ] update lein-clj-kondo -->
+<!-- - [ ] github release (publish the draft manually) -->
+<!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## 2026.05.25
 
