@@ -1607,17 +1607,30 @@
                      (format "map is called with %s args but expects 1 or 2"
                              arg-count)))))))
 
-(defn lint-vector-or-set-call! [ctx tag arg-count expr]
+(defn lint-vector-call! [ctx arg-count expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)]
     (when (not= 1 arg-count)
       (when-not (config/skip? config :invalid-arity callstack)
         (findings/reg-finding!
-         ctx
-         (node->line (:filename ctx) expr :invalid-arity
-                     (str (if (= :vector tag) "Vector" "Set")
-                          " can only be called with 1 arg but was called with: "
-                          arg-count)))))))
+          ctx
+          (node->line (:filename ctx) expr :invalid-arity
+                      (str "Vector can only be called with 1 arg but was called with: "
+                           arg-count)))))))
+
+(defn lint-set-call! [ctx arg-count expr]
+  (let [callstack (:callstack ctx)
+        config (:config ctx)
+        cljs? (identical? :cljs (:lang ctx))
+        expected-arg-counts (if cljs? #{1 2} #{1})
+        expected-arg-str (if cljs? "1 or 2 args" "1 arg")]
+    (when-not (expected-arg-counts arg-count)
+      (when-not (config/skip? config :invalid-arity callstack)
+        (findings/reg-finding!
+          ctx
+          (node->line (:filename ctx) expr :invalid-arity
+                      (str "Set can only be called with " expected-arg-str " but was called with: "
+                           arg-count)))))))
 
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
@@ -1639,8 +1652,11 @@
       :map
       (lint-map-call! ctx (dec (count children)) expr)
 
-      (:vector :set)
-      (lint-vector-or-set-call! ctx tag (dec (count children)) expr)
+      :vector
+      (lint-vector-call! ctx (dec (count children)) expr)
+
+      :set
+      (lint-set-call! ctx (dec (count children)) expr)
 
       nil)
     (namespace/reg-used-binding! ctx
@@ -3520,10 +3536,14 @@
             (let [_ (utils/handle-ignore ctx function)
                   t (tag function)]
               (case t
-                :map
-                (do (lint-map-call! ctx arg-count expr)
-                    (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children (update ctx :callstack conj [nil t]) children))
+                (:map :vector :set)
+                (let [lint! (case t
+                              :map lint-map-call!
+                              :vector lint-vector-call!
+                              :set lint-set-call!)]
+                  (lint! ctx arg-count expr)
+                  (types/add-arg-type-from-expr ctx expr)
+                  (analyze-children (update ctx :callstack conj [nil t]) children))
                 :quote
                 (let [quoted-child (-> function :children first)]
                   (types/add-arg-type-from-expr ctx expr)
@@ -3546,10 +3566,6 @@
                         (reg-not-a-function! ctx quoted-child "number"))
                   (analyze-children (update ctx :callstack conj [nil t])
                                     children))
-                (:vector :set)
-                (do (lint-vector-or-set-call! ctx (tag function) arg-count expr)
-                    (types/add-arg-type-from-expr ctx expr)
-                    (analyze-children (update ctx :callstack conj [nil t]) children))
                 :token
                 (if-let [k (:k function)]
                   (do (lint-keyword-call! ctx k (:namespaced? function) arg-count expr)

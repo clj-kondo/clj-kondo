@@ -1856,6 +1856,9 @@ foo/foo ;; this does use the private var
      {:file "<stdin>", :row 1, :col 15, :level :error, :message "Set can only be called with 1 arg but was called with: 2"})
    (lint! "(#{}) (#{} 1) (#{} 1 2)"))
   (assert-submaps
+    '({:file "<stdin>", :row 1, :col 1, :level :error, :message "Set can only be called with 1 or 2 args but was called with: 0"})
+    (lint! "(#{}) (#{} 1) (#{} 1 2)" "--lang" "cljs"))
+  (assert-submaps
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Set is called with 2 args but expects 1"})
    (lint! "(map #{:a 1} [1 2 3] [1 2 3])"))
   (assert-submaps
