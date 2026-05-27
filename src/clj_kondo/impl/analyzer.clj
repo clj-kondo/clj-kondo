@@ -2070,10 +2070,43 @@
   (let [children (next (:children expr))
         [as-expr name-expr & forms-exprs] children
         analyzed-as-expr (analyze-expression** ctx as-expr)
-        binding (extract-bindings ctx name-expr expr {})]
+        binding (extract-bindings ctx name-expr expr {})
+        name-sym (when (and (= :token (tag name-expr))
+                            (symbol? (:value name-expr)))
+                   (:value name-expr))
+        as-binding (get binding name-sym)
+        collector (when (and as-binding
+                             (>= (count forms-exprs) 2)
+                             (not (linter-disabled? ctx :conditional-build-up)))
+                    (atom []))]
     (concat analyzed-as-expr
-            (analyze-children (ctx-with-bindings ctx binding)
-                              forms-exprs))))
+            (if collector
+              (let [ctx* (-> ctx
+                             (ctx-with-bindings binding)
+                             (assoc :len (count forms-exprs)))
+                    analyzed-forms
+                    (into []
+                          (comp
+                           (map-indexed
+                            (fn [idx form-expr]
+                              (let [pair-tracker (atom 0)
+                                    ctx** (assoc ctx*
+                                                 :idx idx
+                                                 :local-use-tracker pair-tracker
+                                                 :local-use-target as-binding)
+                                    analyzed-form (analyze-expression**
+                                                   ctx** form-expr)]
+                                (swap! collector conj
+                                       (and (= 2 @pair-tracker)
+                                            (if-assoc-rebind-shape?
+                                             ctx* form-expr name-sym)))
+                                analyzed-form)))
+                           cat)
+                          forms-exprs)]
+                (lint-conditional-build-up! ctx expr @collector)
+                analyzed-forms)
+              (analyze-children (ctx-with-bindings ctx binding)
+                                forms-exprs)))))
 
 (defn analyze-memfn [ctx expr]
   (analyze-children (utils/ctx-with-linter-disabled ctx :unresolved-symbol)
