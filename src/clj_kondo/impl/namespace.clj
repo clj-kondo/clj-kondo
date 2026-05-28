@@ -34,21 +34,22 @@
            namespaces)
    nil))
 
-(defn lint-conflicting-aliases! [ctx namespaces]
+(defn lint-conflicting-aliases! [ctx ns-sym namespaces]
   (let [config (:config ctx)
         level (-> config :linters :conflicting-alias :level)]
     (when-not (identical? :off level)
       (loop [aliases #{}
              ns-maps (filter :as namespaces)]
         (let [{:keys [ns as]} (first ns-maps)]
-          (when (contains? aliases as)
+          (when (or (contains? aliases as)
+                    (= ns-sym as))
             (findings/reg-finding!
              ctx
              (node->line (:filename ctx)
                          as
                          :conflicting-alias
                          (str "Conflicting alias for " ns))))
-          (when (seq (rest ns-maps))
+          (when (next ns-maps)
             (recur (conj aliases as)
                    (rest ns-maps))))))))
 
@@ -396,7 +397,7 @@
 
 (defn reg-required-namespaces!
   [{:keys [base-lang lang namespaces] :as ctx} ns-sym analyzed-require-clauses]
-  (lint-conflicting-aliases! ctx (:required analyzed-require-clauses))
+  (lint-conflicting-aliases! ctx ns-sym (:required analyzed-require-clauses))
   (lint-unsorted-required-namespaces! ctx (:required analyzed-require-clauses))
   (let [path [base-lang lang ns-sym]
         ns (get-in @namespaces path)]

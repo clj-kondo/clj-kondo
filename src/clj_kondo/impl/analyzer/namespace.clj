@@ -410,7 +410,7 @@
                  analyzed))
              kw+libspecs)
         _ (doseq [analyzed analyzed]
-            (namespace/lint-conflicting-aliases! ctx analyzed)
+            (namespace/lint-conflicting-aliases! ctx ns-name analyzed)
             (let [namespaces (map :ns analyzed)]
               (namespace/lint-unsorted-required-namespaces! ctx namespaces)
               (namespace/lint-duplicate-requires! ctx namespaces)))

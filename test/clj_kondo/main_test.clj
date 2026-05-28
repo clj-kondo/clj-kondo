@@ -582,7 +582,7 @@ foo/foo ;; this does use the private var
               :row 3})
            (lint! "(ns baz
                    (:require [clj-kondo.impl.analyzer
-                              [foo.bar :as baz]]))"
+                              [foo.bar :as qux]]))"
                   {:linters {:unused-namespace {:level :off}}}))))
   (testing "when multiple lib names with periods are found"
     (is (= '({:col 32
@@ -597,7 +597,7 @@ foo/foo ;; this does use the private var
               :row 4})
            (lint! "(ns baz
                    (:require [clj-kondo.impl.analyzer
-                              [babashka.quux :as baz]
+                              [babashka.quux :as qux]
                               [foo.bar :as quux]]))"
                   {:linters {:unused-namespace {:level :off}}}))))
   (testing "when a lib name with periods is a simple symbol"
@@ -3512,25 +3512,30 @@ app.api/my-var"
    (lint! "(ns foo (:require [foo.bar :as bar] [baz.bar :as bar]))"
           {:linters {:conflicting-alias {:level :error}
                      :unused-namespace {:level :off}}}))
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar :as baz]))"
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo-bar] [baz.bar :as baz]))"
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-namespace {:level :off}}})))
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [baz.bar] [foo.baz :refer [fun muchfun]]))"
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo-bar] [baz.bar] [foo.baz :refer [fun muchfun]]))"
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
-                                :unused-namespace {:level :off}}}))))
+                                :unused-namespace {:level :off}}})))
+  (assert-submaps [{:file "<stdin>", :row 1, :col 54,
+                    :level :error, :message "Conflicting alias for foo.foo"}]
+                  (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.foo :as foo]))"
+                         {:linters {:conflicting-alias {:level :error}
+                                    :unused-namespace {:level :off}}})))
 
 (deftest refer-test
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)")))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.baz :refer [asd]])) (foo-bar/bazbar) (asd)")))
   (assert-submaps
-   [{:file "<stdin>", :row 1, :col 46,
+   [{:file "<stdin>", :row 1, :col 50,
      :level :warning, :message #"require with :refer"}]
-   (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer [asd]])) (foo/bazbar) (asd)"
+   (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.baz :refer [asd]])) (foo-bar/bazbar) (asd)"
           {:linters {:refer {:level :warning}}}))
   (assert-submaps
-   [{:file "<stdin>", :row 1, :col 46,
+   [{:file "<stdin>", :row 1, :col 50,
      :level :warning, :message #"require with :refer"}]
-   (lint! "(ns foo (:require [foo.bar :as foo] [foo.baz :refer :all])) (foo/bazbar) (asd)"
+   (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.baz :refer :all])) (foo-bar/bazbar) (asd)"
           {:linters {:refer {:level :warning}
                      :refer-all {:level :off}}}))
   (assert-submaps
@@ -3553,7 +3558,7 @@ app.api/my-var"
    (lint! "(require '[foo.bar :refer [macro]]) (macro) "
           {:linters {:refer {:level :warning}
                      :refer-all {:level :off}}}))
-  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo])) (foo/bazbar)"
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo-bar])) (foo-bar/bazbar)"
                      {:linters {:refer {:level :warning}}})))
   (is (empty? (lint! "(ns foo (:require [clojure.test :refer [deftest]])) deftest"
                      '{:linters {:refer {:level :warning

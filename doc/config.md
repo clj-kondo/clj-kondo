@@ -279,6 +279,7 @@ namespaces.
 - `:equals-expected-position`: warn on usage of `=` with the expected constant not in the expected position.
 - `:missing-protocol-method-arity`: warn when a protocol method is implemented but not all declared arities are covered.
 - `:destructured-or-always-evaluates`: warn when an `:or` default value in a destructuring contains an expression that always evaluates.
+- `:alias-same-as-ns`: warn when alias is the same as the namespace it is aliasing.
 
 You can enable these linters by setting the `:level`:
 
