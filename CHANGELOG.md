@@ -11,6 +11,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+- [#2849](https://github.com/clj-kondo/clj-kondo/issues/2849): `:conflicting-alias` now catches conflicts with the current namespace name, not just other aliases ([@tomdl89](https://github.com/tomdl89))
+
 ## 2026.05.25
 
 - Macros from source: a `defmacro` (and any supporting `defn`/`defn-`/`def`) tagged with `{:clj-kondo/macroexpand-hook true}` is automatically extracted into `.clj-kondo/` and registered as a `:macroexpand` hook on the next run. See [doc/hooks.md](doc/hooks.md#macros-from-source)
