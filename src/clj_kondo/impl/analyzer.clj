@@ -2666,6 +2666,17 @@
       (namespace/reg-var! ctx ns-name sym expr))
     (analyze-associative ctx fields fn-name fields)))
 
+(defn- analyze-rest [ctx children]
+  (let [[parent-ns parent-fn :as parent] (second (:callstack ctx))]
+    ;; rest is usually less used than seq, hence avoiding the `analyze-seq` route
+    (when (and (one-of parent-ns [clojure.core cljs.core])
+               (= 'seq parent-fn))
+      (findings/reg-finding! ctx (node->line (:filename ctx)
+                                             parent ; Makes more sense to warn on the parent expr
+                                             :seq-rest
+                                             "Prefer (next x) over (seq (rest x))")))
+    (analyze-children ctx children false)))
+
 (defn analyze-call
   [{:keys [top-level? base-lang lang ns config dependencies] :as ctx}
    {:keys [arg-count
@@ -2999,6 +3010,7 @@
                           (exists?) (analyze-cljs-exists? ctx expr)
                           (with-precision) (analyze-with-precision ctx expr children)
                           (var) (analyze-var ctx expr children)
+                          (rest) (analyze-rest ctx children)
                           ;; catch-all
                           (case [resolved-as-namespace resolved-as-name]
                             [clj-kondo.lint-as def-catch-all]
