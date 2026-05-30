@@ -2667,15 +2667,16 @@
     (analyze-associative ctx fields fn-name fields)))
 
 (defn- analyze-rest [ctx children]
-  (let [[parent-ns parent-fn :as parent] (second (:callstack ctx))]
+  (when-not (identical? :off (-> ctx :config :linters :seq-rest :level))
     ;; rest is usually less used than seq, hence avoiding the `analyze-seq` route
-    (when (and (one-of parent-ns [clojure.core cljs.core])
-               (= 'seq parent-fn))
-      (findings/reg-finding! ctx (node->line (:filename ctx)
-                                             parent ; Makes more sense to warn on the parent expr
-                                             :seq-rest
-                                             "Prefer (next x) over (seq (rest x))")))
-    (analyze-children ctx children false)))
+    (let [[parent-ns parent-fn :as parent] (second (:callstack ctx))]
+      (when (and (one-of parent-ns [clojure.core cljs.core])
+                 (= 'seq parent-fn))
+        (findings/reg-finding! ctx (node->line (:filename ctx)
+                                               parent ; Makes more sense to warn on the parent expr
+                                               :seq-rest
+                                               "Prefer (next x) over (seq (rest x))")))))
+  (analyze-children ctx children false))
 
 (defn analyze-call
   [{:keys [top-level? base-lang lang ns config dependencies] :as ctx}
