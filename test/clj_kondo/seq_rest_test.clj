@@ -16,7 +16,7 @@
   (assert-submaps2
    '({:file "<stdin>"
       :row 1
-      :col 15
+      :col 21
       :level :warning
       :message "Prefer (next x) over (seq (rest x))"})
-   (lint! "(-> (rest 42) seq)" config)))
+   (lint! "(-> (range 42) rest seq)" config)))
