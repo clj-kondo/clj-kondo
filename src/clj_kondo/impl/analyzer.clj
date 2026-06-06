@@ -503,7 +503,10 @@
                 arity analyzed-arg-vec arglist-str arg-vec]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
-        ctx (ctx-with-bindings ctx arg-bindings)
+        ctx (-> (ctx-with-bindings ctx arg-bindings)
+                ;; params shadow any outer local fn of the same name: drop its
+                ;; stale arity info so calls aren't checked against it
+                (update :arities #(apply dissoc % (keys arg-bindings))))
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
@@ -935,7 +938,7 @@
                                 :else binding)
                   ctx* (-> ctx
                            (ctx-with-bindings bindings)
-                           (update :arities merge arities))
+                           (assoc :arities arities))
                   value-id (gensym)
                   cbu-collector (:conditional-build-up-collector ctx)
                   ;; Only allocate a tracker when there's a previous binding
@@ -969,7 +972,9 @@
                                  ;; since functions cannot be destructured
                                  (assoc arities binding-val (assoc arity
                                                                    :types types-by-arity))
-                                 arities)]
+                                 ;; a non-fn binding shadows any prior local fn
+                                 ;; of the same name: drop its stale arity info
+                                 (dissoc arities binding-val))]
               (when cbu-collector
                 (swap! cbu-collector conj
                        (and (= 2 (some-> pair-tracker deref))
@@ -1041,7 +1046,7 @@
                               (analyze-children
                                (-> ctx
                                    (ctx-with-bindings analyzed-bindings)
-                                   (update :arities merge arities)
+                                   (assoc :arities arities)
                                    (assoc :let-parent let-parent))
                                let-body
                                false)))]
