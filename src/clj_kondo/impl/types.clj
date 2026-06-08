@@ -557,10 +557,12 @@
           arity (:arity call)]
       (when-let [args-spec
                  (or
-                  (when-let [a (:arities (config/type-mismatch-config config called-ns called-name))]
-                    (args-spec-from-arities a arity))
-                  (when-let [a (get-in built-in-specs [called-ns called-name :arities])]
-                    (args-spec-from-arities a arity))
+                  (when-let [s (config/type-mismatch-config config called-ns called-name)]
+                    (when-let [a (:arities s)]
+                      (args-spec-from-arities a arity)))
+                  (when-let [s (get-in built-in-specs [called-ns called-name])]
+                    (when-let [a (:arities s)]
+                      (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
           (loop [check-ctx {}

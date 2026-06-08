@@ -290,9 +290,9 @@
    fq-syms))
 
 (defn skip-args
-  [config linter]
-  (some-> (get-in config [:linters linter :skip-args])
-          (only-fq-syms-eduction)))
+  ([config linter]
+   (some-> (get-in config [:linters linter :skip-args])
+           (only-fq-syms-eduction))))
 
 (defn skip?
   "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
