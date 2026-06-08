@@ -187,19 +187,3 @@
     (is (empty?
           (lint! "(require '[clojure.core.async :as a])
                   (a/go (map (fn [_] (a/<!! (a/chan))) [1 2 3]))")))))
-
-(deftest no-blocking-inside-go-false-positives-guard-test
-  (testing "fn returning blocking form is OK"
-    (is (empty?
-          (lint! "(require '[clojure.core.async :as a])
-                  (a/go (fn [] (identity (a/<!! (a/chan)))))"))))
-
-  (testing "higher-order function returning fn is OK"
-    (is (empty?
-          (lint! "(require '[clojure.core.async :as a])
-                  (a/go ((fn [] (fn [] (a/<!! (a/chan))))) )"))))
-
-  (testing "blocking inside map function is OK if not executed in go body"
-    (is (empty?
-          (lint! "(require '[clojure.core.async :as a])
-                  (a/go (map (fn [_] (a/<!! (a/chan))) [1 2 3]))")))))
