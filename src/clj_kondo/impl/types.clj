@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.types
   {:no-doc true}
-  (:refer-clojure :exclude [keyword select-keys])
+  (:refer-clojure :exclude [keyword select-keys get-in])
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -10,7 +10,7 @@
    [clj-kondo.impl.types.clojure.test :refer [clojure-test]]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr select-keys]]
+    [tag sexpr select-keys get-in]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -557,12 +557,10 @@
           arity (:arity call)]
       (when-let [args-spec
                  (or
-                  (when-let [s (config/type-mismatch-config config called-ns called-name)]
-                    (when-let [a (:arities s)]
-                      (args-spec-from-arities a arity)))
-                  (when-let [s (get-in built-in-specs [called-ns called-name])]
-                    (when-let [a (:arities s)]
-                      (args-spec-from-arities a arity)))
+                  (when-let [a (:arities (config/type-mismatch-config config called-ns called-name))]
+                    (args-spec-from-arities a arity))
+                  (when-let [a (get-in built-in-specs [called-ns called-name :arities])]
+                    (args-spec-from-arities a arity))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
           (loop [check-ctx {}

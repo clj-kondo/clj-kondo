@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
-  (:refer-clojure :exclude [unquote])
+  (:refer-clojure :exclude [unquote get-in])
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
+   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals get-in]]
    [clojure.set :as set]
    [clojure.walk :as walk]))
 
@@ -290,9 +290,9 @@
    fq-syms))
 
 (defn skip-args
-  ([config linter]
-   (some-> (get-in config [:linters linter :skip-args])
-           (only-fq-syms-eduction))))
+  [config linter]
+  (some-> (get-in config [:linters linter :skip-args])
+          (only-fq-syms-eduction)))
 
 (defn skip?
   "Used by invalid-arity linter. We optimize for the case that disable-within returns an empty sequence"
