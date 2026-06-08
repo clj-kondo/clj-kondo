@@ -1210,7 +1210,7 @@
      [clojure.core.async thread]
      [clojure.core.async thread-call]
      [cljs.core fn]
-     [cljs.core.fn*]
+     [cljs.core fn*]
      [cljs.core.async thread]
      [cljs.core.async thread-call]})
 
