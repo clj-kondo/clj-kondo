@@ -1,11 +1,12 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
+  (:refer-clojure :exclude [select-keys])
   (:require
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.utils :as utils]
+   [clj-kondo.impl.utils :as utils :refer [select-keys]]
    [clojure.java.io :as io]
    [clojure.pprint]
    [clojure.string :as str]

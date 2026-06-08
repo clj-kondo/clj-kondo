@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
-  (:refer-clojure :exclude [update-vals eduction])
+  (:refer-clojure :exclude [update-vals eduction select-keys])
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.analyzer.common :as common]
@@ -18,6 +18,19 @@
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
+
+(let [not-found (Object.)]
+  (defn select-keys
+    "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys
+  for efficiency, and also doesn't use `find` to avoid redundant allocations."
+    [m keyseq]
+    (persistent!
+     (reduce (fn [acc k]
+               (let [v (get m k not-found)]
+                 (if (identical? v not-found)
+                   acc
+                   (assoc! acc k v))))
+             (transient {}) keyseq))))
 
 ;;; export rewrite-clj functions
 
