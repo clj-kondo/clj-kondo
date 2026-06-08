@@ -29209,7 +29209,7 @@
   :langs (),
   :message "unused binding this",
   :row 71}
- {:end-row 17,
+ {:end-row 23,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/string.clj",
@@ -29217,8 +29217,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/Node",
-  :row 17}
- {:end-row 36,
+  :row 23}
+ {:end-row 41,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/string.clj",
@@ -29226,7 +29226,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 36}
+  :row 41}
  {:end-row 15,
   :type :unresolved-var,
   :level :warning,
