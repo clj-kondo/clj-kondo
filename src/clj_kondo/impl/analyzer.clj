@@ -1192,6 +1192,42 @@
         cse
         (recur (rest callstack))))))
 
+(def ^:private go-vars
+  '#{[clojure.core.async go]
+     [clojure.core.async go-loop]
+     [cljs.core.async go]
+     [cljs.core.async go-loop]
+     [cljs.core.async.macros go]
+     [cljs.core.async.macros go-loop]})
+
+(def ^:private execution-boundary-vars
+  '#{[clojure.core future]
+     [clojure.core delay]
+     [clojure.core lazy-seq]
+     [clojure.core lazy-cat]
+     [clojure.core fn]
+     [clojure.core fn*]
+     [clojure.core.async thread]
+     [clojure.core.async thread-call]
+     [cljs.core fn]
+     [cljs.core.fn*]
+     [cljs.core.async thread]
+     [cljs.core.async thread-call]})
+
+(defn in-go-on-current-thread? [callstack]
+  (boolean
+   (reduce (fn [_ frame]
+             (cond
+               (contains? go-vars frame)
+               (reduced true)
+
+               (contains? execution-boundary-vars frame)
+               (reduced false)
+
+               :else nil))
+           nil
+           callstack)))
+
 (defn mark-non-tail-recur
   "Marks ctx as a non-tail position for recur (e.g. inside a collection
   literal). An empty map is used as the sentinel so that downstream
@@ -2801,13 +2837,7 @@
                           case
                           (analyze-case ctx expr)
                           loop
-                          (analyze-loop (cond-> ctx
-                                          (contains? '#{clojure.core.async/go-loop
-                                                        cljs.core.async/go-loop
-                                                        cljs.core.async.macros/go-loop}
-                                                     resolved-var-sym)
-                                          (assoc :inside-go? true))
-                                        expr)
+                          (analyze-loop ctx expr)
                           recur
                           (analyze-recur ctx expr)
                           quote nil
@@ -2986,17 +3016,11 @@
                                                       [clojure.core lazy-cat]])
                                              (-> (assoc-in [:recur-arity :fixed-arity] 0)
                                                  (assoc :seen-recur? (volatile! nil))
-                                                 (dissoc :protocol-fn)))
-
-                                    next-ctx
-                                    (if (and (= resolved-namespace 'clojure.core.async)
-                                            (contains? '#{go go-loop} resolved-name))
-                                      (assoc next-ctx :inside-go? true)
-                                      next-ctx)]
+                                                 (dissoc :protocol-fn)))]
 
                                 (when (and (= resolved-namespace 'clojure.core.async)
-                                          (contains? '#{<!! >!! alts!!} resolved-name)
-                                          (:inside-go? ctx))
+                                           (contains? '#{<!! >!! alts!!} resolved-name)
+                                           (in-go-on-current-thread? (:callstack ctx)))
                                   (findings/reg-finding!
                                     ctx
                                     (node->line (:filename ctx)
