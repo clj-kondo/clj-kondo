@@ -138,3 +138,68 @@
     (is (empty?
           (lint! "(require '[clojure.core.async :as a]) (a/go (a/<!! (a/chan)))"
                  {:linters {:blocking-inside-go {:level :off}}})))))
+
+(deftest no-blocking-inside-go-via-fn-test
+  (testing "<!! inside fn inside go is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a]) (a/go (fn [] (a/<!! (a/chan))))"))))
+  (testing ">!! inside fn inside go is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a]) (a/go (fn [] (a/>!! (a/chan) 1)))"))))
+  (testing "alts!! inside fn inside go is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a]) (a/go (fn [] (a/alts!! [(a/chan)])))"))))
+  (testing "<!! inside fn with args inside go is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a]) (a/go (fn [x] (a/<!! x)))"
+                 {:linters {:unresolved-symbol {:level :off}}}))))
+  (testing "<!! inside #() inside go is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a]) (a/go #(a/<!! (a/chan)))"))))
+  (testing "<!! with refer inside fn inside go is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :refer [go <!! chan]]) (go (fn [] (<!! (chan))))")))))
+(deftest blocking-inside-go-direct-still-warns-test
+  (testing "<!! directly inside go still emits warning"
+    (assert-submaps2
+      '({:file "<stdin>", :row 1, :col 45, :level :warning,
+         :message "blocking operation inside go block"})
+      (lint! "(require '[clojure.core.async :as a]) (a/go (a/<!! (a/chan)))"))))
+(deftest blocking-inside-go-let-fn-test
+  (testing "<!! directly in let inside go still warns"
+    (assert-submaps2
+      '({:file "<stdin>", :row 1, :col 56, :level :warning,
+         :message "blocking operation inside go block"})
+      (lint! "(require '[clojure.core.async :as a]) (a/go (let [x 1] (a/<!! (a/chan))))"))))
+
+(deftest no-blocking-inside-go-false-positives-guard-test
+  (testing "fn returning blocking form is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a])
+                  (a/go (fn [] (identity (a/<!! (a/chan)))))"))))
+
+  (testing "higher-order function returning fn is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a])
+                  (a/go ((fn [] (fn [] (a/<!! (a/chan))))) )"))))
+
+  (testing "blocking inside map function is OK if not executed in go body"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a])
+                  (a/go (map (fn [_] (a/<!! (a/chan))) [1 2 3]))")))))
+
+(deftest no-blocking-inside-go-false-positives-guard-test
+  (testing "fn returning blocking form is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a])
+                  (a/go (fn [] (identity (a/<!! (a/chan)))))"))))
+
+  (testing "higher-order function returning fn is OK"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a])
+                  (a/go ((fn [] (fn [] (a/<!! (a/chan))))) )"))))
+
+  (testing "blocking inside map function is OK if not executed in go body"
+    (is (empty?
+          (lint! "(require '[clojure.core.async :as a])
+                  (a/go (map (fn [_] (a/<!! (a/chan))) [1 2 3]))")))))
