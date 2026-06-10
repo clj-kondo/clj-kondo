@@ -222,6 +222,30 @@
      :message "fn is called with 1 arg but expects 2"}]
    (lint! "(send-via clojure.lang.Agent/soloExecutor (agent nil) (fn [old extra] n))")))
 
+(deftest issue-2854-shadowed-local-fn-test
+  (testing "let binding shadowing a local fn drops its arity info"
+    (is (empty? (lint! "(let [foo (fn [x] x)
+                              foo vector]
+                          (foo 1 2 3))"
+                       '{:linters {:unused-binding {:level :off}}})))
+    (is (empty? (lint! "(letfn [(f [x y] (+ x y))]
+                          (let [f (partial f 1)]
+                            (f 2)))"))))
+  (testing "fn param shadowing a local fn drops its arity info"
+    (is (empty? (lint! "(letfn [(f ([] 0) ([_] (f)))
+                                (dmap [f xs]
+                                  (map f xs (next xs)))]
+                          (dmap str [1 2 3 4]))"))))
+  (testing "real arity errors on local fns are still reported"
+    (is (= 1 (count (lint! "(let [foo (fn [x] x)] (foo 1 2 3))"))))
+    (is (= 1 (count (lint! "(letfn [(g [x y] (+ x y))] (g 1))"))))
+    (testing "rebinding back to a fn re-registers arity info"
+      (is (= 1 (count (lint! "(let [h (fn [x] x)
+                                    h 5
+                                    h (fn [a b] (+ a b))]
+                                (h 1))"
+                            '{:linters {:unused-binding {:level :off}}})))))))
+
 (deftest def+fn-test
   (assert-submaps
    '({:file "corpus/def_fn.clj", :row 12, :col 1, :level :error,
