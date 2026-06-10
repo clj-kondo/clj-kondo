@@ -169,6 +169,7 @@
               :earmuffed-var-not-dynamic {:level :warning}
               :aliased-namespace-var-usage {:level :warning}
               :uninitialized-var {:level :warning}
+              :seq-rest {:level :off}
               :equals-false {:level :off}
               :equals-true {:level :off}
               :equals-nil {:level :off}
