@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
-  (:refer-clojure :exclude [unquote])
+  (:refer-clojure :exclude [unquote get-in])
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
+   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals get-in]]
    [clojure.set :as set]
    [clojure.walk :as walk]))
 

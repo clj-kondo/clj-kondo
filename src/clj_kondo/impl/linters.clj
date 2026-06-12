@@ -1,5 +1,6 @@
 (ns clj-kondo.impl.linters
   {:no-doc true}
+  (:refer-clojure :exclude [get-in])
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.config :as config]
@@ -8,7 +9,7 @@
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :as utils :refer [constant? export-ns-sym node->line
-                                           tag]]
+                                           tag get-in]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.set :as set]
    [clojure.string :as str]))

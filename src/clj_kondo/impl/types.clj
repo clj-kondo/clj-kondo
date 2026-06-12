@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.types
   {:no-doc true}
-  (:refer-clojure :exclude [keyword select-keys])
+  (:refer-clojure :exclude [keyword select-keys get-in])
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
@@ -10,7 +10,7 @@
    [clj-kondo.impl.types.clojure.test :refer [clojure-test]]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr select-keys]]
+    [tag sexpr select-keys get-in]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
