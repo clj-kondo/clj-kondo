@@ -6,11 +6,11 @@
    [clj-kondo.impl.overrides :as overrides]
    [clj-kondo.impl.utils :as utils :refer [assoc-some export-ns-sym select-some]]))
 
-(defn select-context [selector ctx]
+(defn select-context [selector context]
   (when selector
     (if (true? selector)
-      (:context ctx)
-      (select-keys (:context ctx) selector))))
+      context
+      (select-keys context selector))))
 
 (defn- assoc-some! [tm k v]
   (cond-> tm
@@ -39,9 +39,11 @@
                                           (:lang call)))
                      (assoc-some! :from-var (:in-def call))
                      (assoc-some! :dispatch-val-str (:dispatch-val-str call))
+                     ;; Taken from `name-meta`
                      (assoc-some! :name-row (:row name-meta))
                      (assoc-some! :name-col (:col name-meta))
-                     (assoc-some! :name-end-row (:col name-meta))
+                     (assoc-some! :name-end-row (:end-row name-meta))
+                     (assoc-some! :name-end-col (:end-col name-meta))
                      (assoc-some! :derived-name-location (:derived-location name-meta))
                      ;; Taken from `called-fn`.
                      (assoc-some! :private (:private called-fn))
@@ -51,7 +53,7 @@
                      (assoc-some! :deprecated (:deprecated called-fn))
                      ;; Misc
                      (assoc-some! :to to-ns)
-                     (assoc-some! :context (select-context (:analysis-context ctx) ctx)))]
+                     (assoc-some! :context (select-context (:analysis-context ctx) (:context call))))]
       ;; Use explicit lambda to avoid swap! going through less efficient varargs arity.
       (swap! analysis #(update % :var-usages conj (persistent! result))))))
 
@@ -80,7 +82,7 @@
                 :symbol symbol}
                extra-meta)
               :lang lang
-              :context (select-context (:analysis-context ctx) ctx))))))
+              :context (select-context (:analysis-context ctx) (:context ctx)))))))
 
 (defn reg-var! [{:keys [analysis-var-meta analysis base-lang lang
                         analyze-callstack-in-defs?] :as ctx}
@@ -185,7 +187,7 @@
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                          :from-var (:in-def ctx)
                          :from (get-in ctx [:ns :name])
-                         :context (select-context (:analysis-context ctx) usage))))))
+                         :context (select-context (:analysis-context ctx) (:context usage)))))))
 
 (defn reg-protocol-impl!
   [ctx filename impl-ns protocol-ns protocol-name method-node method-name-node defined-by defined-by->lint-as]
