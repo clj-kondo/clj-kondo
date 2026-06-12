@@ -407,7 +407,6 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns call-fn-name unresolved? refer-alls)
-
                   #_#__ (when (not call?)
                           (clojure.pprint/pprint (dissoc call :config)))
                   name-meta (meta call-fn-name)
@@ -478,11 +477,6 @@
                                 :end-row (or name-end-row end-row)
                                 :end-col (or name-end-col end-col))
                          call)))
-                  ;; row (:row call)
-                  ;; col (:col call)
-                  ;; end-row (:end-row call)
-                  ;; end-col (:end-col call)
-                  ;; filename (:filename call)
                   fn-ns (:ns called-fn)
                   resolved-ns (or fn-ns resolved-ns)
                   arity (:arity call)
@@ -490,32 +484,9 @@
                   recursive? (and
                               (= fn-ns caller-ns-sym)
                               (= call-fn-name in-def))
-                  _ (when (:analysis ctx)
-                      (when-not (:interop? call)
-                        (let [mexpr (meta (:expr call))]
-                          (when-not (:skip-analysis mexpr)
-                            (analysis/reg-usage! (assoc ctx :context (:context call))
-                                                 filename
-                                                 row
-                                                 col
-                                                 caller-ns-sym
-                                                 resolved-ns call-fn-name arity
-                                                 (when (= :cljc base-lang)
-                                                   call-lang)
-                                                 in-def
-                                                 (assoc called-fn
-                                                        :alias (:alias call)
-                                                        :refer (:refer call)
-                                                        :defmethod (:defmethod call)
-                                                        :dispatch-val-str (:dispatch-val-str call)
-                                                        :name-row name-row
-                                                        :name-col name-col
-                                                        :name-end-row name-end-row
-                                                        :name-end-col name-end-col
-                                                        :end-row end-row
-                                                        :end-col end-col
-                                                        :derived-location (:derived-location call)
-                                                        :derived-name-location (:derived-location name-meta)))))))
+                  _ (when (and (:analysis ctx) (not (:interop? call))
+                               (not (:skip-analysis (meta (:expr call)))))
+                      (analysis/reg-usage! ctx call resolved-ns base-lang called-fn))
                   call-config (:config call)
                   fn-sym (symbol (str resolved-ns)
                                  (str call-fn-name))]
