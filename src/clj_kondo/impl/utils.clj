@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.utils
   {:no-doc true}
-  (:refer-clojure :exclude [update-vals eduction select-keys])
+  (:refer-clojure :exclude [update-vals eduction select-keys get-in])
   (:require
    [babashka.fs :as fs]
    [clj-kondo.impl.analyzer.common :as common]
@@ -121,6 +121,16 @@
   (cond-> (attach-branch* node lang)
     splice? (update :children (fn [children]
                                 (map #(attach-branch* % lang) children)))))
+(defmacro get-in
+  "Similar to `clojure.core/get-in'`, but is a macro and when it encounters a
+  literal vector of keys, then it unrolls the keys into a series of `get` calls
+  which is more efficient than constructing the vector path and then iterating
+  over it. Otherwise, if `ks` is not a literal vector, expand to a regular
+  `clojure.core/get-in` invocation."
+  [m ks]
+  (if (vector? ks)
+    `(-> ~m ~@(map #(if (keyword? %) % `(get ~%)) ks))
+    `(clojure.core/get-in ~m ~ks)))
 
 (defn linter-disabled? [ctx linter]
   (= :off (get-in ctx [:config :linters linter :level])))
