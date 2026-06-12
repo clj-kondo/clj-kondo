@@ -62,6 +62,12 @@ To upgrade:
 
     brew upgrade clj-kondo
 
+If you installed clj-kondo before Homebrew introduced [tap
+trust](https://docs.brew.sh/Tap-Trust), you may see a warning like `Skipping
+clj-kondo: tap formula is not trusted`. To fix this, run:
+
+    brew trust borkdude/brew/clj-kondo
+
 <!-- ## NPM (Linux, MacOS, Windows) -->
 
 <!--     npm install -g clj-kondo -->
