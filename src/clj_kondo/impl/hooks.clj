@@ -1,6 +1,6 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
-  (:refer-clojure :exclude [select-keys])
+  (:refer-clojure :exclude [select-keys macroexpand])
   (:require
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
@@ -11,8 +11,7 @@
    [clojure.pprint]
    [clojure.string :as str]
    [sci.core :as sci]
-   [sci.ctx-store :as store])
-  (:refer-clojure :exclude [macroexpand]))
+   [sci.ctx-store :as store]))
 
 (set! *warn-on-reflection* true)
 
