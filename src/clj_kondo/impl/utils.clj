@@ -32,6 +32,16 @@
                    (assoc! acc k v))))
              (transient {}) keyseq))))
 
+(let [not-found (Object.)]
+  (defn update-some
+    "Like `clojure.core/update` but only performs the update on a key if the map
+  contains a value for that key."
+    [m k f]
+    (let [v (get m k not-found)]
+      (if (identical? v not-found)
+        m
+        (assoc m k (f v))))))
+
 ;;; export rewrite-clj functions
 
 (defn tag [expr]
@@ -119,8 +129,8 @@
 
 (defn attach-branch [node lang splice?]
   (cond-> (attach-branch* node lang)
-    splice? (update :children (fn [children]
-                                (map #(attach-branch* % lang) children)))))
+    splice? (update-some :children (fn [children]
+                                     (map #(attach-branch* % lang) children)))))
 (defmacro get-in
   "Similar to `clojure.core/get-in'`, but is a macro and when it encounters a
   literal vector of keys, then it unrolls the keys into a series of `get` calls
