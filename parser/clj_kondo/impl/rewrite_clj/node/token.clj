@@ -16,9 +16,10 @@
   (tag [_] :token)
   (printable-only? [_] false)
   (sexpr [this] (if (instance? clojure.lang.IObj value)
-                  (with-meta value (reduce merge (meta this)
-                                           (map (comp ->meta node/sexpr)
-                                                (:meta this))))
+                  (if-some [mta (meta this)]
+                    (with-meta value
+                               (reduce #(conj %1 (->meta (node/sexpr %2))) mta (:meta this)))
+                    value)
                   value))
   (length [_] (count string-value))
   (string [_] string-value)
@@ -33,7 +34,7 @@
 
 (defn token-node
   "Create node for an unspecified EDN token."
-  [value & [string-value]]
-  (->TokenNode
-    value
-    (or string-value (pr-str value))))
+  ([value]
+   (token-node value nil))
+  ([value string-value]
+   (->TokenNode value (or string-value (pr-str value)))))
