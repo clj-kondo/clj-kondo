@@ -45,7 +45,8 @@
 
 (defn- parse-delim
   [reader open-delimiter close-delimiter]
-  (let [{:keys [row col]} (reader/position reader :row :col)]
+  (let [row (r/get-line-number reader)
+        col (r/get-column-number reader)]
     (reader/ignore reader)
     (reader/read-repeatedly reader parse-next
                             (->ReaderContext open-delimiter close-delimiter
