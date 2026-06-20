@@ -29236,16 +29236,16 @@
   :langs (),
   :message "Unresolved var: node/Node",
   :row 15}
- {:end-row 20,
+ {:end-row 21,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
-  :col 62,
-  :end-col 72,
+  :col 59,
+  :end-col 69,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 20}
- {:end-row 28,
+  :row 21}
+ {:end-row 29,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29253,7 +29253,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 28}
+  :row 29}
  {:end-row 7,
   :type :unresolved-var,
   :level :warning,
@@ -29317,7 +29317,7 @@
   :langs (),
   :message "Unresolved var: node/forms-node",
   :row 20}
- {:end-row 63,
+ {:end-row 64,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29325,8 +29325,8 @@
   :end-col 36,
   :langs (),
   :message "Unresolved var: node/printable-only?",
-  :row 63}
- {:end-row 173,
+  :row 64}
+ {:end-row 174,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29334,8 +29334,8 @@
   :end-col 46,
   :langs (),
   :message "Unresolved var: node/tag",
-  :row 173}
- {:end-row 220,
+  :row 174}
+ {:end-row 221,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29343,8 +29343,8 @@
   :end-col 22,
   :langs (),
   :message "Unresolved var: node/set-node",
-  :row 220}
- {:end-row 221,
+  :row 221}
+ {:end-row 222,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29352,8 +29352,8 @@
   :end-col 21,
   :langs (),
   :message "Unresolved var: node/fn-node",
-  :row 221}
- {:end-row 222,
+  :row 222}
+ {:end-row 223,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29361,8 +29361,8 @@
   :end-col 24,
   :langs (),
   :message "Unresolved var: node/regex-node",
-  :row 222}
- {:end-row 224,
+  :row 223}
+ {:end-row 225,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29370,8 +29370,8 @@
   :end-col 22,
   :langs (),
   :message "Unresolved var: node/var-node",
-  :row 224}
- {:end-row 225,
+  :row 225}
+ {:end-row 226,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29379,8 +29379,8 @@
   :end-col 23,
   :langs (),
   :message "Unresolved var: node/eval-node",
-  :row 225}
- {:end-row 234,
+  :row 226}
+ {:end-row 235,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29388,8 +29388,8 @@
   :end-col 33,
   :langs (),
   :message "Unresolved var: node/reader-macro-node",
-  :row 234}
- {:end-row 238,
+  :row 235}
+ {:end-row 239,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29397,8 +29397,8 @@
   :end-col 40,
   :langs (),
   :message "Unresolved var: node/token-node",
-  :row 238}
- {:end-row 252,
+  :row 239}
+ {:end-row 253,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29406,8 +29406,8 @@
   :end-col 19,
   :langs (),
   :message "Unresolved var: node/deref-node",
-  :row 252}
- {:end-row 258,
+  :row 253}
+ {:end-row 259,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29415,8 +29415,8 @@
   :end-col 19,
   :langs (),
   :message "Unresolved var: node/quote-node",
-  :row 258}
- {:end-row 262,
+  :row 259}
+ {:end-row 263,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29424,8 +29424,8 @@
   :end-col 26,
   :langs (),
   :message "Unresolved var: node/syntax-quote-node",
-  :row 262}
- {:end-row 269,
+  :row 263}
+ {:end-row 270,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29433,8 +29433,8 @@
   :end-col 34,
   :langs (),
   :message "Unresolved var: node/unquote-splicing-node",
-  :row 269}
- {:end-row 271,
+  :row 270}
+ {:end-row 272,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29442,8 +29442,8 @@
   :end-col 25,
   :langs (),
   :message "Unresolved var: node/unquote-node",
-  :row 271}
- {:end-row 278,
+  :row 272}
+ {:end-row 279,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29451,8 +29451,8 @@
   :end-col 18,
   :langs (),
   :message "Unresolved var: node/list-node",
-  :row 278}
- {:end-row 282,
+  :row 279}
+ {:end-row 283,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29460,8 +29460,8 @@
   :end-col 20,
   :langs (),
   :message "Unresolved var: node/vector-node",
-  :row 282}
- {:end-row 286,
+  :row 283}
+ {:end-row 287,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/core.clj",
@@ -29469,7 +29469,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/map-node",
-  :row 286}
+  :row 287}
  {:end-row 43,
   :type :unresolved-var,
   :level :warning,
@@ -29498,7 +29498,7 @@
   :langs (),
   :message "Unresolved var: node/string-node",
   :row 10}
- {:end-row 31,
+ {:end-row 39,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/parser/token.clj",
@@ -29506,7 +29506,7 @@
   :end-col 23,
   :langs (),
   :message "Unresolved var: node/token-node",
-  :row 31}
+  :row 39}
  {:end-row 12,
   :type :unresolved-var,
   :level :warning,
