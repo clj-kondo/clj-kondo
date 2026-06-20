@@ -241,9 +241,11 @@
           dest (apply io/file cfg-dir (cond-> root
                                         use-import-dir?
                                         (->> (cons "imports"))))]
-      (swap! (:detected-configs ctx) conj (str copied-dir))
-      (io/make-parents dest)
-      (spit dest source))
+      (when-not (= source (try (slurp dest) (catch Exception _ nil)))
+        (io/make-parents dest)
+        (spit dest source)
+        (swap! (:detected-configs ctx) conj (str copied-dir)))
+      nil)
     (catch Exception e (prn (.getMessage e)))))
 
 (defn sources-from-jar
@@ -308,9 +310,11 @@
           dest (apply io/file cfg-dir (cond-> root
                                         use-import-dir?
                                         (->> (cons "imports"))))]
-      (swap! (:detected-configs ctx) conj (str copied-dir))
-      (io/make-parents dest)
-      (io/copy (io/file base-file) dest))
+      (when-not (= (slurp base-file) (try (slurp dest) (catch Exception _ nil)))
+        (io/make-parents dest)
+        (io/copy (io/file base-file) dest)
+        (swap! (:detected-configs ctx) conj (str copied-dir)))
+      nil)
     (catch Exception e (prn (.getMessage e)))))
 
 (defn seen?
