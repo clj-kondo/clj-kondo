@@ -3,9 +3,12 @@
   (:require [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader
              [edn :as edn]
              [reader-types :as r]]
+            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.errors
+             :as err]
             [clj-kondo.impl.rewrite-clj.parser
-              [utils :as u]]
-            [clojure.java.io :as io])
+             [utils :as u]]
+            [clojure.java.io :as io]
+            [clojure.string :as str])
   (:import [java.io PushbackReader]))
 
 (def ^:dynamic *reader-exceptions* nil)
@@ -47,12 +50,11 @@
 
 ;; ## Helpers
 
-(defn read-while
+(defn read-into-buffer-while
   "Read while the chars fulfill the given condition. Ignores
    the unmatching char."
-  [reader p? & [eof?]]
-  (let [buf (StringBuilder.)
-        eof? (if (nil? eof?)
+  [reader ^StringBuilder buf p? eof?]
+  (let [eof? (if (nil? eof?)
                (not (p? nil))
                eof?)]
     (loop []
@@ -61,12 +63,18 @@
           (do
             (.append buf (char c))
             (recur))
-          (do
-            (r/unread reader c)
-            (str buf)))
-        (if eof?
-          (str buf)
+          (r/unread reader c))
+        (when-not eof?
           (u/throw-reader reader "Unexpected EOF."))))))
+
+(defn read-while
+  "Read while the chars fulfill the given condition. Ignores the unmatching char."
+  ([reader p?]
+   (read-while reader p? nil))
+  ([reader p? eof?]
+   (let [buf (StringBuilder.)]
+     (read-into-buffer-while reader buf p? eof?)
+     (.toString buf))))
 
 (defn read-until
   "Read until a char fulfills the given condition. Ignores the
@@ -164,6 +172,48 @@
           n
           (if (= 1 n) "" "s")))
       vs)))
+
+(defn- parse-symbol
+  "Parses a string into a Symbol object, either unqualified or namespaced.
+
+  Cribbed from clojure/cljs.tools.reader.impl.commons/parse-symbol merging clj and cljs fns into single implementation
+  Added in equivalent of TRDR-73 patch to allow array class symbols (e.g. foobar/3)."
+  [^String token]
+  (when-not (or (= token "")
+                (str/ends-with? token ":")
+                (str/starts-with? token "::"))
+    (if-let [ns-idx (str/index-of token "/")]
+      (let [ns (subs token 0 ns-idx)
+            ns-idx (inc ns-idx)]
+        (when-not (== ns-idx (count token))
+          (let [sym (subs token ns-idx)]
+            (when (or (contains? #{"1" "2" "3" "4" "5" "6" "7" "8" "9"} sym)
+                      (and (not (Character/isDigit (char (nth sym 0))))
+                           (not (= "" sym))
+                           (not (str/ends-with? ns ":"))
+                           (or (= sym "/")
+                               (nil? (str/index-of sym "/")))))
+              (symbol ns sym)))))
+      (symbol token))))
+
+(defn read-symbol
+  "Return symbol parsed from `token`.
+
+  Cribbed from clojure/cljs.tools.reader.edn/read-symbol and - adapted to work on string"
+  [^String token]
+  (case token
+    ;; special symbols
+    "nil" nil
+    "true" true
+    "false" false
+    "/" '/
+
+    (or (parse-symbol token)
+        ;; Throw in same way that tools.reader would when reading a string
+        ;; for exeption compatibility. Some users, like clojure-lsp, currently rely
+        ;; on parsing exception strings. A user having to resort
+        ;; to parsing exception messages is not great, but a separate issue.
+        (err/throw-invalid nil :symbol token))))
 
 ;; ## Reader Types
 
