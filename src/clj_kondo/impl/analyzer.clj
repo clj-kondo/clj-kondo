@@ -225,7 +225,7 @@
            ;; symbol
            (utils/symbol-token? expr)
            (let [sym (:value expr)]
-             (when (= :keys (:destructuring-type opts))
+             (when (one-of (:destructuring-type opts) [:keys :keys!])
                (usages/analyze-keyword ctx expr opts))
              (when-not only-arity-analysis
                (when-let [fn-dupes (:fn-dupes ctx)]
@@ -344,20 +344,25 @@
                    (cond (:k k)
                          (let [key-name (keyword (name (:k k)))
                                ns-modifier? (one-of key-name [:keys :syms :strs
+                                                              :keys! :syms! :strs!
                                                               ;; TODO: restrict this to language :cljd
                                                               :flds])]
                            (if ns-modifier?
                              (do (usages/analyze-keyword ctx k (assoc opts :keys-destructuring-ns-modifier? true))
-                                 (recur rest-kvs
-                                        (into res (map #(extract-bindings
-                                                         ctx
-                                                         %
-                                                         scoped-expr
-                                                         (assoc opts
-                                                                :keys-destructuring? true
-                                                                :destructuring-type (some-> k :k name keyword)
-                                                                :destructuring-expr k)))
-                                              (:children v))))
+                                 (let [opts (assoc opts
+                                                   :keys-destructuring? true
+                                                   :destructuring-type key-name
+                                                   :destructuring-expr k)
+                                       [bound-children doc-children]
+                                       (split-with #(not= '& (:value %)) (:children v))
+                                       res (into res (map #(extract-bindings ctx % scoped-expr opts))
+                                                 bound-children)]
+                                   ;; entries after & are documentation only, no bindings
+                                   (doseq [child (rest doc-children)]
+                                     (when (or (:k child)
+                                               (one-of key-name [:keys :keys!]))
+                                       (usages/analyze-keyword ctx child opts)))
+                                   (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
                                  (case key-name
                                    :or

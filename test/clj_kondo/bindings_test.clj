@@ -405,3 +405,38 @@
                        {:linters {:unresolved-symbol {:level :error}}})))
     (is (empty? (lint! "(defmacro outer [] `(defmacro ~'inner [a# b#] `(+ ~a# ~b#)))"
                        {:linters {:unresolved-symbol {:level :error}}})))))
+
+(deftest required-keys-destructuring-test
+  (testing ":keys! binds names before &"
+    (is (empty? (lint! "(defn foo [{:keys! [x y]}] (+ x y))"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(let [{:syms! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:strs! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:person/keys! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(ns foo) (let [{::keys! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys! [:x :y/z person/name]} {}] [x z name])"
+                       '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "unused :keys! binding"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "unused binding x"})
+     (lint! "(let [{:keys! [x]} {}])"
+            '{:linters {:unused-binding {:level :warning}}})))
+  (testing "names after & are not bound"
+    (doseq [directive [":keys" ":syms" ":strs" ":keys!" ":syms!" ":strs!"]]
+      (is (empty? (lint! (str "(defn foo [{" directive " [x & z]}] x)")
+                         '{:linters {:unresolved-symbol {:level :error}
+                                     :unused-binding {:level :warning}}})))
+      (assert-submaps2
+       '({:file "<stdin>", :level :error, :message "Unresolved symbol: z"})
+       (lint! (str "(defn foo [{" directive " [x & z]}] [x z])")
+              '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys [& x y z]} {}])"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(defn foo [{:keys! [x & y/z :w]}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}})))))
