@@ -20,9 +20,13 @@
 
 (defn analyze-token [ctx expr]
   (let [sym (utils/symbol-from-token expr)]
-    (if (and sym
-             (not (contains? (:bindings ctx) sym)))
+    (cond
+      ;; & is rest pattern syntax, not a binding
+      (= '& sym) nil
+      (and sym
+           (not (contains? (:bindings ctx) sym)))
       (common/extract-bindings ctx expr)
+      :else
       (do
         (common/analyze-expression** ctx expr)
         nil))))
