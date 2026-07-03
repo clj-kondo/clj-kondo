@@ -13,6 +13,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Clojure 1.13 CLJ-2961: map destructuring: `:keys!` `:syms!` `:strs!`, `& x y z` unbound/checked args
+- Clojure 1.13 CLJ-2954: `&` is now invalid as a binding name in all binding positions
 - [#2849](https://github.com/clj-kondo/clj-kondo/issues/2849): `:conflicting-alias` now catches conflicts with the current namespace name, not just other aliases ([@tomdl89](https://github.com/tomdl89))
 - [#2848](https://github.com/clj-kondo/clj-kondo/pull/2848): allow calling sets and vectors with 2 arguments in ClojureScript, where the second argument is the not-found value ([@p-himik](https://github.com/p-himik))
 - [#2854](https://github.com/clj-kondo/clj-kondo/issues/2854): fix false positive `:invalid-arity` when an inner binding or fn param shadows a local function name ([@yuhan0](https://github.com/yuhan0))
