@@ -463,3 +463,17 @@
     (is (empty? (lint! "(let [[a & bs :as all] [1]] [a bs all])")))
     (is (empty? (lint! "(let [{:keys [x & z]} {}] x)")))
     (is (empty? (lint! "(try nil (catch Exception & nil))")))))
+
+(deftest required-binding-default-test
+  (testing ":or default for required binding is a compile error in Clojure 1.13"
+    (doseq [snippet ["(let [{:keys! [x] :or {x 1}} {}] x)"
+                     "(let [{:syms! [x] :or {x 1}} {}] x)"
+                     "(let [{:strs! [x] :or {x 1}} {}] x)"
+                     "(let [{:keys! [:x] :or {x 1}} {}] x)"
+                     "(let [{:or {x 1} :keys! [x]} {}] x)"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :error, :message "Can't supply default value for required binding: x"})
+       (lint! snippet))))
+  (testing ":or default allowed for non-required bindings"
+    (is (empty? (lint! "(let [{:keys [x] :or {x 1}} {}] x)")))
+    (is (empty? (lint! "(let [{x :x :keys! [y] :or {x 1}} {:y 1}] [x y])")))))

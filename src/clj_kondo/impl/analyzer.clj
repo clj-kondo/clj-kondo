@@ -109,6 +109,17 @@
       (let [binding (:value k)
             simple? (and (identical? :token (tag k))
                          (simple-symbol? binding))]
+        (when (:required (get m binding))
+          (let [mta (meta k)]
+            (findings/reg-finding!
+             ctx
+             {:message (str "Can't supply default value for required binding: " binding)
+              :row (:row mta)
+              :col (:col mta)
+              :end-row (:end-row mta)
+              :end-col (:end-col mta)
+              :filename (:filename ctx)
+              :type :syntax})))
         (when-not simple?
           (let [m (meta k)]
             (findings/reg-finding!
@@ -275,6 +286,8 @@
                                           :filename (:filename ctx)
                                           :tag t
                                           :auto-resolved (:namespaced? expr))
+                             (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
+                             (assoc :required true)
                              (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
@@ -302,6 +315,8 @@
                                       :keyword k
                                       :filename (:filename ctx)
                                       :auto-resolved (:namespaced? expr))
+                         (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
+                         (assoc :required true)
                          (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))
@@ -386,8 +401,9 @@
                                                  bound-children)]
                                    ;; entries after & are documentation only, no bindings
                                    (doseq [child (rest doc-children)]
-                                     (when (or (:k child)
-                                               (one-of key-name [:keys :keys!]))
+                                     (when (and (not= '& (:value child))
+                                                (or (:k child)
+                                                    (one-of key-name [:keys :keys!])))
                                        (usages/analyze-keyword ctx child opts)))
                                    (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
