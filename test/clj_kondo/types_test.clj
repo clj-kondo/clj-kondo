@@ -1655,6 +1655,96 @@
         :message "Expected: atom, received: future or nil."})
      (lint! "(defn foo [^java.util.concurrent.Future f] (swap! f inc))" config))))
 
+(deftest required-keys-inference-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "missing required keys inferred from :keys! fn args"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :b"}
+         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: :c"}
+         {:file "<stdin>", :row 4, :level :error, :message "Expected: map, received: nil."})
+       (lint! "
+(defn foo [{:keys! [a b & c]}] [a b])
+(foo {:a 1})
+(foo nil)
+(foo {:a 1 :b 2 :c 3})
+(defn dyn [m] (foo (assoc m :a 1)))
+(foo {(str \"k\") 1 :a 1 :b 2})"
+              config)))
+    (testing "qualified and auto-resolved keys"
+      (assert-submaps2
+       '({:file "<stdin>", :row 4, :level :error, :message "Missing required key: :person/id"}
+         {:file "<stdin>", :row 5, :level :error, :message "Missing required key: :foo/x"})
+       (lint! "(ns foo)
+(defn f1 [{:person/keys! [id]}] id)
+(defn f2 [{::keys! [x]}] x)
+(f1 {:id 1})
+(f2 {:x 1})
+(f1 {:person/id 1})
+(f2 {:foo/x 1})"
+              config)))
+    (testing ":syms! and :strs!"
+      (assert-submaps2
+       '({:file "<stdin>", :row 4, :col 21, :level :error, :message "Missing required key: x"}
+         {:file "<stdin>", :row 5, :col 22, :level :error, :message "Missing required key: y"})
+       (lint! "
+(defn fsym [{:syms! [x]}] x)
+(defn fstr [{:strs! [y]}] y)
+(fsym {'x 1}) (fsym {:x 1})
+(fstr {\"y\" 1}) (fstr {:y 1})"
+              config)))
+    (testing "no false positive for kwargs style"
+      (is (empty? (lint! "
+(defn kw [& {:keys! [x]}] x)
+(kw :other 1)"
+                         config))))
+    (testing "positional map arg before & rest is still checked"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"})
+       (lint! "
+(defn f [{:keys! [a]} & rst] [a rst])
+(f {} 1 2)"
+              config)))
+    (testing "multiple bang modifiers merge"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"}
+         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: y"})
+       (lint! "
+(defn f [{:keys! [a] :strs! [y]}] [a y])
+(f {})"
+              config)))
+    (testing "modifier order does not matter"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"})
+       (lint! "
+(defn f [{q :q :keys! [a]}] [q a])
+(f {:q 1})"
+              config)))
+    (testing "quoted map keys resolve a single quote level only"
+      (let [cfg {:linters {:type-mismatch
+                           {:level :error
+                            :namespaces '{foo {qfn {:arities {1 {:args [{:op :keys
+                                                                         :opt {:a :string}}]}}}}}}}}]
+        (assert-submaps2
+         '({:file "<stdin>", :row 1, :level :error, :message "Expected: string, received: positive integer."})
+         (lint! "(ns foo) (defn qfn [m] m) (qfn {':a 1})" cfg))
+        (is (empty? (lint! "(ns foo) (defn qfn [m] m) (qfn {'':a 1})" cfg)))))
+    (testing "required keys via cache"
+      (lint! "(ns req-keys-ns1)
+(defn create [{:keys! [id name]}] [id name])
+(defn by-sym [{:syms! [x]}] x)"
+             config
+             "--cache" "true")
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :name"}
+         {:file "<stdin>", :row 5, :level :error, :message "Missing required key: x"})
+       (lint! "
+(ns req-keys-ns2 (:require [req-keys-ns1]))
+(req-keys-ns1/create {:id 1})
+(req-keys-ns1/by-sym {'x 1})
+(req-keys-ns1/by-sym {:x 1})"
+              config
+              "--cache" "true")))))
+
 ;;;; Scratch
 
 (comment)

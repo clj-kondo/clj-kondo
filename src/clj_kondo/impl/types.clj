@@ -299,6 +299,11 @@
 
              :else
              (sexpr expr))
+    ;; single level only, ''x is the list (quote x), not x
+    :quote (let [child (first (:children expr))]
+             (if (identical? :token (tag child))
+               (map-key ctx child)
+               ::unknown))
     ::unknown))
 
 (defn map->tag [ctx expr]
@@ -526,15 +531,17 @@
 (declare lint-map!)
 
 (defn lint-map-types! [ctx arg mval spec spec-key required?]
-  (doseq [[k target] (get spec spec-key)]
-    (if-let [v (get mval k)]
-      (when-let [t (type-utils/resolve-arg-type ctx v)]
-        (if (= :keys (:op target))
-          (lint-map! ctx target v t)
-          (when-not (match? t target)
-            (emit-non-match! ctx target v t))))
-      (when required?
-        (emit-missing-required-key! ctx arg k)))))
+  ;; a statically unknown key could be any of the required keys
+  (let [required? (and required? (not (contains? mval ::unknown)))]
+    (doseq [[k target] (get spec spec-key)]
+      (if-let [v (get mval k)]
+        (when-let [t (type-utils/resolve-arg-type ctx v)]
+          (if (= :keys (:op target))
+            (lint-map! ctx target v t)
+            (when-not (match? t target)
+              (emit-non-match! ctx target v t))))
+        (when required?
+          (emit-missing-required-key! ctx arg k))))))
 
 (defn lint-map! [ctx s a t]
   (cond (and (:nilable s) (= :nil t))

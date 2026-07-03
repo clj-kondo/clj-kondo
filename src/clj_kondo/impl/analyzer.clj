@@ -226,6 +226,35 @@
                        :syntax
                        "Trailing :as in binding form")))))
 
+;; must produce the same keys as types/map-key does for call-site map literals
+(defn- required-destructuring-key
+  [ctx modifier-ns modifier-type entry]
+  (let [entry-name (or (:value entry) (:k entry))]
+    (when entry-name
+      (let [nm (name entry-name)]
+        (case modifier-type
+          :keys! (if (or (:namespaced? entry) (namespace entry-name))
+                   (let [resolved (usages/resolve-keyword ctx entry (-> ctx :ns :name))
+                         ns (:ns resolved)]
+                     (when-not (identical? :clj-kondo/unknown-namespace ns)
+                       (keyword (some-> ns str) (name (:name resolved)))))
+                   (keyword (some-> modifier-ns str) nm))
+          ;; symbol keys are never alias-resolved, unlike :keys! entries
+          :syms! (if-let [ens (namespace entry-name)]
+                   (symbol ens nm)
+                   (symbol (some-> modifier-ns str) nm))
+          :strs! nm)))))
+
+(defn- required-destructuring-keys
+  [ctx modifier-node modifier-type entries]
+  (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
+    (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
+      (into {}
+            (keep #(when-not (= '& (:value %))
+                     (when-let [k (required-destructuring-key ctx modifier-ns modifier-type %)]
+                       [k :any])))
+            entries))))
+
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
   ([ctx expr scoped-expr opts]
@@ -364,7 +393,15 @@
                                          children)
                                  second
                                  persistent!)))
-                       tags (map :tag (map meta v))
+                       ;; only map-destructure children can carry :keys-spec
+                       amp-idx (when-not all-tokens?
+                                 (count (take-while #(not= '& (:value %)) children)))
+                       tags (map-indexed (fn [i b]
+                                           (let [m (meta b)]
+                                             (or (when (and amp-idx (< i amp-idx))
+                                                   (:keys-spec m))
+                                                 (:tag m))))
+                                         v)
                        expr-meta (meta expr)
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
@@ -377,10 +414,18 @@
          :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
          :map
          ;; first check even amount of keys + vals
-         (let [opts (dissoc opts :allow-amp)]
+         (let [opts (dissoc opts :allow-amp)
+               req (reduce (fn [req [k v]]
+                             (let [key-name (some-> (:k k) name keyword)]
+                               (if (one-of key-name [:keys! :syms! :strs!])
+                                 (merge req (required-destructuring-keys
+                                             ctx k key-name (:children v)))
+                                 req)))
+                           {}
+                           (partition 2 (:children expr)))]
            (key-linter/lint-map-keys ctx expr)
            (loop [[k v & rest-kvs] (:children expr)
-                    res {}]
+                  res {}]
                (if k
                  (let [k (lift-meta-content* ctx k)]
                    (cond (:k k)
@@ -429,7 +474,8 @@
                          (recur rest-kvs (merge res
                                                 (extract-bindings ctx k scoped-expr opts)
                                                 {:analyzed (analyze-expression** ctx v)}))))
-                 res)))
+                 (cond-> res
+                   (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})))))
          (findings/reg-finding!
           ctx
           (node->line (:filename ctx)

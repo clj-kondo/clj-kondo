@@ -14,7 +14,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn ^:private resolve-keyword [ctx expr current-ns]
+(defn resolve-keyword [ctx expr current-ns]
   (let [aliased? (:namespaced? expr)
         token (if (symbol-token? expr)
                 (symbol-from-token expr)
