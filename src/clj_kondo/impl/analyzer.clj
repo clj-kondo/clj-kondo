@@ -163,7 +163,25 @@
   (let [rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
         varargs     (into [] (take-while #(not= :as (:k %))) rest-param+)
         as-args     (into [] (drop-while #(not= :as (:k %))) children)]
-    (cond (< 2 (count varargs))
+    (cond (and (< 1 (count varargs))
+               (= '& (:value (second varargs))))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (second varargs)
+                       :syntax
+                       "Invalid binding: &"))
+
+          (and (< 1 (count as-args))
+               (= '& (:value (second as-args))))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (second as-args)
+                       :syntax
+                       "Invalid binding: &"))
+
+          (< 2 (count varargs))
           (findings/reg-finding!
            ctx
            (node->line (:filename ctx)
@@ -225,7 +243,7 @@
            ;; symbol
            (utils/symbol-token? expr)
            (let [sym (:value expr)]
-             (when (= :keys (:destructuring-type opts))
+             (when (one-of (:destructuring-type opts) [:keys :keys!])
                (usages/analyze-keyword ctx expr opts))
              (when-not only-arity-analysis
                (when-let [fn-dupes (:fn-dupes ctx)]
@@ -236,7 +254,14 @@
                                                      :filename (:filename ctx)
                                                      :message (str "Shadowed fn param: " sym))))
                  (swap! fn-dupes conj sym)))
-             (when (not= '& sym)
+             (if (= '& sym)
+               (when-not (:allow-amp opts)
+                 (findings/reg-finding!
+                  ctx
+                  (node->line (:filename ctx)
+                              expr
+                              :syntax
+                              "Invalid binding: &")))
                (let [ns (namespace sym)
                      valid? (or (not ns)
                                 keys-destructuring?)]
@@ -309,14 +334,15 @@
                                 (let [[as as-sym] (take-last 2 children)]
                                   (when (identical? :as (:k as))
                                     as-sym)))
+                       child-opts (assoc opts :allow-amp true)
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
-                             (map #(extract-bindings ctx % scoped-expr opts) children)
+                             (map #(extract-bindings ctx % scoped-expr child-opts) children)
                              (-> (reduce (fn [[ctx acc] expr]
                                            (let [ctx (if (and as-sym (= expr as-sym))
                                                        (assoc ctx :mark-bindings-used? true)
                                                        ctx)
-                                                 bnds (extract-bindings ctx expr scoped-expr opts)]
+                                                 bnds (extract-bindings ctx expr scoped-expr child-opts)]
                                              [(ctx-with-bindings ctx bnds) (conj! acc bnds)]))
                                          [ctx
                                           (transient [])]
@@ -336,28 +362,34 @@
          :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
          :map
          ;; first check even amount of keys + vals
-         (do (key-linter/lint-map-keys ctx expr)
-             (loop [[k v & rest-kvs] (:children expr)
+         (let [opts (dissoc opts :allow-amp)]
+           (key-linter/lint-map-keys ctx expr)
+           (loop [[k v & rest-kvs] (:children expr)
                     res {}]
                (if k
                  (let [k (lift-meta-content* ctx k)]
                    (cond (:k k)
                          (let [key-name (keyword (name (:k k)))
                                ns-modifier? (one-of key-name [:keys :syms :strs
+                                                              :keys! :syms! :strs!
                                                               ;; TODO: restrict this to language :cljd
                                                               :flds])]
                            (if ns-modifier?
                              (do (usages/analyze-keyword ctx k (assoc opts :keys-destructuring-ns-modifier? true))
-                                 (recur rest-kvs
-                                        (into res (map #(extract-bindings
-                                                         ctx
-                                                         %
-                                                         scoped-expr
-                                                         (assoc opts
-                                                                :keys-destructuring? true
-                                                                :destructuring-type (some-> k :k name keyword)
-                                                                :destructuring-expr k)))
-                                              (:children v))))
+                                 (let [opts (assoc opts
+                                                   :keys-destructuring? true
+                                                   :destructuring-type key-name
+                                                   :destructuring-expr k)
+                                       [bound-children doc-children]
+                                       (split-with #(not= '& (:value %)) (:children v))
+                                       res (into res (map #(extract-bindings ctx % scoped-expr opts))
+                                                 bound-children)]
+                                   ;; entries after & are documentation only, no bindings
+                                   (doseq [child (rest doc-children)]
+                                     (when (or (:k child)
+                                               (one-of key-name [:keys :keys!]))
+                                       (usages/analyze-keyword ctx child opts)))
+                                   (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
                                  (case key-name
                                    :or
@@ -914,13 +946,6 @@
               ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
                             (= :let binding-val))]
-          (when (= '& binding-val)
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx)
-                         binding
-                         :syntax
-                         "Invalid binding: &")))
           (if for-let?
             (let [ctx* (ctx-with-bindings ctx bindings)
                   _ (analyze-redundant-bindings ctx* value)
@@ -1743,7 +1768,8 @@
   (let [ctx (update ctx :callstack conj [nil 'catch])
         [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
-        binding (extract-bindings ctx binding-expr (last exprs) {})]
+        ;; catch params are not let-bound, & is allowed there
+        binding (extract-bindings ctx binding-expr (last exprs) {:allow-amp true})]
     (analyze-children (ctx-with-bindings ctx binding)
                       exprs)))
 

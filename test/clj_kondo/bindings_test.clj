@@ -405,3 +405,61 @@
                        {:linters {:unresolved-symbol {:level :error}}})))
     (is (empty? (lint! "(defmacro outer [] `(defmacro ~'inner [a# b#] `(+ ~a# ~b#)))"
                        {:linters {:unresolved-symbol {:level :error}}})))))
+
+(deftest required-keys-destructuring-test
+  (testing ":keys! binds names before &"
+    (is (empty? (lint! "(defn foo [{:keys! [x y]}] (+ x y))"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(let [{:syms! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:strs! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:person/keys! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(ns foo) (let [{::keys! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys! [:x :y/z person/name]} {}] [x z name])"
+                       '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "unused :keys! binding"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "unused binding x"})
+     (lint! "(let [{:keys! [x]} {}])"
+            '{:linters {:unused-binding {:level :warning}}})))
+  (testing "names after & are not bound"
+    (doseq [directive [":keys" ":syms" ":strs" ":keys!" ":syms!" ":strs!"]]
+      (is (empty? (lint! (str "(defn foo [{" directive " [x & z]}] x)")
+                         '{:linters {:unresolved-symbol {:level :error}
+                                     :unused-binding {:level :warning}}})))
+      (assert-submaps2
+       '({:file "<stdin>", :level :error, :message "Unresolved symbol: z"})
+       (lint! (str "(defn foo [{" directive " [x & z]}] [x z])")
+              '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys [& x y z]} {}])"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(defn foo [{:keys! [x & y/z :w]}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}})))))
+
+(deftest invalid-amp-binding-test
+  (testing "CLJ-2954: & is not a valid local binding name"
+    (doseq [snippet ["(let [& 42] nil)"
+                     "(loop [& 1] (recur 1))"
+                     "(let [a 1 & 2] a)"
+                     "(for [x [1] :let [& 2]] x)"
+                     "(let [{& :x} {}] nil)"
+                     "(let [{:as &} {}] nil)"
+                     "(let [[a & &] [1 2 3]] a)"
+                     "(let [[a :as &] [1]] a)"
+                     "(as-> 1 &)"
+                     "(with-open [& nil])"
+                     "(defn foo [{& :x}] nil)"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :error, :message "Invalid binding: &"})
+       (lint! snippet))))
+  (testing "& allowed as rest marker and catch binding"
+    (is (empty? (lint! "(let [[a & b] [1 2]] [a b])")))
+    (is (empty? (lint! "(fn [a & b] [a b])")))
+    (is (empty? (lint! "(let [[a & bs :as all] [1]] [a bs all])")))
+    (is (empty? (lint! "(let [{:keys [x & z]} {}] x)")))
+    (is (empty? (lint! "(try nil (catch Exception & nil))")))))
