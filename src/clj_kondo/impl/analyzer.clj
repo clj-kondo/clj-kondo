@@ -226,9 +226,8 @@
                        :syntax
                        "Trailing :as in binding form")))))
 
+;; must produce the same keys as types/map-key does for call-site map literals
 (defn- required-destructuring-key
-  "Returns the map key required by an entry of a :keys!/:syms!/:strs!
-  destructuring vector, or nil when it can't be resolved statically."
   [ctx modifier-ns modifier-type entry]
   (let [entry-name (or (:value entry) (:k entry))]
     (when entry-name
@@ -240,14 +239,13 @@
                      (when-not (identical? :clj-kondo/unknown-namespace ns)
                        (keyword (some-> ns str) (name (:name resolved)))))
                    (keyword (some-> modifier-ns str) nm))
+          ;; symbol keys are never alias-resolved, unlike :keys! entries
           :syms! (if-let [ens (namespace entry-name)]
                    (symbol ens nm)
                    (symbol (some-> modifier-ns str) nm))
           :strs! nm)))))
 
 (defn- required-destructuring-keys
-  "Required keys map for one :keys!/:syms!/:strs! modifier vector,
-  post-& entries included."
   [ctx modifier-node modifier-type entries]
   (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
     (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
@@ -395,10 +393,13 @@
                                          children)
                                  second
                                  persistent!)))
-                       amp-idx (count (take-while #(not= '& (:value %)) children))
+                       ;; only map-destructure children can carry :keys-spec
+                       amp-idx (when-not all-tokens?
+                                 (count (take-while #(not= '& (:value %)) children)))
                        tags (map-indexed (fn [i b]
                                            (let [m (meta b)]
-                                             (or (when (< i amp-idx) (:keys-spec m))
+                                             (or (when (and amp-idx (< i amp-idx))
+                                                   (:keys-spec m))
                                                  (:tag m))))
                                          v)
                        expr-meta (meta expr)
@@ -413,11 +414,18 @@
          :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
          :map
          ;; first check even amount of keys + vals
-         (let [opts (dissoc opts :allow-amp)]
+         (let [opts (dissoc opts :allow-amp)
+               req (reduce (fn [req [k v]]
+                             (let [key-name (some-> (:k k) name keyword)]
+                               (if (one-of key-name [:keys! :syms! :strs!])
+                                 (merge req (required-destructuring-keys
+                                             ctx k key-name (:children v)))
+                                 req)))
+                           {}
+                           (partition 2 (:children expr)))]
            (key-linter/lint-map-keys ctx expr)
            (loop [[k v & rest-kvs] (:children expr)
-                  res {}
-                  req {}]
+                  res {}]
                (if k
                  (let [k (lift-meta-content* ctx k)]
                    (cond (:k k)
@@ -434,10 +442,6 @@
                                                    :destructuring-expr k)
                                        [bound-children doc-children]
                                        (split-with #(not= '& (:value %)) (:children v))
-                                       req (if (one-of key-name [:keys! :syms! :strs!])
-                                             (merge req (required-destructuring-keys
-                                                         ctx k key-name (:children v)))
-                                             req)
                                        res (into res (map #(extract-bindings ctx % scoped-expr opts))
                                                  bound-children)]
                                    ;; entries after & are documentation only, no bindings
@@ -446,7 +450,7 @@
                                                 (or (:k child)
                                                     (one-of key-name [:keys :keys!])))
                                        (usages/analyze-keyword ctx child opts)))
-                                   (recur rest-kvs res req)))
+                                   (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
                                  (case key-name
                                    :or
@@ -456,21 +460,20 @@
                                      (let [prev-ctx ctx
                                            ctx (ctx-with-bindings ctx res)]
                                        (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
-                                       (recur rest-kvs res req))
+                                       (recur rest-kvs res))
                                      ;; analyze or after the rest
                                      (let [;; prevent infinite loop with multiple :or
                                            rest-kvs (remove #(= :or (:k %)) rest-kvs)]
-                                       (recur (concat rest-kvs [k v]) res req)))
+                                       (recur (concat rest-kvs [k v]) res)))
                                    :as (if (-> ctx :config :linters :unused-binding
                                                :exclude-destructured-as)
-                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)) req)
-                                         (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts)) req))
-                                   (recur rest-kvs res req)))))
+                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
+                                         (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
+                                   (recur rest-kvs res)))))
                          :else
                          (recur rest-kvs (merge res
                                                 (extract-bindings ctx k scoped-expr opts)
-                                                {:analyzed (analyze-expression** ctx v)})
-                                req)))
+                                                {:analyzed (analyze-expression** ctx v)}))))
                  (cond-> res
                    (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})))))
          (findings/reg-finding!

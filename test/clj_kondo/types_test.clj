@@ -1697,15 +1697,51 @@
 (defn kw [& {:keys! [x]}] x)
 (kw :other 1)"
                          config))))
+    (testing "positional map arg before & rest is still checked"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"})
+       (lint! "
+(defn f [{:keys! [a]} & rst] [a rst])
+(f {} 1 2)"
+              config)))
+    (testing "multiple bang modifiers merge"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"}
+         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: y"})
+       (lint! "
+(defn f [{:keys! [a] :strs! [y]}] [a y])
+(f {})"
+              config)))
+    (testing "modifier order does not matter"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"})
+       (lint! "
+(defn f [{q :q :keys! [a]}] [q a])
+(f {:q 1})"
+              config)))
+    (testing "quoted map keys resolve a single quote level only"
+      (let [cfg {:linters {:type-mismatch
+                           {:level :error
+                            :namespaces '{foo {qfn {:arities {1 {:args [{:op :keys
+                                                                         :opt {:a :string}}]}}}}}}}}]
+        (assert-submaps2
+         '({:file "<stdin>", :row 1, :level :error, :message "Expected: string, received: positive integer."})
+         (lint! "(ns foo) (defn qfn [m] m) (qfn {':a 1})" cfg))
+        (is (empty? (lint! "(ns foo) (defn qfn [m] m) (qfn {'':a 1})" cfg)))))
     (testing "required keys via cache"
-      (lint! "(ns req-keys-ns1) (defn create [{:keys! [id name]}] [id name])"
+      (lint! "(ns req-keys-ns1)
+(defn create [{:keys! [id name]}] [id name])
+(defn by-sym [{:syms! [x]}] x)"
              config
              "--cache" "true")
       (assert-submaps2
-       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :name"})
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :name"}
+         {:file "<stdin>", :row 5, :level :error, :message "Missing required key: x"})
        (lint! "
 (ns req-keys-ns2 (:require [req-keys-ns1]))
-(req-keys-ns1/create {:id 1})"
+(req-keys-ns1/create {:id 1})
+(req-keys-ns1/by-sym {'x 1})
+(req-keys-ns1/by-sym {:x 1})"
               config
               "--cache" "true")))))
 

@@ -299,7 +299,11 @@
 
              :else
              (sexpr expr))
-    :quote (map-key ctx (first (:children expr)))
+    ;; single level only, ''x is the list (quote x), not x
+    :quote (let [child (first (:children expr))]
+             (if (identical? :token (tag child))
+               (map-key ctx child)
+               ::unknown))
     ::unknown))
 
 (defn map->tag [ctx expr]
