@@ -358,6 +358,20 @@
                                            :exclude-destructured-as true}}})))))
 
 
+(deftest select-destructuring-test
+  (testing ":select binds a name (Clojure 1.13)"
+    (is (empty? (lint! "(let [{:keys [a b] :select m} {:a 1 :b 2}] [a b m])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing "unused :select binding"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :col 26
+                        :level :warning
+                        :message "unused binding m"})
+                     (lint! "(let [{:keys [a] :select m} {}] a)"
+                            '{:linters {:unused-binding {:level :warning}}}))))
+
 (deftest used-underscored-binding-test
   (assert-submaps2
    '({:file "<stdin>",
