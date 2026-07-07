@@ -411,14 +411,19 @@
                      (assoc expr-meta
                             :tag t
                             :tags tags)))
-         :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
+         :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr
+                                           (assoc opts :namespaced-map true))
          :map
          ;; first check even amount of keys + vals
-         (let [opts (dissoc opts :allow-amp)
+         (let [;; in a namespaced map the reader qualifies :select, which
+               ;; Clojure rejects as a map directive
+               select-directive? (if (:namespaced-map opts)
+                                   (fn [_] false)
+                                   (fn [k] (and (= :select (:k k))
+                                                (not (:namespaced? k)))))
+               opts (dissoc opts :allow-amp :namespaced-map)
                kvs (partition 2 (:children expr))
-               select? (some (fn [[k _]]
-                               (= :select (some-> (:k k) name keyword)))
-                             kvs)
+               select? (some (fn [[k _]] (select-directive? k)) kvs)
                [req sel] (reduce (fn [[req sel] [k v]]
                                    (let [key-name (some-> (:k k) name keyword)]
                                      (cond (one-of key-name [:keys! :syms! :strs!])
@@ -482,9 +487,11 @@
                                          (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
                                          (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
                                    ;; Clojure 1.13: binds a map with the keys named in this form
-                                   :select (recur rest-kvs
-                                                  (merge res (extract-bindings ctx v scoped-expr
-                                                                               (assoc opts :tag {:type :map :val sel}))))
+                                   :select (if (select-directive? k)
+                                             (recur rest-kvs
+                                                    (merge res (extract-bindings ctx v scoped-expr
+                                                                                 (assoc opts :tag {:type :map :val sel}))))
+                                             (recur rest-kvs res))
                                    (recur rest-kvs res)))))
                          :else
                          (recur rest-kvs (merge res

@@ -370,7 +370,28 @@
                         :level :warning
                         :message "unused binding m"})
                      (lint! "(let [{:keys [a] :select m} {}] a)"
-                            '{:linters {:unused-binding {:level :warning}}}))))
+                            '{:linters {:unused-binding {:level :warning}}})))
+  (testing "only the exact :select keyword is a directive"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :level :error
+                        :message "Unresolved symbol: m1"}
+                       {:file "<stdin>"
+                        :row 2
+                        :level :error
+                        :message "Unresolved symbol: m2"}
+                       {:file "<stdin>"
+                        :row 3
+                        :level :error
+                        :message "Unresolved symbol: m3"})
+                     (lint! "(let [{:person/select m1} {}] m1)
+(let [{::select m2} {}] m2)
+(let [#:person{:keys [id] :select m3} {}] [id m3])"
+                            '{:linters {:unresolved-symbol {:level :error}}}))
+    (testing "a plain map nested in a namespaced map can use :select"
+      (is (empty? (lint! "(let [#:person{{:keys [b] :select m} :sub} {}] [b m])"
+                         '{:linters {:unresolved-symbol {:level :error}
+                                     :unused-binding {:level :warning}}}))))))
 
 (deftest used-underscored-binding-test
   (assert-submaps2
