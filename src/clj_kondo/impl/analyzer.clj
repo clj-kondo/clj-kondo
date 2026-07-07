@@ -227,31 +227,31 @@
                        "Trailing :as in binding form")))))
 
 ;; must produce the same keys as types/map-key does for call-site map literals
-(defn- required-destructuring-key
+(defn- destructuring-key
   [ctx modifier-ns modifier-type entry]
   (let [entry-name (or (:value entry) (:k entry))]
     (when entry-name
       (let [nm (name entry-name)]
         (case modifier-type
-          :keys! (if (or (:namespaced? entry) (namespace entry-name))
-                   (let [resolved (usages/resolve-keyword ctx entry (-> ctx :ns :name))
-                         ns (:ns resolved)]
-                     (when-not (identical? :clj-kondo/unknown-namespace ns)
-                       (keyword (some-> ns str) (name (:name resolved)))))
-                   (keyword (some-> modifier-ns str) nm))
+          (:keys :keys!) (if (or (:namespaced? entry) (namespace entry-name))
+                           (let [resolved (usages/resolve-keyword ctx entry (-> ctx :ns :name))
+                                 ns (:ns resolved)]
+                             (when-not (identical? :clj-kondo/unknown-namespace ns)
+                               (keyword (some-> ns str) (name (:name resolved)))))
+                           (keyword (some-> modifier-ns str) nm))
           ;; symbol keys are never alias-resolved, unlike :keys! entries
-          :syms! (if-let [ens (namespace entry-name)]
-                   (symbol ens nm)
-                   (symbol (some-> modifier-ns str) nm))
-          :strs! nm)))))
+          (:syms :syms!) (if-let [ens (namespace entry-name)]
+                           (symbol ens nm)
+                           (symbol (some-> modifier-ns str) nm))
+          (:strs :strs!) nm)))))
 
-(defn- required-destructuring-keys
+(defn- destructuring-keys
   [ctx modifier-node modifier-type entries]
   (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
     (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
       (into {}
             (keep #(when-not (= '& (:value %))
-                     (when-let [k (required-destructuring-key ctx modifier-ns modifier-type %)]
+                     (when-let [k (destructuring-key ctx modifier-ns modifier-type %)]
                        [k :any])))
             entries))))
 
@@ -415,14 +415,26 @@
          :map
          ;; first check even amount of keys + vals
          (let [opts (dissoc opts :allow-amp)
-               req (reduce (fn [req [k v]]
-                             (let [key-name (some-> (:k k) name keyword)]
-                               (if (one-of key-name [:keys! :syms! :strs!])
-                                 (merge req (required-destructuring-keys
-                                             ctx k key-name (:children v)))
-                                 req)))
-                           {}
-                           (partition 2 (:children expr)))]
+               kvs (partition 2 (:children expr))
+               select? (some (fn [[k _]]
+                               (= :select (some-> (:k k) name keyword)))
+                             kvs)
+               [req sel] (reduce (fn [[req sel] [k v]]
+                                   (let [key-name (some-> (:k k) name keyword)]
+                                     (cond (one-of key-name [:keys! :syms! :strs!])
+                                           (let [ks (destructuring-keys ctx k key-name (:children v))]
+                                             [(merge req ks) (merge sel ks)])
+                                           (not select?) [req sel]
+                                           (one-of key-name [:keys :syms :strs])
+                                           [req (merge sel (destructuring-keys ctx k key-name (:children v)))]
+                                           ;; k is a binding form, v its lookup key
+                                           (nil? key-name)
+                                           [req (if-let [mk (types/map-key ctx v)]
+                                                  (assoc sel mk :any)
+                                                  sel)]
+                                           :else [req sel])))
+                                 [{} {}]
+                                 kvs)]
            (key-linter/lint-map-keys ctx expr)
            (loop [[k v & rest-kvs] (:children expr)
                   res {}]
@@ -469,6 +481,10 @@
                                                :exclude-destructured-as)
                                          (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
                                          (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
+                                   ;; Clojure 1.13: binds a map with the keys named in this form
+                                   :select (recur rest-kvs
+                                                  (merge res (extract-bindings ctx v scoped-expr
+                                                                               (assoc opts :tag {:type :map :val sel}))))
                                    (recur rest-kvs res)))))
                          :else
                          (recur rest-kvs (merge res

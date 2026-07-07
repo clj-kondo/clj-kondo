@@ -1745,6 +1745,51 @@
               config
               "--cache" "true")))))
 
+(deftest select-destructuring-types-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing ":select map misses a required key"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :x"})
+       (lint! "
+(defn f [{:keys! [x]}] x)
+(defn g [{:keys [a] :select m}] [a (f m)])"
+              config)))
+    (testing "keys named anywhere in the form count toward the selection"
+      (is (empty? (lint! "
+(defn f [{:keys! [x]}] x)
+(defn g1 [{:keys [a x] :select m}] [a x (f m)])
+(defn g2 [{myx :x :select m}] [myx (f m)])
+(defn g3 [{:keys [a & x] :select m}] [a (f m)])
+(defn g4 [{:select m :keys [x]}] [x (f m)])
+(defn g5 [{:keys! [x] :select m}] [x (f m)])"
+                         config))))
+    (testing "nested keys are not selected"
+      (assert-submaps2
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :x"})
+       (lint! "
+(defn f [{:keys! [x]}] x)
+(defn g [{{:keys [x]} :inner :select m}] [x (f m)])"
+              config)))
+    (testing ":strs and :syms selections"
+      (assert-submaps2
+       '({:file "<stdin>", :row 4, :level :error, :message "Missing required key: y"}
+         {:file "<stdin>", :row 6, :level :error, :message "Missing required key: s"})
+       (lint! "
+(defn fs [{:strs! [y]}] y)
+(defn ok1 [{:strs [y] :select m}] [y (fs m)])
+(defn bad1 [{:strs [z] :select m}] [z (fs m)])
+(defn fy [{:syms! [s]}] s)
+(defn bad2 [{:syms [t] :select m}] [t (fy m)])
+(defn ok2 [{:syms [s] :select m}] [s (fy m)])"
+              config)))
+    (testing "qualified and auto-resolved selected keys"
+      (is (empty? (lint! "(ns foo)
+(defn f1 [{:person/keys! [id]}] id)
+(defn g1 [{:person/keys [id] :select m}] [id (f1 m)])
+(defn f2 [{::keys! [x]}] x)
+(defn g2 [{::keys [x] :select m}] [x (f2 m)])"
+                         config))))))
+
 ;;;; Scratch
 
 (comment)
