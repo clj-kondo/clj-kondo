@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented on `perf-hunt`.
+Implemented (`var-usage-record` branch).
 
 ## Context
 
