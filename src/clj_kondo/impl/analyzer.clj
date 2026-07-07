@@ -171,9 +171,11 @@
           (set/rename-keys {:end-row :scope-end-row :end-col :scope-end-col})))
 
 (defn analyze-binding-vector [ctx children]
-  (let [rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
-        varargs     (into [] (take-while #(not= :as (:k %))) rest-param+)
-        as-args     (into [] (drop-while #(not= :as (:k %))) children)]
+  (let [as-kw? (fn [n] (and (= :as (:k n))
+                            (not (:namespaced? n))))
+        rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
+        varargs     (into [] (take-while (complement as-kw?)) rest-param+)
+        as-args     (into [] (drop-while (complement as-kw?)) children)]
     (cond (and (< 1 (count varargs))
                (= '& (:value (second varargs))))
           (findings/reg-finding!
@@ -356,13 +358,13 @@
                  {s v})
                ;; TODO: we probably need to check if :as is supported in this
                ;; context, e.g. seq-destructuring?
-               (when (not= :as k)
+               (when (or (:namespaced? expr) (not= :as k))
                  (findings/reg-finding!
                   ctx
                   (node->line (:filename ctx)
                               expr
                               :syntax
-                              (str "unsupported binding form " k))))))
+                              (str "unsupported binding form " expr))))))
            :else
            (findings/reg-finding!
             ctx
@@ -376,7 +378,8 @@
                                        :exclude-destructured-as)
                        as-sym (when exclude-as?
                                 (let [[as as-sym] (take-last 2 children)]
-                                  (when (identical? :as (:k as))
+                                  (when (and (identical? :as (:k as))
+                                             (not (:namespaced? as)))
                                     as-sym)))
                        child-opts (assoc opts :allow-amp true)
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
