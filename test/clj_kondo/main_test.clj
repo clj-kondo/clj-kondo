@@ -1945,6 +1945,13 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "unsupported binding form (x)"})
    (lint! "(let [(x) 1])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "unsupported binding form ::as"})
+   (lint! "(let [[a ::as b] [1 2]] [a b])"))
   (is (empty? (lint! "(fn [[x y z] :as x])" {:linters {:shadowed-fn-param {:level :off}}})))
   (is (empty? (lint! "(fn [[x y z & xs]])")))
   (is (empty? (lint! "(let [^String x \"foo\"])"))))
