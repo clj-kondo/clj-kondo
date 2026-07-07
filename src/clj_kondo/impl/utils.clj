@@ -19,6 +19,36 @@
 
 (set! *warn-on-reflection* true)
 
+;; A record for var usages ("calls"). One of these is allocated for every var
+;; usage in every linted source file, and its fields are read many times by
+;; lint-var-usage and friends, so field access speed and construction cost
+;; matter. Keys not listed here still work via the record's extmap.
+(defrecord VarUsage
+    [type name resolved-ns ns alias arity
+     row col end-row end-col
+     base-lang lang filename expr callstack condition config top-ns
+     arg-types simple? interop? resolved-core?
+     unresolved? unresolved-ns unresolved-symbol-disabled?
+     allow-forward-reference? clojure-excluded? private-access?
+     idx len derived-location in-def context
+     defmethod dispatch-val-str refer id ret
+     redundant-fn-wrapper-parent-loc])
+
+(def ^:private var-usage-basis
+  (map keyword (VarUsage/getBasis)))
+
+(defmacro var-usage
+  "Builds a VarUsage record from a literal map, positionally at compile time,
+  avoiding an intermediate hash map per var usage. Keys must be literal
+  keywords naming VarUsage fields."
+  [m]
+  (assert (map? m) "var-usage expects a literal map")
+  (let [unknown (remove (set var-usage-basis) (keys m))]
+    (assert (empty? unknown) (str "Unknown VarUsage keys: " (vec unknown))))
+  ;; Direct constructor call: the positional factory fn would go through
+  ;; RestFn for > 20 args, allocating an args seq per usage.
+  `(new clj_kondo.impl.utils.VarUsage ~@(map #(clojure.core/get m %) var-usage-basis)))
+
 (let [not-found (Object.)]
   (defn select-keys
     "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys
