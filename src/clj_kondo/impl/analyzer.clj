@@ -415,15 +415,15 @@
                                            (assoc opts :namespaced-map true))
          :map
          ;; first check even amount of keys + vals
-         (let [;; in a namespaced map the reader qualifies :select, which
-               ;; Clojure rejects as a map directive
-               select-directive? (if (:namespaced-map opts)
-                                   (fn [_] false)
-                                   (fn [k] (and (= :select (:k k))
-                                                (not (:namespaced? k)))))
+         (let [;; in a namespaced map the reader qualifies :as, :or and :select,
+               ;; which Clojure rejects as map directives
+               plain-directive? (if (:namespaced-map opts)
+                                  (fn [_ _] false)
+                                  (fn [k kw] (and (= kw (:k k))
+                                                  (not (:namespaced? k)))))
                opts (dissoc opts :allow-amp :namespaced-map)
                kvs (partition 2 (:children expr))
-               select? (some (fn [[k _]] (select-directive? k)) kvs)
+               select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
                [req sel] (reduce (fn [[req sel] [k v]]
                                    (let [key-name (some-> (:k k) name keyword)]
                                      (cond (one-of key-name [:keys! :syms! :strs!])
@@ -472,22 +472,28 @@
                                  (case key-name
                                    :or
                                    ;; or doesn't introduce new bindings, it only gives defaults
-                                   (if (empty? rest-kvs)
-                                     ;; or can refer to a binding introduced by what we extracted
-                                     (let [prev-ctx ctx
-                                           ctx (ctx-with-bindings ctx res)]
-                                       (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
-                                       (recur rest-kvs res))
-                                     ;; analyze or after the rest
-                                     (let [;; prevent infinite loop with multiple :or
-                                           rest-kvs (remove #(= :or (:k %)) rest-kvs)]
-                                       (recur (concat rest-kvs [k v]) res)))
-                                   :as (if (-> ctx :config :linters :unused-binding
-                                               :exclude-destructured-as)
-                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
-                                         (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
+                                   (cond (not (plain-directive? k :or))
+                                         (recur rest-kvs res)
+                                         (empty? rest-kvs)
+                                         ;; or can refer to a binding introduced by what we extracted
+                                         (let [prev-ctx ctx
+                                               ctx (ctx-with-bindings ctx res)]
+                                           (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                                           (recur rest-kvs res))
+                                         :else
+                                         ;; analyze or after the rest
+                                         (let [;; prevent infinite loop with multiple :or
+                                               rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
+                                           (recur (concat rest-kvs [k v]) res)))
+                                   :as (cond (not (plain-directive? k :as))
+                                             (recur rest-kvs res)
+                                             (-> ctx :config :linters :unused-binding
+                                                 :exclude-destructured-as)
+                                             (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
+                                             :else
+                                             (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
                                    ;; Clojure 1.13: binds a map with the keys named in this form
-                                   :select (if (select-directive? k)
+                                   :select (if (plain-directive? k :select)
                                              (recur rest-kvs
                                                     (merge res (extract-bindings ctx v scoped-expr
                                                                                  (assoc opts :tag {:type :map :val sel}))))

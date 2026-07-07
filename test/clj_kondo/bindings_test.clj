@@ -371,7 +371,7 @@
                         :message "unused binding m"})
                      (lint! "(let [{:keys [a] :select m} {}] a)"
                             '{:linters {:unused-binding {:level :warning}}})))
-  (testing "only the exact :select keyword is a directive"
+  (testing "only exact :select, :as and :or keywords are directives"
     (assert-submaps2 '({:file "<stdin>"
                         :row 1
                         :level :error
@@ -383,11 +383,30 @@
                        {:file "<stdin>"
                         :row 3
                         :level :error
-                        :message "Unresolved symbol: m3"})
+                        :message "Unresolved symbol: m3"}
+                       {:file "<stdin>"
+                        :row 4
+                        :level :error
+                        :message "Unresolved symbol: m4"}
+                       {:file "<stdin>"
+                        :row 5
+                        :level :error
+                        :message "Unresolved symbol: m5"}
+                       {:file "<stdin>"
+                        :row 6
+                        :level :error
+                        :message "Unresolved symbol: m6"})
                      (lint! "(let [{:person/select m1} {}] m1)
 (let [{::select m2} {}] m2)
-(let [#:person{:keys [id] :select m3} {}] [id m3])"
+(let [#:person{:keys [id] :select m3} {}] [id m3])
+(let [{:person/as m4} {}] m4)
+(let [{::as m5} {}] m5)
+(let [#:person{:keys [id2] :as m6} {}] [id2 m6])"
                             '{:linters {:unresolved-symbol {:level :error}}}))
+    (testing "qualified :or is not a defaults directive"
+      (is (empty? (lint! "(let [{:keys [a] ::or {b 1}} {}] a)"
+                         '{:linters {:unresolved-symbol {:level :error}
+                                     :unused-binding {:level :warning}}}))))
     (testing "a plain map nested in a namespaced map can use :select"
       (is (empty? (lint! "(let [#:person{{:keys [b] :select m} :sub} {}] [b m])"
                          '{:linters {:unresolved-symbol {:level :error}
