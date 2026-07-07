@@ -229,7 +229,8 @@
                                                       ns-name
                                                       resolved-ns)
                        (when (:analyze-var-usages? ctx)
-                         (let [usage {:type :use
+                         (let [usage (utils/var-usage
+                                      {:type :use
                                       :name (with-meta
                                               resolved-name
                                               m)
@@ -266,7 +267,7 @@
                                       ;; save some memory
                                       :expr (when-not dependencies expr)
                                       :resolved-core? resolved-core?
-                                      :condition (:condition expr)}]
+                                      :condition (:condition expr)})]
                            (namespace/reg-var-usage! ctx ns-name
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))

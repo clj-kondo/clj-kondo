@@ -2452,7 +2452,8 @@
           (let [{:keys [row end-row col end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)
               (namespace/reg-var-usage! ctx ns-name
-                                        {:type (if arg-count :call :usage)
+                                        (utils/var-usage
+                                         {:type (if arg-count :call :usage)
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta
@@ -2482,7 +2483,7 @@
                                          :interop? interop?
                                          :resolved-core? resolved-core?
                                          :in-def (:in-def ctx)
-                                         :derived-location (:derived-location (meta expr))})))
+                                         :derived-location (:derived-location (meta expr))}))))
           (and arity arg-count)
           (let [{:keys [fixed-arities varargs-min-arity]} arity
                 config (:config ctx)
@@ -2908,7 +2909,8 @@
                     (when (and (:analyze-var-usages? ctx)
                                (not same-call?))
                       (namespace/reg-var-usage!
-                       ctx ns-name {:type :call
+                       ctx ns-name (utils/var-usage
+                                    {:type :call
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
                                     :name (with-meta
@@ -2938,7 +2940,7 @@
                                     :resolved-core? resolved-core?
                                     :idx (:idx ctx)
                                     :len (:len ctx)
-                                    :derived-location (:derived-location expr-meta)}))
+                                    :derived-location (:derived-location expr-meta)})))
                     ;;;; This registers the namespace as used, to prevent unused warnings
                     (namespace/reg-used-namespace! ctx
                                                    ns-name
@@ -3250,7 +3252,8 @@
                                                      node-context)]
                                         context))
                             fn-parent-loc (redundant-fn-wrapper ctx (:callstack ctx) children interop?)
-                            proto-call {:type :call
+                            proto-call (utils/var-usage
+                                        {:type :call
                                         :context context
                                         :resolved-ns resolved-namespace
                                         :ns ns-name
@@ -3282,13 +3285,14 @@
                                         :redundant-fn-wrapper-parent-loc fn-parent-loc
                                         :idx (:idx ctx)
                                         :len (:len ctx)
-                                        :derived-location (:derived-location expr-meta)}
+                                        :id id
+                                        :in-def in-def
+                                        :derived-location (:derived-location expr-meta)})
                             ret-tag (or (:ret m)
                                         (types/ret-tag-from-call ctx proto-call expr))
-                            call (cond-> proto-call
-                                   id (assoc :id id)
-                                   in-def (assoc :in-def in-def)
-                                   ret-tag (assoc :ret ret-tag))]
+                            call (if ret-tag
+                                   (assoc proto-call :ret ret-tag)
+                                   proto-call)]
                         (utils/reg-call ctx call id)
                         (when (:analyze-var-usages? ctx)
                           (namespace/reg-var-usage! ctx ns-name call))
