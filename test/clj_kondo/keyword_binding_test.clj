@@ -27,9 +27,25 @@
    [{:file "<stdin>", :row 4, :col 18, :level :warning, :message "Keyword binding should be a symbol: :a"}]
    (lint! mixed-example)))
 
+(def namespaced-keyword-example
+  "(ns keyword-binding
+     (:require [foo.bar :as-alias fb]))
+
+   (let [{:keys [:foo/a :b ::fb/c ::d]} {}] a)")
+
 (deftest namespaced-keyword-test
-  (testing "keywords with namespaced are ignored"
+  (testing "keywords with namespace are ignored by default"
     (assert-submaps2
-     [{:file "<stdin>", :row 1, :col 24, :level :warning, :message "Keyword binding should be a symbol: :baz"}]
-     (lint! "(let [{:keys [:foo/bar :baz ::baz]} {}] bar)"
-            {:linters {:keyword-binding {:level :warning}}}))))
+     [{:file "<stdin>", :row 4, :col 25, :level :warning, :message "Keyword binding should be a symbol: :b"}]
+     (lint! namespaced-keyword-example
+            {:linters {:keyword-binding {:level :warning}}})))
+
+  (testing "keywords with namespace are not ignored when specified otherwise"
+    (assert-submaps2
+     [{:file "<stdin>", :row 4, :col 18, :level :warning, :message "Keyword binding should be a symbol: :foo/a"}
+      {:file "<stdin>", :row 4, :col 25, :level :warning, :message "Keyword binding should be a symbol: :b"}
+      {:file "<stdin>", :row 4, :col 28, :level :warning, :message "Keyword binding should be a symbol: ::fb/c"}
+      {:file "<stdin>", :row 4, :col 35, :level :warning, :message "Keyword binding should be a symbol: ::d"}]
+     (lint! namespaced-keyword-example
+            {:linters {:keyword-binding {:disallow-all-keywords true
+                                         :level :warning}}}))))
