@@ -844,6 +844,16 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 211}
+ {:end-row 674,
+  :type :inline-def,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/streaming/xlsx.clj",
+  :col 11,
+  :end-col 38,
+  :langs (),
+  :message "inline def",
+  :row 674}
  {:end-row 45,
   :type :redundant-let-binding,
   :level :warning,
