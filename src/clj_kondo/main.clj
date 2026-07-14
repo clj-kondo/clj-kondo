@@ -163,10 +163,25 @@ Options:
 (def fail-level? #{"warning" "error"})
 (def report-level? (conj fail-level? "info"))
 
+(defn- suppression-options-error [{:keys [suppress-all suppress-rules prune-suppressions]}]
+  (cond
+    (and suppress-all (seq suppress-rules))
+    "The --suppress-all and --suppress-rule options cannot be used together."
+
+    (and prune-suppressions
+         (or suppress-all (seq suppress-rules)))
+    "The --prune-suppressions option cannot be used while generating suppressions."))
+
+(defn- print-option-error [message]
+  (binding [*out* *err*]
+    (println message))
+  2)
+
 (defn main
   [& options]
   (let [{:keys [help lint version pod dependencies fail-level report-level] :as parsed}
-        (parse-opts options)]
+        (parse-opts options)
+        suppression-error (suppression-options-error parsed)]
     (or (cond version
               (print-version)
               help
@@ -178,6 +193,8 @@ Options:
               (print-help)
               (not (report-level? report-level))
               (print-help)
+              suppression-error
+              (print-option-error suppression-error)
               :else (let [{:keys [summary]
                            :as results} (clj-kondo/run! parsed)
                           {:keys [error warning]} summary]

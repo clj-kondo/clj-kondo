@@ -53,23 +53,34 @@
                      (suppressions/apply-suppressions [finding] entries dir))))))))
 
 (deftest replace-suppressions-test
-  (let [entries (suppressions/findings->entries findings)
-        current-findings [(first findings)]]
-    (testing "all rules are replaced when no rule filter is provided"
+  (let [other-file-entry {:filename "src/other.clj"
+                          :type :unresolved-symbol
+                          :message "Unresolved symbol: existing"
+                          :count 1}
+        entries (conj (suppressions/findings->entries findings) other-file-entry)
+        current-findings [(assoc (first findings)
+                                 :message "Unresolved symbol: z")]]
+    (testing "only generated file and linter scopes are replaced"
       (is (= [{:filename "src/example.clj"
                :type :unresolved-symbol
-               :message "Unresolved symbol: x"
-               :count 1}]
-             (suppressions/replace-suppressions entries current-findings nil))))
-    (testing "only selected rules are replaced"
-      (is (= [{:filename "src/example.clj"
-               :type :unresolved-symbol
-               :message "Unresolved symbol: x"
+               :message "Unresolved symbol: z"
                :count 1}
               {:filename "src/example.clj"
                :type :unused-binding
                :message "unused binding y"
-               :count 2}]
+               :count 2}
+              other-file-entry]
+             (suppressions/replace-suppressions entries current-findings nil))))
+    (testing "only selected rules are replaced"
+      (is (= [{:filename "src/example.clj"
+               :type :unresolved-symbol
+               :message "Unresolved symbol: z"
+               :count 1}
+              {:filename "src/example.clj"
+               :type :unused-binding
+               :message "unused binding y"
+               :count 2}
+              other-file-entry]
              (suppressions/replace-suppressions
               entries
               current-findings

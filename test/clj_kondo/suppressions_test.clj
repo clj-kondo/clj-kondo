@@ -84,6 +84,21 @@
              :suppress-rules
              :suppressions-location
              :prune-suppressions]))))
+  (testing "conflicting suppression options are rejected"
+    (doseq [[options message]
+            [[["--suppress-all" "--suppress-rule" "unresolved-symbol"]
+              "The --suppress-all and --suppress-rule options cannot be used together."]
+             [["--suppress-all" "--prune-suppressions"]
+              "The --prune-suppressions option cannot be used while generating suppressions."]
+             [["--suppress-rule" "unresolved-symbol" "--prune-suppressions"]
+              "The --prune-suppressions option cannot be used while generating suppressions."]]]
+      (let [exit-code (atom nil)
+            error-output (java.io.StringWriter.)]
+        (binding [*err* error-output]
+          (reset! exit-code
+                  (apply main/main (concat ["--lint" "-"] options))))
+        (is (= 2 @exit-code))
+        (is (= (str message "\n") (str error-output))))))
   (testing "suppressed findings do not affect the exit code"
     (with-temp-dir
       (fn [dir]

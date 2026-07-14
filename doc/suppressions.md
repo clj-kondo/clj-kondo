@@ -26,7 +26,8 @@ clj-kondo --lint src test \
 ```
 
 Generating selected rules replaces existing baseline entries for those rules and
-preserves entries for other rules.
+preserves entries for other files and rules. `--suppress-all` and
+`--suppress-rule` cannot be used together.
 
 Remove entries or excess occurrence counts that no longer match current
 findings:
@@ -34,6 +35,8 @@ findings:
 ``` shell
 clj-kondo --lint src test --prune-suppressions
 ```
+
+Pruning cannot be combined with either suppression generation option.
 
 Use `--suppressions-location <file>` to read and write a different file.
 

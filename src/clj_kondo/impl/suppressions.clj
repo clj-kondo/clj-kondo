@@ -85,15 +85,16 @@
    (replace-suppressions entries findings suppress-rules nil))
   ([entries findings suppress-rules root]
    (let [suppress-rules (not-empty (set suppress-rules))
-         replace? (if suppress-rules
-                    (comp suppress-rules :type)
-                    (constantly true))
-         retained-entries (remove replace? entries)
          generated-entries (findings->entries
                             (if suppress-rules
                               (filter (comp suppress-rules :type) findings)
                               findings)
-                            root)]
+                            root)
+         generated-scopes (into #{} (map (juxt :filename :type)) generated-entries)
+         retained-entries (remove
+                           (fn [{:keys [filename type]}]
+                             (contains? generated-scopes [filename type]))
+                           entries)]
      (sort-entries (concat retained-entries generated-entries)))))
 
 (defn apply-suppressions
