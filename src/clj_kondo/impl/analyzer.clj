@@ -251,22 +251,11 @@
   [ctx modifier-node modifier-type entries]
   (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
     (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
-      ;; before & the directive transforms keys, after & they are literal keys
-      (let [[before after] (split-with #(not= '& (:value %)) entries)]
-        (into {}
-              (concat
-               (keep (fn [e]
-                       (when-let [k (destructuring-key ctx modifier-ns modifier-type e)]
-                         [k :any]))
-                     before)
-               (keep (fn [e]
-                       ;; bare symbols after & are invalid, reported elsewhere
-                       (when-not (or (= '& (:value e))
-                                     (symbol? (:value e)))
-                         (let [k (types/map-key ctx e)]
-                           (when-not (identical? ::types/unknown k)
-                             [k :any]))))
-                     after)))))))
+      (into {}
+            (keep #(when-not (= '& (:value %))
+                     (when-let [k (destructuring-key ctx modifier-ns modifier-type %)]
+                       [k :any])))
+            entries))))
 
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
@@ -472,23 +461,29 @@
                                                    :keys-destructuring? true
                                                    :destructuring-type key-name
                                                    :destructuring-expr k)
-                                       [bound-children after-amp]
-                                       (split-with #(not= '& (:value %)) (:children v))
-                                       res (into res (map #(extract-bindings ctx % scoped-expr opts))
-                                                 bound-children)]
-                                   ;; after & only literal keys are allowed, not binding symbols
-                                   (doseq [child (rest after-amp)]
-                                     (cond
-                                       (= '& (:value child))
-                                       (findings/reg-finding!
-                                        ctx (node->line (:filename ctx) child :syntax
-                                                        "& can only appear once in map destructuring"))
-                                       (symbol? (:value child))
-                                       (findings/reg-finding!
-                                        ctx (node->line (:filename ctx) child :syntax
-                                                        (str "Binding symbols can only appear before &, use keys after: " (:value child))))
-                                       (:k child)
-                                       (usages/analyze-keyword ctx child opts)))
+                                       ;; before & are bindings, after & only literal keys
+                                       res (loop [children (:children v) amp? false res res]
+                                             (if-let [child (first children)]
+                                               (cond
+                                                 (= '& (:value child))
+                                                 (do (when amp?
+                                                       (findings/reg-finding!
+                                                        ctx (node->line (:filename ctx) child :syntax
+                                                                        "& can only appear once in map destructuring")))
+                                                     (recur (next children) true res))
+                                                 amp?
+                                                 (do (cond
+                                                       (symbol? (:value child))
+                                                       (findings/reg-finding!
+                                                        ctx (node->line (:filename ctx) child :syntax
+                                                                        (str "Binding symbols can only appear before &, use keys after: " (:value child))))
+                                                       (:k child)
+                                                       (usages/analyze-keyword ctx child opts))
+                                                     (recur (next children) true res))
+                                                 :else
+                                                 (recur (next children) false
+                                                        (merge res (extract-bindings ctx child scoped-expr opts))))
+                                               res))]
                                    (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
                                  (case key-name
