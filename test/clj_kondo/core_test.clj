@@ -3,7 +3,7 @@
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.core :refer [path-separator]]
    [clj-kondo.test-utils :refer [assert-submaps assert-submaps2
-                                 file-path file-separator]]
+                                 file-path file-separator with-temp-dir]]
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -306,6 +306,49 @@
         (set @calls))
       (is (every? #(and (int? (:total-files %))
                         (<= (:total-files %) 8)) @calls)))))
+
+(deftest parallel-duplicate-namespace-test
+  (testing "vars remain resolvable when duplicate namespaces are linted in parallel"
+    (with-temp-dir [dir "clj-kondo-2842"]
+      (let [a (io/file dir "a.clj")
+            b (io/file dir "b.clj")]
+        (spit a (str "(ns duplicate.core)\n"
+                     "(defn helper [] true)\n"
+                     "(defmacro pause [] nil)\n"
+                     "(pause)\n"
+                     "(helper)\n"
+                     "(def shared :a)\n"
+                     "(def same-file 1)\n"
+                     "(def same-file 2)\n"))
+        (spit b "(ns duplicate.core)\n(def shared :b)\n")
+        (let [config {:hooks
+                      {:analyze-call
+                       {'duplicate.core/pause
+                        (fn [{:keys [node]}]
+                          (Thread/sleep 25)
+                          {:node node})}}}
+              findings (:findings
+                        (clj-kondo/run! {:lint     [(.getPath a) (.getPath b)]
+                                        :cache    false
+                                        :config   config
+                                        :parallel true}))
+              unresolved-vars (filter #(= :unresolved-var (:type %)) findings)
+              redefined-vars (filter #(= :redefined-var (:type %)) findings)]
+          (is (empty? unresolved-vars))
+          (is (= ["redefined var #'duplicate.core/same-file"]
+                 (mapv :message redefined-vars)))))))
+  (testing "redefinitions are tracked separately for in-ns continuation files"
+    (with-temp-dir [dir "clj-kondo-multi-file-namespace"]
+      (let [a (io/file dir "a.clj")
+            b (io/file dir "b.clj")]
+        (spit a "(ns multi-file.core)\n(def shared :a)\n")
+        (spit b "(in-ns 'multi-file.core)\n(def shared :b)\n")
+        (let [findings (:findings
+                        (clj-kondo/run! {:lint     [(.getPath a) (.getPath b)]
+                                        :cache    false
+                                        :parallel true}))
+              redefined-vars (filter #(= :redefined-var (:type %)) findings)]
+          (is (empty? redefined-vars)))))))
 
 ;;;; Scratch
 
