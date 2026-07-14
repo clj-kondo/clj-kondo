@@ -3867,7 +3867,6 @@
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
                                        (dissoc :analysis)
-                                       (assoc :synthetic-ns-init true)
                                        (utils/ctx-with-linter-disabled :namespace-name-mismatch))
                                    (if (= "project.clj" (fs/file-name (:filename ctx)))
                                      (parse-string "(ns leiningen.core.project)")

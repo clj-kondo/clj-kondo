@@ -109,34 +109,12 @@
 
 (defn reg-namespace!
   "Registers namespace. Deep-merges with already registered namespaces
-  with the same name. Returns updated namespace.
-
-  When a full `(ns ...)` form re-declares a namespace that was previously
-  registered via another `(ns ...)` form in a different file, the
-  var-tracking state is reset so :redefined-var does not fire cross-file.
-  `(in-ns ...)` continuations are treated as temporary state that a
-  subsequent `(ns ...)` form leaves intact, so multi-file namespaces such
-  as clojure.core (core.clj + core_deftype.clj + ... via in-ns) are not
-  affected, even when files are processed in non-topological order. The
-  synthetic `(ns user)` that analyze-expressions bootstraps every file
-  with does not count either. See #2818."
+  with the same name. Returns updated namespace."
   [{:keys [base-lang lang namespaces]} ns]
-  (let [{ns-name :name new-filename :filename ns-type :type} ns
+  (let [{ns-name :name} ns
         path [base-lang lang ns-name]]
-    (get-in (swap! namespaces update-in path
-                   (fn [prev]
-                     (let [prev (if (and prev
-                                         (identical? :ns ns-type)
-                                         (identical? :ns (:type prev))
-                                         (not (:synthetic-init ns))
-                                         (not (:synthetic-init prev))
-                                         (:filename prev)
-                                         (not= (:filename prev) new-filename))
-                                  (-> prev
-                                      (assoc :vars nil)
-                                      (dissoc :var-counts))
-                                  prev)]
-                       (deep-merge prev ns))))
+    (get-in (swap! namespaces update-in
+                   path deep-merge ns)
             path)))
 
 (defn- var-classfile
@@ -199,11 +177,12 @@
                                    :syntax
                                    (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
      (when-not (:skip-reg-var ctx)
-       (let [;; don't use reg-finding! in swap since contention can cause it to fire multiple times
+       (let [var-count-key [filename var-sym]
+             ;; don't use reg-finding! in swap since contention can cause it to fire multiple times
              [old-namespaces _]
              (swap-vals! namespaces update-in path
                          (fn [ns]
-                           (let [curr-var-count (or (get (:var-counts ns) var-sym) 0)
+                           (let [curr-var-count (or (get (:var-counts ns) var-count-key) 0)
                                  vars (:vars ns)
                                  prev-var (get vars var-sym)
                                  ns (get-in @namespaces path)
@@ -224,13 +203,13 @@
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
                                           classfiles))
-                                 (update :var-counts assoc var-sym
+                                 (update :var-counts assoc var-count-key
                                          (if hard-def? (inc curr-var-count) curr-var-count))))))
              ns (get-in old-namespaces path)
              vars (:vars ns)
              prev-var (get vars var-sym)]
          (when-not (and temp? (not prev-var))
-           (let [curr-var-count (or (get (:var-counts ns) var-sym) 0)
+           (let [curr-var-count (or (get (:var-counts ns) var-count-key) 0)
                  prev-declared? (:declared prev-var)
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)

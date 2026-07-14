@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2842](https://github.com/clj-kondo/clj-kondo/issues/2842): avoid false positive `:unresolved-var` findings when files declaring the same namespace are linted in parallel ([@marco-carvalho](https://github.com/marco-carvalho))
 - Clojure 1.13 CLJ-2961: map destructuring: `:keys!` `:syms!` `:strs!`, `& x y z` unbound/checked args
 - Clojure 1.13 CLJ-2954: `&` is now invalid as a binding name in all binding positions
 - Clojure 1.13 CLJ-2961: error for `:or` default on `:keys!` required binding, matches 1.13 compile error
