@@ -480,20 +480,44 @@
      '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "unused binding x"})
      (lint! "(let [{:keys! [x]} {}])"
             '{:linters {:unused-binding {:level :warning}}})))
-  (testing "names after & are not bound"
+  (testing "Clojure 1.13: binding symbols can only appear before &, keys after"
     (doseq [directive [":keys" ":syms" ":strs" ":keys!" ":syms!" ":strs!"]]
-      (is (empty? (lint! (str "(defn foo [{" directive " [x & z]}] x)")
-                         '{:linters {:unresolved-symbol {:level :error}
-                                     :unused-binding {:level :warning}}})))
       (assert-submaps2
-       '({:file "<stdin>", :level :error, :message "Unresolved symbol: z"})
-       (lint! (str "(defn foo [{" directive " [x & z]}] [x z])")
+       '({:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: z"})
+       (lint! (str "(defn foo [{" directive " [x & z]}] x)")
               '{:linters {:unresolved-symbol {:level :error}}})))
-    (is (empty? (lint! "(let [{:keys [& x y z]} {}])"
-                       '{:linters {:unused-binding {:level :warning}}})))
-    (is (empty? (lint! "(defn foo [{:keys! [x & y/z :w]}] x)"
-                       '{:linters {:unresolved-symbol {:level :error}
-                                   :unused-binding {:level :warning}}})))))
+    (testing "each binding symbol after & is reported"
+      (assert-submaps2
+       '({:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: x"}
+         {:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: y"}
+         {:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: z"})
+       (lint! "(let [{:keys [& x y z]} {}])"
+              '{:linters {:unresolved-symbol {:level :error}}})))
+    (testing "qualified symbol after & is also rejected"
+      (assert-submaps2
+       '({:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: y/z"})
+       (lint! "(defn foo [{:keys! [x & y/z :w]}] x)"
+              '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "Clojure 1.13: literal keys after & are allowed"
+    (is (empty? (lint! "(let [{:keys [x & :y]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys! [x & :y :z]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:syms! [x & :y 'z \"w\"]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:strs! [x & \"y\"]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "Clojure 1.13: & can only appear once"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "& can only appear once in map destructuring"})
+     (lint! "(let [{:keys [x & :y & :z]} {}] x)"
+            '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest invalid-amp-binding-test
   (testing "CLJ-2954: & is not a valid local binding name"
@@ -515,8 +539,22 @@
     (is (empty? (lint! "(let [[a & b] [1 2]] [a b])")))
     (is (empty? (lint! "(fn [a & b] [a b])")))
     (is (empty? (lint! "(let [[a & bs :as all] [1]] [a bs all])")))
-    (is (empty? (lint! "(let [{:keys [x & z]} {}] x)")))
+    (is (empty? (lint! "(let [{:keys [x & :z]} {}] x)")))
     (is (empty? (lint! "(try nil (catch Exception & nil))")))))
+
+(deftest defaults-destructuring-test
+  (testing "CLJ-2966: :defaults binds a map of the applied :or defaults"
+    (is (empty? (lint! "(let [{:keys [a] :or {a 1} :defaults ds} {}] [a ds])"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(defn foo [{:keys [a] :or {a 1} :defaults ds}] [a ds])"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}}))))
+  (testing "CLJ-2966: :defaults requires :or"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Can't specify :defaults without :or"})
+     (lint! "(let [{:keys [a] :defaults ds} {}] [a ds])"
+            '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest required-binding-default-test
   (testing ":or default for required binding is a compile error in Clojure 1.13"

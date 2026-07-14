@@ -251,11 +251,22 @@
   [ctx modifier-node modifier-type entries]
   (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
     (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
-      (into {}
-            (keep #(when-not (= '& (:value %))
-                     (when-let [k (destructuring-key ctx modifier-ns modifier-type %)]
-                       [k :any])))
-            entries))))
+      ;; before & the directive transforms keys, after & they are literal keys
+      (let [[before after] (split-with #(not= '& (:value %)) entries)]
+        (into {}
+              (concat
+               (keep (fn [e]
+                       (when-let [k (destructuring-key ctx modifier-ns modifier-type e)]
+                         [k :any]))
+                     before)
+               (keep (fn [e]
+                       ;; bare symbols after & are invalid, reported elsewhere
+                       (when-not (or (= '& (:value e))
+                                     (symbol? (:value e)))
+                         (let [k (types/map-key ctx e)]
+                           (when-not (identical? ::types/unknown k)
+                             [k :any]))))
+                     after)))))))
 
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
@@ -427,6 +438,7 @@
                opts (dissoc opts :allow-amp :namespaced-map)
                kvs (partition 2 (:children expr))
                select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
+               or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
                [req sel] (reduce (fn [[req sel] [k v]]
                                    (let [key-name (some-> (:k k) name keyword)]
                                      (cond (one-of key-name [:keys! :syms! :strs!])
@@ -460,15 +472,22 @@
                                                    :keys-destructuring? true
                                                    :destructuring-type key-name
                                                    :destructuring-expr k)
-                                       [bound-children doc-children]
+                                       [bound-children after-amp]
                                        (split-with #(not= '& (:value %)) (:children v))
                                        res (into res (map #(extract-bindings ctx % scoped-expr opts))
                                                  bound-children)]
-                                   ;; entries after & are documentation only, no bindings
-                                   (doseq [child (rest doc-children)]
-                                     (when (and (not= '& (:value child))
-                                                (or (:k child)
-                                                    (one-of key-name [:keys :keys!])))
+                                   ;; after & only literal keys are allowed, not binding symbols
+                                   (doseq [child (rest after-amp)]
+                                     (cond
+                                       (= '& (:value child))
+                                       (findings/reg-finding!
+                                        ctx (node->line (:filename ctx) child :syntax
+                                                        "& can only appear once in map destructuring"))
+                                       (symbol? (:value child))
+                                       (findings/reg-finding!
+                                        ctx (node->line (:filename ctx) child :syntax
+                                                        (str "Binding symbols can only appear before &, use keys after: " (:value child))))
+                                       (:k child)
                                        (usages/analyze-keyword ctx child opts)))
                                    (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
@@ -501,6 +520,15 @@
                                                     (merge res (extract-bindings ctx v scoped-expr
                                                                                  (assoc opts :tag {:type :map :val sel}))))
                                              (recur rest-kvs res))
+                                   ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
+                                   :defaults (if (plain-directive? k :defaults)
+                                               (do (when-not or?
+                                                     (findings/reg-finding!
+                                                      ctx (node->line (:filename ctx) k :syntax
+                                                                      "Can't specify :defaults without :or")))
+                                                   (recur rest-kvs
+                                                          (merge res (extract-bindings ctx v scoped-expr opts))))
+                                               (recur rest-kvs res))
                                    (recur rest-kvs res)))))
                          :else
                          (recur rest-kvs (merge res
