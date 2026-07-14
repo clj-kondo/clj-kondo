@@ -18455,15 +18455,6 @@
   :message "redefined var #'clojure.core/dotimes",
   :row 3331}
  {:end-row 3687,
-  :type :redefined-var,
-  :level :warning,
-  :filename "clojure/core.clj",
-  :col 1,
-  :end-col 57,
-  :langs (),
-  :message "redefined var #'clojure.core/print-initialized",
-  :row 3687}
- {:end-row 3687,
   :type :unused-private-var,
   :level :warning,
   :filename "clojure/core.clj",
