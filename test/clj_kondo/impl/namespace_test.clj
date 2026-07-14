@@ -1,7 +1,7 @@
 (ns clj-kondo.impl.namespace-test
   (:require
    [clj-kondo.impl.analyzer.namespace :refer [analyze-ns-decl]]
-   [clj-kondo.impl.namespace :refer [resolve-name]]
+   [clj-kondo.impl.namespace :as namespace :refer [resolve-name]]
    [clj-kondo.impl.utils :refer [parse-string]]
    [clj-kondo.test-utils :refer [assert-submap]]
    [clojure.test :as t :refer [deftest is testing]]))
@@ -113,6 +113,57 @@
         (assert-submap
          '{:ns clojure.core :name inc :resolved-core? true}
          (resolve-name ctx false 'clj-kondo.impl.utils 'clojure.core/inc nil))))))
+
+(deftest duplicate-namespace-var-count-storage-test
+  (testing "keeps var counts compact for an ordinary namespace"
+    (let [namespaces (atom {})
+          ctx {:base-lang :clj
+               :lang :clj
+               :namespaces namespaces}
+          path [:clj :clj 'example.core]]
+      (namespace/reg-namespace! ctx {:name 'example.core
+                                     :type :ns
+                                     :filename "a.clj"})
+      (swap! namespaces assoc-in (conj path :var-counts) {'helper 1})
+      (namespace/reg-namespace! ctx {:name 'example.core
+                                     :type :ns
+                                     :filename "a.clj"})
+      (is (= {'helper 1} (get-in @namespaces (conj path :var-counts))))
+      (is (not (get-in @namespaces (conj path :var-counts-by-filename?))))))
+  (testing "promotes existing counts when another file declares the namespace"
+    (let [namespaces (atom {})
+          ctx {:base-lang :clj
+               :lang :clj
+               :namespaces namespaces}
+          path [:clj :clj 'example.core]]
+      (namespace/reg-namespace! ctx {:name 'example.core
+                                     :type :ns
+                                     :filename "a.clj"})
+      (swap! namespaces assoc-in (conj path :var-counts) {'helper 1})
+      (namespace/reg-namespace! ctx {:name 'example.core
+                                     :type :ns
+                                     :filename "b.clj"})
+      (is (= {"a.clj" {'helper 1}}
+             (get-in @namespaces (conj path :var-counts))))
+      (is (true? (get-in @namespaces (conj path :var-counts-by-filename?))))))
+  (testing "does not promote synthetic namespace initialization"
+    (let [namespaces (atom {})
+          ctx {:base-lang :clj
+               :lang :clj
+               :namespaces namespaces}
+          path [:clj :clj 'user]]
+      (namespace/reg-namespace! ctx {:name 'user
+                                     :type :ns
+                                     :filename "a.clj"
+                                     :synthetic-init true})
+      (namespace/reg-namespace! ctx {:name 'user
+                                     :type :ns
+                                     :filename "b.clj"})
+      (is (not (get-in @namespaces (conj path :var-counts-by-filename?))))
+      (namespace/reg-namespace! ctx {:name 'user
+                                     :type :ns
+                                     :filename "c.clj"})
+      (is (true? (get-in @namespaces (conj path :var-counts-by-filename?)))))))
 
 (comment
   (t/run-tests)

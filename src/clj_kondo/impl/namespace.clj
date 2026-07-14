@@ -111,11 +111,61 @@
   "Registers namespace. Deep-merges with already registered namespaces
   with the same name. Returns updated namespace."
   [{:keys [base-lang lang namespaces]} ns]
-  (let [{ns-name :name} ns
+  (let [{ns-name :name new-filename :filename ns-type :type} ns
         path [base-lang lang ns-name]]
     (get-in (swap! namespaces update-in
-                   path deep-merge ns)
+                   path
+                   (fn [prev]
+                     (let [duplicate-namespace?
+                           (and prev
+                                (identical? :ns ns-type)
+                                (identical? :ns (:type prev))
+                                (not (:synthetic-init ns))
+                                (not (:synthetic-init prev))
+                                (:filename prev)
+                                (not= (:filename prev) new-filename))
+                           prev
+                           (if (and duplicate-namespace?
+                                    (not (:var-counts-by-filename? prev)))
+                             (cond-> (assoc prev :var-counts-by-filename? true)
+                               (seq (:var-counts prev))
+                               (assoc :var-counts {(:filename prev) (:var-counts prev)}))
+                             prev)
+                           prev
+                           (if (and prev
+                                    (identical? :ns ns-type)
+                                    (not (:synthetic-init ns)))
+                             (dissoc prev :synthetic-init)
+                             prev)]
+                       (deep-merge prev ns))))
             path)))
+
+(defn- var-count
+  [ns filename var-sym]
+  (or (if (:var-counts-by-filename? ns)
+        (get-in ns [:var-counts filename var-sym])
+        (get-in ns [:var-counts var-sym]))
+      0))
+
+(defn- assoc-var-count
+  [ns filename var-sym count]
+  (if (:var-counts-by-filename? ns)
+    (assoc-in ns [:var-counts filename var-sym] count)
+    (assoc-in ns [:var-counts var-sym] count)))
+
+(defn dissoc-var-count
+  [ns var-sym]
+  (if (:var-counts-by-filename? ns)
+    (update ns :var-counts
+            (fn [counts]
+              (reduce-kv
+               (fn [ret filename var-counts]
+                 (if-let [var-counts (not-empty (dissoc var-counts var-sym))]
+                   (assoc ret filename var-counts)
+                   ret))
+               {}
+               (or counts {}))))
+    (update ns :var-counts dissoc var-sym)))
 
 (defn- var-classfile
   [{:keys [defined-by->lint-as fixed-arities ns name]}]
@@ -181,7 +231,7 @@
              [old-namespaces _]
              (swap-vals! namespaces update-in path
                          (fn [ns]
-                           (let [curr-var-count (or (get-in ns [:var-counts filename var-sym]) 0)
+                           (let [curr-var-count (var-count ns filename var-sym)
                                  vars (:vars ns)
                                  prev-var (get vars var-sym)
                                  ns (get-in @namespaces path)
@@ -202,13 +252,13 @@
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
                                           classfiles))
-                                 (assoc-in [:var-counts filename var-sym]
-                                           (if hard-def? (inc curr-var-count) curr-var-count))))))
+                                 (assoc-var-count filename var-sym
+                                                  (if hard-def? (inc curr-var-count) curr-var-count))))))
              ns (get-in old-namespaces path)
              vars (:vars ns)
              prev-var (get vars var-sym)]
          (when-not (and temp? (not prev-var))
-           (let [curr-var-count (or (get-in ns [:var-counts filename var-sym]) 0)
+           (let [curr-var-count (var-count ns filename var-sym)
                  prev-declared? (:declared prev-var)
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)

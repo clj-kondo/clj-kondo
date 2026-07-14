@@ -2617,15 +2617,7 @@
                              (update :clojure-excluded (fnil conj #{}) 
                                      (with-meta sym excluded-meta))
                              (update :vars dissoc sym)
-                             (update :var-counts
-                                     (fn [counts]
-                                       (reduce-kv
-                                        (fn [ret filename var-counts]
-                                          (if-let [var-counts (not-empty (dissoc var-counts sym))]
-                                            (assoc ret filename var-counts)
-                                            ret))
-                                        {}
-                                        (or counts {})))))))))))))
+                             (namespace/dissoc-var-count sym))))))))))
     (analyze-children ctx children)))
 
 (defn analyze-gen-class [ctx _expr base-lang lang current-ns]
@@ -3875,6 +3867,7 @@
                   (analyze-ns-decl (-> ctx
                                        (assoc-in [:config :analysis] false)
                                        (dissoc :analysis)
+                                       (assoc :synthetic-ns-init true)
                                        (utils/ctx-with-linter-disabled :namespace-name-mismatch))
                                    (if (= "project.clj" (fs/file-name (:filename ctx)))
                                      (parse-string "(ns leiningen.core.project)")
