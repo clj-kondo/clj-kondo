@@ -60,6 +60,16 @@ Options:
   --report-level <level>: minimum severity for which to report.  Supported values:
     info, warning, error.  The default level if unspecified is info.
 
+  --suppressions-location <file>: path to the baseline suppressions file. Defaults
+    to .clj-kondo/suppressions.edn.
+
+  --suppress-all: generate baseline suppressions for all current findings.
+
+  --suppress-rule <linter>: generate baseline suppressions for the given linter.
+    May be repeated to suppress multiple linters.
+
+  --prune-suppressions: remove baseline suppressions that no longer match findings.
+
   --repro: ignore home dir configuration
 
   --debug: print debug information.
@@ -85,6 +95,10 @@ Options:
     "--skip-lint"    :scalar
     "--fail-level"   :scalar
     "--report-level" :scalar
+    "--suppressions-location" :scalar
+    "--suppress-all" :scalar
+    "--suppress-rule" :coll
+    "--prune-suppressions" :scalar
     "--debug"        :scalar
     "--repro"        :scalar
     :scalar))
@@ -139,6 +153,10 @@ Options:
                      "warning")
      :report-level (or (last (get opts "--report-level"))
                        "info")
+     :suppressions-location (last (get opts "--suppressions-location"))
+     :suppress-all (contains? opts "--suppress-all")
+     :suppress-rules (mapv keyword (get opts "--suppress-rule"))
+     :prune-suppressions (contains? opts "--prune-suppressions")
      :debug (contains? opts "--debug")
      :repro (contains? opts "--repro")}))
 

@@ -11,6 +11,7 @@
    [clj-kondo.impl.linters :as l]
    [clj-kondo.impl.overrides :refer [overrides]]
    [clj-kondo.impl.sarif :as sarif]
+   [clj-kondo.impl.suppressions :as suppressions]
    [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]))
 
@@ -98,6 +99,14 @@
 
   - `:repro`: optional. Boolean indicating that the home dir config should be ignored.
 
+  - `:suppressions-location`: optional. File containing baseline suppressions.
+
+  - `:suppress-all`: optional. Generate baseline suppressions for all current findings.
+
+  - `:suppress-rules`: optional. Generate baseline suppressions only for these linter types.
+
+  - `:prune-suppressions`: optional. Remove baseline suppressions that no longer match findings.
+
   - `:debug`: optional. Print debug info.
 
   Returns a map with `:findings`, a seqable of finding maps, a
@@ -120,6 +129,10 @@
            file-analyzed-fn
            skip-lint
            repro
+           suppressions-location
+           suppress-all
+           suppress-rules
+           prune-suppressions
            debug]
     :or {cache true}
     :as args}]
@@ -130,7 +143,7 @@
                        copy-configs)]
     (binding [hooks/*debug* debug]
       (let [start-time (System/currentTimeMillis)
-            cfg-dir
+            ^java.io.File cfg-dir
             (cond config-dir (io/file config-dir)
                   filename (core-impl/config-dir filename)
                   :else
@@ -281,6 +294,29 @@
             grouped-findings (group-by (juxt :filename :row :col :type :cljc) all-findings)
             all-findings (core-impl/filter-findings ctx config grouped-findings)
             all-findings (into [] (dedupe) (sort-by (juxt :filename :row :col :message) all-findings))
+            ^java.io.File suppression-file
+            (suppressions/suppression-file cfg-dir suppressions-location)
+            suppression-root (or (some-> cfg-dir .getParentFile)
+                                 (io/file (System/getProperty "user.dir")))
+            stored-suppressions (or (suppressions/read-suppressions suppression-file) [])
+            generate-suppressions? (or suppress-all (seq suppress-rules))
+            active-suppressions (if generate-suppressions?
+                                  (suppressions/replace-suppressions
+                                   stored-suppressions
+                                   all-findings
+                                   (when-not suppress-all suppress-rules)
+                                   suppression-root)
+                                  stored-suppressions)
+            _ (when generate-suppressions?
+                (suppressions/write-suppressions! suppression-file active-suppressions))
+            {:keys [findings used]}
+            (suppressions/apply-suppressions all-findings active-suppressions suppression-root)
+            _ (when (and prune-suppressions
+                         (.exists suppression-file))
+                (suppressions/write-suppressions!
+                 suppression-file
+                 (suppressions/prune-suppressions active-suppressions used)))
+            all-findings findings
             summary (core-impl/summarize all-findings)
             duration (- (System/currentTimeMillis) start-time)
             summary (assoc summary :duration duration :files @files)]
