@@ -177,12 +177,11 @@
                                    :syntax
                                    (str "Symbols starting or ending with dot (.) are reserved by Clojure: " var-sym) )))
      (when-not (:skip-reg-var ctx)
-       (let [var-count-key [filename var-sym]
-             ;; don't use reg-finding! in swap since contention can cause it to fire multiple times
+       (let [;; don't use reg-finding! in swap since contention can cause it to fire multiple times
              [old-namespaces _]
              (swap-vals! namespaces update-in path
                          (fn [ns]
-                           (let [curr-var-count (or (get (:var-counts ns) var-count-key) 0)
+                           (let [curr-var-count (or (get-in ns [:var-counts filename var-sym]) 0)
                                  vars (:vars ns)
                                  prev-var (get vars var-sym)
                                  ns (get-in @namespaces path)
@@ -203,13 +202,13 @@
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
                                           classfiles))
-                                 (update :var-counts assoc var-count-key
-                                         (if hard-def? (inc curr-var-count) curr-var-count))))))
+                                 (assoc-in [:var-counts filename var-sym]
+                                           (if hard-def? (inc curr-var-count) curr-var-count))))))
              ns (get-in old-namespaces path)
              vars (:vars ns)
              prev-var (get vars var-sym)]
          (when-not (and temp? (not prev-var))
-           (let [curr-var-count (or (get (:var-counts ns) var-count-key) 0)
+           (let [curr-var-count (or (get-in ns [:var-counts filename var-sym]) 0)
                  prev-declared? (:declared prev-var)
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)

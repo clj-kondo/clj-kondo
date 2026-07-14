@@ -2617,7 +2617,15 @@
                              (update :clojure-excluded (fnil conj #{}) 
                                      (with-meta sym excluded-meta))
                              (update :vars dissoc sym)
-                             (update :var-counts dissoc sym))))))))))
+                             (update :var-counts
+                                     (fn [counts]
+                                       (reduce-kv
+                                        (fn [ret filename var-counts]
+                                          (if-let [var-counts (not-empty (dissoc var-counts sym))]
+                                            (assoc ret filename var-counts)
+                                            ret))
+                                        {}
+                                        (or counts {})))))))))))))
     (analyze-children ctx children)))
 
 (defn analyze-gen-class [ctx _expr base-lang lang current-ns]
