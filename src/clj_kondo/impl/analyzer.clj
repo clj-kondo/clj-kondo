@@ -427,6 +427,7 @@
                opts (dissoc opts :allow-amp :namespaced-map)
                kvs (partition 2 (:children expr))
                select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
+               or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
                [req sel] (reduce (fn [[req sel] [k v]]
                                    (let [key-name (some-> (:k k) name keyword)]
                                      (cond (one-of key-name [:keys! :syms! :strs!])
@@ -460,16 +461,29 @@
                                                    :keys-destructuring? true
                                                    :destructuring-type key-name
                                                    :destructuring-expr k)
-                                       [bound-children doc-children]
-                                       (split-with #(not= '& (:value %)) (:children v))
-                                       res (into res (map #(extract-bindings ctx % scoped-expr opts))
-                                                 bound-children)]
-                                   ;; entries after & are documentation only, no bindings
-                                   (doseq [child (rest doc-children)]
-                                     (when (and (not= '& (:value child))
-                                                (or (:k child)
-                                                    (one-of key-name [:keys :keys!])))
-                                       (usages/analyze-keyword ctx child opts)))
+                                       ;; before & are bindings, after & only literal keys
+                                       res (loop [children (:children v) amp? false res res]
+                                             (if-let [child (first children)]
+                                               (cond
+                                                 (= '& (:value child))
+                                                 (do (when amp?
+                                                       (findings/reg-finding!
+                                                        ctx (node->line (:filename ctx) child :syntax
+                                                                        "& can only appear once in map destructuring")))
+                                                     (recur (next children) true res))
+                                                 amp?
+                                                 (do (cond
+                                                       (symbol? (:value child))
+                                                       (findings/reg-finding!
+                                                        ctx (node->line (:filename ctx) child :syntax
+                                                                        (str "Binding symbols can only appear before &, use keys after: " (:value child))))
+                                                       (:k child)
+                                                       (usages/analyze-keyword ctx child opts))
+                                                     (recur (next children) true res))
+                                                 :else
+                                                 (recur (next children) false
+                                                        (merge res (extract-bindings ctx child scoped-expr opts))))
+                                               res))]
                                    (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
                                  (case key-name
@@ -501,6 +515,15 @@
                                                     (merge res (extract-bindings ctx v scoped-expr
                                                                                  (assoc opts :tag {:type :map :val sel}))))
                                              (recur rest-kvs res))
+                                   ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
+                                   :defaults (if (plain-directive? k :defaults)
+                                               (do (when-not or?
+                                                     (findings/reg-finding!
+                                                      ctx (node->line (:filename ctx) k :syntax
+                                                                      "Can't specify :defaults without :or")))
+                                                   (recur rest-kvs
+                                                          (merge res (extract-bindings ctx v scoped-expr opts))))
+                                               (recur rest-kvs res))
                                    (recur rest-kvs res)))))
                          :else
                          (recur rest-kvs (merge res

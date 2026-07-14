@@ -1663,7 +1663,7 @@
          {:file "<stdin>", :row 3, :level :error, :message "Missing required key: :c"}
          {:file "<stdin>", :row 4, :level :error, :message "Expected: map, received: nil."})
        (lint! "
-(defn foo [{:keys! [a b & c]}] [a b])
+(defn foo [{:keys! [a b & :c]}] [a b])
 (foo {:a 1})
 (foo nil)
 (foo {:a 1 :b 2 :c 3})
@@ -1759,7 +1759,7 @@
 (defn f [{:keys! [x]}] x)
 (defn g1 [{:keys [a x] :select m}] [a x (f m)])
 (defn g2 [{myx :x :select m}] [myx (f m)])
-(defn g3 [{:keys [a & x] :select m}] [a (f m)])
+(defn g3 [{:keys [a & :x] :select m}] [a (f m)])
 (defn g4 [{:select m :keys [x]}] [x (f m)])
 (defn g5 [{:keys! [x] :select m}] [x (f m)])"
                          config))))
