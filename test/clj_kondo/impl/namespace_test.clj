@@ -146,6 +146,22 @@
       (is (= {"a.clj" {'helper 1}}
              (get-in @namespaces (conj path :var-counts))))
       (is (true? (get-in @namespaces (conj path :var-counts-by-filename?))))))
+  (testing "promotes counts when another file continues the namespace"
+    (let [namespaces (atom {})
+          ctx {:base-lang :clj
+               :lang :clj
+               :namespaces namespaces}
+          path [:clj :clj 'example.core]]
+      (namespace/reg-namespace! ctx {:name 'example.core
+                                     :type :ns
+                                     :filename "a.clj"})
+      (swap! namespaces assoc-in (conj path :var-counts) {'helper 1})
+      (namespace/reg-namespace! ctx {:name 'example.core
+                                     :type :in-ns
+                                     :filename "b.clj"})
+      (is (= {"a.clj" {'helper 1}}
+             (get-in @namespaces (conj path :var-counts))))
+      (is (true? (get-in @namespaces (conj path :var-counts-by-filename?))))))
   (testing "does not promote synthetic namespace initialization"
     (let [namespaces (atom {})
           ctx {:base-lang :clj

@@ -35,3 +35,17 @@
           (is (empty? unresolved-vars))
           (is (= ["redefined var #'duplicate.core/same-file"]
                  (mapv :message redefined-vars))))))))
+
+(deftest multi-file-namespace-redefinition-test
+  (testing "redefinitions are tracked separately for in-ns continuation files"
+    (with-temp-dir [dir "clj-kondo-multi-file-namespace"]
+      (let [a (io/file dir "a.clj")
+            b (io/file dir "b.clj")]
+        (spit a "(ns multi-file.core)\n(def shared :a)\n")
+        (spit b "(in-ns 'multi-file.core)\n(def shared :b)\n")
+        (let [findings (:findings
+                        (clj-kondo/run! {:lint     [(.getPath a) (.getPath b)]
+                                        :cache    false
+                                        :parallel true}))
+              redefined-vars (filter #(= :redefined-var (:type %)) findings)]
+          (is (empty? redefined-vars)))))))

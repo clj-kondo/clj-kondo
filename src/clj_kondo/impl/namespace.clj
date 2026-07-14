@@ -118,8 +118,6 @@
                    (fn [prev]
                      (let [duplicate-namespace?
                            (and prev
-                                (identical? :ns ns-type)
-                                (identical? :ns (:type prev))
                                 (not (:synthetic-init ns))
                                 (not (:synthetic-init prev))
                                 (:filename prev)
