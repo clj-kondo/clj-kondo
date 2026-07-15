@@ -2354,10 +2354,14 @@
     (when name-sym (namespace/reg-var! ctx ns-name name-sym expr (meta name-expr)))
     (run! #(analyze-usages2 ctx %) body)))
 
-(defn analyze-when [ctx expr]
+(defn analyze-when [ctx expr op]
   (let [children (next (:children expr))
         condition (first children)
-        body (next children)]
+        body (next children)
+        ;; when-not negates the condition, so narrow only for when
+        narrowing (when (and (= 'when op)
+                             (not (linter-disabled? ctx :type-mismatch)))
+                    (narrowing-from-condition ctx condition))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.
@@ -2370,7 +2374,7 @@
         expr
         :missing-body-in-when
         "Missing body in when"))
-      (analyze-children ctx body false))))
+      (analyze-children (cond-> ctx narrowing (narrow-binding narrowing)) body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
   (let [children (next (:children expr))
@@ -3167,7 +3171,7 @@
                           (= not=) (analyze-=-not= ctx expr resolved-as-clojure-var-name)
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
-                          (when when-not) (analyze-when ctx expr)
+                          (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name)
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
