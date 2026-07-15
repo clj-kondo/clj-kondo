@@ -2242,7 +2242,7 @@
 
 (defn- type-predicate-narrowing
   "When `condition` is `(pred local)` with `pred` a known type predicate and
-  `local` a binding, returns [binding tag] to narrow that binding to `tag` in the
+  `local` a binding, returns [sym tag] to narrow that binding to `tag` in the
   truthy branch. Returns nil otherwise."
   [ctx condition]
   (when (identical? :list (tag condition))
@@ -2254,14 +2254,15 @@
               asym (sexpr arg)]
           (when (and (symbol? fsym) (symbol? asym) (not (namespace asym)))
             (when-let [t (get types/predicate->tag (symbol (name fsym)))]
-              (when-let [b (get (:bindings ctx) asym)]
-                [b t]))))))))
+              (when (get (:bindings ctx) asym)
+                [asym t]))))))))
 
 (defn narrow-ctx
-  "Adds a flow-narrowed tag for `binding` to ctx, keyed by binding identity so it
-  is dropped when the binding is shadowed."
-  [ctx [binding tag]]
-  (assoc ctx :narrowed (assoc (:narrowed ctx) binding tag)))
+  "Narrows binding `sym` to `tag` in the truthy branch by tagging its metadata,
+  which binding equality ignores. Shadowing drops it: an inner binding replaces
+  the entry in :bindings."
+  [ctx [sym tag]]
+  (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 
 (defn analyze-if
   "Analyzes if special form for arity errors"

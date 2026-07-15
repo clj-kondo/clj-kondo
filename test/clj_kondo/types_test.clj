@@ -1807,6 +1807,9 @@
       (is (empty? (lint! "(defn f [x] (if x (inc x) 0))" config))))
     (testing "narrowing is dropped when the binding is shadowed"
       (is (empty? (lint! "(defn f [x] (if (string? x) (let [x 1] (inc x)) x))"
+                         config))))
+    (testing "narrowing a local used only in the branch does not report it unused"
+      (is (empty? (lint! "(defn f [x] (let [y x] (if (string? y) (count y) 0)))"
                          config))))))
 
 ;;;; Scratch
