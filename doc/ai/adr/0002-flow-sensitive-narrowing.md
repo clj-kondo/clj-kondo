@@ -17,8 +17,8 @@ flag it.
 
 ## Decision
 
-In the truthy branch of `(if (pred x) ..)` and `(when (pred x) ..)`, narrow `x`
-to the type `pred` proves.
+In the then branch of `(if (pred x) ..)` and the body of `(when (pred x) ..)`,
+narrow `x` to the type `pred` proves.
 
 - `types/predicate->tag` maps a core predicate to the type it proves. A value
   may be a set, for example `ident?` proves `#{:keyword :symbol}`.

@@ -2243,7 +2243,7 @@
 (defn- narrowing-from-condition
   "When `condition` is `(pred local)` with `pred` a known core type predicate and
   `local` a binding, returns [sym tag]: the binding to narrow and the type it is
-  narrowed to in the truthy branch. Returns nil otherwise."
+  narrowed to when the condition holds. Returns nil otherwise."
   [ctx condition]
   (when (identical? :list (tag condition))
     (let [[f arg & more] (:children condition)]

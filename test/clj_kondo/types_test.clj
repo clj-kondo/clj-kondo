@@ -1792,7 +1792,7 @@
 
 (deftest flow-narrowing-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
-    (testing "value is narrowed to the predicate's type in the truthy branch"
+    (testing "value is narrowed to the predicate's type in the then branch"
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: string."})
        (lint! "(defn f [x] (if (string? x) (inc x) 0))" config))
