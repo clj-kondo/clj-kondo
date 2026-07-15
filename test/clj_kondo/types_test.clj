@@ -1810,7 +1810,14 @@
                          config))))
     (testing "narrowing a local used only in the branch does not report it unused"
       (is (empty? (lint! "(defn f [x] (let [y x] (if (string? y) (count y) 0)))"
-                         config))))))
+                         config))))
+    (testing "a shadowed or redefined predicate does not narrow"
+      (let [type-mismatches #(filter (comp #{:type-mismatch} :type) %)]
+        (is (empty? (type-mismatches
+                     (lint! "(defn f [string? x] (if (string? x) (inc x) 0))" config))))
+        (is (empty? (type-mismatches
+                     (lint! "(ns a) (defn string? [_] true) (defn f [x] (if (string? x) (inc x) 0))"
+                            config))))))))
 
 ;;;; Scratch
 

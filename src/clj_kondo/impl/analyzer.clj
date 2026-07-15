@@ -2241,21 +2241,24 @@
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
 (defn- type-predicate-narrowing
-  "When `condition` is `(pred local)` with `pred` a known type predicate and
+  "When `condition` is `(pred local)` with `pred` a known core type predicate and
   `local` a binding, returns [sym tag] to narrow that binding to `tag` in the
-  truthy branch. Returns nil otherwise."
+  truthy branch. Returns nil otherwise. Cheapest checks go first; the namespace
+  resolution is only consulted once everything else matches."
   [ctx condition]
   (when (identical? :list (tag condition))
     (let [[f arg & more] (:children condition)]
       (when (and f arg (nil? more)
                  (identical? :token (tag f))
                  (identical? :token (tag arg)))
-        (let [fsym (sexpr f)
-              asym (sexpr arg)]
-          (when (and (symbol? fsym) (symbol? asym) (not (namespace asym)))
-            (when-let [t (get types/predicate->tag (symbol (name fsym)))]
-              (when (get (:bindings ctx) asym)
-                [asym t]))))))))
+        ;; predicate->tag lookup implies fsym is an unqualified known-predicate
+        ;; symbol; the bindings lookup implies asym is a local
+        (when-let [t (get types/predicate->tag (:value f))]
+          (let [asym (:value arg)]
+            (when (and (get (:bindings ctx) asym)
+                       ;; expensive, last: is `fsym` still the core predicate?
+                       (namespace/core-symbol-in-scope? ctx (:value f)))
+              [asym t])))))))
 
 (defn narrow-ctx
   "Narrows binding `sym` to `tag` in the truthy branch by tagging its metadata,
