@@ -417,7 +417,7 @@
     (when-let [call (get @calls-by-id id)]
       (ret-tag-from-call ctx call expr))))
 
-(defn expr->tag [{:keys [bindings lang quoted] :as ctx} expr]
+(defn expr->tag [{:keys [bindings lang quoted narrowed] :as ctx} expr]
   (let [t (tag expr)
         quoted? (or quoted (identical? :edn lang))
         ret (case t
@@ -433,7 +433,11 @@
                          (nil? v) :nil
                          (symbol? v) (if quoted? :symbol
                                          (when-let [b (get bindings v)]
-                                           (:tag b)))
+                                           ;; a flow-narrowed tag (e.g. inside the
+                                           ;; then-branch of (if (string? x) ..))
+                                           ;; wins over the binding's declared tag
+                                           (or (get narrowed b)
+                                               (:tag b))))
                          (boolean? v) :boolean
                          (string? v) :string
                          (keyword? v) :keyword

@@ -2240,6 +2240,39 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
+(def ^:private predicate->tag
+  "clojure.core/cljs.core type predicates that narrow a value to a single known
+  type. Used for flow-sensitive narrowing in the truthy branch of a conditional."
+  '{string? :string number? :number int? :int integer? :int pos-int? :pos-int
+    nat-int? :nat-int neg-int? :neg-int double? :double float? :float
+    ratio? :ratio map? :map vector? :vector seq? :seq seqable? :seqable
+    coll? :coll keyword? :keyword symbol? :symbol set? :set list? :list
+    char? :char boolean? :boolean fn? :fn ifn? :ifn associative? :associative
+    sequential? :sequential var? :var})
+
+(defn- type-predicate-narrowing
+  "When `condition` is `(pred local)` with `pred` a known type predicate and
+  `local` a binding, returns [binding tag] to narrow that binding to `tag` in the
+  truthy branch. Returns nil otherwise."
+  [ctx condition]
+  (when (identical? :list (tag condition))
+    (let [[f arg & more] (:children condition)]
+      (when (and f arg (nil? more)
+                 (identical? :token (tag f))
+                 (identical? :token (tag arg)))
+        (let [fsym (sexpr f)
+              asym (sexpr arg)]
+          (when (and (symbol? fsym) (symbol? asym) (not (namespace asym)))
+            (when-let [t (get predicate->tag (symbol (name fsym)))]
+              (when-let [b (get (:bindings ctx) asym)]
+                [b t]))))))))
+
+(defn narrow-ctx
+  "Adds a flow-narrowed tag for `binding` to ctx, keyed by binding identity so it
+  is dropped when the binding is shadowed."
+  [ctx [binding tag]]
+  (assoc ctx :narrowed (assoc (:narrowed ctx) binding tag)))
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr]
@@ -2254,9 +2287,16 @@
        (node->line (:filename ctx) expr
                    linter
                    msg)))
-    (let [[condition & clauses] args]
+    (let [[condition & clauses] args
+          [then else] clauses
+          narrow (when-not (linter-disabled? ctx :type-mismatch)
+                   (type-predicate-narrowing ctx condition))]
       (analyze-condition ctx condition)
-      (analyze-children ctx clauses false))))
+      (if narrow
+        (let [ctx (assoc ctx :len (count clauses))]
+          (concat (analyze-expression** (-> ctx (assoc :idx 0) (narrow-ctx narrow)) then)
+                  (when else (analyze-expression** (assoc ctx :idx 1) else))))
+        (analyze-children ctx clauses false)))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"
