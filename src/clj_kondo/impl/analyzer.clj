@@ -2260,7 +2260,7 @@
 
 (defn narrow-binding
   "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
-  rides on the binding's metadata, which binding equality ignores."
+  is stored in the binding's metadata, which binding equality ignores."
   [ctx [sym tag]]
   (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 

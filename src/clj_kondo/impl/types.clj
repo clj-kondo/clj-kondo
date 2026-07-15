@@ -442,7 +442,7 @@
                          (nil? v) :nil
                          (symbol? v) (if quoted? :symbol
                                          (when-let [b (get bindings v)]
-                                           ;; a flow-narrowed tag (see narrow-binding) wins over the declared tag
+                                           ;; a flow-narrowed tag (see narrow-binding) takes precedence over the declared tag
                                            (or (:narrowed-tag (meta b))
                                                (:tag b))))
                          (boolean? v) :boolean
