@@ -25,6 +25,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2854](https://github.com/clj-kondo/clj-kondo/issues/2854): fix false positive `:invalid-arity` when an inner binding or fn param shadows a local function name ([@yuhan0](https://github.com/yuhan0))
 - Performance optimizations: [#2853](https://github.com/clj-kondo/clj-kondo/issues/2853), [#2857](https://github.com/clj-kondo/clj-kondo/issues/2857), [#2858](https://github.com/clj-kondo/clj-kondo/issues/2858), [#2859](https://github.com/clj-kondo/clj-kondo/issues/2859), [#2866](https://github.com/clj-kondo/clj-kondo/issues/2866) ([@alexander-yakushev](https://github.com/alexander-yakushev))
 - Performance: use a record for var usages: -13.5% allocation, ~5-10% faster linting
+- Type checker: narrow a local's type in the truthy branch of an `if` guarded by a type predicate such as `string?`, flagging misuse like `(if (string? x) (inc x))`
 
 ## 2026.05.25
 
