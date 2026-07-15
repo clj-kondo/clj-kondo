@@ -2240,11 +2240,11 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
-(defn- type-predicate-narrowing
+(defn- narrowing-from-condition
   "When `condition` is `(pred local)` with `pred` a known core type predicate and
-  `local` a binding, returns [sym tag] to narrow that binding to `tag` in the
-  truthy branch. Returns nil otherwise. Cheapest checks go first; the namespace
-  resolution is only consulted once everything else matches."
+  `local` a binding, returns [sym tag]: the binding to narrow and the type it is
+  narrowed to in the truthy branch. Returns nil otherwise. Cheapest checks go
+  first; the namespace resolution is only consulted once everything else matches."
   [ctx condition]
   (when (identical? :list (tag condition))
     (let [[f arg & more] (:children condition)]
@@ -2260,10 +2260,10 @@
                        (namespace/core-symbol-in-scope? ctx (:value f)))
               [asym t])))))))
 
-(defn narrow-ctx
-  "Narrows binding `sym` to `tag` in the truthy branch by tagging its metadata,
-  which binding equality ignores. Shadowing drops it: an inner binding replaces
-  the entry in :bindings."
+(defn narrow-binding
+  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The
+  tag rides on the binding's metadata, which binding equality ignores. Shadowing
+  drops it: an inner binding replaces the entry in :bindings."
   [ctx [sym tag]]
   (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 
@@ -2283,12 +2283,12 @@
                    msg)))
     (let [[condition & clauses] args
           [then else] clauses
-          narrow (when-not (linter-disabled? ctx :type-mismatch)
-                   (type-predicate-narrowing ctx condition))]
+          narrowing (when-not (linter-disabled? ctx :type-mismatch)
+                      (narrowing-from-condition ctx condition))]
       (analyze-condition ctx condition)
-      (if narrow
+      (if narrowing
         (let [ctx (assoc ctx :len (count clauses))]
-          (concat (analyze-expression** (-> ctx (assoc :idx 0) (narrow-ctx narrow)) then)
+          (concat (analyze-expression** (-> ctx (assoc :idx 0) (narrow-binding narrowing)) then)
                   (when else (analyze-expression** (assoc ctx :idx 1) else))))
         (analyze-children ctx clauses false)))))
 
