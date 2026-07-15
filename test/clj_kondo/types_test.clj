@@ -1830,6 +1830,19 @@
     (testing "when-not does not narrow, its condition is negated"
       (is (empty? (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config))))))
 
+(deftest or-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "(or (p x) (q x)) narrows x to the union of the predicate types"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: symbol or string."})
+       (lint! "(defn f [x] (if (or (string? x) (symbol? x)) (inc x) 0))" config)))
+    (testing "usage valid for the whole union is not flagged"
+      (is (empty? (lint! "(defn f [x] (if (or (string? x) (symbol? x)) (str x) 0))" config))))
+    (testing "predicates on different locals do not narrow"
+      (is (empty? (lint! "(defn f [x y] (if (or (string? x) (symbol? y)) (inc x) 0))" config))))
+    (testing "a non-predicate clause cancels narrowing"
+      (is (empty? (lint! "(defn f [x] (if (or (string? x) (seq x)) (inc x) 0))" config))))))
+
 ;;;; Scratch
 
 (comment)

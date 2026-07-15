@@ -2240,13 +2240,12 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
-(defn- narrowing-from-condition
-  "When `condition` is `(pred local)` with `pred` a known core type predicate and
-  `local` a binding, returns [sym tag]: the binding to narrow and the type it is
-  narrowed to when the condition holds. Returns nil otherwise."
-  [ctx condition]
-  (when (identical? :list (tag condition))
-    (let [[f arg & more] (:children condition)]
+(defn- predicate-narrowing
+  "When `node` is `(pred local)` with `pred` a known core type predicate and
+  `local` a binding, returns [sym tag]. Returns nil otherwise."
+  [ctx node]
+  (when (identical? :list (tag node))
+    (let [[f arg & more] (:children node)]
       (when (and f arg (nil? more)
                  (identical? :token (tag f))
                  (identical? :token (tag arg)))
@@ -2257,6 +2256,24 @@
                        ;; resolution is the costly check, so gate it behind the rest
                        (namespace/core-symbol-in-scope? ctx (:value f)))
               [asym t])))))))
+
+(defn- narrowing-from-condition
+  "Returns [sym tag]: the binding to narrow and the type it is narrowed to when
+  `condition` holds. `condition` is `(pred local)`, or `(or (pred local) ..)` on
+  one local, which narrows to the union of the predicates' types. Returns nil
+  otherwise."
+  [ctx condition]
+  (when (identical? :list (tag condition))
+    (or (predicate-narrowing ctx condition)
+        (let [[f & clauses] (:children condition)]
+          (when (and (seq clauses)
+                     (identical? :token (tag f))
+                     (= 'or (:value f))
+                     (namespace/core-symbol-in-scope? ctx 'or))
+            (let [narrowings (map #(predicate-narrowing ctx %) clauses)]
+              (when (and (every? some? narrowings)
+                         (apply = (map first narrowings)))
+                [(ffirst narrowings) (set (map second narrowings))])))))))
 
 (defn narrow-binding
   "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
