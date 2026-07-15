@@ -69,6 +69,17 @@
    'clojure.string clojure-string
    'clojure.test clojure-test})
 
+(def predicate->tag
+  "clojure.core/cljs.core type predicates and the type each one proves about its
+  argument. Their specs return :boolean, so the proven type is recorded here.
+  Used for flow-sensitive narrowing in the truthy branch of a conditional."
+  '{string? :string number? :number int? :int integer? :int pos-int? :pos-int
+    nat-int? :nat-int neg-int? :neg-int double? :double float? :float
+    ratio? :ratio map? :map vector? :vector seq? :seq seqable? :seqable
+    coll? :coll keyword? :keyword symbol? :symbol set? :set list? :list
+    char? :char boolean? :boolean fn? :fn ifn? :ifn associative? :associative
+    sequential? :sequential var? :var})
+
 (def is-a-relations
   {:string #{:char-sequence :seqable}
    :char-sequence #{:seqable}

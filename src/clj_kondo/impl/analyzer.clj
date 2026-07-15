@@ -2240,16 +2240,6 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
-(def ^:private predicate->tag
-  "clojure.core/cljs.core type predicates that narrow a value to a single known
-  type. Used for flow-sensitive narrowing in the truthy branch of a conditional."
-  '{string? :string number? :number int? :int integer? :int pos-int? :pos-int
-    nat-int? :nat-int neg-int? :neg-int double? :double float? :float
-    ratio? :ratio map? :map vector? :vector seq? :seq seqable? :seqable
-    coll? :coll keyword? :keyword symbol? :symbol set? :set list? :list
-    char? :char boolean? :boolean fn? :fn ifn? :ifn associative? :associative
-    sequential? :sequential var? :var})
-
 (defn- type-predicate-narrowing
   "When `condition` is `(pred local)` with `pred` a known type predicate and
   `local` a binding, returns [binding tag] to narrow that binding to `tag` in the
@@ -2263,7 +2253,7 @@
         (let [fsym (sexpr f)
               asym (sexpr arg)]
           (when (and (symbol? fsym) (symbol? asym) (not (namespace asym)))
-            (when-let [t (get predicate->tag (symbol (name fsym)))]
+            (when-let [t (get types/predicate->tag (symbol (name fsym)))]
               (when-let [b (get (:bindings ctx) asym)]
                 [b t]))))))))
 
