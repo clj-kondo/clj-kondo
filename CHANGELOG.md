@@ -13,7 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- Type checker: narrow the type of a local in the then-branch of `if` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
+- Type checker: narrow the type of a local in the then-branch of `if` or the body of `when` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
 - Clojure 1.13 CLJ-2961: map destructuring `:keys!` `:syms!` `:strs!` with required keys
 - Clojure 1.13 CLJ-2961: report a binding symbol after `&`, or a second `&`, in a map destructuring keys vector as a syntax error
 - Clojure 1.13 CLJ-2954: `&` is now invalid as a binding name in all binding positions

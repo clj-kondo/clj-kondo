@@ -1819,6 +1819,17 @@
                      (lint! "(ns a) (defn string? [_] true) (defn f [x] (if (string? x) (inc x) 0))"
                             config))))))))
 
+(deftest when-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "value is narrowed in the body of when"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: map."})
+       (lint! "(defn f [x] (when (map? x) (subs x 1)))" config)))
+    (testing "correct usage in the when body is not flagged"
+      (is (empty? (lint! "(defn f [x] (when (string? x) (subs x 1)))" config))))
+    (testing "when-not does not narrow, its condition is negated"
+      (is (empty? (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config))))))
+
 ;;;; Scratch
 
 (comment)
