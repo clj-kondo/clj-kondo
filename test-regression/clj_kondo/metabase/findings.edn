@@ -1795,6 +1795,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 42}
+ {:end-row 936,
+  :type :redundant-str-call,
+  :level :info,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor_test/date_bucketing_test.clj",
+  :col 5,
+  :end-col 12,
+  :langs (),
+  :message "Single argument to str already is a string",
+  :row 936}
  {:end-row 1797,
   :type :unresolved-symbol,
   :level :error,

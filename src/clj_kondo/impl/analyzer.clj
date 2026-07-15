@@ -2240,6 +2240,30 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
+(defn- narrowing-from-condition
+  "When `condition` is `(pred local)` with `pred` a known core type predicate and
+  `local` a binding, returns [sym tag]: the binding to narrow and the type it is
+  narrowed to when the condition holds. Returns nil otherwise."
+  [ctx condition]
+  (when (identical? :list (tag condition))
+    (let [[f arg & more] (:children condition)]
+      (when (and f arg (nil? more)
+                 (identical? :token (tag f))
+                 (identical? :token (tag arg)))
+        ;; predicate->tag and bindings lookups already constrain fsym and asym
+        (when-let [t (get types/predicate->tag (:value f))]
+          (let [asym (:value arg)]
+            (when (and (get (:bindings ctx) asym)
+                       ;; resolution is the costly check, so gate it behind the rest
+                       (namespace/core-symbol-in-scope? ctx (:value f)))
+              [asym t])))))))
+
+(defn narrow-binding
+  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
+  is stored in the binding's metadata, which binding equality ignores."
+  [ctx [sym tag]]
+  (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr]
@@ -2254,9 +2278,16 @@
        (node->line (:filename ctx) expr
                    linter
                    msg)))
-    (let [[condition & clauses] args]
+    (let [[condition & clauses] args
+          [then else] clauses
+          narrowing (when-not (linter-disabled? ctx :type-mismatch)
+                      (narrowing-from-condition ctx condition))]
       (analyze-condition ctx condition)
-      (analyze-children ctx clauses false))))
+      (if narrowing
+        (let [ctx (assoc ctx :len (count clauses))]
+          (concat (analyze-expression** (-> ctx (assoc :idx 0) (narrow-binding narrowing)) then)
+                  (when else (analyze-expression** (assoc ctx :idx 1) else))))
+        (analyze-children ctx clauses false)))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"

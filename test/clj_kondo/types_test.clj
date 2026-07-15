@@ -1790,6 +1790,35 @@
 (defn g2 [{::keys [x] :select m}] [x (f2 m)])"
                          config))))))
 
+(deftest flow-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "value is narrowed to the predicate's type in the then branch"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [x] (if (string? x) (inc x) 0))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(defn f [x] (if (number? x) (subs x 1) x))" config)))
+    (testing "correct usage in the narrowed branch is not flagged"
+      (is (empty? (lint! "(defn f [x] (if (string? x) (subs x 1) x))" config))))
+    (testing "the else branch is not narrowed"
+      (is (empty? (lint! "(defn f [x] (if (string? x) x (inc x)))" config))))
+    (testing "a non-predicate condition does not narrow"
+      (is (empty? (lint! "(defn f [x] (if x (inc x) 0))" config))))
+    (testing "narrowing is dropped when the binding is shadowed"
+      (is (empty? (lint! "(defn f [x] (if (string? x) (let [x 1] (inc x)) x))"
+                         config))))
+    (testing "narrowing a local used only in the branch does not report it unused"
+      (is (empty? (lint! "(defn f [x] (let [y x] (if (string? y) (count y) 0)))"
+                         config))))
+    (testing "a shadowed or redefined predicate does not narrow"
+      (let [type-mismatches #(filter (comp #{:type-mismatch} :type) %)]
+        (is (empty? (type-mismatches
+                     (lint! "(defn f [string? x] (if (string? x) (inc x) 0))" config))))
+        (is (empty? (type-mismatches
+                     (lint! "(ns a) (defn string? [_] true) (defn f [x] (if (string? x) (inc x) 0))"
+                            config))))))))
+
 ;;;; Scratch
 
 (comment)

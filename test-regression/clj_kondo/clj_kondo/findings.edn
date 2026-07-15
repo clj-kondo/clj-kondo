@@ -71,6 +71,17 @@
   :langs (:cljs),
   :message "Unresolved namespace Integer. Are you missing a require?",
   :row 251}
+ {:end-row 284,
+  :type :redundant-str-call,
+  :level :warning,
+  :lang :clj,
+  :filename "babashka/fs.cljc",
+  :col 49,
+  :end-col 69,
+  :cljc true,
+  :langs (:clj),
+  :message "Single argument to str already is a string",
+  :row 284}
  {:end-row 334,
   :ns java.util.regex.Pattern,
   :name quote,

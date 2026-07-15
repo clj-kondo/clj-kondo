@@ -69,6 +69,15 @@
    'clojure.string clojure-string
    'clojure.test clojure-test})
 
+(def predicate->tag
+  "Core type predicates mapped to the type each proves about its argument."
+  '{string? :string number? :number int? :int integer? :int pos-int? :pos-int
+    nat-int? :nat-int neg-int? :neg-int double? :double float? :float
+    ratio? :ratio map? :map vector? :vector seq? :seq seqable? :seqable
+    coll? :coll keyword? :keyword symbol? :symbol set? :set list? :list
+    char? :char boolean? :boolean fn? :fn ifn? :ifn associative? :associative
+    sequential? :sequential var? :var})
+
 (def is-a-relations
   {:string #{:char-sequence :seqable}
    :char-sequence #{:seqable}
@@ -433,7 +442,9 @@
                          (nil? v) :nil
                          (symbol? v) (if quoted? :symbol
                                          (when-let [b (get bindings v)]
-                                           (:tag b)))
+                                           ;; a flow-narrowed tag (see narrow-binding) takes precedence over the declared tag
+                                           (or (:narrowed-tag (meta b))
+                                               (:tag b))))
                          (boolean? v) :boolean
                          (string? v) :string
                          (keyword? v) :keyword
