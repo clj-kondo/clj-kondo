@@ -24,9 +24,10 @@
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)
       (and (set? arg-type) (every? resolved-type? arg-type))
-      (and (map? arg-type) (when-let [t (:type arg-type)]
-                             (and (not (:kw-calls arg-type))
-                                  (identical? t :map))))))
+      (and (map? arg-type) (or (contains? arg-type :not)
+                               (when-let [t (:type arg-type)]
+                                 (and (not (:kw-calls arg-type))
+                                      (identical? t :map)))))))
 
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."

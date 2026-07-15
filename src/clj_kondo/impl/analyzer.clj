@@ -2264,6 +2264,12 @@
   [ctx [sym tag]]
   (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 
+(defn- negate-narrowing
+  "Turns a positive narrowing [sym tag] into the negative [sym {:not #{tags}}]
+  for the branch where the predicate is false."
+  [[sym tag]]
+  [sym {:not (if (set? tag) tag #{tag})}])
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr]
@@ -2286,7 +2292,9 @@
       (if narrowing
         (let [ctx (assoc ctx :len (count clauses))]
           (concat (analyze-expression** (-> ctx (assoc :idx 0) (narrow-binding narrowing)) then)
-                  (when else (analyze-expression** (assoc ctx :idx 1) else))))
+                  (when else (analyze-expression** (-> ctx (assoc :idx 1)
+                                                       (narrow-binding (negate-narrowing narrowing)))
+                                                   else))))
         (analyze-children ctx clauses false)))))
 
 (defn analyze-if-not
@@ -2358,10 +2366,13 @@
   (let [children (next (:children expr))
         condition (first children)
         body (next children)
-        ;; when-not negates the condition, so narrow only for when
-        narrowing (when (and (= 'when op)
-                             (not (linter-disabled? ctx :type-mismatch)))
-                    (narrowing-from-condition ctx condition))]
+        ;; when narrows the body positively, when-not negatively
+        narrowing (when-not (linter-disabled? ctx :type-mismatch)
+                    (when-let [n (narrowing-from-condition ctx condition)]
+                      (case op
+                        when n
+                        when-not (negate-narrowing n)
+                        nil)))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.

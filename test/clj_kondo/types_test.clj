@@ -1827,8 +1827,10 @@
        (lint! "(defn f [x] (when (map? x) (subs x 1)))" config)))
     (testing "correct usage in the when body is not flagged"
       (is (empty? (lint! "(defn f [x] (when (string? x) (subs x 1)))" config))))
-    (testing "when-not does not narrow, its condition is negated"
-      (is (empty? (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config))))))
+    (testing "when-not narrows the body negatively"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: non-string."})
+       (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config)))))
 
 ;;;; Scratch
 

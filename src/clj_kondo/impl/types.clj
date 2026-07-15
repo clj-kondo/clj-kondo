@@ -228,7 +228,18 @@
            (not (contains? known-types k))))
         (and (identical? actual :nil) (or (nilable? expected)
                                           (identical? :seqable expected))))
-    (map? actual) (recur (:type actual) expected)
+    (map? actual)
+    (if-let [excluded (:not actual)]
+      ;; `actual` is a value proven NOT to be any of `excluded` (an else-branch).
+      ;; It fails a required `expected` only when every value satisfying
+      ;; `expected` is excluded, i.e. `expected` is a subtype of an excluded type.
+      (if (keyword? expected)
+        (not (some (fn [ex]
+                     (or (identical? expected ex)
+                         (contains? (get is-a-relations expected) ex)))
+                   excluded))
+        true)
+      (recur (:type actual) expected))
     (set? actual) (some #(match? % expected) actual)))
 
 ;; TODO: we could look more intelligently at the source of the tag, e.g. if it
@@ -496,6 +507,7 @@
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
                 (set? x) (str/join " or " (map label-fn x))
+                (and (map? x) (:not x)) (str "non-" (str/join "/" (map label-fn (:not x))))
                 ;; TODO:
                 (map? x) "map")]
     l))
