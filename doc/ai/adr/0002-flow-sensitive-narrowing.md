@@ -3,8 +3,8 @@
 ## Status
 
 Positive narrowing merged for `if` and `when`. Union narrowing over an `or` of
-predicates lives on branch `flow-narrow-or`, unmerged (see below). Negative
-narrowing deferred.
+predicates lives on branch `flow-narrow-or`, unmerged. Negative narrowing spiked
+on branch `spike-negative-narrowing`, parked. Both see below.
 
 ## Context
 
@@ -42,7 +42,7 @@ false positives, but it found no findings on the regression corpora (metabase,
 clerk, clj-kondo deps), so its value is unproven. Kept on branch
 `flow-narrow-or` rather than merged.
 
-## Negative narrowing (deferred)
+## Negative narrowing (spiked, parked, branch `spike-negative-narrowing`)
 
 The else branch is the dual problem. There the guard proves the value is NOT the
 predicate's type:
@@ -52,7 +52,7 @@ predicate's type:
         (inc x)          ;; then: x is a string, already flagged
         (parse-long x))) ;; else: x is not a string, parse-long wants a string
 
-To flag the else branch:
+The design:
 
 1. Record `x` as excluded-from the predicate's type in the else branch, a
    `{:not #{:string}}` tag, the mirror of `narrow-binding`.
@@ -62,19 +62,24 @@ To flag the else branch:
    failure. `:seqable` required against `not #{:string}` stays quiet, because a
    vector is seqable and not a string.
 
-This is a new tag shape and a new `match?` branch. It is more false-positive
-prone than positive narrowing, because a broad predicate produces a broad
-exclusion, so it needs its own increment and tests.
+Spike result: implemented on branch `spike-negative-narrowing` for the else
+branch of `if` and the body of `when-not`, with `parse-long`, `parse-double`,
+`parse-uuid` and `parse-boolean` given `:string` arg specs so there was
+something to catch. It works on synthetic cases and produced no false positives,
+but found zero findings across all three corpora, so it did not pay for its
+complexity. Parked.
 
-`parse-long`, `parse-double` and `parse-uuid` have no specs (placeholders at
-core.clj lines 8044-8068). The example above only fires once they carry a
-`:string` argument spec. That spec is useful on its own, independent of
-narrowing.
+The spike also needed a fix in `resolve-arg-type`: `resolved-type?` did not
+recognize the `{:not ..}` map and silently stripped it to nil. Any new tag shape
+hits the same wall.
+
+The `parse-long` family specs (unspecced placeholders at core.clj 8044-8079) are
+a real gap on their own, worth adding independent of narrowing.
 
 ## Limitations
 
 - `if` and `when` only. `cond` and `and` are not handled. `or` is on branch
   `flow-narrow-or`, unmerged.
-- Then-branch (positive) only. Else-branch narrowing is the deferred work above.
+- Then-branch (positive) only. Else-branch narrowing spiked and parked (above).
 - Predicates are resolved by name against the core set, so a qualified core
   predicate like `(clojure.core/string? x)` does not narrow.
