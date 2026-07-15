@@ -2,8 +2,9 @@
 
 ## Status
 
-Positive narrowing implemented (`flow-narrow-if` branch, `if` only, `when` to
-follow). Negative narrowing deferred.
+Positive narrowing merged for `if` and `when`. Union narrowing over an `or` of
+predicates lives on branch `flow-narrow-or`, unmerged (see below). Negative
+narrowing deferred.
 
 ## Context
 
@@ -32,6 +33,14 @@ narrow `x` to the type `pred` proves.
 A set-valued tag needs no new checking code. `match?` already has a set branch
 that passes when any member could satisfy the expected type, so a union narrows
 leniently.
+
+## Or narrowing (unmerged, branch `flow-narrow-or`)
+
+`(or (pred x) (pred x) ..)` on one local narrows `x` to the union of the
+predicates' types, reusing the set-valued tag path. It is correct and free of
+false positives, but it found no findings on the regression corpora (metabase,
+clerk, clj-kondo deps), so its value is unproven. Kept on branch
+`flow-narrow-or` rather than merged.
 
 ## Negative narrowing (deferred)
 
@@ -64,7 +73,8 @@ narrowing.
 
 ## Limitations
 
-- `if` and `when` only. `cond`, `and`, `or` are not handled.
+- `if` and `when` only. `cond` and `and` are not handled. `or` is on branch
+  `flow-narrow-or`, unmerged.
 - Then-branch (positive) only. Else-branch narrowing is the deferred work above.
 - Predicates are resolved by name against the core set, so a qualified core
   predicate like `(clojure.core/string? x)` does not narrow.
