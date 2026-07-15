@@ -70,9 +70,7 @@
    'clojure.test clojure-test})
 
 (def predicate->tag
-  "clojure.core/cljs.core type predicates and the type each one proves about its
-  argument. Their specs return :boolean, so the proven type is recorded here.
-  Used for flow-sensitive narrowing in the truthy branch of a conditional."
+  "Core type predicates mapped to the type each proves about its argument."
   '{string? :string number? :number int? :int integer? :int pos-int? :pos-int
     nat-int? :nat-int neg-int? :neg-int double? :double float? :float
     ratio? :ratio map? :map vector? :vector seq? :seq seqable? :seqable
@@ -444,10 +442,7 @@
                          (nil? v) :nil
                          (symbol? v) (if quoted? :symbol
                                          (when-let [b (get bindings v)]
-                                           ;; a flow-narrowed tag (from the truthy
-                                           ;; branch of (if (string? x) ..)) rides
-                                           ;; on the binding's metadata, invisible
-                                           ;; to binding equality
+                                           ;; a flow-narrowed tag (see narrow-binding) wins over the declared tag
                                            (or (:narrowed-tag (meta b))
                                                (:tag b))))
                          (boolean? v) :boolean

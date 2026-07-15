@@ -2243,27 +2243,24 @@
 (defn- narrowing-from-condition
   "When `condition` is `(pred local)` with `pred` a known core type predicate and
   `local` a binding, returns [sym tag]: the binding to narrow and the type it is
-  narrowed to in the truthy branch. Returns nil otherwise. Cheapest checks go
-  first; the namespace resolution is only consulted once everything else matches."
+  narrowed to in the truthy branch. Returns nil otherwise."
   [ctx condition]
   (when (identical? :list (tag condition))
     (let [[f arg & more] (:children condition)]
       (when (and f arg (nil? more)
                  (identical? :token (tag f))
                  (identical? :token (tag arg)))
-        ;; predicate->tag lookup implies fsym is an unqualified known-predicate
-        ;; symbol; the bindings lookup implies asym is a local
+        ;; predicate->tag and bindings lookups already constrain fsym and asym
         (when-let [t (get types/predicate->tag (:value f))]
           (let [asym (:value arg)]
             (when (and (get (:bindings ctx) asym)
-                       ;; expensive, last: is `fsym` still the core predicate?
+                       ;; resolution is the costly check, so gate it behind the rest
                        (namespace/core-symbol-in-scope? ctx (:value f)))
               [asym t])))))))
 
 (defn narrow-binding
-  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The
-  tag rides on the binding's metadata, which binding equality ignores. Shadowing
-  drops it: an inner binding replaces the entry in :bindings."
+  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
+  rides on the binding's metadata, which binding equality ignores."
   [ctx [sym tag]]
   (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 
