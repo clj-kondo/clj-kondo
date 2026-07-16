@@ -26,3 +26,18 @@
   (is (= '[foo bar baz](-> (merge-config! '{:linters {:unresolved-namespace {:exclude [foo bar]}}}
                                           '{:linters {:unresolved-namespace {:exclude #{baz}}}})
                            :linters :unresolved-namespace :exclude))))
+
+(deftest merge-config!-test
+  (testing "type-mismatch :arities are overwritten instead of merged"
+    (is (= {:linters {:type-mismatch {:namespaces '{my-ns {shared   {:arities {1 {:args [:str] :ret :str}
+                                                                               2 {:args [:int :int] :ret :int}
+                                                                               3 {:args [:str :str :str] :ret :str}}}
+                                                           clj-only {:arities {1 {:args [:int] :ret :int}}}
+                                                           cljs-only {:arities {1 {:args [:int] :ret :int}}}}}}}}
+           (merge-config!
+            {:linters {:type-mismatch {:namespaces '{my-ns {shared   {:arities {1 {:args [:int] :ret :int}
+                                                                                2 {:args [:int :int] :ret :int}}}
+                                                            clj-only {:arities {1 {:args [:int] :ret :int}}}}}}}}
+            {:linters {:type-mismatch {:namespaces '{my-ns {shared   {:arities {1 {:args [:str] :ret :str}
+                                                                                3 {:args [:str :str :str] :ret :str}}}
+                                                            cljs-only {:arities {1 {:args [:int] :ret :int}}}}}}}})))))
