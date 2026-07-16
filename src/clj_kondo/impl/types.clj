@@ -521,16 +521,17 @@
   called-name arity]`, taken from the callstack head's ::infer-call meta.
   Records the callee's expected type as a constraint on the param, or a
   deferred {:call ..} constraint for a spec-less user fn. A usage in a
-  conditional branch or on a narrowed binding proves nothing, the guard may be
-  what makes it safe. Type predicates need no special case: their arg spec is
-  :any, so they record nothing."
+  conditional branch proves nothing, the guard may be what makes it safe. That
+  covers narrowed usages, narrowing only happens in branches, and spine
+  narrowing (assert, :pre), when it exists, should constrain: the guard throws,
+  so the type is the contract. Type predicates need no special case: their arg
+  spec is :any, so they record nothing."
   [ctx [called-ns called-name arity] levels b idx]
   (when-let [level (some (fn [l]
                            (when (contains? @(:param-infer l) b)
                              l))
                          levels)]
-    (when-not (or (:branched? level)
-                  (:narrowed-tag (meta b)))
+    (when-not (:branched? level)
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)

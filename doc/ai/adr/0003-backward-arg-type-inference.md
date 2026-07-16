@@ -40,8 +40,8 @@ Rules, in order of precedence:
    `most-specific` has no meet for these shapes, so a set or keys spec mixed
    with other constraints falls back to the keyword fold via the deferred
    path, where non-keyword members contribute nothing.
-4. A conditionally guarded usage proves nothing. Two mechanisms: a usage on a
-   flow-narrowed binding is skipped, and a usage inside a conditional branch
+4. A conditionally guarded usage proves nothing: a usage inside a conditional
+   branch
    (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
    `if-let`, `when-let`, `if-some`, `when-some`) is skipped via a per-level
    branched flag. An unresolved call could be a macro, so its args count as a
@@ -53,7 +53,12 @@ Rules, in order of precedence:
    for inference, their arg spec is `:any` and records nothing. An earlier
    revision marked predicate-tested params `:poly` (never infer). That masked
    the case above and only protected type dispatch through unresolved macros,
-   which the branch treatment of unresolved calls now covers structurally. A nested fn body is a new inference level pushed onto
+   which the branch treatment of unresolved calls now covers structurally.
+   Narrowed usages need no separate skip, narrowing only happens in branches.
+   If spine narrowing ever exists (assert, :pre, guard clauses that throw), a
+   narrowed spine usage should constrain: the guard enforces the type at
+   runtime, so it is the contract, and :pre could even seed inference
+   directly. A nested fn body is a new inference level pushed onto
    `:param-infers`: its own params start unbranched regardless of enclosing
    conditionals, and a usage of an enclosing fn's param in the nested body
    still constrains it, closing over a param is using it. A conditional marks
