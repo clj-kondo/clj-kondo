@@ -37,12 +37,12 @@ Rules, in order of precedence:
    ordinary call-site check.
 3. Constraints meet to the most specific union: keywords and union sets
    normalize to sets, the meet keeps pairwise `is-a-relations` winners, an
-   empty meet is a conflict and proves nothing, a partial meet is a set, which
+   empty intersection is a conflict and proves nothing, a partial intersection is a set, which
    is a legal spec. So `(defn f [x] (symbol x) (contains? x 1))` infers exactly
    `#{:string}`, the intersection of the two unions. A param whose only
    constraint is a `{:op :keys ..}` map spec passes it through verbatim, so
    wrappers propagate required keys from config specs. Map-shaped constraints
-   have no meet, mixed with others they are parked in `{:op :and :specs ..}`
+   have no intersection, mixed with others they are parked in `{:op :and :specs ..}`
    for the linters phase, where unresolvable members contribute nothing.
 4. A conditionally guarded usage proves nothing: a usage inside a conditional
    branch
@@ -116,8 +116,7 @@ constraint. Constraints with deferred or map-shaped members are stored as
 (`:rest`, `:keys`). The specs vector is insertion ordered with record-time
 dedup, for deterministic cache output and resolved in the linters phase by
 `types/resolve-inferred-spec`: look up the callee's `:args` in idacs (possibly
-itself inferred, so chains), guard cycles with a seen set, merge with
-most-specific, fall back to the hint. This mirrors how deferred return tags
+itself inferred, so chains), guard cycles with a seen set, intersect the contributions. This mirrors how deferred return tags
 already resolve via `resolve-arg-type`.
 
 The deferred shape is plain data and round-trips through the transit cache:

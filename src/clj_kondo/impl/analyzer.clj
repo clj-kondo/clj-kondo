@@ -647,7 +647,7 @@
 
 (defn merge-inferred-arg-tags
   "Fills in arg specs for params from their collected constraints: keyword and
-  union-set constraints meet to the most specific union, a conflict proves
+  union-set constraints intersect to the most specific union, a conflict proves
   nothing, and constraints with deferred or map-shaped members are stored as
   {:op :and :specs ..} and resolved in the linters phase. A single {:op :keys}
   constraint passes through verbatim."
@@ -658,7 +658,7 @@
                 (cond
                   (not-any? map? ts)
                   (assoc tags i (reduce (fn [acc t]
-                                          (or (types/meet acc t) (reduced nil)))
+                                          (or (types/intersect acc t) (reduced nil)))
                                         nil ts))
                   (and (= 1 (count ts))
                        (identical? :keys (:op (first ts))))

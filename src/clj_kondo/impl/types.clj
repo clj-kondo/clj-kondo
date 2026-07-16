@@ -568,10 +568,11 @@
   (or (identical? a b)
       (contains? (get is-a-relations a) b)))
 
-(defn meet
-  "The meet of specs `a` and `b`, keywords or union sets: the most specific
-  union that satisfies both, computed pairwise over is-a. Returns a keyword, a
-  set, or nil when nothing satisfies both. nil `a` means no evidence yet."
+(defn intersect
+  "Intersects specs `a` and `b`, keywords or union sets: the most specific
+  union satisfying both, as the maximal named types implying each side. The
+  dual of `union-type`. Returns a keyword, a set, or nil when nothing
+  satisfies both. nil `a` means no evidence yet."
   [a b]
   (if (nil? a)
     b
@@ -580,7 +581,7 @@
           sat (fn [t s] (boolean (some #(is-a? t %) s)))
           ;; every named type that satisfies both unions: input members alone
           ;; miss types that imply both without being listed in either, e.g.
-          ;; :vector for the meet of get's union with :seqable
+          ;; :vector when intersecting get's union with :seqable
           all (into #{} (filter (fn [t]
                                   (and (not (identical? :any t))
                                        (sat t as)
@@ -618,7 +619,7 @@
                                    (and (map? s) (identical? :and (:op s)))
                                    (resolve-inferred-spec idacs s (conj seen k)))))))))]
        (if t
-         (or (meet acc t)
+         (or (intersect acc t)
              ;; conflicting constraints prove nothing
              (reduced nil))
          ;; an unresolvable constraint contributes nothing
