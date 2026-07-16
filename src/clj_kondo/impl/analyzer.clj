@@ -690,7 +690,7 @@
                                    levels)))))
                   b (peek lb)
                   lookups (if (and b (nil? lookups))
-                            (let [core? (contains? '#{clojure.core cljs.core} called-ns)
+                            (let [core? (one-of called-ns [clojure.core cljs.core])
                                   pred-tag (and core? (get types/predicate->tag called-name))
                                   specs (when-not pred-tag
                                           (types/spec-args (:config ctx) called-ns called-name
