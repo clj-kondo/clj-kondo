@@ -578,7 +578,7 @@
     b
     (let [as (if (set? a) a #{a})
           bs (if (set? b) b #{b})
-          sat (fn [t s] (boolean (some #(is-a? t %) s)))
+          sat (fn [t s] (some #(is-a? t %) s))
           ;; every named type that satisfies both unions: input members alone
           ;; miss types that imply both without being listed in either, e.g.
           ;; :vector when intersecting get's union with :seqable
@@ -717,11 +717,14 @@
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
-          (let [args-spec (mapv (fn [s]
-                                  (if (and (map? s) (identical? :and (:op s)))
-                                    (resolve-inferred-spec idacs s #{})
-                                    s))
-                                args-spec)]
+          (let [inferred? (fn [s] (and (map? s) (identical? :and (:op s))))
+                args-spec (if (some inferred? args-spec)
+                            (mapv (fn [s]
+                                    (if (inferred? s)
+                                      (resolve-inferred-spec idacs s #{})
+                                      s))
+                                  args-spec)
+                            args-spec)]
           (loop [check-ctx {}
                  [s & rest-args-spec :as all-specs] args-spec
                  [a & rest-args :as all-args] args

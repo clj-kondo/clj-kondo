@@ -1010,16 +1010,15 @@
 
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
-        matched-val (first children)
-        [test-ctx test-opts]
-        (if (identical? :cljs (:lang ctx))
-          [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
-           nil]
-          [ctx {:quote? true}])]
+        matched-val (first children)]
     (analyze-expression** ctx matched-val)
     ;; branches are conditionally evaluated, so no param inference
     (let [ctx (in-branch-ctx ctx)
-          test-ctx (in-branch-ctx test-ctx)]
+          [test-ctx test-opts]
+          (if (identical? :cljs (:lang ctx))
+            [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
+             nil]
+            [ctx {:quote? true}])]
     (loop [[constant expr & exprs] (rest children)
            seen-constants #{}]
       (when constant
