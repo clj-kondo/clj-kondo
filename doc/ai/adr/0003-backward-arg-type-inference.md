@@ -39,11 +39,16 @@ Rules, in order of precedence:
    usage on a flow-narrowed binding is skipped, and a usage inside a
    conditional branch (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`,
    `case`, `and`, `or`, `if-let`, `when-let`, `if-some`, `when-some`) is
-   skipped via an `:in-branch` flag. Only the body's unconditional spine
-   constrains. A nested fn body is a separate spine: a usage there proves
-   nothing about the outer fn's params (the fn may never run), and an outer
-   conditional does not make the nested body conditional. `analyze-fn-body`
-   drops both `:param-infer` and `:in-branch` on entry.
+   skipped via a per-level branched flag. Only the body's unconditional spine
+   constrains. A nested fn body is a new inference level pushed onto
+   `:param-infers`: its own params start unbranched regardless of enclosing
+   conditionals, and a usage of an enclosing fn's param in the nested body
+   still constrains it, closing over a param is using it. A conditional marks
+   every enclosing level as branched, so a fn created inside a branch, or a
+   guarded usage inside the fn, proves nothing about the outer param. Settled
+   empirically: both including and excluding nested-fn usages produced zero
+   corpus deltas, so the version that catches
+   `(defn f [x] #(subs x 1)) (f 42)` at write time won.
 5. `:char-sequence` constraints propagate on both platforms. The JVM impls
    coerce via `.toString`, so a symbol into `str/replace` happens to work
    there, but the clojure.string ns docstring (design note 4) documents the

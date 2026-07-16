@@ -670,22 +670,25 @@
   when an argument is a param, so the common call costs a token check per
   argument."
   [ctx called-ns called-name unresolved? arg-exprs]
-  (when-let [param-infer (:param-infer ctx)]
+  (when-let [levels (:param-infers ctx)]
     (when (and called-ns called-name)
-      (let [bindings (:bindings ctx)
-            pi @param-infer]
+      (let [bindings (:bindings ctx)]
         (loop [args arg-exprs
                idx 0
                ;; nil = lookups not yet done, false = callee gives no info,
                ;; else [pred-tag specs defer-call]
                lookups nil]
           (when-let [a (first args)]
-            (let [b (when (identical? :token (tag a))
-                      (let [v (:value a)]
-                        (when (and (symbol? v) (not (namespace v)))
-                          (let [b (get bindings v)]
-                            (when (contains? pi b)
-                              b)))))
+            (let [;; [level binding] when the arg is a param of some level
+                  lb (when (identical? :token (tag a))
+                       (let [v (:value a)]
+                         (when (and (symbol? v) (not (namespace v)))
+                           (when-let [b (get bindings v)]
+                             (some (fn [l]
+                                     (when (contains? @(:pi l) b)
+                                       [l b]))
+                                   levels)))))
+                  b (peek lb)
                   lookups (if (and b (nil? lookups))
                             (let [core? (contains? '#{clojure.core cljs.core} called-ns)
                                   pred-tag (and core? (get types/predicate->tag called-name))
@@ -705,12 +708,14 @@
                             lookups)]
               (when (and b (vector? lookups))
                 (let [[pred-tag specs defer-call] lookups
+                      [level _] lb
+                      pi (:pi level)
                       s (if specs
                           (spec-at specs idx)
                           (when defer-call
                             {:call (assoc defer-call :arg-idx idx)}))]
                   (cond pred-tag
-                        (swap! param-infer assoc b :poly)
+                        (swap! pi assoc b :poly)
                         (and s
                              ;; a keyword spec or our own deferred shape, not
                              ;; other map specs like {:op :keys}
@@ -720,9 +725,9 @@
                              ;; a usage in a conditional branch does not
                              ;; constrain the param, the guard may be what
                              ;; makes it safe
-                             (not (:in-branch ctx))
+                             (not (:branched? level))
                              (not (:narrowed-tag (meta b))))
-                        (swap! param-infer update b
+                        (swap! pi update b
                                (fn [cur] (if (identical? :poly cur)
                                            :poly
                                            (conj (or cur #{}) s)))))))
@@ -796,11 +801,13 @@
                                          acc)))))))
         param-infer (when simple-params
                       (atom (into {} (map (fn [[_ _ b]] [b #{}])) simple-params)))
-        ;; a fresh fn body: drop the enclosing fn's inference state. A usage in
-        ;; a nested fn proves nothing about the outer params, the fn may never
-        ;; run, and an outer conditional does not make this body conditional.
-        ctx (cond-> (dissoc ctx :param-infer :in-branch)
-              param-infer (assoc :param-infer param-infer))
+        ;; push a new inference level. Enclosing levels stay, with their branch
+        ;; state as of this fn's creation point: a usage in this body may
+        ;; constrain an enclosing fn's param when nothing conditional separates
+        ;; them, invoking this fn is the caller's way of using that param.
+        ctx (cond-> ctx
+              param-infer (update :param-infers (fnil conj [])
+                                  {:pi param-infer :branched? false}))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))
@@ -1072,12 +1079,14 @@
     (mapcat :parsed parsed-bodies)))
 
 (defn- in-branch-ctx
-  "Marks ctx as conditionally evaluated for param inference. No-op when
-  inference is off or the ctx is already marked."
+  "Marks every param-inference level as conditionally evaluated: a branch is a
+  branch for every enclosing fn's params. No-op when inference is off or all
+  levels are already marked."
   [ctx]
-  (if (and (:param-infer ctx) (not (:in-branch ctx)))
-    (assoc ctx :in-branch true)
-    ctx))
+  (let [levels (:param-infers ctx)]
+    (if (and levels (not (every? :branched? levels)))
+      (assoc ctx :param-infers (mapv #(assoc % :branched? true) levels))
+      ctx)))
 
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))

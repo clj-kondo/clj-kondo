@@ -1887,9 +1887,17 @@
       (is (empty? (lint! "(defn f [x m] (if-let [v (:k m)] (subs x v) x)) (f 42 {})" config))))
     (testing "a usage on a narrowed binding does not constrain"
       (is (empty? (lint! "(defn f [x] (when (string? x) (subs x 1)) x) (f 42)" config))))
-    (testing "a usage in a nested fn does not constrain, the fn may never run"
-      (is (empty? (lint! "(defn f [x] #(subs x 1)) (f 42)" config)))
-      (is (empty? (lint! "(defn f [x coll] (map (fn [i] (subs x i)) coll)) (f 42 [1])" config))))
+    (testing "a nested fn's usage constrains the outer param, closing over it is using it"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] #(subs x 1)) (f 42)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x coll] (map (fn [i] (subs x i)) coll)) (f 42 [1])" config)))
+    (testing "a nested fn created in a conditional branch does not constrain"
+      (is (empty? (lint! "(defn f [x b] (when b #(subs x 1))) (f 42 true)" config))))
+    (testing "a conditional inside the nested fn does not constrain the outer param"
+      (is (empty? (lint! "(defn f [x b] #(if b (subs x 1) x)) (f 42 true)" config))))
     (testing "fn literals infer like defn"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: positive integer."})
