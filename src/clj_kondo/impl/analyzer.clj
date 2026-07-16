@@ -645,94 +645,6 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
-(defn- spec-at
-  "Positional spec for argument `idx`, where a {:op :rest} entry covers all
-  remaining positions."
-  [specs idx]
-  (loop [i 0
-         ss (seq specs)]
-    (when-let [s (first ss)]
-      (if (and (map? s) (identical? :rest (:op s)))
-        (:spec s)
-        (if (== i idx)
-          s
-          (recur (inc i) (rest ss)))))))
-
-(defn infer-fn-arg-types!
-  "Backward parameter-type inference. While analyzing a call inside a fn body,
-  when a param of the enclosing fn is passed directly to a callee with a known
-  spec, record the expected type as a constraint on that param. A param passed
-  to a core type predicate is marked :poly and excluded, and a usage under a
-  narrowed binding contributes nothing, since the guard proves it safe.
-  A call to a user fn with no spec records a deferred {:call ..} constraint,
-  resolved against the callee's own inferred :args in the linters phase, so
-  inference chains through user fns. The spec and predicate lookups only happen
-  when an argument is a param, so the common call costs a token check per
-  argument."
-  [ctx called-ns called-name unresolved? arg-exprs]
-  (when-let [levels (:param-infers ctx)]
-    (when (and called-ns called-name)
-      (let [bindings (:bindings ctx)]
-        (loop [args arg-exprs
-               idx 0
-               ;; nil = lookups not yet done, false = callee gives no info,
-               ;; else [pred-tag specs defer-call]
-               lookups nil]
-          (when-let [a (first args)]
-            (let [;; [level binding] when the arg is a param of some level
-                  lb (when (identical? :token (tag a))
-                       (let [v (:value a)]
-                         (when (and (symbol? v) (not (namespace v)))
-                           (when-let [b (get bindings v)]
-                             (some (fn [l]
-                                     (when (contains? @(:param-infer l) b)
-                                       [l b]))
-                                   levels)))))
-                  b (peek lb)
-                  lookups (if (and b (nil? lookups))
-                            (let [core? (one-of called-ns [clojure.core cljs.core])
-                                  pred-tag (and core? (get types/predicate->tag called-name))
-                                  specs (when-not pred-tag
-                                          (types/spec-args (:config ctx) called-ns called-name
-                                                           (count arg-exprs)))
-                                  defer-call (when-not (or pred-tag specs core? unresolved?
-                                                           (keyword? called-name))
-                                               {:resolved-ns called-ns
-                                                :name called-name
-                                                :arity (count arg-exprs)
-                                                :lang (:lang ctx)
-                                                :base-lang (:base-lang ctx)})]
-                              (if (or pred-tag specs defer-call)
-                                [pred-tag specs defer-call]
-                                false))
-                            lookups)]
-              (when (and b (vector? lookups))
-                (let [[pred-tag specs defer-call] lookups
-                      [level _] lb
-                      pi (:param-infer level)
-                      s (if specs
-                          (spec-at specs idx)
-                          (when defer-call
-                            {:call (assoc defer-call :arg-idx idx)}))]
-                  (cond pred-tag
-                        (swap! pi assoc b :poly)
-                        (and s
-                             ;; a keyword spec or our own deferred shape, not
-                             ;; other map specs like {:op :keys}
-                             (if (map? s)
-                               (:call s)
-                               (and (keyword? s) (not (identical? :any s))))
-                             ;; a usage in a conditional branch does not
-                             ;; constrain the param, the guard may be what
-                             ;; makes it safe
-                             (not (:branched? level))
-                             (not (:narrowed-tag (meta b))))
-                        (swap! pi update b
-                               (fn [cur] (if (identical? :poly cur)
-                                           :poly
-                                           (conj (or cur #{}) s)))))))
-              (recur (rest args) (inc idx) lookups))))))))
-
 (defn merge-inferred-arg-tags
   "Fills in arg tags for params whose body constraints prove a single most
   specific type. A param hinted nilable is only upgraded when the proven type
@@ -2706,10 +2618,14 @@
                                        (= 'mapcat hof-resolved-name)))
                       1)
                     arg-count)
+        hof-cs-entry [resolved-namespace resolved-name]
         ctx (update ctx :callstack
                     (fn [cs]
-                      (cons [resolved-namespace resolved-name]
-                            cs)))]
+                      (cons hof-cs-entry cs)))
+        ;; the pseudo-frame for the hof'd fn shadows the hof call's own entry,
+        ;; but the remaining args are still positionally the hof's args
+        ctx (cond-> ctx
+              (:infer-call ctx) (assoc-in [:infer-call :entry] hof-cs-entry))]
     (cond var?
           (let [{:keys [row end-row col end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)
@@ -3080,8 +2996,6 @@
                                  (not (linter-disabled? ctx :type-mismatch)))
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
-        (when arg-types
-          (infer-fn-arg-types! ctx resolved-namespace resolved-name unresolved? children))
         (when (:in-or-default? ctx)
           (findings/reg-finding!
            ctx
@@ -3218,13 +3132,21 @@
                                               ns-name resolved-namespace)
                         ctx (if (and resolved-var-sym
                                      (not (= 'clojure.core/doto resolved-var-sym)))
-                              (update ctx :callstack
-                                      (fn [cs]
-                                        (let [generated? (:clj-kondo.impl/generated expr)]
-                                          (cons (with-meta [resolved-namespace* resolved-name]
-                                                  (cond-> expr-meta
-                                                    generated?
-                                                    (assoc :clj-kondo.impl/generated true))) cs))))
+                              (let [cs-entry (with-meta [resolved-namespace* resolved-name]
+                                               (cond-> expr-meta
+                                                 (:clj-kondo.impl/generated expr)
+                                                 (assoc :clj-kondo.impl/generated true)))
+                                    ctx (update ctx :callstack (fn [cs] (cons cs-entry cs)))]
+                                ;; a local usage directly under this call may
+                                ;; constrain a param, see types/infer-local-usage!
+                                (if (and arg-types (:param-infers ctx))
+                                  (assoc ctx :infer-call {:entry cs-entry
+                                                          :ns resolved-namespace
+                                                          :name resolved-name
+                                                          :arity arg-count
+                                                          :unresolved? unresolved?
+                                                          :lookups (volatile! nil)})
+                                  ctx))
                               (update ctx :callstack conj [nil nil]))
                         resolved-as-clojure-var-name
                         (when (one-of resolved-as-namespace [clojure.core cljs.core])

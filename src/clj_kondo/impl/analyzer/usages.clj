@@ -7,6 +7,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some
                                            symbol-token?]]
    [clojure.string :as str])
@@ -172,6 +173,14 @@
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
                    (do
+                     (when-let [levels (:param-infers ctx)]
+                       (when-let [ic (:infer-call ctx)]
+                         ;; only when b is a direct argument of the call that
+                         ;; installed :infer-call, its entry is the head then
+                         (when (= (:entry ic) (first (:callstack ctx)))
+                           (when-let [arg-types (:arg-types ctx)]
+                             (types/infer-local-usage! ctx ic levels b
+                                                       (count @arg-types))))))
                      (when-let [ul (:undefined-locals ctx)]
                        (when (contains? ul symbol-val)
                          (findings/reg-finding! ctx (utils/node->line (:filename ctx)
