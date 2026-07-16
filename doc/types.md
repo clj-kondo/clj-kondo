@@ -28,32 +28,9 @@ $ clj-kondo --lint - <<< '(defn foo [^String x] x) (foo 1)'
 <stdin>:1:31: warning: Expected: string or nil, received: positive integer.
 ```
 
-The third way is inference. Clj-kondo infers the type of an unhinted param from
-how the fn body uses it, and checks callers against it:
-
-``` clojure
-$ clj-kondo --lint - <<< '(defn slugify [s] (subs s 1)) (slugify 42)'
-<stdin>:1:40: warning: Expected: string, received: positive integer.
-```
-
-This chains through calls to other user fns:
-
-``` clojure
-$ clj-kondo --lint - <<< '(defn slugify [s] (subs s 1)) (defn shorten [x] (slugify x)) (shorten 42)'
-<stdin>:1:71: warning: Expected: string, received: positive integer.
-```
-
-Only usages that run on every call count. A usage inside a conditional branch
-proves nothing about the param, so type-dispatching fns like
-`(defn f [x] (if (string? x) (subs x 1) x))` stay polymorphic. Inside the
-then-branch of such a test the local is narrowed to the proven type, so
-`(if (string? x) (inc x) x)` warns on the `(inc x)`. A nilable type hint
-combines with the body's evidence: `(defn f [^String s] (subs s 1))` proves the
-non-nil use, so `(f nil)` warns. A type annotation in the configuration
-disables inference for that arity.
-
-Type hints were never designed with type checking in mind. Therefore clj-kondo
-lets users bring in their own type annotations in the configuration:
+This provides a way for users to inform clj-kondo and get some type checking for
+free. But type hints were never designed with type checking in mind. Therefore
+clj-kondo lets users bring in their own type annotations in the configuration:
 
 ``` clojure
 {:linters
