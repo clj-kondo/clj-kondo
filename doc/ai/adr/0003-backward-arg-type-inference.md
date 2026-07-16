@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented on branch `spike-backward-infer`, in review.
+Accepted, on branch `spike-backward-infer`, review complete.
 
 ## Context
 
@@ -32,11 +32,12 @@ Rules, in order of precedence:
    union (`^String` means `#{:nil :string}`) and is seeded as an ordinary
    constraint, so the upgrade to the non-nil tag when the body proves a non-nil
    use, and the fallback to the declaration when nothing resolves, both emerge
-   from rule 3's meet. A hint conflicting with the body leaves callers
+   from rule 3's intersection. A hint conflicting with the body leaves callers
    unchecked, and the body itself is flagged at the contradiction by the
    ordinary call-site check.
-3. Constraints meet to the most specific union: keywords and union sets
-   normalize to sets, the meet keeps pairwise `is-a-relations` winners, an
+3. Constraints intersect to the most specific union: keywords and union sets
+   normalize to sets, `intersect` keeps the maximal named types implying both
+   sides, an
    empty intersection is a conflict and proves nothing, a partial intersection is a set, which
    is a legal spec. So `(defn f [x] (symbol x) (contains? x 1))` infers exactly
    `#{:string}`, the intersection of the two unions. A param whose only
@@ -140,14 +141,22 @@ argument.
 
 ## Corpus results
 
-Three new findings on the regression corpora (all metabase), each a contract
-violation that works on the JVM by toString coercion only: a `^Character` into
-ring's `url-encode` two hops through `str/replace`, and symbols into a helper
-that forwards to `str/replace`. Zero false positives. An earlier iteration
-without rule 4 produced 76 findings, dominated by guarded-polymorphic fns like
-metabase's `js=`. Committed code has survivorship bias against the crashing
-bug class this catches, unconditional param misuse fails on first call, so
-much of the feature's value is at write time in the editor.
+Fourteen findings on the regression corpora, all metabase, all contract
+violations per the built-in specs, none crashing at runtime: three
+char-sequence findings (a `^Character` into ring's `url-encode` two hops
+through `str/replace`, symbols into a `str/replace` helper), four
+keyword-family (`(keyword {})` and `(keyword nil)` one hop out), six
+get-family (metabase's map-or-id idiom, ids into fns whose spine `get`s the
+argument), one nil into an associative-strict op. The get-family findings
+proved actionable at every site: callers over-narrowing maps they already held
+via `u/the-id`, or a callee hiding type dispatch behind `get`'s totality.
+Zero mechanical false positives, two `intersect` implementation bugs were
+caught by 32 interim corpus findings and fixed with regression tests.
+Earlier iterations without rule 4 produced 76 findings, dominated by
+guarded-polymorphic fns like metabase's `js=`. Committed code has survivorship
+bias against the crashing bug class this catches, unconditional param misuse
+fails on first call, so much of the feature's value is at write time in the
+editor.
 
 ## Spec strictness under propagation
 
