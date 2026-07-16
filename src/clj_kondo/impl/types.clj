@@ -595,6 +595,30 @@
         1 (first m)
         m))))
 
+(defn merge-inferred-arg-tags
+  "Fills in arg specs for params from their collected constraints: keyword and
+  union-set constraints intersect to the most specific union, a conflict proves
+  nothing, and constraints with deferred or map-shaped members are stored as
+  {:op :and :specs ..} and resolved in the linters phase. A single {:op :keys}
+  constraint passes through verbatim."
+  [simple-params param-infer arg-tags]
+  (reduce (fn [tags [i _hint b]]
+            (let [ts (get @param-infer b)]
+              (if (seq ts)
+                (cond
+                  (not-any? map? ts)
+                  (assoc tags i (reduce (fn [acc t]
+                                          (or (intersect acc t) (reduced nil)))
+                                        nil ts))
+                  (and (= 1 (count ts))
+                       (identical? :keys (:op (first ts))))
+                  (assoc tags i (first ts))
+                  :else
+                  (assoc tags i {:op :and :specs ts}))
+                tags)))
+          (vec arg-tags)
+          simple-params))
+
 (defn resolve-inferred-spec
   "Resolves an inferred :args entry {:op :and :specs ..} to a concrete spec, or
   nil when nothing is provable. A deferred {:op :arg-spec-of ..} member looks

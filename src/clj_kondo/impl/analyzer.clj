@@ -645,30 +645,6 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
-(defn merge-inferred-arg-tags
-  "Fills in arg specs for params from their collected constraints: keyword and
-  union-set constraints intersect to the most specific union, a conflict proves
-  nothing, and constraints with deferred or map-shaped members are stored as
-  {:op :and :specs ..} and resolved in the linters phase. A single {:op :keys}
-  constraint passes through verbatim."
-  [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i _hint b]]
-            (let [ts (get @param-infer b)]
-              (if (seq ts)
-                (cond
-                  (not-any? map? ts)
-                  (assoc tags i (reduce (fn [acc t]
-                                          (or (types/intersect acc t) (reduced nil)))
-                                        nil ts))
-                  (and (= 1 (count ts))
-                       (identical? :keys (:op (first ts))))
-                  (assoc tags i (first ts))
-                  :else
-                  (assoc tags i {:op :and :specs ts}))
-                tags)))
-          (vec arg-tags)
-          simple-params))
-
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
@@ -799,7 +775,7 @@
                            tag))]
             [parsed ret-tag]))
         arg-tags (if param-infer
-                   (merge-inferred-arg-tags simple-params param-infer arg-tags)
+                   (types/merge-inferred-arg-tags simple-params param-infer arg-tags)
                    arg-tags)]
     (assoc arity
            :parsed
