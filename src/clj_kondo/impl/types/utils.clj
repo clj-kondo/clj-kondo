@@ -28,43 +28,6 @@
                              (and (not (:kw-calls arg-type))
                                   (identical? t :map))))))
 
-(declare resolve-arg-type)
-
-(defn- resolve-lazy-call
-  "Resolves the return tag of a deferred {:call ..}, looking up the callee's
-  arities in idacs."
-  [idacs call seen-calls]
-  (let [arity (:arity call)]
-    (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-      (let [arities (:arities called-fn)
-            tag (or (when-let [v (get arities arity)]
-                      (:ret v))
-                    (when-let [v (get arities :varargs)]
-                      (when (>= arity (:min-arity v))
-                        (:ret v))))
-            resolved-arg-type (resolve-arg-type idacs tag (conj seen-calls call))]
-        ;; `kw-calls` exists for dynamic types when using keyword calls.
-        ;; See `clj-kondo.impl.types/ret-tag-from-call` where
-        ;; `kw-calls` is introduced.
-        (if-let [kw-calls (:kw-calls call)]
-          (when (identical? :map (:type resolved-arg-type))
-            (let [[kw-call & rest-kw-calls] kw-calls
-                  resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
-              (cond
-                (and rest-kw-calls
-                     (= :map (:type resolved-tag)))
-                (resolve-arg-type idacs
-                                  (assoc resolved-tag :kw-calls rest-kw-calls)
-                                  seen-calls)
-
-                rest-kw-calls
-                nil
-
-                :else
-                ;; resolved-tag may be a :call that still needs resolving
-                (resolve-arg-type idacs resolved-tag seen-calls))))
-          (resolve-arg-type idacs resolved-arg-type seen-calls))))))
-
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
   ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
@@ -103,22 +66,37 @@
                            (resolve-arg-type idacs t seen-calls)))
                        (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
-                           ;; memoize per callee. Only at top-level entry: a
-                           ;; result truncated by the cycle guard must not be
-                           ;; cached. Nested symbol keys avoid hashing composites.
-                           (let [cache (when (and (empty? seen-calls)
-                                                  (not (:kw-calls call)))
-                                         (:ret-tag-cache idacs))
-                                 ck (when cache
-                                      [(:base-lang call) (:lang call)
-                                       (:resolved-ns call) (:name call) (:arity call)])
-                                 cached (if cache (get-in @cache ck ::miss) ::miss)]
-                             (if-not (identical? ::miss cached)
-                               cached
-                               (let [ret (resolve-lazy-call idacs call seen-calls)]
-                                 (when cache
-                                   (swap! cache assoc-in ck ret))
-                                 ret)))))
+                           (let [arity (:arity call)]
+                             (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
+                               (let [arities (:arities called-fn)
+                                     tag (or (when-let [v (get arities arity)]
+                                               (:ret v))
+                                             (when-let [v (get arities :varargs)]
+                                               (when (>= arity (:min-arity v))
+                                                 (:ret v))))
+                                     resolved-arg-type (resolve-arg-type idacs tag (conj seen-calls call))]
+                                 ;; (prn arg-type '-> tag)
+                                 ;; `kw-calls` exists for dynamic types when using keyword calls.
+                                 ;; See `clj-kondo.impl.types/ret-tag-from-call` where
+                                 ;; `kw-calls` is introduced.
+                                 (if-let [kw-calls (:kw-calls call)]
+                                   (when (identical? :map (:type resolved-arg-type))
+                                     (let [[kw-call & rest-kw-calls] kw-calls
+                                           resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
+                                       (cond
+                                         (and rest-kw-calls
+                                              (= :map (:type resolved-tag)))
+                                         (resolve-arg-type idacs
+                                                           (assoc resolved-tag :kw-calls rest-kw-calls)
+                                                           seen-calls)
+
+                                         rest-kw-calls
+                                         nil
+
+                                         :else
+                                         ;; resolved-tag may be a :call that still needs resolving
+                                         (resolve-arg-type idacs resolved-tag seen-calls))))
+                                   (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [usage (:usage arg-type)]
                          (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))]
                            (resolve-arg-type idacs resolved)))

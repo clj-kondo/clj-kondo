@@ -689,11 +689,7 @@
   (let [indexed-defs (namespaces->indexed-defs ctx)]
     (-> (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))
         (assoc :java-member-definitions (java-members->indexed ctx))
-        (assoc :java-class-usages @(:java-class-usages ctx))
-        ;; memoize lazy type resolution during the lint phase, see
-        ;; types/lint-arg-types and types.utils/resolve-arg-type
-        (assoc :inferred-spec-cache (atom {}))
-        (assoc :ret-tag-cache (atom {})))))
+        (assoc :java-class-usages @(:java-class-usages ctx)))))
 
 ;;;; summary
 
