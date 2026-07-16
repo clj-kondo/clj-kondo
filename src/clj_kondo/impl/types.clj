@@ -640,17 +640,25 @@
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
-          (let [cache (:inferred-spec-cache idacs)
-                args-spec (mapv (fn [s]
-                                  (if (and (map? s) (:infer s))
-                                    (let [cached (if cache (get @cache s ::miss) ::miss)]
-                                      (if (identical? ::miss cached)
-                                        (let [r (resolve-inferred-spec idacs s #{})]
-                                          (when cache (swap! cache assoc s r))
-                                          r)
-                                        cached))
-                                    s))
-                                args-spec)]
+          (let [args-spec
+                ;; {:infer ..} entries only occur in arities-sourced specs, so
+                ;; the resolved vector can be memoized per callee. Nested symbol
+                ;; keys avoid hashing composites.
+                (if-not (some (fn [s] (and (map? s) (:infer s))) args-spec)
+                  args-spec
+                  (let [cache (:inferred-spec-cache idacs)
+                        ck (when cache
+                             [(:base-lang call) (:lang call) called-ns called-name arity])
+                        cached (if cache (clojure.core/get-in @cache ck ::miss) ::miss)]
+                    (if-not (identical? ::miss cached)
+                      cached
+                      (let [r (mapv (fn [s]
+                                      (if (and (map? s) (:infer s))
+                                        (resolve-inferred-spec idacs s #{})
+                                        s))
+                                    args-spec)]
+                        (when cache (swap! cache assoc-in ck r))
+                        r))))]
           (loop [check-ctx {}
                  [s & rest-args-spec :as all-specs] args-spec
                  [a & rest-args :as all-args] args
