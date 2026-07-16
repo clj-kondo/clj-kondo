@@ -105,6 +105,11 @@ much of the feature's value is at write time in the editor.
   added there tightens inference automatically (`nil?` already does: a
   nil-checked param is not inferred).
 - The `{:infer ..}` entries enlarge cached `:arities` slightly.
+- The param-infer atoms key on binding maps. Fine today: the same long-lived
+  objects are looked up repeatedly, hasheq is cached after the first hash, and
+  the maps hold a handful of entries. If bindings ever become a record, key on
+  an int `:id` field instead (`:id-gen` exists but only under
+  `:analyze-locals?`).
 - Memoizing the lazy resolutions (ret tags, inferred args) was tried and
   dropped: -5% time and -6% alloc on a synthetic 5000-call-site hot fn, noise
   on metabase. Chains are a few map lookups deep, there is little to save.
