@@ -1881,6 +1881,13 @@
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: nil."})
        (lint! "(defn f [x] (when (nil? x) x) (subs x 1)) (f nil)" config)))
+    (testing "some-> guards the threaded value, its calls do not constrain"
+      (is (empty? (lint! "(defn g [x] (some-> x (subs 1))) (g nil)" config)))
+      (is (empty? (lint! "(defn g [x] (some->> x (subs \"abc\"))) (g nil)" config))))
+    (testing "plain -> is unconditional and constrains"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn h [x] (-> x (subs 1))) (h 42)" config)))
     (testing "an unresolved call's args are conditionally evaluated, like a when body"
       (is (empty? (lint! "(defn f [x] (unknown.ns/my-when (string? x) (subs x 1))) (f 42)"
                          (assoc-in config [:linters :unresolved-namespace :level] :off)))))

@@ -3203,10 +3203,18 @@
                                       ctx)
                                 ctx (assoc ctx :in-comment true)]
                             (analyze-children ctx children))
-                          (-> some->)
+                          ->
                           (analyze-expression** ctx (macroexpand/expand-> ctx expr))
-                          (->> some->>)
+                          ->>
                           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
+                          ;; the expansion drops the nil guards, so for param
+                          ;; inference the threaded calls count as branches
+                          some->
+                          (analyze-expression** (in-branch-ctx ctx)
+                                                (macroexpand/expand-> ctx expr))
+                          some->>
+                          (analyze-expression** (in-branch-ctx ctx)
+                                                (macroexpand/expand->> ctx expr))
                           doto
                           (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                           reify (analyze-reify ctx expr defined-by defined-by->lint-as)
