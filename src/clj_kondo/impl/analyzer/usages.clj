@@ -174,8 +174,9 @@
                                        (str/replace (str symbol-val) #"\**$" ""))))]
                    (do
                      (when-let [levels (:param-infers ctx)]
-                       ;; only the entry of the call b is a direct argument of
-                       ;; carries ::infer-call, see analyze-call
+                       ;; the callstack head carries ::infer-call only when
+                       ;; this local sits directly in that call's argument
+                       ;; list, see analyze-call
                        (when-let [ic (some-> (first (:callstack ctx)) meta
                                              ::types/infer-call)]
                          (when-let [arg-types (:arg-types ctx)]
