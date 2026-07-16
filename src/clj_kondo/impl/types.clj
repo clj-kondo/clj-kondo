@@ -76,7 +76,7 @@
     ratio? :ratio map? :map vector? :vector seq? :seq seqable? :seqable
     coll? :coll keyword? :keyword symbol? :symbol set? :set list? :list
     char? :char boolean? :boolean fn? :fn ifn? :ifn associative? :associative
-    sequential? :sequential var? :var})
+    sequential? :sequential var? :var nil? :nil})
 
 (def is-a-relations
   {:string #{:char-sequence :seqable}
