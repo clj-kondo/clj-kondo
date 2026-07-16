@@ -645,48 +645,71 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
+(defn- spec-at
+  "Positional spec for argument `idx`, where a {:op :rest} entry covers all
+  remaining positions."
+  [specs idx]
+  (loop [i 0
+         ss (seq specs)]
+    (when-let [s (first ss)]
+      (if (and (map? s) (identical? :rest (:op s)))
+        (:spec s)
+        (if (== i idx)
+          s
+          (recur (inc i) (rest ss)))))))
+
 (defn infer-fn-arg-types!
   "Backward parameter-type inference. While analyzing a call inside a fn body,
   when a param of the enclosing fn is passed directly to a callee with a known
   spec, record the expected type as a constraint on that param. A param passed
   to a core type predicate is marked :poly and excluded, and a usage under a
-  narrowed binding contributes nothing, since the guard proves it safe."
-  [ctx called-ns called-name arity arg-exprs]
+  narrowed binding contributes nothing, since the guard proves it safe.
+  The spec and predicate lookups only happen when an argument is a param, so
+  the common call costs a token check per argument."
+  [ctx called-ns called-name _arity arg-exprs]
   (when-let [param-infer (:param-infer ctx)]
     (when (and called-ns called-name)
-      (let [pred-tag (and (contains? '#{clojure.core cljs.core} called-ns)
-                          (get types/predicate->tag called-name))
-            specs (when-not pred-tag
-                    (types/spec-args (:config ctx) called-ns called-name arity))]
-        (when (or pred-tag (seq specs))
-          (let [bindings (:bindings ctx)]
-            (loop [specs specs
-                   args arg-exprs]
-              (when-let [a (first args)]
-                (let [s0 (first specs)
-                      rest? (and (map? s0) (identical? :rest (:op s0)))
-                      s (if rest? (:spec s0) s0)
-                      b (when (identical? :token (tag a))
-                          (let [v (:value a)]
-                            (when (and (symbol? v) (not (namespace v)))
-                              (let [b (get bindings v)]
-                                (when (contains? @param-infer b)
-                                  b)))))]
-                  (when b
-                    (cond pred-tag
-                          (swap! param-infer assoc b :poly)
-                          (and (keyword? s)
-                               (not (identical? :any s))
-                               ;; a usage in a conditional branch does not
-                               ;; constrain the param, the guard may be what
-                               ;; makes it safe
-                               (not (:in-branch ctx))
-                               (not (:narrowed-tag (meta b))))
-                          (swap! param-infer update b
-                                 (fn [cur] (if (identical? :poly cur)
-                                             :poly
-                                             (conj (or cur #{}) s))))))
-                  (recur (if rest? specs (rest specs)) (rest args)))))))))))
+      (let [bindings (:bindings ctx)
+            pi @param-infer]
+        (loop [args arg-exprs
+               idx 0
+               ;; nil = lookups not yet done, false = callee has no spec,
+               ;; else [pred-tag specs]
+               lookups nil]
+          (when-let [a (first args)]
+            (let [b (when (identical? :token (tag a))
+                      (let [v (:value a)]
+                        (when (and (symbol? v) (not (namespace v)))
+                          (let [b (get bindings v)]
+                            (when (contains? pi b)
+                              b)))))
+                  lookups (if (and b (nil? lookups))
+                            (let [pred-tag (and (contains? '#{clojure.core cljs.core} called-ns)
+                                                (get types/predicate->tag called-name))
+                                  specs (when-not pred-tag
+                                          (types/spec-args (:config ctx) called-ns called-name
+                                                           (count arg-exprs)))]
+                              (if (or pred-tag specs)
+                                [pred-tag specs]
+                                false))
+                            lookups)]
+              (when (and b (vector? lookups))
+                (let [[pred-tag specs] lookups
+                      s (when specs (spec-at specs idx))]
+                  (cond pred-tag
+                        (swap! param-infer assoc b :poly)
+                        (and (keyword? s)
+                             (not (identical? :any s))
+                             ;; a usage in a conditional branch does not
+                             ;; constrain the param, the guard may be what
+                             ;; makes it safe
+                             (not (:in-branch ctx))
+                             (not (:narrowed-tag (meta b))))
+                        (swap! param-infer update b
+                               (fn [cur] (if (identical? :poly cur)
+                                           :poly
+                                           (conj (or cur #{}) s)))))))
+              (recur (rest args) (inc idx) lookups))))))))
 
 (defn merge-inferred-arg-tags
   "Fills in arg tags for params whose body constraints prove a single most
