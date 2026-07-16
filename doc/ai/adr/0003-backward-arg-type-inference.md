@@ -24,7 +24,10 @@ checking does the rest.
 Rules, in order of precedence:
 
 1. A user config spec for the fn wins. This falls out of the existing lookup
-   order in `lint-arg-types`: config, then built-in, then `:arities`.
+   order in `lint-arg-types`: config, then built-in, then `:arities`. A
+   config-specced arity is also skipped at analysis time, so no inference work
+   or cached `:args` for it at all. Matters for malli-style generated configs
+   that spec whole codebases. Unspecced sibling arities still infer.
 2. A `^Type` hinted param is not inferred. A nilable hint (`^String` maps to
    `:nilable/string`) is upgraded to the non-nil tag when the body proves a
    non-nil use.

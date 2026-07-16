@@ -768,7 +768,13 @@
         ;; backward parameter-type inference: [index nilable-hint binding] per
         ;; simple positional param that is untagged or hinted nilable
         simple-params (when (and arg-vec (not macro?)
-                                 (not (linter-disabled? ctx :type-mismatch)))
+                                 (not (linter-disabled? ctx :type-mismatch))
+                                 ;; a user spec for this arity wins outright, so
+                                 ;; don't even infer
+                                 (not (some-> (config/type-mismatch-config
+                                               (:config ctx) (-> ctx :ns :name) (:in-def ctx))
+                                              :arities
+                                              (contains? (or (:fixed-arity arity) :varargs)))))
                         (loop [[node & more] (:children arg-vec)
                                i 0
                                acc []]

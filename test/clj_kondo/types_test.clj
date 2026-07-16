@@ -1908,7 +1908,14 @@
     (testing "a user config spec wins over inference"
       (is (empty? (lint! "(defn f [x] (inc x)) (f \"s\")"
                          (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
-                                   '{:arities {1 {:args [:string]}}})))))))
+                                   '{:arities {1 {:args [:string]}}})))))
+    (testing "a config-specced arity is not inferred, its sibling arity is"
+      (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
+                          '{:arities {1 {:args [:any]}}})]
+        (is (empty? (lint! "(defn f ([x] (subs x 1)) ([x _y] x)) (f 42)" cfg)))
+        (assert-submaps2
+         '({:row 1 :message "Expected: string, received: positive integer."})
+         (lint! "(defn f ([x] x) ([x _y] (subs x 1))) (f 42 1)" cfg))))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
