@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Type checker: `nil?` narrows like the other known predicates. E.g. `(when (nil? x) (inc x))` will warn.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
 - Type checker: narrow the type of a local in the then-branch of `if` or the body of `when` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
 - Clojure 1.13 CLJ-2961: map destructuring `:keys!` `:syms!` `:strs!` with required keys
