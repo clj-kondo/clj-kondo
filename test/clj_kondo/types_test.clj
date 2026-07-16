@@ -1858,6 +1858,83 @@
     (testing "a string argument is fine"
       (is (empty? (lint! "(parse-long \"42\")" config))))))
 
+(deftest backward-inference-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a param used in a spec'd position constrains callers"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [s] (subs s 1)) (f 42)" config))
+      (is (empty? (lint! "(defn f [s] (subs s 1)) (f \"ok\")" config))))
+    (testing "varargs specs constrain"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: keyword."})
+       (lint! "(defn f [n] (+ 1 2 n)) (f :kw)" config)))
+    (testing "multiple constraints merge to the most specific"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [s] (first s) (subs s 1)) (f 42)" config)))
+    (testing "conflicting constraints prove nothing"
+      (is (empty? (lint! "(defn f [x] (inc x) (subs x 1)) (f :kw)" config))))
+    (testing "a param tested by a type predicate is not inferred"
+      (is (empty? (lint! "(defn f [x] (if (string? x) (subs x 1) x)) (f 42)" config)))
+      (is (empty? (lint! "(defn f [x] (when (nil? x) x) (subs x 1)) (f nil)" config))))
+    (testing "a usage in a conditional branch does not constrain"
+      (is (empty? (lint! "(defn f [x b] (if b (subs x 1) x)) (f 42 true)" config)))
+      (is (empty? (lint! "(defn f [x b] (when b (subs x 1))) (f 42 true)" config)))
+      (is (empty? (lint! "(defn f [x b] (cond b (subs x 1) :else x)) (f 42 true)" config)))
+      (is (empty? (lint! "(defn f [x b] (and b (subs x 1))) (f 42 true)" config)))
+      (is (empty? (lint! "(defn f [x k] (case k :a (subs x 1) x)) (f 42 :b)" config)))
+      (is (empty? (lint! "(defn f [x m] (if-let [v (:k m)] (subs x v) x)) (f 42 {})" config))))
+    (testing "a usage on a narrowed binding does not constrain"
+      (is (empty? (lint! "(defn f [x] (when (string? x) (subs x 1)) x) (f 42)" config))))
+    (testing "a usage in a nested fn does not constrain, the fn may never run"
+      (is (empty? (lint! "(defn f [x] #(subs x 1)) (f 42)" config)))
+      (is (empty? (lint! "(defn f [x coll] (map (fn [i] (subs x i)) coll)) (f 42 [1])" config))))
+    (testing "fn literals infer like defn"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(def g (fn [y] (subs y 1))) (g 42)"
+              (assoc-in config [:linters :def-fn :level] :off))))
+    (testing "an outer conditional does not suppress a nested fn's own spine"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn outer [b] (when b (defn g [y] (subs y 1)))) (g 42)"
+              (assoc-in config [:linters :inline-def :level] :off))))
+    (testing "a nilable hint is upgraded when the body proves a non-nil use"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: nil."})
+       (lint! "(defn f [^String s] (subs s 1)) (f nil)" config))
+      (is (empty? (lint! "(defn f [^String s] (println s) s) (f nil)" config))))
+    (testing "a user config spec wins over inference"
+      (is (empty? (lint! "(defn f [x] (inc x)) (f \"s\")"
+                         (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
+                                   '{:arities {1 {:args [:string]}}})))))))
+
+(deftest backward-inference-transitive-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "inference chains through user fns"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn bar [s] (subs s 1)) (defn foo [x] (bar x)) (foo 42)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn baz [s] (subs s 1)) (defn bar [y] (baz y)) (defn foo [x] (bar x)) (foo 42)"
+              config))
+      (is (empty? (lint! "(defn bar [s] (subs s 1)) (defn foo [x] (bar x)) (foo \"ok\")" config))))
+    (testing "inference chains across namespaces in one run"
+      (assert-submaps2
+       '({:row 4 :message "Expected: string, received: positive integer."})
+       (lint! "(ns aaa)
+(defn bar [s] (subs s 1))
+(ns bbb (:require [aaa]))
+(aaa/bar 42)" config)))
+    (testing "recursive call chains do not blow up or infer"
+      (is (empty? (lint! "(defn f [x] (f x)) (f 42)" config)))
+      (is (empty? (lint! "(declare g) (defn f [x] (g x)) (defn g [y] (f y)) (f 42)" config))))
+    (testing "a guarded callee contributes nothing through the chain"
+      (is (empty? (lint! "(defn bar [s] (if (string? s) (subs s 1) s)) (defn foo [x] (bar x)) (foo 42)"
+                         config))))))
+
 ;;;; Scratch
 
 (comment)

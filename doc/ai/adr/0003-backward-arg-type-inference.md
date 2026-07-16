@@ -37,7 +37,10 @@ Rules, in order of precedence:
    conditional branch (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`,
    `case`, `and`, `or`, `if-let`, `when-let`, `if-some`, `when-some`) is
    skipped via an `:in-branch` flag. Only the body's unconditional spine
-   constrains.
+   constrains. A nested fn body is a separate spine: a usage there proves
+   nothing about the outer fn's params (the fn may never run), and an outer
+   conditional does not make the nested body conditional. `analyze-fn-body`
+   drops both `:param-infer` and `:in-branch` on entry.
 5. `:char-sequence` constraints propagate on both platforms. The JVM impls
    coerce via `.toString`, so a symbol into `str/replace` happens to work
    there, but the clojure.string ns docstring (design note 4) documents the
@@ -94,3 +97,20 @@ much of the feature's value is at write time in the editor.
   added there tightens inference automatically (`nil?` already does: a
   nil-checked param is not inferred).
 - The `{:infer ..}` entries enlarge cached `:arities` slightly.
+- Memoizing the lazy resolutions (ret tags, inferred args) was tried and
+  dropped: -5% time and -6% alloc on a synthetic 5000-call-site hot fn, noise
+  on metabase. Chains are a few map lookups deep, there is little to save.
+  Revisit only if a real profile shows resolution.
+
+## Future work
+
+- Destructured params: `(defn foo [{:keys [a]}] (inc a))` can infer a map
+  param spec `{:op :keys :opt {:a :number}}`. The pieces mostly exist:
+  `lint-map!` checks such specs at call sites and `extract-bindings` already
+  feeds `:keys-spec` into `:args` for the CLJ-2961 required-keys work. New
+  part: collect destructured key bindings into param-infer with a
+  [param-idx key] path and merge constraints into the keys spec. Start with
+  `:opt` plus a type. An unconditional use also proves the key required
+  (missing means nil and a crash), so promoting to `:req` is a candidate
+  second step. Direct keyword constraints only at first, no deferred entries
+  inside map specs.

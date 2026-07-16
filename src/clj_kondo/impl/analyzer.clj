@@ -790,7 +790,11 @@
                                          acc)))))))
         param-infer (when simple-params
                       (atom (into {} (map (fn [[_ _ b]] [b #{}])) simple-params)))
-        ctx (cond-> ctx param-infer (assoc :param-infer param-infer))
+        ;; a fresh fn body: drop the enclosing fn's inference state. A usage in
+        ;; a nested fn proves nothing about the outer params, the fn may never
+        ;; run, and an outer conditional does not make this body conditional.
+        ctx (cond-> (dissoc ctx :param-infer :in-branch)
+              param-infer (assoc :param-infer param-infer))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))
