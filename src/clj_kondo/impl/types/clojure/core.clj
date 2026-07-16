@@ -1236,10 +1236,14 @@
    ;; 7786 'iteration
    ;; 8008 'update-vals
    ;; 8024 'update-keys
-   ;; 8044 'parse-long
-   ;; 8055 'parse-double
-   ;; 8068 'parse-uuid
-   ;; 8079 'parse-boolean
+   ;; 8044
+   'parse-long {:arities {1 {:args [:string] :ret :nilable/long}}}
+   ;; 8055
+   'parse-double {:arities {1 {:args [:string] :ret :nilable/double}}}
+   ;; 8068
+   'parse-uuid {:arities {1 {:args [:string]}}}
+   ;; 8079
+   'parse-boolean {:arities {1 {:args [:string] :ret :nilable/boolean}}}
    ;; 8090 'NaN?
    ;; 8099 'infinite?
    

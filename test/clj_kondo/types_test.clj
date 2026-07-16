@@ -1830,6 +1830,21 @@
     (testing "when-not does not narrow, its condition is negated"
       (is (empty? (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config))))))
 
+(deftest parse-fn-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "parse-long and friends take a string"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(parse-long 42)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: keyword."})
+       (lint! "(parse-double :x)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: natural integer."})
+       (lint! "(parse-boolean 0)" config)))
+    (testing "a string argument is fine"
+      (is (empty? (lint! "(parse-long \"42\")" config))))))
+
 ;;;; Scratch
 
 (comment)
