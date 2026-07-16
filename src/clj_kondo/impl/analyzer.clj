@@ -664,17 +664,20 @@
   spec, record the expected type as a constraint on that param. A param passed
   to a core type predicate is marked :poly and excluded, and a usage under a
   narrowed binding contributes nothing, since the guard proves it safe.
-  The spec and predicate lookups only happen when an argument is a param, so
-  the common call costs a token check per argument."
-  [ctx called-ns called-name _arity arg-exprs]
+  A call to a user fn with no spec records a deferred {:call ..} constraint,
+  resolved against the callee's own inferred :args in the linters phase, so
+  inference chains through user fns. The spec and predicate lookups only happen
+  when an argument is a param, so the common call costs a token check per
+  argument."
+  [ctx called-ns called-name unresolved? arg-exprs]
   (when-let [param-infer (:param-infer ctx)]
     (when (and called-ns called-name)
       (let [bindings (:bindings ctx)
             pi @param-infer]
         (loop [args arg-exprs
                idx 0
-               ;; nil = lookups not yet done, false = callee has no spec,
-               ;; else [pred-tag specs]
+               ;; nil = lookups not yet done, false = callee gives no info,
+               ;; else [pred-tag specs defer-call]
                lookups nil]
           (when-let [a (first args)]
             (let [b (when (identical? :token (tag a))
@@ -684,22 +687,36 @@
                             (when (contains? pi b)
                               b)))))
                   lookups (if (and b (nil? lookups))
-                            (let [pred-tag (and (contains? '#{clojure.core cljs.core} called-ns)
-                                                (get types/predicate->tag called-name))
+                            (let [core? (contains? '#{clojure.core cljs.core} called-ns)
+                                  pred-tag (and core? (get types/predicate->tag called-name))
                                   specs (when-not pred-tag
                                           (types/spec-args (:config ctx) called-ns called-name
-                                                           (count arg-exprs)))]
-                              (if (or pred-tag specs)
-                                [pred-tag specs]
+                                                           (count arg-exprs)))
+                                  defer-call (when-not (or pred-tag specs core? unresolved?
+                                                           (keyword? called-name))
+                                               {:resolved-ns called-ns
+                                                :name called-name
+                                                :arity (count arg-exprs)
+                                                :lang (:lang ctx)
+                                                :base-lang (:base-lang ctx)})]
+                              (if (or pred-tag specs defer-call)
+                                [pred-tag specs defer-call]
                                 false))
                             lookups)]
               (when (and b (vector? lookups))
-                (let [[pred-tag specs] lookups
-                      s (when specs (spec-at specs idx))]
+                (let [[pred-tag specs defer-call] lookups
+                      s (if specs
+                          (spec-at specs idx)
+                          (when defer-call
+                            {:call (assoc defer-call :arg-idx idx)}))]
                   (cond pred-tag
                         (swap! param-infer assoc b :poly)
-                        (and (keyword? s)
-                             (not (identical? :any s))
+                        (and s
+                             ;; a keyword spec or our own deferred shape, not
+                             ;; other map specs like {:op :keys}
+                             (if (map? s)
+                               (:call s)
+                               (and (keyword? s) (not (identical? :any s))))
                              ;; a usage in a conditional branch does not
                              ;; constrain the param, the guard may be what
                              ;; makes it safe
@@ -714,18 +731,22 @@
 (defn merge-inferred-arg-tags
   "Fills in arg tags for params whose body constraints prove a single most
   specific type. A param hinted nilable is only upgraded when the proven type
-  implies the hint's non-nil tag."
+  implies the hint's non-nil tag. Constraints with deferred {:call ..} entries
+  are stored as {:infer ..} and resolved in the linters phase."
   [simple-params param-infer arg-tags]
   (reduce (fn [tags [i hint b]]
             (let [ts (get @param-infer b)]
               (if (and (set? ts) (seq ts))
-                (if-let [t (reduce (fn [acc t]
-                                     (or (types/most-specific acc t) (reduced nil)))
-                                   nil ts)]
-                  (if (or (nil? hint) (types/is-a? t (types/unnil hint)))
-                    (assoc tags i t)
+                (if (every? keyword? ts)
+                  (if-let [t (reduce (fn [acc t]
+                                       (or (types/most-specific acc t) (reduced nil)))
+                                     nil ts)]
+                    (if (or (nil? hint) (types/is-a? t (types/unnil hint)))
+                      (assoc tags i t)
+                      tags)
                     tags)
-                  tags)
+                  (assoc tags i (cond-> {:infer ts}
+                                  hint (assoc :hint hint))))
                 tags)))
           (vec arg-tags)
           simple-params))
@@ -3035,7 +3056,7 @@
                         (atom []))
             ctx (assoc ctx :arg-types arg-types)]
         (when arg-types
-          (infer-fn-arg-types! ctx resolved-namespace resolved-name arg-count children))
+          (infer-fn-arg-types! ctx resolved-namespace resolved-name unresolved? children))
         (when (:in-or-default? ctx)
           (findings/reg-finding!
            ctx

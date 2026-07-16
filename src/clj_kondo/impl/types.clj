@@ -516,6 +516,39 @@
         (is-a? a b) a
         (is-a? b a) b))
 
+(defn resolve-inferred-spec
+  "Resolves an inferred :args entry {:infer constraints :hint h} to a concrete
+  tag, or the hint, or nil. A deferred {:call ..} constraint looks up the
+  callee's :args in idacs, which may itself be inferred, so inference chains
+  through user fns. `seen` guards against recursive call chains."
+  [idacs {:keys [infer hint]} seen]
+  (let [t (reduce
+           (fn [acc c]
+             (let [t (if (keyword? c)
+                       c
+                       (let [call (:call c)
+                             k [(:resolved-ns call) (:name call) (:arity call) (:arg-idx call)]]
+                         (when (and (:lang call) (:base-lang call)
+                                    (not (contains? seen k)))
+                           (when-let [called-fn (utils/resolve-call* idacs call (:resolved-ns call) (:name call))]
+                             (when-let [s (args-spec-from-arities (:arities called-fn) (:arity call))]
+                               (let [s (get s (:arg-idx call))]
+                                 (cond (keyword? s) s
+                                       (and (map? s) (:infer s))
+                                       (resolve-inferred-spec idacs s (conj seen k)))))))))]
+               (if t
+                 (or (most-specific acc t)
+                     ;; conflicting constraints prove nothing
+                     (reduced nil))
+                 ;; an unresolvable constraint contributes nothing
+                 acc)))
+           nil infer)]
+    (if t
+      (if (or (nil? hint) (is-a? t (unnil hint)))
+        t
+        hint)
+      hint)))
+
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
@@ -590,7 +623,7 @@
           (lint-map-types! ctx a mval s :opt false))))
 
 (defn lint-arg-types
-  [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
+  [ctx idacs {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
   (try
     (let [config (:config ctx)
@@ -607,6 +640,11 @@
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
+          (let [args-spec (mapv (fn [s]
+                                  (if (and (map? s) (:infer s))
+                                    (resolve-inferred-spec idacs s #{})
+                                    s))
+                                args-spec)]
           (loop [check-ctx {}
                  [s & rest-args-spec :as all-specs] args-spec
                  [a & rest-args :as all-args] args
@@ -644,7 +682,7 @@
                           :else
                           (do (when-not (match? t s)
                                 (emit-non-match! ctx s a t))
-                              (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
+                              (recur check-ctx rest-args-spec rest-args rest-tags))))))))))
     (catch Exception e
       (if (= "true" (System/getenv "CLJ_KONDO_DEV"))
         (throw e)
