@@ -56,6 +56,32 @@ Rules, in order of precedence:
    return a wrong answer silently. Provable means provable by contract. An
    earlier revision skipped these constraints on `:clj` and was reverted.
 
+## The trigger point
+
+Inference triggers where a local usage is analyzed, not by scanning call
+arguments. `analyze-call` publishes an `:infer-call` descriptor
+({:entry callstack-entry :ns .. :name .. :arity .. :lookups (volatile! nil)})
+when it pushes its callstack frame. At the single place where a token resolves
+to a binding (usages.clj, next to `reg-used-binding!`), the binding is a direct
+argument of that call exactly when the callstack head equals the stored entry,
+and the argument index is the current `:arg-types` count. `types/infer-local-usage!`
+then classifies the callee (once per call, memoized in the volatile) and
+records the constraint. This keeps local recognition structural, `(var x)` and
+quoted forms never reach the usage path, and a local inside a collection
+argument fails the head check instead of inheriting the collection's spec.
+
+One callstack wart surfaced: `analyze-hof` pushes the hof'd fn as a
+pseudo-frame ((map inc xs) analyzes under a pretend `[clojure.core inc]`
+frame), shadowing the hof call's own entry while the remaining args are still
+positionally the hof's args. `analyze-hof` re-points the `:infer-call` entry at
+the pseudo-frame. Longer term the callstack could mark pseudo-frames so
+consumers relying on head identity can see through them.
+
+An earlier revision hooked `analyze-call` directly and scanned argument tokens
+syntactically. Behavior and corpus results were identical, the usage-point
+trigger costs about one percent more allocation and was kept for structural
+soundness.
+
 ## Transitive inference
 
 `(defn foo [x] (bar x))` constrains `x` by whatever `bar` requires, including
@@ -82,9 +108,10 @@ Metabase src, in-process, min of 7 runs, interleaved with master
 | master | 3323ms | 3383ms | 3598.6MB |
 | this branch | 3302ms | 3348ms | 3648.4MB |
 
-Wall clock within noise, +1.4% allocation. The hot path defers all spec and
-predicate lookups until an argument is a bare param, so the common call costs a
-token check per argument.
+Wall clock within noise, +1.4% allocation with the call-site trigger, roughly
+one percent more with the usage-point trigger (the per-call `:infer-call`
+descriptor). Spec and predicate lookups happen once per call at most, and only
+when a local actually appears as a direct argument.
 
 ## Corpus results
 
