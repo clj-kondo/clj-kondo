@@ -1830,6 +1830,19 @@
     (testing "when-not does not narrow, its condition is negated"
       (is (empty? (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config))))))
 
+(deftest nil-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "an inverted nil guard is flagged"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(defn f [x] (when (nil? x) (inc x)))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: nil."})
+       (lint! "(defn f [x] (if (nil? x) (subs x 1) x))" config)))
+    (testing "legitimate use of a proven nil is not flagged"
+      (is (empty? (lint! "(defn f [x] (when (nil? x) (count x)))" config)))
+      (is (empty? (lint! "(defn f [x] (if (nil? x) 0 (inc x)))" config))))))
+
 (deftest parse-fn-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "parse-long and friends take a string"
