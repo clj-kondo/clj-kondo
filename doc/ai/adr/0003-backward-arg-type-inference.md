@@ -48,8 +48,10 @@ Rules, in order of precedence:
 4. A conditionally guarded usage proves nothing: a usage inside a conditional
    branch
    (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
-   `if-let`, `when-let`, `if-some`, `when-some`) is skipped via a per-level
-   branched flag. An unresolved call could be a macro, so its args count as a
+   `if-let`, `when-let`, `if-some`, `when-some`) is skipped via a branch
+   count on the ctx. `some->` and `some->>` expand like plain threading, which
+   drops their nil guards, so their expansions count as branches too. An
+   unresolved call could be a macro, so its args count as a
    conditional branch too, like a when body. Only the body's unconditional
    spine constrains, and a spine usage constrains even when the param is
    type-tested elsewhere, the use runs regardless:
@@ -63,12 +65,15 @@ Rules, in order of precedence:
    If spine narrowing ever exists (assert, :pre, guard clauses that throw), a
    narrowed spine usage should constrain: the guard enforces the type at
    runtime, so it is the contract, and :pre could even seed inference
-   directly. A nested fn body is a new inference level pushed onto
-   `:param-infers`: its own params start unbranched regardless of enclosing
-   conditionals, and a usage of an enclosing fn's param in the nested body
-   still constrains it, closing over a param is using it. A conditional marks
-   every enclosing level as branched, so a fn created inside a branch, or a
-   guarded usage inside the fn, proves nothing about the outer param. Settled
+   directly. Reachability is a single `:branch-count` int on the ctx, bumped
+   on entering conditionally evaluated code. Each fn entry adds its params to
+   the `:param-infers` map with the count at that point as their mark, and a
+   usage constrains only while the count still equals the mark, meaning no
+   conditional was crossed since that fn's entry on this descent path. So a
+   nested fn's own params infer regardless of enclosing conditionals, a usage
+   of an enclosing fn's param in the nested body still constrains it, closing
+   over a param is using it, and a fn created inside a branch, or a guarded
+   usage inside the fn, proves nothing about the outer param. Settled
    empirically: both including and excluding nested-fn usages produced zero
    corpus deltas, so the version that catches
    `(defn f [x] #(subs x 1)) (f 42)` at write time won.

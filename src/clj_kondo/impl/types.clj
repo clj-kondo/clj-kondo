@@ -533,12 +533,10 @@
   narrowing (assert, :pre), when it exists, should constrain: the guard throws,
   so the type is the contract. Type predicates need no special case: their arg
   spec is :any, so they record nothing."
-  [ctx [called-ns called-name arity] levels b idx]
-  (when-let [level (some (fn [l]
-                           (when (contains? @(:param-infer l) b)
-                             l))
-                         levels)]
-    (when-not (:branched? level)
+  [ctx [called-ns called-name arity] infers b idx]
+  (when-let [{:keys [param-infer mark]} (get infers b)]
+    ;; equal counts mean no conditional was crossed since the param's fn entry
+    (when (== mark (:branch-count ctx 0))
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)
@@ -555,7 +553,7 @@
                 (or (set? s)
                     (and (keyword? s) (not (identical? :any s)))))
           (let [s (desugar-nilable s)]
-            (swap! (:param-infer level) update b
+            (swap! param-infer update b
                    (fn [cur]
                      ;; insertion-ordered with dedup, for deterministic output
                      (if (some #(= % s) cur)

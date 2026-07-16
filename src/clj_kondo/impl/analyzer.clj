@@ -721,13 +721,16 @@
                                               [#{:nil (types/unnil hint)}]
                                               [])]))
                                   simple-params)))
-        ;; push a new inference level. Enclosing levels stay, with their branch
-        ;; state as of this fn's creation point: a usage in this body may
-        ;; constrain an enclosing fn's param when nothing conditional separates
-        ;; them, invoking this fn is the caller's way of using that param.
+        ;; make these params visible for inference, next to those of enclosing
+        ;; fns: a usage in this body may constrain an enclosing fn's param when
+        ;; nothing conditional separates them, invoking this fn is the caller's
+        ;; way of using that param. The mark pins the branch count at fn entry,
+        ;; a usage constrains only while the count still equals it.
         ctx (cond-> ctx
-              param-infer (update :param-infers (fnil conj [])
-                                  {:param-infer param-infer :branched? false}))
+              param-infer (update :param-infers (fnil into {})
+                                  (let [entry {:param-infer param-infer
+                                               :mark (:branch-count ctx 0)}]
+                                    (map (fn [[_ _ b]] [b entry]) simple-params))))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))
@@ -999,14 +1002,13 @@
     (mapcat :parsed parsed-bodies)))
 
 (defn- in-branch-ctx
-  "Marks every param-inference level as conditionally evaluated: a branch is a
-  branch for every enclosing fn's params. No-op when inference is off or all
-  levels are already marked."
+  "Enters conditionally evaluated code: bumps the branch count, which stops
+  every currently visible param from constraining. No-op when inference is
+  off."
   [ctx]
-  (let [levels (:param-infers ctx)]
-    (if (and levels (not (every? :branched? levels)))
-      (assoc ctx :param-infers (mapv #(assoc % :branched? true) levels))
-      ctx)))
+  (if (:param-infers ctx)
+    (update ctx :branch-count (fnil inc 0))
+    ctx))
 
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
