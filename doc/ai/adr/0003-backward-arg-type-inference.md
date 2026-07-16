@@ -38,13 +38,12 @@ Rules, in order of precedence:
    `case`, `and`, `or`, `if-let`, `when-let`, `if-some`, `when-some`) is
    skipped via an `:in-branch` flag. Only the body's unconditional spine
    constrains.
-5. A `:char-sequence` constraint is not recorded when the lang is `:clj`: the
-   char-sequence fns coerce via `.toString` on the JVM, so the requirement is
-   not provable there. In CLJS they throw (or worse, `ends-with?` returns a
-   wrong answer silently), so the constraint stands. Direct calls keep flagging
-   in both langs. Open question with the core team: whether JVM toString
-   coercion is a supported contract. If not, this rule can be dropped and the
-   constraint propagates on `:clj` too.
+5. `:char-sequence` constraints propagate on both platforms. The JVM impls
+   coerce via `.toString`, so a symbol into `str/replace` happens to work
+   there, but the clojure.string ns docstring (design note 4) documents the
+   contract as CharSequence, and the CLJS impls throw or, for `ends-with?`,
+   return a wrong answer silently. Provable means provable by contract. An
+   earlier revision skipped these constraints on `:clj` and was reverted.
 
 ## Transitive inference
 
@@ -78,13 +77,14 @@ token check per argument.
 
 ## Corpus results
 
-Zero new findings and zero false positives on the three regression corpora
-(clj-kondo classpath, metabase, clerk). Earlier iterations produced 76 findings
-without rule 4 (dominated by guarded-polymorphic fns like metabase's `js=`) and
-3 without rule 5 (all JVM toString idioms, e.g. a symbol into a callee's
-`str/replace`). Committed code has survivorship bias against the bug class this
-catches, unconditional param misuse crashes on first call, so the feature's
-value is at write time in the editor.
+Three new findings on the regression corpora (all metabase), each a contract
+violation that works on the JVM by toString coercion only: a `^Character` into
+ring's `url-encode` two hops through `str/replace`, and symbols into a helper
+that forwards to `str/replace`. Zero false positives. An earlier iteration
+without rule 4 produced 76 findings, dominated by guarded-polymorphic fns like
+metabase's `js=`. Committed code has survivorship bias against the crashing
+bug class this catches, unconditional param misuse fails on first call, so
+much of the feature's value is at write time in the editor.
 
 ## Caveats
 

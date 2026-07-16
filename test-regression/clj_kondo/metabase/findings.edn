@@ -891,6 +891,18 @@
   :langs (),
   :message "Redundant let binding: include_deactivated",
   :row 244}
+ {:end-row 447,
+  :type :type-mismatch,
+  :level :error,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util.cljc",
+  :col 34,
+  :end-col 35,
+  :cljc true,
+  :langs (:clj),
+  :message "Expected: char sequence, received: character or nil.",
+  :row 447}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -1378,6 +1390,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 93}
+ {:end-row 40,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/core/init_test.clj",
+  :col 46,
+  :end-col 64,
+  :langs (),
+  :message "Expected: char sequence, received: symbol.",
+  :row 40}
+ {:end-row 42,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/core/init_test.clj",
+  :col 48,
+  :end-col 77,
+  :langs (),
+  :message "Expected: char sequence, received: symbol.",
+  :row 42}
  {:end-row 2253,
   :type :unresolved-symbol,
   :level :error,
