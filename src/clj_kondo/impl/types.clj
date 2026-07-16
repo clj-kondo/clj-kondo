@@ -502,6 +502,74 @@
     (when-let [a (:arities spec)]
       (args-spec-from-arities a arity))))
 
+(defn spec-at
+  "Positional spec for argument `idx`, where a {:op :rest} entry covers all
+  remaining positions."
+  [specs idx]
+  (loop [i 0
+         ss (seq specs)]
+    (when-let [s (first ss)]
+      (if (and (map? s) (identical? :rest (:op s)))
+        (:spec s)
+        (if (== i idx)
+          s
+          (recur (inc i) (rest ss)))))))
+
+(defn infer-local-usage!
+  "Backward parameter-type inference, triggered where a local usage is
+  analyzed: binding `b` appears as argument `idx` of the call described by
+  `infer-call`. Records the callee's expected type as a constraint on the
+  param, a deferred {:call ..} constraint for a spec-less user fn, or marks the
+  param :poly when the callee is a type predicate. The callee classification is
+  computed once per call via the :lookups volatile. A usage in a conditional
+  branch or on a narrowed binding proves nothing, the guard may be what makes
+  it safe."
+  [ctx {called-ns :ns called-name :name arity :arity
+        unresolved? :unresolved? lookups :lookups}
+   levels b idx]
+  (when-let [level (some (fn [l]
+                           (when (contains? @(:param-infer l) b)
+                             l))
+                         levels)]
+    (let [lu (or @lookups
+                 (vreset!
+                  lookups
+                  (let [core? (utils/one-of called-ns [clojure.core cljs.core])
+                        pred-tag (and core? (get predicate->tag called-name))
+                        specs (when-not pred-tag
+                                (spec-args (:config ctx) called-ns called-name arity))
+                        defer-call (when-not (or pred-tag specs core? unresolved?
+                                                 (keyword? called-name))
+                                     {:resolved-ns called-ns
+                                      :name called-name
+                                      :arity arity
+                                      :lang (:lang ctx)
+                                      :base-lang (:base-lang ctx)})]
+                    (if (or pred-tag specs defer-call)
+                      [pred-tag specs defer-call]
+                      false))))]
+      (when (vector? lu)
+        (let [[pred-tag specs defer-call] lu
+              pi (:param-infer level)
+              s (if specs
+                  (spec-at specs idx)
+                  (when defer-call
+                    {:call (assoc defer-call :arg-idx idx)}))]
+          (cond pred-tag
+                (swap! pi assoc b :poly)
+                (and s
+                     ;; a keyword spec or our own deferred shape, not other map
+                     ;; specs like {:op :keys}
+                     (if (map? s)
+                       (:call s)
+                       (and (keyword? s) (not (identical? :any s))))
+                     (not (:branched? level))
+                     (not (:narrowed-tag (meta b))))
+                (swap! pi update b
+                       (fn [cur] (if (identical? :poly cur)
+                                   :poly
+                                   (conj (or cur #{}) s))))))))))
+
 (defn is-a?
   "Provable subtype check: every value of tag `a` is also of tag `b`."
   [a b]
