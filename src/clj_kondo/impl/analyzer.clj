@@ -716,7 +716,12 @@
                              ;; other map specs like {:op :keys}
                              (if (map? s)
                                (:call s)
-                               (and (keyword? s) (not (identical? :any s))))
+                               (and (keyword? s) (not (identical? :any s))
+                                    ;; on the JVM the char-sequence fns coerce
+                                    ;; via toString, so the constraint is not
+                                    ;; provable there. In CLJS they throw.
+                                    (not (and (identical? :char-sequence s)
+                                              (identical? :clj (:lang ctx))))))
                              ;; a usage in a conditional branch does not
                              ;; constrain the param, the guard may be what
                              ;; makes it safe
