@@ -542,9 +542,10 @@
                           :lang (:lang ctx)
                           :base-lang (:base-lang ctx)}}))]
         (when (if (map? s)
-                ;; our deferred shape, not other map specs like {:op :keys}
-                (:call s)
-                (and (keyword? s) (not (identical? :any s))))
+                (or (:call s)
+                    (identical? :keys (:op s)))
+                (or (set? s)
+                    (and (keyword? s) (not (identical? :any s)))))
           (swap! (:param-infer level) update b
                  (fn [cur] (conj (or cur #{}) s))))))))
 

@@ -654,7 +654,8 @@
   (reduce (fn [tags [i hint b]]
             (let [ts (get @param-infer b)]
               (if (and (set? ts) (seq ts))
-                (if (every? keyword? ts)
+                (cond
+                  (every? keyword? ts)
                   (if-let [t (reduce (fn [acc t]
                                        (or (types/most-specific acc t) (reduced nil)))
                                      nil ts)]
@@ -662,6 +663,16 @@
                       (assoc tags i t)
                       tags)
                     tags)
+                  ;; a single set or keys spec passes through verbatim, existing
+                  ;; call-site checking handles both shapes. Most-specific has
+                  ;; no meet for them, so only when unambiguous and unhinted
+                  (and (= 1 (count ts))
+                       (nil? hint)
+                       (let [c (first ts)]
+                         (or (set? c)
+                             (and (map? c) (identical? :keys (:op c))))))
+                  (assoc tags i (first ts))
+                  :else
                   (assoc tags i (cond-> {:infer ts}
                                   hint (assoc :hint hint))))
                 tags)))

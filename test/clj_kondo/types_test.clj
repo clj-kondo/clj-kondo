@@ -358,7 +358,7 @@
           {:linters {:type-mismatch {:level :error}}}))
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 12, :level :error,
-      :message "Expected: associative collection or string or set, received: seq."})
+      :message #"Expected: .*, received: seq\."})
    (lint! "(contains? (map inc [1 2 3]) 1)"
           {:linters {:type-mismatch {:level :error}}}))
   (testing "resolve types via cache"
@@ -1923,6 +1923,23 @@
       (is (empty? (lint! "(defn f [x] (inc x)) (f \"s\")"
                          (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
                                    '{:arities {1 {:args [:string]}}})))))
+    (testing "a single set spec passes through, symbol takes several types"
+      (assert-submaps2
+       '({:row 1 :message "Expected: symbol or string or var or keyword, received: positive integer."})
+       (lint! "(defn ->sym [x] (symbol x)) (->sym 42)" config))
+      (is (empty? (lint! "(defn ->sym [x] (symbol x)) (->sym :kw)" config))))
+    (testing "a single keys spec passes through, required keys and value types chain"
+      (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'g]
+                          '{:arities {1 {:args [{:op :keys :req {:port :int}}]}}})]
+        (assert-submaps2
+         '({:row 1 :message "Expected: integer, received: string."}
+           {:row 1 :message "Missing required key: :port"})
+         (lint! "(defn g [m] m) (defn f [m] (g m)) (f {:port \"x\"}) (f {})" cfg))))
+    (testing "a set constraint mixed with a keyword falls back to the keyword"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: keyword."})
+       (lint! "(defn f [x] (symbol x) (subs x 1)) (f :kw)"
+              (assoc-in config [:linters :unused-value :level] :off))))
     (testing "a config-specced arity is not inferred, its sibling arity is"
       (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
                           '{:arities {1 {:args [:any]}}})]

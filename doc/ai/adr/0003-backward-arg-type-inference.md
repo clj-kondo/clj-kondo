@@ -33,6 +33,13 @@ Rules, in order of precedence:
    non-nil use.
 3. Constraints merge to the most specific provable tag, using `is-a-relations`
    only. Incomparable constraints prove nothing and the param stays untyped.
+   A param whose only constraint is a set spec (`symbol` takes
+   `#{:symbol :string :keyword :var}`) or a `{:op :keys ..}` map spec passes it
+   through verbatim, call-site checking handles both shapes, so wrappers around
+   such fns propagate them, including required keys from config specs.
+   `most-specific` has no meet for these shapes, so a set or keys spec mixed
+   with other constraints falls back to the keyword fold via the deferred
+   path, where non-keyword members contribute nothing.
 4. A conditionally guarded usage proves nothing. Two mechanisms: a usage on a
    flow-narrowed binding is skipped, and a usage inside a conditional branch
    (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,

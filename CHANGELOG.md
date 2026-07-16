@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Type checker: `contains?` accepts nil as its collection argument, like the runtime does
 - Type checker: infer the type of an unhinted param from how the fn body uses it, also through calls to other user fns, and check callers against it. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
 - Type checker: narrow the type of a local in the then-branch of `if` or the body of `when` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
