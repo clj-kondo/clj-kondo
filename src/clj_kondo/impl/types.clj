@@ -599,8 +599,9 @@
   "Fills in arg specs for params from their collected constraints: keyword and
   union-set constraints intersect to the most specific union, a conflict proves
   nothing, and constraints with deferred or map-shaped members are stored as
-  {:op :and :specs ..} and resolved in the linters phase. A single {:op :keys}
-  constraint passes through verbatim."
+  {:op :and :specs ..}, resolved when the cache is synced, see
+  resolve-inferred-arg-types. A single {:op :keys} constraint passes through
+  verbatim."
   [simple-params param-infer arg-tags]
   (reduce (fn [tags [i b]]
             (let [ts (get @param-infer b)]
@@ -650,6 +651,34 @@
          ;; an unresolvable constraint contributes nothing
          acc)))
    nil specs))
+
+(defn resolve-inferred-arg-types
+  "Resolves inferred {:op :and :specs ..} arg specs in `ns-data`'s vars to
+  concrete specs, the twin of resolve-return-types. Runs when syncing the
+  cache, so both linting and the cache only see the plain spec vocabulary,
+  which older versions read fine."
+  [idacs ns-data]
+  (reduce-kv
+   (fn [m k v]
+     (if-let [arities (:arities v)]
+       (let [new-arities
+             (reduce-kv
+              (fn [as arity {:keys [args] :as arity-data}]
+                (if (and (vector? args) (some inferred-and? args))
+                  (assoc as arity
+                         (assoc arity-data :args
+                                (mapv (fn [s]
+                                        (if (inferred-and? s)
+                                          (resolve-inferred-spec idacs s #{})
+                                          s))
+                                      args)))
+                  as))
+              arities arities)]
+         (if (identical? new-arities arities)
+           m
+           (assoc m k (assoc v :arities new-arities))))
+       m))
+   ns-data ns-data))
 
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
@@ -725,7 +754,7 @@
           (lint-map-types! ctx a mval s :opt false))))
 
 (defn lint-arg-types
-  [ctx idacs {called-ns :ns called-name :name arities :arities :as _called-fn}
+  [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
   (try
     (let [config (:config ctx)
@@ -742,13 +771,6 @@
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
-          (let [args-spec (if (some inferred-and? args-spec)
-                            (mapv (fn [s]
-                                    (if (inferred-and? s)
-                                      (resolve-inferred-spec idacs s #{})
-                                      s))
-                                  args-spec)
-                            args-spec)]
           (loop [check-ctx {}
                  [s & rest-args-spec :as all-specs] args-spec
                  [a & rest-args :as all-args] args
@@ -767,7 +789,9 @@
                              all-tags)
                       :keys
                       (do (lint-map! ctx s a t)
-                          (recur check-ctx rest-args-spec rest-args rest-tags)))
+                          (recur check-ctx rest-args-spec rest-args rest-tags))
+                      ;; an op from a newer version's cache: skip this arg
+                      (recur check-ctx rest-args-spec rest-args rest-tags))
                     (nil? s) (cond (seq all-specs)
                                    ;; nil is :any
                                    (recur check-ctx rest-args-spec rest-args rest-tags)
@@ -786,7 +810,7 @@
                           :else
                           (do (when-not (match? t s)
                                 (emit-non-match! ctx s a t))
-                              (recur check-ctx rest-args-spec rest-args rest-tags))))))))))
+                              (recur check-ctx rest-args-spec rest-args rest-tags)))))))))
     (catch Exception e
       (if (= "true" (System/getenv "CLJ_KONDO_DEV"))
         (throw e)

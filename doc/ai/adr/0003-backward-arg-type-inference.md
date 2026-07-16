@@ -44,7 +44,8 @@ Rules, in order of precedence:
    constraint is a `{:op :keys ..}` map spec passes it through verbatim, so
    wrappers propagate required keys from config specs. Map-shaped constraints
    have no intersection, mixed with others they are parked in `{:op :and :specs ..}`
-   for the linters phase, where unresolvable members contribute nothing.
+   and resolved when the cache is synced, where unresolvable members
+   contribute nothing.
 4. A conditionally guarded usage proves nothing: a usage inside a conditional
    branch
    (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
@@ -120,14 +121,25 @@ records a deferred `{:op :arg-spec-of :ns .. :name .. :arity .. :arg-idx ..}`
 constraint. Constraints with deferred or map-shaped members are stored as
 `{:op :and :specs [..]}` in `:args`, joining the existing spec operator family
 (`:rest`, `:keys`). The specs vector is insertion ordered with record-time
-dedup, for deterministic cache output and resolved in the linters phase by
-`types/resolve-inferred-spec`: look up the callee's `:args` in idacs (possibly
-itself inferred, so chains), guard cycles with a seen set, intersect the contributions. This mirrors how deferred return tags
-already resolve via `resolve-arg-type`.
+dedup, for deterministic output. When the cache is synced,
+`types/resolve-inferred-arg-types` resolves each `{:op :and}` entry to a
+concrete spec via `types/resolve-inferred-spec`: look up the callee's `:args`
+in idacs (possibly itself inferred, so chains), guard cycles with a seen set,
+intersect the contributions. This is the twin of `resolve-return-types`, which
+flattens deferred `{:call ..}` return tags in the same `update-defs` walk, and
+it keeps an invariant: the cached `:args`/`:ret` vocabulary is plain tags plus
+`:rest` and `:keys`, so older versions read caches written by newer ones. An
+earlier revision resolved lazily in the linters phase, which leaked
+`{:op :and}` into the cache and made older binaries warn
+"No matching clause: :and" per affected call. The spec op dispatch in
+`lint-arg-types` now also skips unknown ops instead of throwing, so future
+vocabulary extensions degrade to unchecked args.
 
-The deferred shape is plain data and round-trips through the transit cache:
-linting a single file against a warm cache still resolves cross-namespace
-chains. This is the editor scenario.
+Cross-namespace chains still resolve when linting a single file against a warm
+cache, the editor scenario: the callee's cached spec is already concrete, the
+caller's deferred constraint resolves against it at sync time. A cached spec
+is a snapshot, it updates when its own namespace is relinted, same staleness
+contract as cached return types and arities.
 
 ## Performance
 
