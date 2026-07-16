@@ -150,6 +150,20 @@ metabase's `js=`. Committed code has survivorship bias against the crashing
 bug class this catches, unconditional param misuse fails on first call, so
 much of the feature's value is at write time in the editor.
 
+## Spec strictness under propagation
+
+Inference amplifies spec opinions to callers, which forces per-spec rulings.
+The dividing principle: runtime tolerance earns a spec slot when core's own
+code or the documented contract relies on it, implementation fall-through does
+not. So `contains?` gained `:nil` (clojure.core nil-puns it in `ns-resolve`),
+while `get` stays strict (numbers hit RT/get's return-nil-forever fall-through,
+nothing in core relies on it) and the char-sequence fns stay strict (the
+clojure.string ns docstring names CharSequence as the contract). Corpus
+findings from strict specs proved actionable: callers over-narrowing values
+they already held, or callees hiding a type dispatch behind a total function
+(metabase's map-or-id fns dispatching via `get`'s nil return). The right home
+for such declared polymorphism is a per-fn config spec, rule 1.
+
 ## Caveats
 
 - `cond`-style branch suppression is per-form. Unresolved calls count as
