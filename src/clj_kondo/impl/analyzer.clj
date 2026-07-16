@@ -659,8 +659,8 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
-        ;; backward parameter-type inference: [index nilable-hint binding] per
-        ;; simple positional param that is untagged or hinted nilable
+        ;; backward parameter-type inference: [index binding seed-constraints]
+        ;; per simple positional param that is untagged or hinted nilable
         simple-params (when (and arg-vec (not macro?)
                                  (not (linter-disabled? ctx :type-mismatch))
                                  ;; a user spec for this arity wins outright, so
@@ -683,19 +683,17 @@
                                                        (not (namespace v))
                                                        (get arg-bindings v))]
                                          (let [t (:tag b)]
-                                           (cond (nil? t) (conj acc [i nil b])
+                                           (cond (nil? t) (conj acc [i b []])
                                                  (and (keyword? t) (types/nilable? t))
-                                                 (conj acc [i t b])
+                                                 ;; a nilable hint is sugar for a
+                                                 ;; union, seed it as an ordinary
+                                                 ;; constraint
+                                                 (conj acc [i b [(types/desugar-nilable t)]])
                                                  :else acc))
                                          acc)))))))
         param-infer (when simple-params
                       (atom (into {}
-                                  (map (fn [[_ hint b]]
-                                         ;; a nilable hint is sugar for a union,
-                                         ;; seed it as an ordinary constraint
-                                         [b (if hint
-                                              [#{:nil (types/unnil hint)}]
-                                              [])]))
+                                  (map (fn [[_ b seed]] [b seed]))
                                   simple-params)))
         ;; make these params visible for inference, next to those of enclosing
         ;; fns: a usage in this body may constrain an enclosing fn's param when
@@ -706,7 +704,7 @@
               param-infer (update :param-infers (fnil into {})
                                   (let [entry {:param-infer param-infer
                                                :mark (:branch-count ctx 0)}]
-                                    (map (fn [[_ _ b]] [b entry]) simple-params))))
+                                    (map (fn [[_ b]] [b entry]) simple-params))))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))

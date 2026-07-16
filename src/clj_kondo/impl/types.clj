@@ -498,7 +498,7 @@
   known. Used for backward parameter-type inference."
   [config called-ns called-name arity]
   (when-let [spec (or (config/type-mismatch-config config called-ns called-name)
-                      (get-in built-in-specs [called-ns called-name]))]
+                      (get (get built-in-specs called-ns) called-name))]
     (when-let [a (:arities spec)]
       (args-spec-from-arities a arity))))
 
@@ -602,7 +602,7 @@
   {:op :and :specs ..} and resolved in the linters phase. A single {:op :keys}
   constraint passes through verbatim."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i _hint b]]
+  (reduce (fn [tags [i b]]
             (let [ts (get @param-infer b)]
               (if (seq ts)
                 (cond
@@ -618,6 +618,9 @@
                 tags)))
           (vec arg-tags)
           simple-params))
+
+(defn- inferred-and? [s]
+  (and (map? s) (identical? :and (:op s))))
 
 (defn resolve-inferred-spec
   "Resolves an inferred :args entry {:op :and :specs ..} to a concrete spec, or
@@ -638,7 +641,7 @@
                            (let [s (get s (:arg-idx c))]
                              (cond (keyword? s) (desugar-nilable s)
                                    (set? s) s
-                                   (and (map? s) (identical? :and (:op s)))
+                                   (inferred-and? s)
                                    (resolve-inferred-spec idacs s (conj seen k)))))))))]
        (if t
          (or (intersect acc t)
@@ -739,10 +742,9 @@
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
-          (let [inferred? (fn [s] (and (map? s) (identical? :and (:op s))))
-                args-spec (if (some inferred? args-spec)
+          (let [args-spec (if (some inferred-and? args-spec)
                             (mapv (fn [s]
-                                    (if (inferred? s)
+                                    (if (inferred-and? s)
                                       (resolve-inferred-spec idacs s #{})
                                       s))
                                   args-spec)
