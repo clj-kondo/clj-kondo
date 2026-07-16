@@ -648,8 +648,8 @@
 (defn merge-inferred-arg-tags
   "Fills in arg tags for params whose body constraints prove a single most
   specific type. A param hinted nilable is only upgraded when the proven type
-  implies the hint's non-nil tag. Constraints with deferred {:call ..} entries
-  are stored as {:constraints ..} and resolved in the linters phase."
+  implies the hint's non-nil tag. Constraints with deferred {:arg-of ..} entries
+  are stored as {:op :and :specs ..} and resolved in the linters phase."
   [simple-params param-infer arg-tags]
   (reduce (fn [tags [i hint b]]
             (let [ts (get @param-infer b)]
@@ -673,7 +673,7 @@
                              (and (map? c) (identical? :keys (:op c))))))
                   (assoc tags i (first ts))
                   :else
-                  (assoc tags i (cond-> {:constraints ts}
+                  (assoc tags i (cond-> {:op :and :specs ts}
                                   hint (assoc :hint hint))))
                 tags)))
           (vec arg-tags)

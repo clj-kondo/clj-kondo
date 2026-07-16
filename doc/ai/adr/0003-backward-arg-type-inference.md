@@ -106,9 +106,9 @@ not worth its volatile.
 
 `(defn foo [x] (bar x))` constrains `x` by whatever `bar` requires, including
 when `bar`'s own params were inferred. A call to a spec-less resolved user fn
-records a deferred `{:call {ns name arity arg-idx lang base-lang}}` constraint.
+records a deferred `{:arg-of {ns name arity arg-idx lang base-lang}}` constraint.
 Constraint sets containing deferred entries are stored as
-`{:constraints .. :hint ..}` in `:args` and resolved in the linters phase by
+`{:op :and :specs .. :hint ..}` in `:args`, joining the existing spec operator family (`:rest`, `:keys`) and resolved in the linters phase by
 `types/resolve-inferred-spec`: look up the callee's `:args` in idacs (possibly
 itself inferred, so chains), guard cycles with a seen set, merge with
 most-specific, fall back to the hint. This mirrors how deferred return tags
@@ -150,7 +150,7 @@ much of the feature's value is at write time in the editor.
   branches, but a resolved macro analyzed through the generic catch-all has its
   args treated as evaluated code, consistent with how call-site checking
   already treats macro args.
-- The `{:constraints ..}` entries enlarge cached `:arities` slightly.
+- The `{:op :and ..}` entries enlarge cached `:arities` slightly.
 - The param-infer atoms key on binding maps. Fine today: the same long-lived
   objects are looked up repeatedly, hasheq is cached after the first hash, and
   the maps hold a handful of entries. If bindings ever become a record, key on

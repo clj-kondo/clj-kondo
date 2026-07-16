@@ -520,7 +520,7 @@
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
   called-name arity]`, taken from the callstack head's ::infer-call meta.
   Records the callee's expected type as a constraint on the param, or a
-  deferred {:call ..} constraint for a spec-less user fn. A usage in a
+  deferred {:arg-of ..} constraint for a spec-less user fn. A usage in a
   conditional branch proves nothing, the guard may be what makes it safe. That
   covers narrowed usages, narrowing only happens in branches, and spine
   narrowing (assert, :pre), when it exists, should constrain: the guard throws,
@@ -536,14 +536,14 @@
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)
                 (when-not core?
-                  {:call {:resolved-ns called-ns
+                  {:arg-of {:resolved-ns called-ns
                           :name called-name
                           :arity arity
                           :arg-idx idx
                           :lang (:lang ctx)
                           :base-lang (:base-lang ctx)}}))]
         (when (if (map? s)
-                (or (:call s)
+                (or (:arg-of s)
                     (identical? :keys (:op s)))
                 (or (set? s)
                     (and (keyword? s) (not (identical? :any s)))))
@@ -565,16 +565,16 @@
         (is-a? b a) b))
 
 (defn resolve-inferred-spec
-  "Resolves an inferred :args entry {:constraints .. :hint ..} to a concrete
-  tag, or the hint, or nil. A deferred {:call ..} constraint looks up the
+  "Resolves an inferred :args entry {:op :and :specs .. :hint ..} to a concrete
+  tag, or the hint, or nil. A deferred {:arg-of ..} constraint looks up the
   callee's :args in idacs, which may itself be inferred, so inference chains
   through user fns. `seen` guards against recursive call chains."
-  [idacs {:keys [constraints hint]} seen]
+  [idacs {:keys [specs hint]} seen]
   (let [t (reduce
            (fn [acc c]
              (let [t (if (keyword? c)
                        c
-                       (let [call (:call c)
+                       (let [call (:arg-of c)
                              k [(:resolved-ns call) (:name call) (:arity call) (:arg-idx call)]]
                          (when (and (:lang call) (:base-lang call)
                                     (not (contains? seen k)))
@@ -582,7 +582,7 @@
                              (when-let [s (args-spec-from-arities (:arities called-fn) (:arity call))]
                                (let [s (get s (:arg-idx call))]
                                  (cond (keyword? s) s
-                                       (and (map? s) (:constraints s))
+                                       (and (map? s) (identical? :and (:op s)))
                                        (resolve-inferred-spec idacs s (conj seen k)))))))))]
                (if t
                  (or (most-specific acc t)
@@ -590,7 +590,7 @@
                      (reduced nil))
                  ;; an unresolvable constraint contributes nothing
                  acc)))
-           nil constraints)]
+           nil specs)]
     (if t
       (if (or (nil? hint) (is-a? t (unnil hint)))
         t
@@ -689,7 +689,7 @@
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
           (let [args-spec (mapv (fn [s]
-                                  (if (and (map? s) (:constraints s))
+                                  (if (and (map? s) (identical? :and (:op s)))
                                     (resolve-inferred-spec idacs s #{})
                                     s))
                                 args-spec)]
