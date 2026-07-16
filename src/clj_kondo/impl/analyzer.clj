@@ -1061,6 +1061,14 @@
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
+(defn- in-branch-ctx
+  "Marks ctx as conditionally evaluated for param inference. No-op when
+  inference is off or the ctx is already marked."
+  [ctx]
+  (if (and (:param-infer ctx) (not (:in-branch ctx)))
+    (assoc ctx :in-branch true)
+    ctx))
+
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
         matched-val (first children)
@@ -1071,8 +1079,8 @@
           [ctx {:quote? true}])]
     (analyze-expression** ctx matched-val)
     ;; branches are conditionally evaluated, so no param inference
-    (let [ctx (cond-> ctx (:param-infer ctx) (assoc :in-branch true))
-          test-ctx (cond-> test-ctx (:param-infer test-ctx) (assoc :in-branch true))]
+    (let [ctx (in-branch-ctx ctx)
+          test-ctx (in-branch-ctx test-ctx)]
     (loop [[constant expr & exprs] (rest children)
            seen-constants #{}]
       (when constant
@@ -1430,9 +1438,8 @@
         (concat (:analyzed bindings)
                 (analyze-condition (update ctx :callstack conj [:vector]) condition)
                 ;; bodies are conditionally evaluated, so no param inference
-                (let [ctx (cond-> ctx (:param-infer ctx) (assoc :in-branch true))
-                      ctx-with-binding (cond-> ctx-with-binding
-                                         (:param-infer ctx-with-binding) (assoc :in-branch true))]
+                (let [ctx (in-branch-ctx ctx)
+                      ctx-with-binding (in-branch-ctx ctx-with-binding)]
                   (if if?
                     ;; in the case of if, the binding is only valid in the first expression
                     (concat
@@ -2425,7 +2432,7 @@
           narrowing (when-not (linter-disabled? ctx :type-mismatch)
                       (narrowing-from-condition ctx condition))]
       (analyze-condition ctx condition)
-      (let [branch-ctx (cond-> ctx (:param-infer ctx) (assoc :in-branch true))]
+      (let [branch-ctx (in-branch-ctx ctx)]
         (if narrowing
           (let [branch-ctx (assoc branch-ctx :len (count clauses))]
             (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-binding narrowing)) then)
@@ -2437,7 +2444,7 @@
   [ctx expr]
   (let [[condition & clauses] (rest (:children expr))]
     (analyze-condition ctx condition)
-    (analyze-children (cond-> ctx (:param-infer ctx) (assoc :in-branch true))
+    (analyze-children (in-branch-ctx ctx)
                       clauses false)))
 
 (defn analyze-is
@@ -2518,9 +2525,8 @@
         expr
         :missing-body-in-when
         "Missing body in when"))
-      (analyze-children (cond-> ctx
-                          narrowing (narrow-binding narrowing)
-                          (:param-infer ctx) (assoc :in-branch true))
+      (analyze-children (in-branch-ctx
+                         (cond-> ctx narrowing (narrow-binding narrowing)))
                         body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
@@ -3323,8 +3329,7 @@
                           (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name)
                           ;; all conditionally evaluated, so no param inference
                           (cond condp and or) (analyze-children
-                                               (cond-> ctx
-                                                 (:param-infer ctx) (assoc :in-branch true))
+                                               (in-branch-ctx ctx)
                                                children false)
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate

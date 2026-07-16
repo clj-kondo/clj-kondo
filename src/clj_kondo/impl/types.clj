@@ -640,9 +640,15 @@
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
-          (let [args-spec (mapv (fn [s]
+          (let [cache (:inferred-spec-cache idacs)
+                args-spec (mapv (fn [s]
                                   (if (and (map? s) (:infer s))
-                                    (resolve-inferred-spec idacs s #{})
+                                    (let [cached (if cache (get @cache s ::miss) ::miss)]
+                                      (if (identical? ::miss cached)
+                                        (let [r (resolve-inferred-spec idacs s #{})]
+                                          (when cache (swap! cache assoc s r))
+                                          r)
+                                        cached))
                                     s))
                                 args-spec)]
           (loop [check-ctx {}

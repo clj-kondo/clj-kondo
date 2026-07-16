@@ -689,7 +689,10 @@
   (let [indexed-defs (namespaces->indexed-defs ctx)]
     (-> (assoc indexed-defs :used-namespaces @(:used-namespaces ctx))
         (assoc :java-member-definitions (java-members->indexed ctx))
-        (assoc :java-class-usages @(:java-class-usages ctx)))))
+        (assoc :java-class-usages @(:java-class-usages ctx))
+        ;; memoizes inferred :args resolution during the lint phase, see
+        ;; types/resolve-inferred-spec
+        (assoc :inferred-spec-cache (atom {})))))
 
 ;;;; summary
 
