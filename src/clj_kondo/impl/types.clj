@@ -492,6 +492,30 @@
     (when-let [s (:args ca)]
       (vec s))))
 
+(defn spec-args
+  "Positional expected-type spec vector for a call to `called-ns`/`called-name`
+  at `arity`, from a user-configured or built-in spec. Nil when no spec is
+  known. Used for backward parameter-type inference."
+  [config called-ns called-name arity]
+  (when-let [spec (or (config/type-mismatch-config config called-ns called-name)
+                      (get-in built-in-specs [called-ns called-name]))]
+    (when-let [a (:arities spec)]
+      (args-spec-from-arities a arity))))
+
+(defn is-a?
+  "Provable subtype check: every value of tag `a` is also of tag `b`."
+  [a b]
+  (or (identical? a b)
+      (contains? (get is-a-relations a) b)))
+
+(defn most-specific
+  "The most specific of provable tags `a` and `b`, or nil when they are
+  incomparable."
+  [a b]
+  (cond (nil? a) b
+        (is-a? a b) a
+        (is-a? b a) b))
+
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
