@@ -519,20 +519,20 @@
   "Backward parameter-type inference, triggered where a local usage is
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
   called-name arity]`, taken from the callstack head's ::infer-call meta.
-  Records the callee's expected type as a constraint on the param, a deferred
-  {:call ..} constraint for a spec-less user fn, or marks the param :poly when
-  the callee is a type predicate. A usage in a conditional branch or on a
-  narrowed binding proves nothing, the guard may be what makes it safe."
+  Records the callee's expected type as a constraint on the param, or a
+  deferred {:call ..} constraint for a spec-less user fn. A usage in a
+  conditional branch or on a narrowed binding proves nothing, the guard may be
+  what makes it safe. Type predicates need no special case: their arg spec is
+  :any, so they record nothing."
   [ctx [called-ns called-name arity] levels b idx]
   (when-let [level (some (fn [l]
                            (when (contains? @(:param-infer l) b)
                              l))
                          levels)]
-    (let [core? (utils/one-of called-ns [clojure.core cljs.core])
-          pred-tag (and core? (get predicate->tag called-name))
-          s (if pred-tag
-              nil
-              (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
+    (when-not (or (:branched? level)
+                  (:narrowed-tag (meta b)))
+      (let [core? (utils/one-of called-ns [clojure.core cljs.core])
+            s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)
                 (when-not core?
                   {:call {:resolved-ns called-ns
@@ -540,22 +540,13 @@
                           :arity arity
                           :arg-idx idx
                           :lang (:lang ctx)
-                          :base-lang (:base-lang ctx)}})))
-          pi (:param-infer level)]
-      (cond pred-tag
-            (swap! pi assoc b :poly)
-            (and s
-                 ;; a keyword spec or our own deferred shape, not other map
-                 ;; specs like {:op :keys}
-                 (if (map? s)
-                   (:call s)
-                   (and (keyword? s) (not (identical? :any s))))
-                 (not (:branched? level))
-                 (not (:narrowed-tag (meta b))))
-            (swap! pi update b
-                   (fn [cur] (if (identical? :poly cur)
-                               :poly
-                               (conj (or cur #{}) s))))))))
+                          :base-lang (:base-lang ctx)}}))]
+        (when (if (map? s)
+                ;; our deferred shape, not other map specs like {:op :keys}
+                (:call s)
+                (and (keyword? s) (not (identical? :any s))))
+          (swap! (:param-infer level) update b
+                 (fn [cur] (conj (or cur #{}) s))))))))
 
 (defn is-a?
   "Provable subtype check: every value of tag `a` is also of tag `b`."

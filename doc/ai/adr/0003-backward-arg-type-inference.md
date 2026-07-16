@@ -33,14 +33,20 @@ Rules, in order of precedence:
    non-nil use.
 3. Constraints merge to the most specific provable tag, using `is-a-relations`
    only. Incomparable constraints prove nothing and the param stays untyped.
-4. A conditionally guarded usage proves nothing. This has three mechanisms:
-   a param passed to a core type predicate (`types/predicate->tag`, resolved
-   via `core-symbol-in-scope?`) is marked `:poly` and excluded entirely, a
-   usage on a flow-narrowed binding is skipped, and a usage inside a
-   conditional branch (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`,
-   `case`, `and`, `or`, `if-let`, `when-let`, `if-some`, `when-some`) is
-   skipped via a per-level branched flag. Only the body's unconditional spine
-   constrains. A nested fn body is a new inference level pushed onto
+4. A conditionally guarded usage proves nothing. Two mechanisms: a usage on a
+   flow-narrowed binding is skipped, and a usage inside a conditional branch
+   (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
+   `if-let`, `when-let`, `if-some`, `when-some`) is skipped via a per-level
+   branched flag. An unresolved call could be a macro, so its args count as a
+   conditional branch too, like a when body. Only the body's unconditional
+   spine constrains, and a spine usage constrains even when the param is
+   type-tested elsewhere, the use runs regardless:
+   `(defn f [x] (when (nil? x) x) (subs x 1))` proves `x` is a string, so
+   `(f nil)` is flagged, it throws. Type predicates need no special handling
+   for inference, their arg spec is `:any` and records nothing. An earlier
+   revision marked predicate-tested params `:poly` (never infer). That masked
+   the case above and only protected type dispatch through unresolved macros,
+   which the branch treatment of unresolved calls now covers structurally. A nested fn body is a new inference level pushed onto
    `:param-infers`: its own params start unbranched regardless of enclosing
    conditionals, and a usage of an enclosing fn's param in the nested body
    still constrains it, closing over a param is using it. A conditional marks
@@ -128,11 +134,10 @@ much of the feature's value is at write time in the editor.
 
 ## Caveats
 
-- `cond`-style branch suppression is per-form. A conditional analyzed through
-  the generic catch-all that is not in the rule 4 list would leak constraints.
-- Predicate `:poly` marking keys on `types/predicate->tag`, so a new predicate
-  added there tightens inference automatically (`nil?` already does: a
-  nil-checked param is not inferred).
+- `cond`-style branch suppression is per-form. Unresolved calls count as
+  branches, but a resolved macro analyzed through the generic catch-all has its
+  args treated as evaluated code, consistent with how call-site checking
+  already treats macro args.
 - The `{:infer ..}` entries enlarge cached `:arities` slightly.
 - The param-infer atoms key on binding maps. Fine today: the same long-lived
   objects are looked up repeatedly, hasheq is cached after the first hash, and

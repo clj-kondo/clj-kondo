@@ -3013,8 +3013,9 @@
                                                        (with-meta unresolved-ns
                                                          (assoc (meta full-fn-name)
                                                                 :name fn-name))))
-                (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
-                                                               fn-name])
+                (analyze-children (in-branch-ctx
+                                   (update ctx :callstack conj [:clj-kondo/unknown-namespace
+                                                                fn-name]))
                                   children))
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
@@ -3427,7 +3428,11 @@
                                                       [clojure.core lazy-cat]])
                                              (-> (assoc-in [:recur-arity :fixed-arity] 0)
                                                  (assoc :seen-recur? (volatile! nil))
-                                                 (dissoc :protocol-fn)))]
+                                                 (dissoc :protocol-fn))
+                                             ;; an unresolved call could be a macro,
+                                             ;; treat its args as conditionally
+                                             ;; evaluated, like a when body
+                                             unresolved? (in-branch-ctx))]
                               (analyze-children next-ctx children false))))]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed

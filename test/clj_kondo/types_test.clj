@@ -1875,9 +1875,15 @@
        (lint! "(defn f [s] (first s) (subs s 1)) (f 42)" config)))
     (testing "conflicting constraints prove nothing"
       (is (empty? (lint! "(defn f [x] (inc x) (subs x 1)) (f :kw)" config))))
-    (testing "a param tested by a type predicate is not inferred"
-      (is (empty? (lint! "(defn f [x] (if (string? x) (subs x 1) x)) (f 42)" config)))
-      (is (empty? (lint! "(defn f [x] (when (nil? x) x) (subs x 1)) (f nil)" config))))
+    (testing "a type-dispatched param is protected by branch suppression"
+      (is (empty? (lint! "(defn f [x] (if (string? x) (subs x 1) x)) (f 42)" config))))
+    (testing "a spine usage after a predicate still constrains, it runs unconditionally"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: nil."})
+       (lint! "(defn f [x] (when (nil? x) x) (subs x 1)) (f nil)" config)))
+    (testing "an unresolved call's args are conditionally evaluated, like a when body"
+      (is (empty? (lint! "(defn f [x] (unknown.ns/my-when (string? x) (subs x 1))) (f 42)"
+                         (assoc-in config [:linters :unresolved-namespace :level] :off)))))
     (testing "a usage in a conditional branch does not constrain"
       (is (empty? (lint! "(defn f [x b] (if b (subs x 1) x)) (f 42 true)" config)))
       (is (empty? (lint! "(defn f [x b] (when b (subs x 1))) (f 42 true)" config)))
