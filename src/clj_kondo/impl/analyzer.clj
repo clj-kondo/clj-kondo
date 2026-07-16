@@ -685,7 +685,7 @@
                          (when (and (symbol? v) (not (namespace v)))
                            (when-let [b (get bindings v)]
                              (some (fn [l]
-                                     (when (contains? @(:pi l) b)
+                                     (when (contains? @(:param-infer l) b)
                                        [l b]))
                                    levels)))))
                   b (peek lb)
@@ -709,7 +709,7 @@
               (when (and b (vector? lookups))
                 (let [[pred-tag specs defer-call] lookups
                       [level _] lb
-                      pi (:pi level)
+                      pi (:param-infer level)
                       s (if specs
                           (spec-at specs idx)
                           (when defer-call
@@ -807,7 +807,7 @@
         ;; them, invoking this fn is the caller's way of using that param.
         ctx (cond-> ctx
               param-infer (update :param-infers (fnil conj [])
-                                  {:pi param-infer :branched? false}))
+                                  {:param-infer param-infer :branched? false}))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))
