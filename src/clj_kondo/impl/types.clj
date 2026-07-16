@@ -515,14 +515,21 @@
           s
           (recur (inc i) (rest ss)))))))
 
+(defn desugar-nilable
+  "A nilable keyword spec is sugar for a union with :nil."
+  [s]
+  (if (and (keyword? s) (nilable? s))
+    #{:nil (unnil s)}
+    s))
+
 (defn infer-local-usage!
   "Backward parameter-type inference, triggered where a local usage is
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
   called-name arity]`, taken from the callstack head's ::infer-call meta.
   Records the callee's expected type as a constraint on the param, or a
-  deferred {:arg-of ..} constraint for a spec-less user fn. A usage in a
-  conditional branch proves nothing, the guard may be what makes it safe. That
-  covers narrowed usages, narrowing only happens in branches, and spine
+  deferred {:op :arg-spec-of ..} constraint for a spec-less user fn. A usage in
+  a conditional branch proves nothing, the guard may be what makes it safe.
+  That covers narrowed usages, narrowing only happens in branches, and spine
   narrowing (assert, :pre), when it exists, should constrain: the guard throws,
   so the type is the contract. Type predicates need no special case: their arg
   spec is :any, so they record nothing."
@@ -536,19 +543,24 @@
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)
                 (when-not core?
-                  {:arg-of {:resolved-ns called-ns
-                          :name called-name
-                          :arity arity
-                          :arg-idx idx
-                          :lang (:lang ctx)
-                          :base-lang (:base-lang ctx)}}))]
+                  {:op :arg-spec-of
+                   :ns called-ns
+                   :name called-name
+                   :arity arity
+                   :arg-idx idx
+                   :lang (:lang ctx)
+                   :base-lang (:base-lang ctx)}))]
         (when (if (map? s)
-                (or (:arg-of s)
-                    (identical? :keys (:op s)))
+                (utils/one-of (:op s) [:arg-spec-of :keys])
                 (or (set? s)
                     (and (keyword? s) (not (identical? :any s)))))
-          (swap! (:param-infer level) update b
-                 (fn [cur] (conj (or cur #{}) s))))))))
+          (let [s (desugar-nilable s)]
+            (swap! (:param-infer level) update b
+                   (fn [cur]
+                     ;; insertion-ordered with dedup, for deterministic output
+                     (if (some #(= % s) cur)
+                       cur
+                       (conj (or cur []) s))))))))))
 
 (defn is-a?
   "Provable subtype check: every value of tag `a` is also of tag `b`."
@@ -556,46 +568,62 @@
   (or (identical? a b)
       (contains? (get is-a-relations a) b)))
 
-(defn most-specific
-  "The most specific of provable tags `a` and `b`, or nil when they are
-  incomparable."
+(defn meet
+  "The meet of specs `a` and `b`, keywords or union sets: the most specific
+  union that satisfies both, computed pairwise over is-a. Returns a keyword, a
+  set, or nil when nothing satisfies both. nil `a` means no evidence yet."
   [a b]
-  (cond (nil? a) b
-        (is-a? a b) a
-        (is-a? b a) b))
+  (if (nil? a)
+    b
+    (let [as (if (set? a) a #{a})
+          bs (if (set? b) b #{b})
+          sat (fn [t s] (boolean (some #(is-a? t %) s)))
+          ;; every named type that satisfies both unions: input members alone
+          ;; miss types that imply both without being listed in either, e.g.
+          ;; :vector for the meet of get's union with :seqable
+          all (into #{} (filter (fn [t]
+                                  (and (not (identical? :any t))
+                                       (sat t as)
+                                       (sat t bs))))
+                    known-types)
+          ;; keep the maximal elements, subsumed members add nothing
+          m (into #{} (remove (fn [t]
+                                (some #(and (not (identical? t %)) (is-a? t %))
+                                      all)))
+                  all)]
+      (case (count m)
+        0 nil
+        1 (first m)
+        m))))
 
 (defn resolve-inferred-spec
-  "Resolves an inferred :args entry {:op :and :specs .. :hint ..} to a concrete
-  tag, or the hint, or nil. A deferred {:arg-of ..} constraint looks up the
-  callee's :args in idacs, which may itself be inferred, so inference chains
-  through user fns. `seen` guards against recursive call chains."
-  [idacs {:keys [specs hint]} seen]
-  (let [t (reduce
-           (fn [acc c]
-             (let [t (if (keyword? c)
-                       c
-                       (let [call (:arg-of c)
-                             k [(:resolved-ns call) (:name call) (:arity call) (:arg-idx call)]]
-                         (when (and (:lang call) (:base-lang call)
-                                    (not (contains? seen k)))
-                           (when-let [called-fn (utils/resolve-call* idacs call (:resolved-ns call) (:name call))]
-                             (when-let [s (args-spec-from-arities (:arities called-fn) (:arity call))]
-                               (let [s (get s (:arg-idx call))]
-                                 (cond (keyword? s) s
-                                       (and (map? s) (identical? :and (:op s)))
-                                       (resolve-inferred-spec idacs s (conj seen k)))))))))]
-               (if t
-                 (or (most-specific acc t)
-                     ;; conflicting constraints prove nothing
-                     (reduced nil))
-                 ;; an unresolvable constraint contributes nothing
-                 acc)))
-           nil specs)]
-    (if t
-      (if (or (nil? hint) (is-a? t (unnil hint)))
-        t
-        hint)
-      hint)))
+  "Resolves an inferred :args entry {:op :and :specs ..} to a concrete spec, or
+  nil when nothing is provable. A deferred {:op :arg-spec-of ..} member looks
+  up the callee's :args in idacs, which may itself be inferred, so inference
+  chains through user fns. `seen` guards against recursive call chains."
+  [idacs {:keys [specs]} seen]
+  (reduce
+   (fn [acc c]
+     (let [t (cond (keyword? c) c
+                   (set? c) c
+                   (identical? :arg-spec-of (:op c))
+                   (let [k [(:ns c) (:name c) (:arity c) (:arg-idx c)]]
+                     (when (and (:lang c) (:base-lang c)
+                                (not (contains? seen k)))
+                       (when-let [called-fn (utils/resolve-call* idacs c (:ns c) (:name c))]
+                         (when-let [s (args-spec-from-arities (:arities called-fn) (:arity c))]
+                           (let [s (get s (:arg-idx c))]
+                             (cond (keyword? s) (desugar-nilable s)
+                                   (set? s) s
+                                   (and (map? s) (identical? :and (:op s)))
+                                   (resolve-inferred-spec idacs s (conj seen k)))))))))]
+       (if t
+         (or (meet acc t)
+             ;; conflicting constraints prove nothing
+             (reduced nil))
+         ;; an unresolvable constraint contributes nothing
+         acc)))
+   nil specs))
 
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))

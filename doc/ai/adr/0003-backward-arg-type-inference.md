@@ -28,18 +28,22 @@ Rules, in order of precedence:
    config-specced arity is also skipped at analysis time, so no inference work
    or cached `:args` for it at all. Matters for malli-style generated configs
    that spec whole codebases. Unspecced sibling arities still infer.
-2. A `^Type` hinted param is not inferred. A nilable hint (`^String` maps to
-   `:nilable/string`) is upgraded to the non-nil tag when the body proves a
-   non-nil use.
-3. Constraints merge to the most specific provable tag, using `is-a-relations`
-   only. Incomparable constraints prove nothing and the param stays untyped.
-   A param whose only constraint is a set spec (`symbol` takes
-   `#{:symbol :string :keyword :var}`) or a `{:op :keys ..}` map spec passes it
-   through verbatim, call-site checking handles both shapes, so wrappers around
-   such fns propagate them, including required keys from config specs.
-   `most-specific` has no meet for these shapes, so a set or keys spec mixed
-   with other constraints falls back to the keyword fold via the deferred
-   path, where non-keyword members contribute nothing.
+2. A hard `^Type` hinted param is not inferred. A nilable hint is sugar for a
+   union (`^String` means `#{:nil :string}`) and is seeded as an ordinary
+   constraint, so the upgrade to the non-nil tag when the body proves a non-nil
+   use, and the fallback to the declaration when nothing resolves, both emerge
+   from rule 3's meet. A hint conflicting with the body leaves callers
+   unchecked, and the body itself is flagged at the contradiction by the
+   ordinary call-site check.
+3. Constraints meet to the most specific union: keywords and union sets
+   normalize to sets, the meet keeps pairwise `is-a-relations` winners, an
+   empty meet is a conflict and proves nothing, a partial meet is a set, which
+   is a legal spec. So `(defn f [x] (symbol x) (contains? x 1))` infers exactly
+   `#{:string}`, the intersection of the two unions. A param whose only
+   constraint is a `{:op :keys ..}` map spec passes it through verbatim, so
+   wrappers propagate required keys from config specs. Map-shaped constraints
+   have no meet, mixed with others they are parked in `{:op :and :specs ..}`
+   for the linters phase, where unresolvable members contribute nothing.
 4. A conditionally guarded usage proves nothing: a usage inside a conditional
    branch
    (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
@@ -106,9 +110,11 @@ not worth its volatile.
 
 `(defn foo [x] (bar x))` constrains `x` by whatever `bar` requires, including
 when `bar`'s own params were inferred. A call to a spec-less resolved user fn
-records a deferred `{:arg-of {ns name arity arg-idx lang base-lang}}` constraint.
-Constraint sets containing deferred entries are stored as
-`{:op :and :specs .. :hint ..}` in `:args`, joining the existing spec operator family (`:rest`, `:keys`) and resolved in the linters phase by
+records a deferred `{:op :arg-spec-of :ns .. :name .. :arity .. :arg-idx ..}`
+constraint. Constraints with deferred or map-shaped members are stored as
+`{:op :and :specs [..]}` in `:args`, joining the existing spec operator family
+(`:rest`, `:keys`). The specs vector is insertion ordered with record-time
+dedup, for deterministic cache output and resolved in the linters phase by
 `types/resolve-inferred-spec`: look up the callee's `:args` in idacs (possibly
 itself inferred, so chains), guard cycles with a seen set, merge with
 most-specific, fall back to the hint. This mirrors how deferred return tags

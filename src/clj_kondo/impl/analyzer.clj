@@ -646,35 +646,25 @@
             (partition 2 children))))
 
 (defn merge-inferred-arg-tags
-  "Fills in arg tags for params whose body constraints prove a single most
-  specific type. A param hinted nilable is only upgraded when the proven type
-  implies the hint's non-nil tag. Constraints with deferred {:arg-of ..} entries
-  are stored as {:op :and :specs ..} and resolved in the linters phase."
+  "Fills in arg specs for params from their collected constraints: keyword and
+  union-set constraints meet to the most specific union, a conflict proves
+  nothing, and constraints with deferred or map-shaped members are stored as
+  {:op :and :specs ..} and resolved in the linters phase. A single {:op :keys}
+  constraint passes through verbatim."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i hint b]]
+  (reduce (fn [tags [i _hint b]]
             (let [ts (get @param-infer b)]
-              (if (and (set? ts) (seq ts))
+              (if (seq ts)
                 (cond
-                  (every? keyword? ts)
-                  (if-let [t (reduce (fn [acc t]
-                                       (or (types/most-specific acc t) (reduced nil)))
-                                     nil ts)]
-                    (if (or (nil? hint) (types/is-a? t (types/unnil hint)))
-                      (assoc tags i t)
-                      tags)
-                    tags)
-                  ;; a single set or keys spec passes through verbatim, existing
-                  ;; call-site checking handles both shapes. Most-specific has
-                  ;; no meet for them, so only when unambiguous and unhinted
+                  (not-any? map? ts)
+                  (assoc tags i (reduce (fn [acc t]
+                                          (or (types/meet acc t) (reduced nil)))
+                                        nil ts))
                   (and (= 1 (count ts))
-                       (nil? hint)
-                       (let [c (first ts)]
-                         (or (set? c)
-                             (and (map? c) (identical? :keys (:op c))))))
+                       (identical? :keys (:op (first ts))))
                   (assoc tags i (first ts))
                   :else
-                  (assoc tags i (cond-> {:op :and :specs ts}
-                                  hint (assoc :hint hint))))
+                  (assoc tags i {:op :and :specs ts}))
                 tags)))
           (vec arg-tags)
           simple-params))
@@ -723,7 +713,14 @@
                                                  :else acc))
                                          acc)))))))
         param-infer (when simple-params
-                      (atom (into {} (map (fn [[_ _ b]] [b #{}])) simple-params)))
+                      (atom (into {}
+                                  (map (fn [[_ hint b]]
+                                         ;; a nilable hint is sugar for a union,
+                                         ;; seed it as an ordinary constraint
+                                         [b (if hint
+                                              [#{:nil (types/unnil hint)}]
+                                              [])]))
+                                  simple-params)))
         ;; push a new inference level. Enclosing levels stay, with their branch
         ;; state as of this fn's creation point: a usage in this body may
         ;; constrain an enclosing fn's param when nothing conditional separates

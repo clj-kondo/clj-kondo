@@ -1935,11 +1935,32 @@
          '({:row 1 :message "Expected: integer, received: string."}
            {:row 1 :message "Missing required key: :port"})
          (lint! "(defn g [m] m) (defn f [m] (g m)) (f {:port \"x\"}) (f {})" cfg))))
-    (testing "a set constraint mixed with a keyword falls back to the keyword"
+    (testing "constraints meet to their most specific union"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: keyword."})
        (lint! "(defn f [x] (symbol x) (subs x 1)) (f :kw)"
+              (assoc-in config [:linters :unused-value :level] :off)))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (symbol x) (contains? x 1)) (f 42)"
               (assoc-in config [:linters :unused-value :level] :off))))
+    (testing "the meet of a tag with a union keeps every member that implies it"
+      ;; get's union spec meets first's :seqable, a map satisfies the result
+      (is (empty? (lint! "(defn f [m] (first m) (get m :k)) (f {:a 1})"
+                         (assoc-in config [:linters :unused-value :level] :off))))
+      (assert-submaps2
+       '({:row 1 :message #"Expected: .*, received: positive integer\."})
+       (lint! "(defn f [m] (first m) (get m :k)) (f 42)"
+              (assoc-in config [:linters :unused-value :level] :off))))
+    (testing "a nilable hint is one union constraint among the others"
+      (assert-submaps2
+       '({:row 1 :message #"Expected: (string or nil|nil or string), received: positive integer\."})
+       (lint! "(defn f [^String s] (println s) s) (f nil) (f 42)" config))
+      (is (empty? (lint! "(defn f [^String s] (println s) s) (f nil)" config))))
+    (testing "a hint conflicting with the body flags the body, callers are unchecked"
+      (assert-submaps2
+       '({:row 1 :message #"Expected: number, received: (string or nil|nil or string)\."})
+       (lint! "(defn f [^String s] (inc s)) (f nil) (f 42)" config)))
     (testing "a config-specced arity is not inferred, its sibling arity is"
       (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
                           '{:arities {1 {:args [:any]}}})]
