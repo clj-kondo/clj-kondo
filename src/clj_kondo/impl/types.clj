@@ -565,11 +565,11 @@
         (is-a? b a) b))
 
 (defn resolve-inferred-spec
-  "Resolves an inferred :args entry {:infer constraints :hint h} to a concrete
+  "Resolves an inferred :args entry {:constraints .. :hint ..} to a concrete
   tag, or the hint, or nil. A deferred {:call ..} constraint looks up the
   callee's :args in idacs, which may itself be inferred, so inference chains
   through user fns. `seen` guards against recursive call chains."
-  [idacs {:keys [infer hint]} seen]
+  [idacs {:keys [constraints hint]} seen]
   (let [t (reduce
            (fn [acc c]
              (let [t (if (keyword? c)
@@ -582,7 +582,7 @@
                              (when-let [s (args-spec-from-arities (:arities called-fn) (:arity call))]
                                (let [s (get s (:arg-idx call))]
                                  (cond (keyword? s) s
-                                       (and (map? s) (:infer s))
+                                       (and (map? s) (:constraints s))
                                        (resolve-inferred-spec idacs s (conj seen k)))))))))]
                (if t
                  (or (most-specific acc t)
@@ -590,7 +590,7 @@
                      (reduced nil))
                  ;; an unresolvable constraint contributes nothing
                  acc)))
-           nil infer)]
+           nil constraints)]
     (if t
       (if (or (nil? hint) (is-a? t (unnil hint)))
         t
@@ -689,7 +689,7 @@
                   (args-spec-from-arities arities arity))]
         (when (vector? args-spec)
           (let [args-spec (mapv (fn [s]
-                                  (if (and (map? s) (:infer s))
+                                  (if (and (map? s) (:constraints s))
                                     (resolve-inferred-spec idacs s #{})
                                     s))
                                 args-spec)]

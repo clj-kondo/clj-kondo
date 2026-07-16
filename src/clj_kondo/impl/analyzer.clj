@@ -649,7 +649,7 @@
   "Fills in arg tags for params whose body constraints prove a single most
   specific type. A param hinted nilable is only upgraded when the proven type
   implies the hint's non-nil tag. Constraints with deferred {:call ..} entries
-  are stored as {:infer ..} and resolved in the linters phase."
+  are stored as {:constraints ..} and resolved in the linters phase."
   [simple-params param-infer arg-tags]
   (reduce (fn [tags [i hint b]]
             (let [ts (get @param-infer b)]
@@ -673,7 +673,7 @@
                              (and (map? c) (identical? :keys (:op c))))))
                   (assoc tags i (first ts))
                   :else
-                  (assoc tags i (cond-> {:infer ts}
+                  (assoc tags i (cond-> {:constraints ts}
                                   hint (assoc :hint hint))))
                 tags)))
           (vec arg-tags)
