@@ -174,13 +174,13 @@
                                        (str/replace (str symbol-val) #"\**$" ""))))]
                    (do
                      (when-let [levels (:param-infers ctx)]
-                       (when-let [ic (:infer-call ctx)]
-                         ;; only when b is a direct argument of the call that
-                         ;; installed :infer-call, its entry is the head then
-                         (when (= (:entry ic) (first (:callstack ctx)))
-                           (when-let [arg-types (:arg-types ctx)]
-                             (types/infer-local-usage! ctx ic levels b
-                                                       (count @arg-types))))))
+                       ;; only the entry of the call b is a direct argument of
+                       ;; carries ::infer-call, see analyze-call
+                       (when-let [ic (some-> (first (:callstack ctx)) meta
+                                             ::types/infer-call)]
+                         (when-let [arg-types (:arg-types ctx)]
+                           (types/infer-local-usage! ctx ic levels b
+                                                     (count @arg-types)))))
                      (when-let [ul (:undefined-locals ctx)]
                        (when (contains? ul symbol-val)
                          (findings/reg-finding! ctx (utils/node->line (:filename ctx)

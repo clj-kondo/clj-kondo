@@ -59,28 +59,30 @@ Rules, in order of precedence:
 ## The trigger point
 
 Inference triggers where a local usage is analyzed, not by scanning call
-arguments. `analyze-call` publishes an `:infer-call` descriptor
-({:entry callstack-entry :ns .. :name .. :arity .. :lookups (volatile! nil)})
-when it pushes its callstack frame. At the single place where a token resolves
-to a binding (usages.clj, next to `reg-used-binding!`), the binding is a direct
-argument of that call exactly when the callstack head equals the stored entry,
-and the argument index is the current `:arg-types` count. `types/infer-local-usage!`
-then classifies the callee (once per call, memoized in the volatile) and
-records the constraint. This keeps local recognition structural, `(var x)` and
-quoted forms never reach the usage path, and a local inside a collection
-argument fails the head check instead of inheriting the collection's spec.
+arguments. `analyze-call` attaches `::types/infer-call [ns name arity]` to the
+metadata of the callstack entry it pushes, for resolved calls in fn bodies with
+inferable params. At the single place where a token resolves to a binding
+(usages.clj, next to `reg-used-binding!`), the binding is a direct argument of
+an inference-eligible call exactly when the callstack head carries that key,
+and the argument index is the current `:arg-types` count.
+`types/infer-local-usage!` classifies the callee and records the constraint.
+This keeps local recognition structural: `(var x)` and quoted forms never reach
+the usage path, a local inside a collection argument sits under a `[nil
+:vector]` head with no key, and there is no stored state to go stale.
 
 One callstack wart surfaced: `analyze-hof` pushes the hof'd fn as a
 pseudo-frame ((map inc xs) analyzes under a pretend `[clojure.core inc]`
 frame), shadowing the hof call's own entry while the remaining args are still
-positionally the hof's args. `analyze-hof` re-points the `:infer-call` entry at
-the pseudo-frame. Longer term the callstack could mark pseudo-frames so
-consumers relying on head identity can see through them.
+positionally the hof's args. The pseudo-frame carries the previous head's
+`::types/infer-call` forward. Longer term callstack entries could become maps,
+making this key and the pseudo-frame marking plain data (queued as its own
+refactor, 65 consumer sites, needs benching since entry matching is hot).
 
-An earlier revision hooked `analyze-call` directly and scanned argument tokens
-syntactically. Behavior and corpus results were identical, the usage-point
-trigger costs about one percent more allocation and was kept for structural
-soundness.
+Two earlier revisions: a call-site hook scanning argument tokens syntactically,
+and a ctx-level descriptor with a memoized classification. All three produced
+identical behavior and corpus results. The head-meta version is the smallest
+and structurally soundest, classification is a few map lookups so the memo was
+not worth its volatile.
 
 ## Transitive inference
 
@@ -108,10 +110,10 @@ Metabase src, in-process, min of 7 runs, interleaved with master
 | master | 3323ms | 3383ms | 3598.6MB |
 | this branch | 3302ms | 3348ms | 3648.4MB |
 
-Wall clock within noise, +1.4% allocation with the call-site trigger, roughly
-one percent more with the usage-point trigger (the per-call `:infer-call`
-descriptor). Spec and predicate lookups happen once per call at most, and only
-when a local actually appears as a direct argument.
+Wall clock within noise, +1.4% allocation with the call-site trigger, +0.6%
+more with the head-meta usage-point trigger (the meta map per eligible call).
+Spec and predicate lookups only run when a local actually appears as a direct
+argument.
 
 ## Corpus results
 

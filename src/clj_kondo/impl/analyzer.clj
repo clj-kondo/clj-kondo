@@ -2618,14 +2618,17 @@
                                        (= 'mapcat hof-resolved-name)))
                       1)
                     arg-count)
-        hof-cs-entry [resolved-namespace resolved-name]
         ctx (update ctx :callstack
                     (fn [cs]
-                      (cons hof-cs-entry cs)))
-        ;; the pseudo-frame for the hof'd fn shadows the hof call's own entry,
-        ;; but the remaining args are still positionally the hof's args
-        ctx (cond-> ctx
-              (:infer-call ctx) (assoc-in [:infer-call :entry] hof-cs-entry))]
+                      ;; the pseudo-frame for the hof'd fn shadows the hof
+                      ;; call's own entry, but the remaining args are still
+                      ;; positionally the hof's args, so its ::types/infer-call
+                      ;; moves along
+                      (cons (if-let [ic (some-> (first cs) meta ::types/infer-call)]
+                              (with-meta [resolved-namespace resolved-name]
+                                {::types/infer-call ic})
+                              [resolved-namespace resolved-name])
+                            cs)))]
     (cond var?
           (let [{:keys [row end-row col end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)
@@ -3135,18 +3138,15 @@
                               (let [cs-entry (with-meta [resolved-namespace* resolved-name]
                                                (cond-> expr-meta
                                                  (:clj-kondo.impl/generated expr)
-                                                 (assoc :clj-kondo.impl/generated true)))
-                                    ctx (update ctx :callstack (fn [cs] (cons cs-entry cs)))]
-                                ;; a local usage directly under this call may
-                                ;; constrain a param, see types/infer-local-usage!
-                                (if (and arg-types (:param-infers ctx))
-                                  (assoc ctx :infer-call {:entry cs-entry
-                                                          :ns resolved-namespace
-                                                          :name resolved-name
-                                                          :arity arg-count
-                                                          :unresolved? unresolved?
-                                                          :lookups (volatile! nil)})
-                                  ctx))
+                                                 (assoc :clj-kondo.impl/generated true)
+                                                 ;; a local usage directly under this
+                                                 ;; call may constrain a param, see
+                                                 ;; types/infer-local-usage!
+                                                 (and arg-types (:param-infers ctx)
+                                                      (not unresolved?))
+                                                 (assoc ::types/infer-call
+                                                        [resolved-namespace resolved-name arg-count])))]
+                                (update ctx :callstack (fn [cs] (cons cs-entry cs))))
                               (update ctx :callstack conj [nil nil]))
                         resolved-as-clojure-var-name
                         (when (one-of resolved-as-namespace [clojure.core cljs.core])
