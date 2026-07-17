@@ -671,9 +671,14 @@
                                           (resolve-inferred-spec idacs s #{})
                                           s))
                                       args)
-                                args)]
-                    (cond (not-any? identity args*)
-                          ;; all nils prove nothing, dead weight
+                                args)
+                        ;; trailing nils check nothing, missing slots neither
+                        args* (loop [a args*]
+                                (if (and (pos? (count a)) (nil? (peek a)))
+                                  (recur (pop a))
+                                  a))]
+                    (cond (empty? args*)
+                          ;; nothing proven, dead weight
                           (assoc as arity (type-utils/not-empty-arity
                                            (dissoc arity-data :args)))
                           (identical? args* args) as
