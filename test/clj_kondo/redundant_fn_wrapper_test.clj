@@ -40,6 +40,9 @@
        (lint! "(fn [x] {:pre [(odd? x)]} (- x))"
               {:linters {:redundant-fn-wrapper {:level :warning}}})))
   (is (empty?
+       (lint! "{:predicate #(#{:a :b} %)}"
+              {:linters {:redundant-fn-wrapper {:level :warning}}})))
+  (is (empty?
        (lint! "(let [nsm {}]
                  (fn [sym]
                    `(.println
