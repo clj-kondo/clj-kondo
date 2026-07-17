@@ -38,7 +38,7 @@
              io.github.borkdude/deflet {:mvn/version "0.1.0"}}
             :extra-paths ["test" "extract"]
             :main-opts ["-m" "cognitect.test-runner"]}
-           :clojure-1.10.3 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"
+           :clojure-1.11.4 {:extra-deps {org.clojure/clojure {:mvn/version "1.11.4"
                                                               :neil/pinned true}}}
            :clojure-1.12.1 {:extra-deps {org.clojure/clojure {:mvn/version "1.12.1"
                                                               :neil/pinned true}}}

@@ -269,8 +269,8 @@ tracking covers keyword and string tokens only.
 - Map literals the user wrote are closed: a missing key is provably nil, in
   direct keyword access, chains, destructuring and fn return maps, and
   keyword access on provable nil is nil. Only literals produce `:val` map
-  types, so completeness is exact; maps built via merge, assoc or branching
-  get no `:val` and stay open. A generated literal, e.g. a hook's
+  types, so completeness is exact; maps built via merge or branching get no
+  `:val` and stay open, and assoc is modeled precisely, see below. A generated literal, e.g. a hook's
   placeholder `{}` that metabase's defendpoint binds params against, is
   marked `:open` in `map->tag` and proves nothing by absence, detected by
   the generated flag or missing location, and `:or`-defaulted bindings get
@@ -292,12 +292,12 @@ tracking covers keyword and string tokens only.
   binding form deliberately gets no init tag, the :vector branch of
   extract-bindings would leak it wholesale onto elements, which :select
   relies on.
-- Conditional-let bindings keep the raw init tag. The body of `when-let` and
-  `if-let` only runs when the value is truthy, so a nilable tag should be
-  un-nilled there, and an init that is provably `:nil` means the body is
-  dead: that deserves a condition-always-false or dead-code style warning at
-  the binding, not a type-mismatch inside the body. Seen on the metabase
-  corpus: `airgap-check-user-count` when-lets over a provably nil return, so
-  its body is a no-op in OSS, reported today as "Expected: number, received:
-  nil" at the usage, adjudicated as a true positive wearing the wrong
-  message.
+- Conditional-let nil handling, remaining pieces: the eager path now strips
+  nil from the binding tag and disables type-mismatch in a provably dead
+  bound branch, but a deferred init that only resolves to `:nil` at lint
+  time is not stripped or deadened. Seen on the metabase corpus:
+  `airgap-check-user-count` when-lets over a provably nil deferred return,
+  its body is a no-op in OSS, reported as "Expected: number, received: nil"
+  at the usage, adjudicated as a true positive wearing the wrong message.
+  A dedicated condition-always-false or dead-body warning at the binding
+  remains future work, as do element types for `when-first`.

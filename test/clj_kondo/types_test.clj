@@ -2141,7 +2141,16 @@
     (testing "a qualified :keys entry matches its :or default by name"
       (is (empty? (lint! "(let [{:keys [foo/x] :or {x 1}} {}] (inc x))" config))))
     (testing "a provably nil conditional-let init leaves the dead body unchecked"
-      (is (empty? (lint! "(when-let [x (:missing {})] (inc x))" config))))
+      (is (empty? (lint! "(when-let [x (:missing {})] (inc x))" config)))
+      (is (empty? (lint! "(when-let [x (:missing {})] (inc \"bad\"))" config)))
+      (testing "the else branch of if-let stays live"
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string."})
+         (lint! "(if-let [x (:missing {})] x (inc \"bad\"))" config))))
+    (testing "when-first's condition is seq, not truthiness"
+      (is (empty? (lint! "(when-first [x []] x)"
+                         (assoc-in config [:linters :condition-always-true :level]
+                                   :warning)))))
     (testing "a call-shaped map value carries the call's return type"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: number."})

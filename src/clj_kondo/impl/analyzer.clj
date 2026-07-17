@@ -1455,25 +1455,28 @@
                                 (not= 'when-first call)
                                 (one-of (some-> bv :children first tag) [:token :map]))
                        (gensym))
-            analyzed-condition (analyze-condition (update ctx :callstack conj [:vector])
-                                                  (cond-> condition
-                                                    value-id (assoc :id value-id)))
-            ;; the init's tag types the binding, like in let
-            btag (when value-id
-                   (let [t (init-tag ctx value-id condition)]
-                     ;; the body only runs when the value is non-nil, so
-                     ;; strip nil. A provably nil init means a dead body,
-                     ;; which deserves its own warning, not type errors
-                     ;; inside unreachable code
-                     (cond (identical? :nil t) nil
-                           (set? t) (let [t* (disj t :nil)]
-                                      (case (count t*)
-                                        0 nil
-                                        1 (first t*)
-                                        t*))
-                           (and (clojure.core/keyword? t) (types/nilable? t))
-                           (types/unnil t)
-                           :else t)))
+            analyzed-condition (let [cctx (update ctx :callstack conj [:vector])
+                                     cnode (cond-> condition
+                                             value-id (assoc :id value-id))]
+                                 ;; when-first runs on (seq coll), not the
+                                 ;; coll's truthiness, so no condition checks
+                                 (if (= 'when-first call)
+                                   (analyze-expression** cctx cnode)
+                                   (analyze-condition cctx cnode)))
+            raw-tag (when value-id (init-tag ctx value-id condition))
+            ;; a provably nil init means the bound branch never runs
+            dead-body? (identical? :nil raw-tag)
+            ;; the init's tag types the binding, like in let, minus nil:
+            ;; the body only runs when the value is non-nil
+            btag (when-not dead-body?
+                   (cond (set? raw-tag) (let [t* (disj raw-tag :nil)]
+                                          (case (count t*)
+                                            0 nil
+                                            1 (first t*)
+                                            t*))
+                         (and (keyword? raw-tag) (types/nilable? raw-tag))
+                         (types/unnil raw-tag)
+                         :else raw-tag))
             bindings (if two-forms?
                        (extract-bindings (update ctx :callstack conj [:nil :vector])
                                          (-> bv :children first)
@@ -1488,16 +1491,22 @@
                 analyzed-condition
                 ;; bodies are conditionally evaluated, so no param inference
                 (let [ctx (in-branch-ctx ctx)
-                      ctx-with-binding (in-branch-ctx ctx-with-binding)]
+                      ctx-with-binding (in-branch-ctx ctx-with-binding)
+                      ;; a dead bound branch gets no type errors, the else
+                      ;; branch of if-let stays live
+                      dead-ctx (fn [c]
+                                 (if dead-body?
+                                   (utils/ctx-with-linters-disabled c [:type-mismatch])
+                                   c))]
                   (if if?
                     ;; in the case of if, the binding is only valid in the first expression
                     (concat
-                     (analyze-expression** (ctx-with-bindings ctx
-                                                              (dissoc bindings
-                                                                      :analyzed))
+                     (analyze-expression** (dead-ctx (ctx-with-bindings ctx
+                                                                        (dissoc bindings
+                                                                                :analyzed)))
                                            (first body-exprs))
                      (analyze-children ctx (rest body-exprs) false))
-                    (analyze-children ctx-with-binding body-exprs false))))))))
+                    (analyze-children (dead-ctx ctx-with-binding) body-exprs false))))))))
 
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
