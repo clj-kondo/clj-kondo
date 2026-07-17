@@ -37,7 +37,7 @@
                   (assoc name-expr :reg fq-def)
                   name-expr)]
     (common/analyze-expression** (utils/ctx-with-linter-disabled ctx :unresolved-symbol) reg-val)
-    (common/analyze-children ctx body)))
+    (common/analyze-children (assoc ctx :in-spec? true) body)))
 
 (defn analyze-keys [ctx expr]
   (let [body (next (:children expr))]

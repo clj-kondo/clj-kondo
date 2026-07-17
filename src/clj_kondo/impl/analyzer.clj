@@ -3478,13 +3478,16 @@
                                              (format "keyword :%s is called with %s args but expects 1 or 2"
                                                      kw-str
                                                      arg-count))))))
-    (when-let [fn-parent-loc (redundant-fn-wrapper ctx (cons nil callstack) (rest (:children expr)) false)]
-      (findings/reg-finding!
-       ctx
-       (assoc fn-parent-loc
-              :filename (:filename ctx)
-              :type :redundant-fn-wrapper
-              :message "Redundant fn wrapper")))))
+    (when-not (:in-spec? ctx)
+      (when-let [fn-parent-loc (redundant-fn-wrapper
+                                ctx (cons nil callstack)
+                                (rest (:children expr)) false)]
+        (findings/reg-finding!
+         ctx
+         (assoc fn-parent-loc
+                :filename (:filename ctx)
+                :type :redundant-fn-wrapper
+                :message "Redundant fn wrapper"))))))
 
 (defn lint-symbol-call! [ctx _the-symbol arg-count expr]
   (let [callstack (:callstack ctx)

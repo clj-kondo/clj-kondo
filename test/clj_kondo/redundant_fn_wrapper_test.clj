@@ -13,6 +13,11 @@
     '({:file "<stdin>", :row 1, :col 6, :level :warning, :message "Redundant fn wrapper"})
     (lint! "(map #(:a %) uuids)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
   (assert-submaps
+   '({:file "<stdin>", :row 1, :col 1, :level :warning,
+      :message "Redundant fn wrapper"})
+   (lint! "#(::ba-end %)"
+          {:linters {:redundant-fn-wrapper {:level :warning}}}))
+  (assert-submaps
     '({:file "<stdin>", :row 1, :col 19, :level :warning, :message "Redundant fn wrapper"})
    (lint! "(let [i inc] (map #(i %) uuids))" {:linters {:redundant-fn-wrapper {:level :warning}}})))
 
@@ -47,4 +52,12 @@
   (testing "inlined function"
     (is (empty?
          (lint! "(fn [x y] (+ x y))"
+                {:linters {:redundant-fn-wrapper {:level :warning}}}))))
+  (testing "keyword function in spec"
+    (is (empty?
+         (lint! "(require '[clojure.spec.alpha :as s])
+                 (s/def ::ba-without-txs
+                   (s/cat
+                    :ba :wsbilling/billing-agreement
+                    :end #(::ba-end %)))"
                 {:linters {:redundant-fn-wrapper {:level :warning}}})))))
