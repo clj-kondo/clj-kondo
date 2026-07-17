@@ -29,7 +29,7 @@ Rules, in order of precedence:
    or cached `:args` for it at all. Matters for malli-style generated configs
    that spec whole codebases. Unspecced sibling arities still infer.
 2. A hard `^Type` hinted param is not inferred. A nilable hint is sugar for a
-   union (`^String` means `#{:nil :string}`) and is seeded as an ordinary
+   union (`^String` means `#{:nil :string}`) and is recorded as an ordinary
    constraint, so the upgrade to the non-nil tag when the body proves a non-nil
    use, and the fallback to the declaration when nothing resolves, both emerge
    from rule 3's intersection. A hint conflicting with the body leaves callers
@@ -70,7 +70,7 @@ Rules, in order of precedence:
    Narrowed usages need no separate skip, narrowing only happens in branches.
    If spine narrowing ever exists (assert, :pre, guard clauses that throw), a
    narrowed spine usage should constrain: the guard enforces the type at
-   runtime, so it is the contract, and :pre could even seed inference
+   runtime, so it is the contract, and :pre could even feed inference
    directly. Reachability is a single `:branch-count` int on the ctx, bumped
    on entering conditionally evaluated code. Each fn entry adds its params to
    the `:param-infers` map with the count at that point as their mark, and a
@@ -127,13 +127,13 @@ constraint. Constraints with deferred or map-shaped members are stored as
 `{:op :and :specs [..]}` in `:args`, joining the existing spec operator family
 (`:rest`, `:keys`). The specs vector is insertion ordered with record-time
 dedup, for deterministic output. When the cache is synced,
-`types/resolve-inferred-arg-types` resolves each `{:op :and}` entry to a
-concrete spec via `types/resolve-inferred-spec`: look up the callee's `:args`
-in idacs (possibly itself inferred, so chains), guard cycles with a seen set,
-intersect the contributions. This is the twin of `resolve-return-types`, which
-flattens deferred `{:call ..}` return tags in the same `update-defs` walk, and
-it keeps an invariant: the cached `:args`/`:ret` vocabulary is plain tags plus
-`:rest` and `:keys`, so older versions read caches written by newer ones. An
+`types/resolve-types` walks every var's arities once, resolving each
+`{:op :and}` arg entry to a concrete spec via `types/resolve-inferred-spec`:
+look up the callee's `:args` in idacs (possibly itself inferred, so chains),
+guard cycles with a seen set, intersect the contributions. The same walk
+flattens deferred `{:call ..}` return tags, and keeps an invariant: the
+cached `:args`/`:ret` vocabulary is plain tags plus `:rest` and `:keys`, so
+older versions read caches written by newer ones. An
 earlier revision resolved lazily in the linters phase, which leaked
 `{:op :and}` into the cache and made older binaries warn
 "No matching clause: :and" per affected call. The spec op dispatch in
@@ -221,9 +221,11 @@ branch of `extract-bindings` collects [map-key binding] pairs, covering
 `destructuring-key` resolution (prefixes, `::auto`), plus `{sym :key}`
 renames via `types/map-key`. The pairs travel as `:key-bindings` meta next
 to `:keys-spec`, per param through the arg vector's `:keys-bindings`, into
-`inferable-params`, which emits [index binding seed key] entries. The
-recording side is unchanged, bindings are bindings. At merge, a keyed
-binding's constraints intersect into the value type of its key: under `:req`
+`inferable-params`, which emits `{:idx :binding :constraints}` descriptor
+maps, plus `:key` and `:defaulted` for a destructured binding. The recording
+side is unchanged, bindings are bindings. At merge, a descriptor carrying a
+`:key` has its constraints intersect into the value type of that key: under
+`:req`
 when the spec excludes nil and the key has no `:or` default, absence then
 means nil and a crash, so the key is proven required and `(foo* {})` warns
 with a missing required key. Otherwise under `:opt`, joining any `:req` keys
@@ -248,7 +250,7 @@ access on the call itself.
 A second review round hardened the closed-map semantics: a dynamic map key,
 an unquoted symbol or computed form, can evaluate to any key, so such a map
 is open and the dynamic entries never land in `:val`. into can overwrite the
-seed's entries, so its result keeps key presence but drops value facts, and
+input map's entries, so its result keeps key presence but drops value facts, and
 a dynamic assoc key does the same for earlier pairs while later known pairs
 re-establish them. assoc'd entries keep their source positions for
 diagnostics. A value-type finding points at the entry's own coordinates when it has
@@ -269,12 +271,6 @@ tracking covers keyword and string tokens only.
 
 ## Future work
 
-- resolve-return-types and resolve-inferred-arg-types are twin full walks
-  over every var's arities in update-defs, ret side in types.utils, args
-  side in types.clj for its intersect dependency. One combined walk would
-  halve the traversal and co-locate the cache vocabulary enforcement,
-  worth doing when either next changes.
-
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
   currently dropped at merge, an `:or` default value could be checked
@@ -288,17 +284,17 @@ tracking covers keyword and string tokens only.
   placeholder `{}` that metabase's defendpoint binds params against, is
   marked `:open` in `map->tag` and proves nothing by absence, detected by
   the generated flag or missing location, and `:or`-defaulted bindings get
-  no tag from the init at all. The into fn spec marks a passed-through seed
-  `:open`, it adds keys the seed's `:val` does not list, and `lint-map!`
+  no tag from the init at all. The into fn spec marks a passed-through input
+  map `:open`, it adds keys the input's `:val` does not list, and `lint-map!`
   skips required-key reporting for open args. assoc is modeled precisely:
   arg types carry the literal value of keyword and string token args, so
-  its fn spec extends the seed's `:val` with each known assoc'd key and the
+  its fn spec extends the input map's `:val` with each known assoc'd key and the
   result stays closed, opening only for a dynamic key. Corpus: two new
   metabase findings,
   both adjudicated true positives, an OSS defenterprise stub returning `{}`
   whose caller does `(pos? (:max-users ..))` unguarded, plus one ductile
   finding, comment scratch code passing a fn where its call result was
-  meant. The ductile corpus also caught the into seed FP, it needs
+  meant. The ductile corpus also caught the into input-map FP, it needs
   GITHUB_DUCTILE_PAT and runs as a fourth regression test next to metabase,
   clerk and the clj-kondo classpath.
 - Vector element types do not flow: `loop`, `doseq` and `for` destructuring

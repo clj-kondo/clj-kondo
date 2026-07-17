@@ -336,24 +336,31 @@
   (let [children (:children expr)
         kexprs (take-nth 2 children)
         mvals (take-nth 2 (rest children))
-        all-static? (every? #(static-map-key? ctx %) kexprs)
-        entries (map (fn [k e]
-                       (when (static-map-key? ctx k)
-                         (let [mk (map-key ctx k)]
-                           (when-not (identical? ::unknown mk)
-                             (let [t (expr->tag ctx e)
-                                   m (meta e)]
-                               ;; NOTE: be careful to not include any
-                               ;; non-serializable data here, see issue #2165
-                               [mk (cond-> (select-keys m [:row :end-row :col :end-col])
-                                     t (assoc :tag t))])))))
-                     kexprs mvals)]
+        ;; each key resolves to [mk] when statically known, else nil. The
+        ;; wrap distinguishes a nil or false key from an unknown one. A
+        ;; quoted collection is static but map-key cannot extract it, so it
+        ;; opens the map, like a dynamic key
+        keys* (map (fn [k]
+                     (when (static-map-key? ctx k)
+                       (let [mk (map-key ctx k)]
+                         (when (known-map-key? mk) [mk]))))
+                   kexprs)
+        all-known? (every? some? keys*)
+        entries (map (fn [kw e]
+                       (when kw
+                         (let [t (expr->tag ctx e)
+                               m (meta e)]
+                           ;; NOTE: be careful to not include any
+                           ;; non-serializable data here, see issue #2165
+                           [(first kw) (cond-> (select-keys m [:row :end-row :col :end-col])
+                                         t (assoc :tag t))])))
+                     keys* mvals)]
     (cond-> {:type :map
              :val (into {} (remove nil?) entries)}
       ;; a generated literal, e.g. a hook's placeholder map, is no evidence
-      ;; of absence, and a dynamic key can evaluate to any key: only a map
-      ;; the user wrote with static keys is closed
-      (or (not all-static?)
+      ;; of absence, and a dynamic or inextractable key could be any key:
+      ;; only a map whose every key is statically known is closed
+      (or (not all-known?)
           (let [m (meta expr)]
             (or (:clj-kondo.impl/generated expr)
                 (:clj-kondo.impl/generated m)

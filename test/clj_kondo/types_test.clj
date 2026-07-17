@@ -2118,6 +2118,14 @@
     (testing "a dynamic key opens the map, it can evaluate to any key"
       (is (empty? (lint! "(let [k :x] (inc (:x {k 1})))" config)))
       (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (let [k :x] (f {k 1}))" config))))
+    (testing "a quoted collection key opens the map, map-key cannot extract it"
+      (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'qfn]
+                          '{:arities {1 {:args [{:op :keys :req {(a b) :number}}]}}})]
+        (is (empty? (lint! "(defn qfn [m] m) (qfn {'(a b) 1})" cfg)))
+        (testing "but a genuinely empty map still misses the required key"
+          (assert-submaps2
+           '({:row 1 :message "Missing required key: (a b)"})
+           (lint! "(defn qfn [m] m) (qfn {})" cfg)))))
     (testing "when-first binds an element, not the init"
       (is (empty? (lint! "(when-first [x [\"ok\"]] (subs x 0))" config))))
     (testing "into can overwrite seed values, they prove nothing"
