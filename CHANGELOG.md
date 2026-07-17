@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2891](https://github.com/clj-kondo/clj-kondo/issues/2891): fix false negative `:redundant-fn-wrapper` for set literal calls ([@jramosg](https://github.com/jramosg))
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
 - Type checker: narrow the type of a local in the then-branch of `if` or the body of `when` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
 - Clojure 1.13 CLJ-2961: map destructuring `:keys!` `:syms!` `:strs!` with required keys

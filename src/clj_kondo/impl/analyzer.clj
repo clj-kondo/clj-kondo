@@ -1779,6 +1779,18 @@
                       (str "Set can only be called with " expected-arg-str " but was called with: "
                            arg-count)))))))
 
+(defn- lint-set-literal-call! [ctx arg-count expr]
+  (lint-set-call! ctx arg-count expr)
+  (when-let [fn-parent-loc (redundant-fn-wrapper
+                            ctx (cons nil (:callstack ctx))
+                            (rest (:children expr)) false)]
+    (findings/reg-finding!
+     ctx
+     (assoc fn-parent-loc
+            :filename (:filename ctx)
+            :type :redundant-fn-wrapper
+            :message "Redundant fn wrapper"))))
+
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
         config (:config ctx)
@@ -3727,7 +3739,7 @@
                 (let [lint! (case t
                               :map lint-map-call!
                               :vector lint-vector-call!
-                              :set lint-set-call!)]
+                              :set lint-set-literal-call!)]
                   (lint! ctx arg-count expr)
                   (types/add-arg-type-from-expr ctx expr)
                   (analyze-children (update ctx :callstack conj [nil t]) children))

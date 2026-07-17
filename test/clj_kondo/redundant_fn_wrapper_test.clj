@@ -13,6 +13,16 @@
     '({:file "<stdin>", :row 1, :col 6, :level :warning, :message "Redundant fn wrapper"})
     (lint! "(map #(:a %) uuids)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
   (assert-submaps
+   '({:file "<stdin>", :row 1, :col 6, :level :warning,
+      :message "Redundant fn wrapper"})
+   (lint! "(map #(#{:a :b} %) [:a])"
+          {:linters {:redundant-fn-wrapper {:level :warning}}}))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 16, :level :warning,
+      :message "Redundant fn wrapper"})
+   (lint! "(let [s #{:a}] #(s %))"
+          {:linters {:redundant-fn-wrapper {:level :warning}}}))
+  (assert-submaps
     '({:file "<stdin>", :row 1, :col 19, :level :warning, :message "Redundant fn wrapper"})
    (lint! "(let [i inc] (map #(i %) uuids))" {:linters {:redundant-fn-wrapper {:level :warning}}})))
 
