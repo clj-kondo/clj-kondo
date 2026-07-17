@@ -431,25 +431,10 @@
                                   (fn [_ _] false)
                                   (fn [k kw] (and (= kw (:k k))
                                                   (not (:namespaced? k)))))
+               ;; the init's tag types each destructured binding, see
+               ;; types/destructured-key-tag. :tag must not leak to children
+               ;; wholesale
                form-tag (:tag opts)
-               ;; value types of a known map init, distributed per key below.
-               ;; :tag must not leak to children wholesale. A deferred
-               ;; {:call ..} init defers per key via :kw-calls, resolved at
-               ;; lint time like keyword access on the call itself
-               val-tags (when (identical? :map (:type form-tag))
-                          (:val form-tag))
-               deferred-call (:call form-tag)
-               ;; a defaulted binding's runtime value may be the :or default,
-               ;; so it gets no tag from the init. A known literal map without
-               ;; the key provably yields nil
-               key-val-tag (fn [dk defaulted]
-                             (when-not defaulted
-                               (cond val-tags (if-let [e (find val-tags dk)]
-                                                (:tag (val e))
-                                                (when-not (:open form-tag) :nil))
-                                     (and deferred-call (keyword? dk))
-                                     {:call (assoc deferred-call :kw-calls
-                                                   ((fnil conj []) (:kw-calls deferred-call) dk))})))
                opts (dissoc opts :allow-amp :namespaced-map :tag)
                kvs (partition 2 (:children expr))
                select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
@@ -523,7 +508,8 @@
                                                        bname (or (:value child)
                                                                  (some-> (:k child) name symbol))
                                                        child-opts (if-let [vt (when dk
-                                                                                (key-val-tag dk (contains? or-names bname)))]
+                                                                                (types/destructured-key-tag
+                                                                                 form-tag dk (contains? or-names bname)))]
                                                                     (assoc opts :tag vt)
                                                                     opts)
                                                        bnds (extract-bindings ctx child scoped-expr child-opts)]
@@ -580,7 +566,8 @@
                          ;; k is a binding form, v its lookup key
                          (let [mk (types/map-key ctx v)
                                child-opts (if-let [vt (when mk
-                                                        (key-val-tag mk (contains? or-names (:value k))))]
+                                                        (types/destructured-key-tag
+                                                         form-tag mk (contains? or-names (:value k))))]
                                             (assoc opts :tag vt)
                                             opts)
                                bnds (extract-bindings ctx k scoped-expr child-opts)]
@@ -709,13 +696,15 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
-(defn param-seed
-  "Seed constraint vector for a param binding tag: empty for untagged, the
-  desugared union for a nilable hint, nil for a hard hint, which is excluded
-  from inference."
+(defn initial-constraints
+  "The constraints a param starts with, decided by its binding tag: none for
+  an untagged param, the desugared union for a nilable hint. Nil for any
+  other tag: a hard hint is trusted as is, the param is excluded from
+  inference."
   [t]
   (cond (nil? t) []
-        (and (keyword? t) (types/nilable? t)) [(types/desugar-nilable t)]))
+        (and (keyword? t) (types/nilable? t)) [(types/desugar-nilable t)]
+        :else nil))
 
 (defn inferable-params
   "The params backward type inference may constrain: [index binding
@@ -749,11 +738,11 @@
                      (if-let [b (and (symbol? v)
                                      (not (namespace v))
                                      (get arg-bindings v))]
-                       (if-let [seed (param-seed (:tag b))]
+                       (if-let [seed (initial-constraints (:tag b))]
                          (conj acc [i b seed])
                          acc)
                        (reduce (fn [acc [k b defaulted]]
-                                 (if-let [seed (param-seed (:tag b))]
+                                 (if-let [seed (initial-constraints (:tag b))]
                                    (conj acc [i b seed k defaulted])
                                    acc))
                                acc
@@ -1130,6 +1119,16 @@
               (analyze-expression** ctx expr)
               (recur exprs (into seen-constants (map str dupe-cands)))))))))))
 
+(defn init-tag
+  "Tag of a binding's init expression: the return of an init analyzed as a
+  call, via calls-by-id, else its expression tag. Unwraps a {:tag ..}
+  wrapper."
+  [ctx value-id value]
+  (let [maybe-call (get @(:calls-by-id ctx) value-id)
+        t (cond maybe-call (:ret maybe-call)
+                value (types/expr->tag ctx value))]
+    (or (:tag t) t)))
+
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (let [ctx (update ctx :callstack conj [:nil :vector])]
     (->> binding-vector :children
@@ -1246,10 +1245,7 @@
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
                   tag (when (and let? binding (one-of (tag binding) [:token :map]))
-                        (let [maybe-call (get @(:calls-by-id ctx) value-id)]
-                          (cond maybe-call (:ret maybe-call)
-                                value (types/expr->tag ctx* value))))
-                  tag (or (:tag tag) tag)
+                        (init-tag ctx* value-id value))
                   new-bindings (when binding (extract-bindings ctx* binding scoped-expr {:tag tag}))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
@@ -1443,10 +1439,7 @@
                                                     value-id (assoc :id value-id)))
             ;; the init's tag types the binding, like in let
             btag (when value-id
-                   (let [maybe-call (get @(:calls-by-id ctx) value-id)
-                         t (cond maybe-call (:ret maybe-call)
-                                 condition (types/expr->tag ctx condition))]
-                     (or (:tag t) t)))
+                   (init-tag ctx value-id condition))
             bindings (if two-forms?
                        (extract-bindings (update ctx :callstack conj [:nil :vector])
                                          (-> bv :children first)

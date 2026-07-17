@@ -28,6 +28,15 @@
                              (and (not (:kw-calls arg-type))
                                   (identical? t :map))))))
 
+(defn map-kw-lookup
+  "Value tag of `kw-call` in map type `t`: the entry's tag, provably :nil
+  when the key is missing from a closed map, nil when missing from an open
+  one."
+  [t kw-call]
+  (if-let [e (find (:val t) kw-call)]
+    (:tag (val e))
+    (when-not (:open t) :nil)))
+
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
   ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
@@ -49,13 +58,9 @@
                        (when-let [t (:type arg-type)]
                          (if (identical? t :map)
                            (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
-                             ;; a known literal map without the key provably
-                             ;; yields nil, and any deeper lookup on nil stays nil
-                             (let [entry (find (:val arg-type) kw-call)
-                                   closed? (not (:open arg-type))
-                                   resolved-tag (if entry
-                                                  (:tag (val entry))
-                                                  (when closed? :nil))]
+                             ;; a key missing from a closed map is provably
+                             ;; nil, and any deeper lookup on nil stays nil
+                             (let [resolved-tag (map-kw-lookup arg-type kw-call)]
                                (cond
                                  (and rest-kw-calls
                                       (= :map (:type resolved-tag)))
@@ -63,8 +68,8 @@
                                                    (assoc resolved-tag :kw-calls rest-kw-calls)
                                                    seen-calls)
 
-                                 (nil? entry)
-                                 (when closed? :nil)
+                                 (identical? :nil resolved-tag)
+                                 :nil
 
                                  rest-kw-calls
                                  nil
@@ -91,11 +96,7 @@
                                  (if-let [kw-calls (:kw-calls call)]
                                    (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
-                                           entry (find (:val resolved-arg-type) kw-call)
-                                           closed? (not (:open resolved-arg-type))
-                                           resolved-tag (if entry
-                                                          (:tag (val entry))
-                                                          (when closed? :nil))]
+                                           resolved-tag (map-kw-lookup resolved-arg-type kw-call)]
                                        (cond
                                          (and rest-kw-calls
                                               (= :map (:type resolved-tag)))
@@ -103,8 +104,8 @@
                                                            (assoc resolved-tag :kw-calls rest-kw-calls)
                                                            seen-calls)
 
-                                         (nil? entry)
-                                         (when closed? :nil)
+                                         (identical? :nil resolved-tag)
+                                         :nil
 
                                          rest-kw-calls
                                          nil

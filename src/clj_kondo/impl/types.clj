@@ -335,6 +335,23 @@
             (not (:row m))))
       (assoc :open true))))
 
+(defn destructured-key-tag
+  "Value tag for map key `dk` of a destructuring form whose init has tag
+  `form-tag`: the key's value type of a concrete map, provably :nil when the
+  key is missing from a closed one, and a per-key deferred lookup via
+  :kw-calls for a {:call ..} init, resolved at lint time like keyword access
+  on the call itself. A defaulted binding gets no tag, its runtime value may
+  be the :or default."
+  [form-tag dk defaulted]
+  (when-not defaulted
+    (cond (identical? :map (:type form-tag))
+          (if-let [e (find (:val form-tag) dk)]
+            (:tag (val e))
+            (when-not (:open form-tag) :nil))
+          (and (:call form-tag) (keyword? dk))
+          (let [c (:call form-tag)]
+            {:call (assoc c :kw-calls ((fnil conj []) (:kw-calls c) dk))}))))
+
 (defn called-arity [arities arity]
   (or (get arities arity)
       (when-let [v (:varargs arities)]
