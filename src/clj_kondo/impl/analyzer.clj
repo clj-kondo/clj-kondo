@@ -1781,18 +1781,15 @@
 
 (defn- lint-set-literal-call! [ctx arg-count expr]
   (lint-set-call! ctx arg-count expr)
-  ;; A collection consumer may distinguish functions from sets.
-  (when-not (one-of (second (:callstack ctx))
-                    [[nil :map] [nil :set] [nil :vector]])
-    (when-let [fn-parent-loc (redundant-fn-wrapper
-                              ctx (cons nil (:callstack ctx))
-                              (rest (:children expr)) false)]
-      (findings/reg-finding!
-       ctx
-       (assoc fn-parent-loc
-              :filename (:filename ctx)
-              :type :redundant-fn-wrapper
-              :message "Redundant fn wrapper")))))
+  (when-let [fn-parent-loc (redundant-fn-wrapper
+                            ctx (cons nil (:callstack ctx))
+                            (rest (:children expr)) false)]
+    (findings/reg-finding!
+     ctx
+     (assoc fn-parent-loc
+            :filename (:filename ctx)
+            :type :redundant-fn-wrapper
+            :message "Redundant fn wrapper"))))
 
 (defn analyze-binding-call [ctx fn-name binding expr]
   (let [callstack (:callstack ctx)
