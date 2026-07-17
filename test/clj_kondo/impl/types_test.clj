@@ -47,10 +47,14 @@
     (is (= #{} (types-utils/union-type)))))
 
 (deftest intersect-test
-  (testing ":any constrains nothing, on either side"
+  (testing "an any spec constrains nothing, on either side, alone or in a union"
     (is (= :long (types/intersect :any :long)))
     (is (= :long (types/intersect :long :any)))
-    (is (= :any (types/intersect :any :any))))
+    (is (= :any (types/intersect :any :any)))
+    (is (= :string (types/intersect #{:nil :any} :string)))
+    (is (= :string (types/intersect :string #{:nil :any})))
+    (is (= :any (types/intersect #{:nil :any} :any)))
+    (is (= :any (types/intersect #{:nil :any} #{:string :any}))))
   (testing "conflicting types intersect to nil"
     (is (nil? (types/intersect :string :number))))
   (let [kts (conj (vec types/known-types) :any)

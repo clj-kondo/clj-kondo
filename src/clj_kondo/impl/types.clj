@@ -608,6 +608,12 @@
   (or (identical? a b)
       (contains? (get is-a-relations a) b)))
 
+(defn any-spec?
+  "A spec satisfied by every value: :any or a union containing it."
+  [s]
+  (or (identical? :any s)
+      (and (set? s) (contains? s :any))))
+
 (defn intersect
   "Intersects specs `a` and `b`, keywords or union sets: the most specific
   union satisfying both, as the maximal named types implying each side. The
@@ -616,10 +622,11 @@
   [a b]
   (cond
     (nil? a) b
-    ;; :any constrains nothing. Not all named types are related to :any in
-    ;; is-a-relations, so the lattice scan would wrongly conflict on some
-    (identical? :any a) b
-    (identical? :any b) a
+    ;; an any spec constrains nothing. Not all named types are related to
+    ;; :any in is-a-relations, so the lattice scan would wrongly conflict
+    (and (any-spec? a) (any-spec? b)) :any
+    (any-spec? a) b
+    (any-spec? b) a
     :else
     (let [as (if (set? a) a #{a})
           bs (if (set? b) b #{b})
