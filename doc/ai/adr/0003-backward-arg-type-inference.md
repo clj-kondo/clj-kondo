@@ -251,7 +251,11 @@ is open and the dynamic entries never land in `:val`. into can overwrite the
 seed's entries, so its result keeps key presence but drops value facts, and
 a dynamic assoc key does the same for earlier pairs while later known pairs
 re-establish them. assoc'd entries keep their source positions for
-diagnostics. when-first binds an element, not the init, so it gets no tag.
+diagnostics. A value-type finding uses an entry's own coordinates only when
+they lie within the argument's span: a directly passed literal points at
+the offending value, while an entry resolved through a fn's return carries
+the producer's coordinates, possibly in another file, so it reports at the
+argument and names the key in the message. when-first binds an element, not the init, so it gets no tag.
 A qualified `:keys` entry matches its `:or` default by local binding name.
 A nil-testing conditional-let strips nil from the binding's eager tag, and a
 provably nil init leaves the dead body unchecked, the dead-body warning

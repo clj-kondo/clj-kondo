@@ -2125,6 +2125,13 @@
       (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {:x \"bad\"} [[:x 1]]))" config))))
     (testing "a dynamic assoc key invalidates earlier value facts"
       (is (empty? (lint! "(let [k :x] (subs (:x (assoc {} :x 1 k \"ok\")) 0))" config))))
+    (testing "a value from a fn's return reports at the call with the key,
+              its own coordinates belong to the producer"
+      (assert-submaps2
+       '({:row 1 :col 68
+          :message "Expected: string, received: positive integer for key :port"})
+       (lint! "(defn cfg [] {:port 1}) (defn f [{:keys [port]}] (subs port 0)) (f (cfg))"
+              config)))
     (testing "an assoc'd entry keeps its source position"
       (assert-submaps2
        '({:row 1 :col 48 :message "Expected: number, received: string."})

@@ -829,23 +829,40 @@
                 (map? x) "map")]
     l))
 
-(defn emit-non-match! [ctx s arg t]
-  (let [expected-label (tag->label s)
-        offending-tag-label (tag->label t)]
-    (findings/reg-finding! ctx
-                           {:filename (:filename ctx)
-                            :row (:row arg)
-                            :col (:col arg)
-                            :end-row (:end-row arg)
-                            :end-col (:end-col arg)
-                            :type :type-mismatch
-                            :message (str "Expected: " expected-label
-                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                            (format " (%s)" s))
-                                          ", received: " offending-tag-label
-                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                            (format " (%s)" t))
-                                          ".")})))
+(defn emit-non-match!
+  ([ctx s arg t] (emit-non-match! ctx s arg t nil))
+  ([ctx s arg t k]
+   (let [expected-label (tag->label s)
+         offending-tag-label (tag->label t)]
+     (findings/reg-finding! ctx
+                            {:filename (:filename ctx)
+                             :row (:row arg)
+                             :col (:col arg)
+                             :end-row (:end-row arg)
+                             :end-col (:end-col arg)
+                             :type :type-mismatch
+                             :message (str "Expected: " expected-label
+                                           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                             (format " (%s)" s))
+                                           ", received: " offending-tag-label
+                                           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                             (format " (%s)" t))
+                                           (if k
+                                             (str " for key " k)
+                                             "."))}))))
+
+(defn span-contains?
+  "Whether position map `inner` lies within `outer`'s span. A map value
+  entry resolved through a fn's return carries the producer's coordinates,
+  which lie outside the argument at the call site, or even in another file."
+  [outer inner]
+  (and (:row outer) (:row inner) (:end-row outer)
+       (or (< (:row outer) (:row inner))
+           (and (= (:row outer) (:row inner))
+                (<= (:col outer) (:col inner))))
+       (or (> (:end-row outer) (:row inner))
+           (and (= (:end-row outer) (:row inner))
+                (>= (:end-col outer) (:col inner))))))
 
 (defn emit-more-input-expected! [ctx call arg]
   (let [expr (or arg call)]
@@ -879,7 +896,12 @@
           (if (= :keys (:op target))
             (lint-map! ctx target v t)
             (when-not (match? t target)
-              (emit-non-match! ctx target v t))))
+              ;; a value entry from a directly passed literal points at the
+              ;; offending value. One resolved through a fn's return carries
+              ;; the producer's coordinates, report at the argument instead
+              (if (span-contains? arg v)
+                (emit-non-match! ctx target v t)
+                (emit-non-match! ctx target arg t k)))))
         (when required?
           (emit-missing-required-key! ctx arg k))))))
 
