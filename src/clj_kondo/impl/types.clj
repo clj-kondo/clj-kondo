@@ -664,14 +664,20 @@
        (let [new-arities
              (reduce-kv
               (fn [as arity {:keys [args] :as arity-data}]
-                (if (and (vector? args) (some inferred-and? args))
-                  (assoc as arity
-                         (assoc arity-data :args
+                (if (vector? args)
+                  (let [args* (if (some inferred-and? args)
                                 (mapv (fn [s]
                                         (if (inferred-and? s)
                                           (resolve-inferred-spec idacs s #{})
                                           s))
-                                      args)))
+                                      args)
+                                args)]
+                    (cond (not-any? identity args*)
+                          ;; all nils prove nothing, dead weight
+                          (assoc as arity (type-utils/not-empty-arity
+                                           (dissoc arity-data :args)))
+                          (identical? args* args) as
+                          :else (assoc as arity (assoc arity-data :args args*))))
                   as))
               arities arities)]
          (if (identical? new-arities arities)
