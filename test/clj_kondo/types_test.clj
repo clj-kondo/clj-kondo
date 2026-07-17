@@ -1884,6 +1884,24 @@
     (testing "some-> guards the threaded value, its calls do not constrain"
       (is (empty? (lint! "(defn g [x] (some-> x (subs 1))) (g nil)" config)))
       (is (empty? (lint! "(defn g [x] (some->> x (subs \"abc\"))) (g nil)" config))))
+    (testing "the initial expression of some-> evaluates unconditionally"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (some-> (subs x 1) (str \"!\"))) (f 42)" config)))
+    (testing "the first operand of and/or, the first cond test and the condp
+              dispatch expr evaluate unconditionally"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (and (subs x 1) true)) (f 42)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (or (subs x 1) :a)) (f 42)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (cond (subs x 1) 1 :else 2)) (f 42)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (condp = (subs x 1) \"a\" 1 2)) (f 42)" config)))
     (testing "plain -> is unconditional and constrains"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: positive integer."})
@@ -1930,6 +1948,11 @@
       (is (empty? (lint! "(defn f [x] (inc x)) (f \"s\")"
                          (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
                                    '{:arities {1 {:args [:string]}}})))))
+    (testing "a user config :varargs spec covering the arity also suppresses
+              inference, observable through a transitive caller"
+      (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
+                          '{:arities {:varargs {:min-arity 1 :args [:any]}}})]
+        (is (empty? (lint! "(defn f [x] (subs x 1)) (defn g [y] (f y)) (g 42)" cfg)))))
     (testing "a single set spec passes through, symbol takes several types"
       (assert-submaps2
        '({:row 1 :message "Expected: symbol or string or var or keyword, received: positive integer."})

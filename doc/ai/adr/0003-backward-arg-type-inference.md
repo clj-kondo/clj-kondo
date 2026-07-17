@@ -50,10 +50,15 @@ Rules, in order of precedence:
    branch
    (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
    `if-let`, `when-let`, `if-some`, `when-some`) is skipped via a branch
-   count on the ctx. `some->` and `some->>` expand like plain threading, which
-   drops their nil guards, so their expansions count as branches too. An
-   unresolved call could be a macro, so its args count as a
-   conditional branch too, like a when body. Only the body's unconditional
+   count on the ctx. What always evaluates stays on the spine: the first
+   operand of `and` and `or`, the first `cond` test, and the `condp` pred and
+   dispatch expr. `some->` and `some->>` expand honestly via
+   `macroexpand/expand-some->` to `(let [g init] (when (some? g) (-> g ..)))`,
+   so the initial expression is spine and the threaded forms are guarded, with
+   no inference special case. An unresolved call could be a macro, so its args
+   count as a conditional branch too, like a when body. A user config spec
+   covering an arity suppresses inference for it, including coverage through
+   the `:varargs` fallback, mirroring spec lookup at call sites. Only the body's unconditional
    spine constrains, and a spine usage constrains even when the param is
    type-tested elsewhere, the use runs regardless:
    `(defn f [x] (when (nil? x) x) (subs x 1))` proves `x` is a string, so

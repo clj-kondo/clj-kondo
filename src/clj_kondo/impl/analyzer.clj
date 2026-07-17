@@ -663,12 +663,17 @@
         ;; per simple positional param that is untagged or hinted nilable
         simple-params (when (and arg-vec (not macro?)
                                  (not (linter-disabled? ctx :type-mismatch))
-                                 ;; a user spec for this arity wins outright, so
-                                 ;; don't even infer
-                                 (not (some-> (config/type-mismatch-config
-                                               (:config ctx) (-> ctx :ns :name) (:in-def ctx))
-                                              :arities
-                                              (contains? (or (:fixed-arity arity) :varargs)))))
+                                 ;; a user spec covering this arity wins
+                                 ;; outright, so don't even infer. Coverage
+                                 ;; includes the :varargs fallback, same as
+                                 ;; spec lookup at call sites
+                                 (not (when-let [cfg-arities
+                                                 (some-> (config/type-mismatch-config
+                                                          (:config ctx) (-> ctx :ns :name) (:in-def ctx))
+                                                         :arities)]
+                                        (if-let [fa (:fixed-arity arity)]
+                                          (types/args-spec-from-arities cfg-arities fa)
+                                          (contains? cfg-arities :varargs)))))
                         (loop [[node & more] (:children arg-vec)
                                i 0
                                acc []]
@@ -3182,14 +3187,10 @@
                           (analyze-expression** ctx (macroexpand/expand-> ctx expr))
                           ->>
                           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
-                          ;; the expansion drops the nil guards, so for param
-                          ;; inference the threaded calls count as branches
-                          some->
-                          (analyze-expression** (in-branch-ctx ctx)
-                                                (macroexpand/expand-> ctx expr))
-                          some->>
-                          (analyze-expression** (in-branch-ctx ctx)
-                                                (macroexpand/expand->> ctx expr))
+                          (some-> some->>)
+                          (analyze-expression** ctx (macroexpand/expand-some->
+                                                     ctx expr
+                                                     resolved-as-name))
                           doto
                           (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                           reify (analyze-reify ctx expr defined-by defined-by->lint-as)
@@ -3260,10 +3261,17 @@
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
                           (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name)
-                          ;; all conditionally evaluated, so no param inference
-                          (cond condp and or) (analyze-children
-                                               (in-branch-ctx ctx)
-                                               children false)
+                          ;; the first operand, the first cond test and the
+                          ;; condp pred and dispatch expr always evaluate,
+                          ;; everything after is conditional
+                          (cond and or)
+                          (concat (analyze-children ctx (take 1 children) false)
+                                  (analyze-children (in-branch-ctx ctx)
+                                                    (rest children) false))
+                          condp
+                          (concat (analyze-children ctx (take 2 children) false)
+                                  (analyze-children (in-branch-ctx ctx)
+                                                    (drop 2 children) false))
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed

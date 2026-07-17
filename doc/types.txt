@@ -200,6 +200,7 @@ process-bracket {2 {:ret :vector}}
 format-old-roman {3 nil}
 format-error {2 {:args [nil :nat-int]}}
 pretty-character {3 nil}
+prefix-count {2 {:args [:seqable]}}
 consume {2 {:args [:ifn]}}
 modify-case {4 nil}
 translate-param {1 {:ret :vector}}
@@ -261,12 +262,13 @@ inst-in-range? {3 {:ret #{:nil :boolean}}}
 accept? {1 {:ret :boolean}}
 and-spec-impl {3 {:args [:seqable :seqable]}}
 accept {1 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1380, :end-row 1380, :col 25, :end-col 33, :tag :keyword}, :ret {:row 1380, :end-row 1380, :col 39, :end-col 40}}}}}
-recur-limit? {4 {:ret #{:nil :boolean}}}
+recur-limit? {4 {:ret #{:nil :boolean}, :args [#{:string :array :nil :set :ilookup :map}]}}
 explain {2 nil}
 or-spec-impl {4 {:args [:seqable :seqable :seqable]}}
+specize {1 nil, 2 nil}
 unform {2 nil}
 valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
-gen {1 nil, 2 nil}
+gen {1 nil, 2 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 nonconforming {1 nil}
 or-k-gen {1 {:args [:seqable]}, 2 {:args [nil :seqable]}}
 int-in-range? {3 {:ret #{:nil :boolean}}}
@@ -275,17 +277,19 @@ preturn {1 nil}
 rep+impl {2 nil}
 deriv {2 nil}
 exercise-fn {1 nil, 2 nil}
-exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq}}
+exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq, :args [nil nil #{:string :array :nil :set :ilookup :map}]}}
 explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :end-row 221, :col 19, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :end-row 222, :col 15, :end-col 19}, :value {:row 223, :end-row 223, :col 16, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 tuple-impl {2 {:args [:seqable :seqable]}, 3 {:args [:seqable :seqable]}}
 multi-spec-impl {3 {:args [nil :ideref]}, 4 {:args [nil :ideref]}}
 conform {2 nil}
 fspec-impl {7 nil}
 inck {2 {:ret :associative, :args [#{:associative :nil}]}}
-gensub {5 nil}
+gensub {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
+the-spec {1 nil}
+coll-prob {10 nil}
 every-impl {3 nil, 4 nil}
 accept-nil? {1 nil}
-spec-impl {4 nil}
+spec-impl {4 nil, 5 nil}
 invalid? {1 {:ret :boolean}}
 amp-impl {4 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1421, :end-row 1421, :col 9, :end-col 14, :tag :keyword}, :p1 {:row 1421, :end-row 1421, :col 19, :end-col 21}, :amp {:row 1421, :end-row 1421, :col 27, :end-col 34}, :ps {:row 1421, :end-row 1421, :col 39, :end-col 44}, :forms {:row 1421, :end-row 1421, :col 52, :end-col 62}}}}}
 alt* {3 nil}
@@ -297,7 +301,7 @@ op-describe {1 nil}
 describe {1 nil}
 explain-1 {6 nil}
 explain-out {1 nil}
-re-gen {5 nil}
+re-gen {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 filter-alt {4 {:ret #{:vector}}}
 call-valid? {3 {:ret #{:nil :boolean}}}
 op-unform {2 nil}
@@ -339,19 +343,20 @@ blank? {1 {:args [#{:char-sequence :nil}]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.set.transit.json  ===
 union {0 {:ret :set}, 2 {:args [:seqable :seqable]}}
-join {3 {:args [:seqable :seqable]}}
+join {2 {:args [:seqable]}, 3 {:args [:seqable :seqable]}}
 select {2 {:args [nil :seqable]}}
 intersection {2 {:args [:seqable :seqable]}}
-superset? {2 {:ret #{:nil :boolean}}}
+superset? {2 {:ret #{:nil :boolean}, :args [:seqable :seqable]}}
 index {2 {:args [:seqable :seqable]}}
 bubble-max-key {2 {:args [nil :seqable]}}
-subset? {2 {:ret #{:nil :boolean}}}
+subset? {2 {:ret #{:nil :boolean}, :args [:seqable :seqable]}}
 rename {2 {:ret :set, :args [:seqable #{:nil :map}]}}
 rename-keys {2 {:args [#{:associative :string :nil :set} :seqable]}}
 project {2 {:ret :set, :args [:seqable :seqable]}}
 difference {2 {:args [:seqable :seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.io.transit.json  ===
+delete-file {:varargs nil}
 input-stream {:varargs nil}
 as-relative-path {1 nil}
 copy {:varargs nil}
@@ -440,6 +445,7 @@ check-invalid-read-cond {3 {:args [nil nil :long]}}
 read-string {1 nil}
 escape-char {2 nil}
 read-char* {4 nil}
+resolve-ns {1 nil}
 read-string* {4 nil}
 map-func {1 {:ret #{:symbol}, :args [:seqable]}}
 ending-line-col-info {1 {:ret #{:vector :nil}}}
@@ -545,7 +551,7 @@ take {2 nil}
 map {2 nil}
 foldcat {1 nil}
 mapcat {2 nil}
-cat {1 {:ret :fn}}
+cat {1 {:ret :fn}, 2 {:args [:seqable]}}
 take-while {2 nil}
 remove {2 {:args [:ifn]}}
 do-rfn {3 nil}
@@ -557,6 +563,7 @@ flatten {1 nil}
 filter {2 nil}
 fjtask {1 nil}
 monoid {2 {:ret :fn}}
+foldvec {4 {:args [:seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.basis.impl.transit.json  ===
 read-edn {1 nil}
@@ -587,8 +594,10 @@ read-string {1 nil}
 decimal? {1 {:ret :boolean}}
 sort-by {2 {:ret #{:list :nil :seq}}, 3 {:ret #{:list :nil :seq}}}
 is-runtime-annotation? {1 {:ret :boolean, :args [#{:class :nil}]}}
+load-data-reader-file {2 {:args [#{:associative :string :nil :set}]}}
 tree-seq {3 {:ret :seq}}
 find-ns {1 nil}
+every? {2 {:args [nil :seqable]}}
 keep-indexed {1 {:ret :fn}}
 subs {2 {:ret :nilable/string, :args [#{:string :nil}]}, 3 {:ret :nilable/string, :args [#{:string :nil}]}}
 take-last {2 {:args [:nat-int :seqable]}}
@@ -651,7 +660,7 @@ map-indexed {1 {:ret :fn}}
 rand-nth {1 {:args [:seqable]}}
 comp {2 {:ret :fn, :args [nil :ifn]}}
 future-done? {1 {:args [#{:future :nil}]}}
-dorun {1 {:args [:seqable]}}
+dorun {1 {:args [:seqable]}, 2 {:args [nil :seqable]}}
 simple-symbol? {1 {:ret #{:nil :boolean}}}
 assert-valid-fdecl {1 {:args [:seqable]}}
 partitionv {2 {:ret :seq}, 3 {:ret :seq, :args [nil nil :seqable]}, 4 {:ret :seq, :args [nil nil nil :seqable]}}
@@ -713,6 +722,7 @@ emit-defrecord {6 {:args [nil nil :seqable nil :seqable :seqable]}}
 overload-name {2 {:args [nil :seqable]}}
 pcalls {:varargs {:ret :seq, :min-arity 0}}
 ns-resolve {3 {:args [nil #{:associative :string :nil :set}]}}
+most-specific {1 {:args [:seqable]}}
 trampoline {:varargs {:min-arity 1, :args [:ifn]}}
 double? {1 {:ret :boolean}}
 fits-table? {1 {:ret :boolean, :args [:seqable]}}
@@ -886,6 +896,7 @@ comparator {1 {:ret :fn}}
 drop-while {1 {:ret :fn}, 2 {:ret :seq}}
 complement {1 {:ret :fn, :args [:ifn]}}
 with-redefs-fn {2 {:args [:seqable]}}
+sequence {2 nil, :varargs nil}
 constantly {1 {:ret :fn}}
 make-array {2 {:args [#{:class :nil} #{:number :char}]}, :varargs {:min-arity 2, :args [#{:class :nil}]}}
 destvec* {4 {:args [nil #{:coll :nil} :seqable]}}
