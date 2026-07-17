@@ -703,7 +703,10 @@
   inference."
   [t]
   (cond (nil? t) []
-        (and (keyword? t) (types/nilable? t)) [(types/desugar-nilable t)]
+        (and (keyword? t) (types/nilable? t))
+        (let [s (types/desugar-nilable t)]
+          ;; :nilable/any desugars to :any, which constrains nothing
+          (if (identical? :any s) [] [s]))
         :else nil))
 
 (defn inferable-params

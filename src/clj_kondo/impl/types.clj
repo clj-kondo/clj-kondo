@@ -551,11 +551,16 @@
           (recur (inc i) (rest ss)))))))
 
 (defn desugar-nilable
-  "A nilable keyword spec is sugar for a union with :nil."
+  "A nilable keyword spec is sugar for a union with :nil. A union that would
+  contain :any simplifies to :any."
   [s]
-  (if (and (keyword? s) (nilable? s))
-    #{:nil (unnil s)}
-    s))
+  (cond (and (keyword? s) (nilable? s))
+        (let [k (unnil s)]
+          (if (identical? :any k)
+            :any
+            #{:nil k}))
+        (and (set? s) (contains? s :any)) :any
+        :else s))
 
 (defn constraining-spec?
   "A spec worth recording as evidence: a named type, a union, a :keys map spec

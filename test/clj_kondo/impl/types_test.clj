@@ -46,6 +46,14 @@
   (testing "fix for #1023"
     (is (= #{} (types-utils/union-type)))))
 
+(deftest desugar-nilable-test
+  (is (= #{:nil :string} (types/desugar-nilable :nilable/string)))
+  (is (= :string (types/desugar-nilable :string)))
+  (is (= #{:nil :string} (types/desugar-nilable #{:nil :string})))
+  (testing "a union that would contain :any simplifies to :any"
+    (is (= :any (types/desugar-nilable :nilable/any)))
+    (is (= :any (types/desugar-nilable #{:nil :any})))))
+
 (deftest intersect-test
   (testing "an any spec constrains nothing, on either side, alone or in a union"
     (is (= :long (types/intersect :any :long)))
