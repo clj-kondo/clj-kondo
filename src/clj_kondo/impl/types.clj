@@ -896,7 +896,9 @@
       (if-let [v (get mval k)]
         (when-let [t (type-utils/resolve-arg-type ctx v)]
           (if (= :keys (:op target))
-            (lint-map! ctx target v t)
+            ;; a position-stripped entry cannot anchor nested findings,
+            ;; fall back to the argument
+            (lint-map! ctx target (if (:row v) v arg) t)
             (when-not (match? t target)
               ;; a value entry from a directly passed literal points at the
               ;; offending value. One resolved through a fn's return carries

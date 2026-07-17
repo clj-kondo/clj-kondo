@@ -253,9 +253,15 @@ a dynamic assoc key does the same for earlier pairs while later known pairs
 re-establish them. assoc'd entries keep their source positions for
 diagnostics. A value-type finding uses an entry's own coordinates only when
 they lie within the argument's span: a directly passed literal points at
-the offending value, while an entry resolved through a fn's return carries
-the producer's coordinates, possibly in another file, so it reports at the
-argument and names the key in the message. when-first binds an element, not the init, so it gets no tag.
+the offending value, while an entry that traveled through an indirection
+reports at the argument and names the key in the message. Cached return
+maps have their entry positions stripped at cache sync, they have no
+consumer there, the producer's coordinates could even name another file,
+and serializing them only grows the cache. The span check still covers
+in-run indirections that never pass through the sync walk, a let-bound
+literal passed by name reaches the call through its binding tag with its
+positions intact. A position-stripped entry cannot anchor nested keys-spec
+findings, those fall back to the argument. when-first binds an element, not the init, so it gets no tag.
 A qualified `:keys` entry matches its `:or` default by local binding name.
 A nil-testing conditional-let strips nil from the binding's eager tag, and a
 provably nil init leaves the dead body unchecked, the dead-body warning

@@ -98,6 +98,7 @@ nav {3 nil}
 sortmap {1 {:ret :sorted-map, :args [:seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.deps.interop.transit.json  ===
+invoke-tool {1 {:args [{:op :keys, :nilable true, :opt {:args #{:associative :nil}}}]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.shell.transit.json  ===
 parse-args {1 {:ret :vector, :args [:seqable]}}
@@ -115,7 +116,7 @@ naive-seq-reduce {3 {:args [:seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.junit.transit.json  ===
 escape-xml {1 {:args [:seqable]}}
-suite-attrs {2 {:ret #{{:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}}, :row 101, :col 7, :end-row 101, :end-col 37} {:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}}, :row 102, :col 7, :end-row 102, :end-col 12}}}}
+suite-attrs {2 {:ret #{{:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}, :package {}}, :row 101, :col 7, :end-row 101, :end-col 37} {:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}}, :row 102, :col 7, :end-row 102, :end-col 12}}}}
 start-suite {1 nil}
 failure-el {3 nil}
 message-el {4 nil}
@@ -208,8 +209,8 @@ cl-format {:varargs nil}
 pprint-reader-macro {1 {:ret #{:nil :boolean}, :args [:seqable]}}
 format-logical-block {3 nil}
 compile-directive {2 {:ret :vector}}
-two-forms {1 {:ret {:type :map, :val {}}}}
-add-core-ns {1 {:ret {:type :map, :val {}, :row 417, :col 5, :end-row 422, :end-col 22}, :args [:seqable]}}
+two-forms {1 {:ret {:type :map, :val {}, :open true}}}
+add-core-ns {1 {:ret {:type :map, :val {}, :open true, :row 417, :col 5, :end-row 422, :end-col 22}, :args [:seqable]}}
 format-ascii {4 nil}
 format-simple-cardinal {1 {:ret :string, :args [:number]}}
 get-line {1 {:args [:ideref]}}
@@ -241,7 +242,7 @@ p-write-char {2 {:args [nil #{:int :nil}]}}
 tokens-fit? {2 {:ret #{:boolean}}}
 pprint-simple-list {1 nil}
 add-to-buffer {2 nil}
-tuple-map {2 {:ret {:type :map, :val {}}}}
+tuple-map {2 {:ret {:type :map, :val {}, :open true}}}
 table-ize {2 {:args [#{:string :array :nil :set :ilookup :map} :seqable]}}
 pprint-defn {1 {:args [:seqable]}}
 
@@ -261,8 +262,9 @@ fn-sym {1 {:ret #{:symbol :nil}}}
 inst-in-range? {3 {:ret #{:nil :boolean}}}
 accept? {1 {:ret :boolean}}
 and-spec-impl {3 {:args [:seqable :seqable]}}
-accept {1 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1380, :end-row 1380, :col 25, :end-col 33, :tag :keyword}, :ret {:row 1380, :end-row 1380, :col 39, :end-col 40}}}}}
+accept {1 {:ret {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :ret {}}}}}
 recur-limit? {4 {:ret #{:nil :boolean}, :args [#{:string :array :nil :set :ilookup :map}]}}
+map-spec-impl {1 {:args [{:op :keys, :nilable true, :opt {:opt-keys :seqable, :req-specs :seqable, :req-keys :seqable, :opt-specs :seqable}}]}}
 explain {2 nil}
 or-spec-impl {4 {:args [:seqable :seqable :seqable]}}
 specize {1 nil, 2 nil}
@@ -291,12 +293,12 @@ every-impl {3 nil, 4 nil}
 accept-nil? {1 nil}
 spec-impl {4 nil, 5 nil}
 invalid? {1 {:ret :boolean}}
-amp-impl {4 {:ret {:type :map, :val {:clojure.spec.alpha/op {:row 1421, :end-row 1421, :col 9, :end-col 14, :tag :keyword}, :p1 {:row 1421, :end-row 1421, :col 19, :end-col 21}, :amp {:row 1421, :end-row 1421, :col 27, :end-col 34}, :ps {:row 1421, :end-row 1421, :col 39, :end-col 44}, :forms {:row 1421, :end-row 1421, :col 52, :end-col 62}}}}}
+amp-impl {4 {:ret {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p1 {}, :amp {}, :ps {}, :forms {}}}}}
 alt* {3 nil}
 macroexpand-check {2 nil}
 explain-str {2 {:ret :nilable/string}}
 with-gen {2 nil}
-rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
+rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {:row 1406, :col 30, :end-row 1406, :end-col 50, :tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
 op-describe {1 nil}
 describe {1 nil}
 explain-1 {6 nil}
@@ -305,7 +307,7 @@ re-gen {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 filter-alt {4 {:ret #{:vector}}}
 call-valid? {3 {:ret #{:nil :boolean}}}
 op-unform {2 nil}
-rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
+rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {:row 1406, :col 30, :end-row 1406, :end-col 50, :tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
 maybe-impl {2 {:ret :associative}}
 validate-fn {3 nil}
 
@@ -463,9 +465,9 @@ par {:varargs nil}
 pvec {1 {:ret :vector}}
 pa-to-vec {1 {:ret :vector}}
 pmin {1 nil, 2 nil}
-psummary {1 {:ret {:type :map, :val {:min {:row 156, :end-row 156, :col 9, :end-col 17}, :max {:row 156, :end-row 156, :col 23, :end-col 31}, :size {:row 156, :end-row 156, :col 38, :end-col 47}, :min-index {:row 156, :end-row 156, :col 59, :end-col 74}, :max-index {:row 156, :end-row 156, :col 86, :end-col 101}}}}, 2 {:ret {:type :map, :val {:min {:row 156, :end-row 156, :col 9, :end-col 17}, :max {:row 156, :end-row 156, :col 23, :end-col 31}, :size {:row 156, :end-row 156, :col 38, :end-col 47}, :min-index {:row 156, :end-row 156, :col 59, :end-col 74}, :max-index {:row 156, :end-row 156, :col 86, :end-col 101}}}}}
+psummary {1 {:ret {:type :map, :val {:min {}, :max {}, :size {}, :min-index {}, :max-index {}}}}, 2 {:ret {:type :map, :val {:min {}, :max {}, :size {}, :min-index {}, :max-index {}}}}}
 pfilter-nils {1 {:ret :vector}}
-summary-map {1 {:ret {:type :map, :val {:min {:row 156, :end-row 156, :col 9, :end-col 17}, :max {:row 156, :end-row 156, :col 23, :end-col 31}, :size {:row 156, :end-row 156, :col 38, :end-col 47}, :min-index {:row 156, :end-row 156, :col 59, :end-col 74}, :max-index {:row 156, :end-row 156, :col 86, :end-col 101}}}}}
+summary-map {1 {:ret {:type :map, :val {:min {}, :max {}, :size {}, :min-index {}, :max-index {}}}}}
 pmax {1 nil, 2 nil}
 psort {1 {:ret :vector}, 2 {:ret :vector}}
 pcumulate {3 nil}
@@ -570,12 +572,12 @@ read-edn {1 nil}
 read-basis {1 nil}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.reflect.transit.json  ===
-access-flag {1 {:ret {:type :map, :val {:name {:row 57, :end-row 57, :col 10, :end-col 14}, :flag {:row 57, :end-row 57, :col 21, :end-col 25}, :contexts {:row 57, :end-row 57, :col 36, :end-col 64}}}}}
+access-flag {1 {:ret {:type :map, :val {:name {}, :flag {}, :contexts {:tag :set}}}}}
 declared-constructors {1 {:ret :set, :args [#{:class :nil}]}}
 internal-name->class-symbol {1 nil}
 typeref->class {2 {:ret :nilable/class}}
 resource-name {1 nil}
-parse-method-descriptor {1 {:ret {:type :map, :val {:parameter-types {:row 193, :end-row 193, :col 21, :end-col 67}, :return-type {:row 194, :end-row 194, :col 17, :end-col 50}}}, :args [#{:string :nil}]}}
+parse-method-descriptor {1 {:ret {:type :map, :val {:parameter-types {:tag :vector}, :return-type {}}}, :args [#{:string :nil}]}}
 field-descriptor->class-symbol {1 {:args [#{:string :nil}]}}
 declared-fields {1 {:ret :set, :args [#{:class :nil}]}}
 typesym {1 nil}
@@ -644,7 +646,7 @@ NaN? {1 {:args (:double)}}
 boolean? {1 {:ret :boolean}}
 protected-final-methods {1 {:args [#{:class :nil}]}}
 char? {1 {:ret :boolean}}
-make-hierarchy {0 {:ret {:type :map, :val {:parents {:row 5668, :end-row 5668, :col 16, :end-col 18, :tag {:type :map, :val {}}}, :descendants {:row 5668, :end-row 5668, :col 32, :end-col 34, :tag {:type :map, :val {}}}, :ancestors {:row 5668, :end-row 5668, :col 46, :end-col 48, :tag {:type :map, :val {}}}}}}}
+make-hierarchy {0 {:ret {:type :map, :val {:parents {:tag {:type :map, :val {}}}, :descendants {:tag {:type :map, :val {}}}, :ancestors {:tag {:type :map, :val {}}}}}}}
 keep {1 {:ret :fn}, 2 {:ret :seq, :args [nil :seqable]}}
 mapcat {1 {:ret :fn, :args [:ifn]}}
 unchecked-long {1 {:args [#{:number :nil}]}}
@@ -706,7 +708,7 @@ var? {1 {:ret :boolean}}
 method-sig {1 {:ret :vector}}
 emit-method-builder {5 {:args [nil #{:symbol :string :keyword} nil :seqable]}}
 hash-ordered-coll {1 {:ret :long}}
-deref-as-map {1 {:ret {:type :map, :val {:status {:row 447, :end-row 457, :col 6, :end-col 14, :tag #{{:tag :keyword, :row 454, :col 7, :end-row 454, :end-col 15} {:tag :keyword, :row 457, :col 7, :end-row 457, :end-col 13} {:tag :keyword, :row 451, :col 7, :end-row 451, :end-col 14}}}, :val {:row 459, :end-row 459, :col 11, :end-col 14}}, :row 446, :col 5, :end-row 459, :end-col 15}}}
+deref-as-map {1 {:ret {:type :map, :val {:status {:tag #{{:tag :keyword, :row 451, :col 7, :end-row 451, :end-col 14, :value :failed} {:tag :keyword, :row 457, :col 7, :end-row 457, :end-col 13, :value :ready} {:tag :keyword, :row 454, :col 7, :end-row 454, :end-col 15, :value :pending}}}, :val {}}, :row 446, :col 5, :end-row 459, :end-col 15}}}
 cycle {1 {:args [:seqable]}}
 seque {1 {:ret :seq}, 2 {:ret :seq}}
 empty? {1 {:ret #{:boolean}}}
@@ -775,6 +777,7 @@ drop {1 {:ret :fn}}
 sorted? {1 {:ret :boolean}}
 nil? {1 nil}
 split-at {2 {:ret :vector, :args [:nat-int :seqable]}}
+validate-generate-class-options {1 {:args [{:op :keys, :nilable true, :opt {:methods :seqable}}]}}
 random-sample {1 {:ret :transducer, :args [:number]}, 2 {:ret :seq, :args [:number :seqable]}}
 select-keys {2 {:args [nil :seqable]}}
 update {3 {:ret :associative, :args [#{:associative :nil}]}, 4 {:ret :associative, :args [#{:associative :nil}]}, 5 {:ret :associative, :args [#{:associative :nil}]}, 6 {:ret :associative, :args [#{:associative :nil}]}, :varargs {:ret :associative, :min-arity 6, :args [#{:associative :nil} nil :ifn]}}
@@ -871,7 +874,7 @@ list? {1 {:ret :boolean}}
 simple-ident? {1 {:ret #{:nil :boolean}}}
 non-private-methods {1 {:args [#{:class :nil}]}}
 parse-uuid {1 {:args [#{:string :nil}]}}
-generate-interface {1 {:ret :vector}}
+generate-interface {1 {:ret :vector, :args [{:op :keys, :nilable true, :opt {:extends :seqable, :methods :seqable}}]}}
 xml-seq {1 {:ret :seq}}
 case-map {4 {:args [:ifn :ifn :seqable]}}
 byte {1 {:args [#{:number :nil}]}}
@@ -934,6 +937,7 @@ javadoc-url {1 {:args [#{:string :nil}]}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.test.alpha.transit.json  ===
 maybe-wrap-kvs-emulation {2 {:args [nil :seqable]}}
 build-fixed-args-body {2 {:ret :list, :args [nil :seqable]}}
+instrument-choose-fn {4 {:args [nil nil nil {:op :keys, :nilable true, :opt {:stub :seqable}}]}}
 gen-fixed-args-syms {1 {:args [:seqable]}}
 explain-check {4 {:ret :throwable}}
 interpret-stack-trace-element {1 {:ret :nilable/map}}
@@ -947,6 +951,7 @@ has-kwargs? {1 {:args [:seqable]}}
 unwrap-failure {1 nil}
 fn-spec-name? {1 {:ret #{:nil :boolean}}}
 check {1 nil, 2 nil}
+instrument-choose-spec {3 {:args [nil nil {:op :keys, :nilable true, :opt {:spec #{:string :array :nil :set :ilookup :map}}}]}}
 check-call {3 {:ret #{:throwable :boolean}}}
 checkable-syms {1 nil}
 kwargs->kvs {1 {:args [:seqable]}}
@@ -954,7 +959,7 @@ no-fspec {2 {:ret :throwable}}
 make-check-result {3 {:ret :nilable/map}}
 find-varargs-decl {1 {:args [:seqable]}}
 enumerate-namespace {1 {:ret :set}}
-sym->check-map {1 {:ret {:type :map, :val {:s {:row 460, :end-row 460, :col 9, :end-col 10}, :v {:row 461, :end-row 461, :col 9, :end-col 10, :tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:row 462, :end-row 462, :col 12, :end-col 35, :tag #{{:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}, :row 462, :col 20, :end-row 462, :end-col 34} :nil}}}, :row 460, :col 5, :end-row 462, :end-col 36}}}
+sym->check-map {1 {:ret {:type :map, :val {:s {}, :v {:tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:tag #{{:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}, :row 462, :col 20, :end-row 462, :end-col 34} :nil}}}, :row 460, :col 5, :end-row 462, :end-col 36}}}
 thunk-frame? {1 {:ret :boolean, :args [:char-sequence]}}
 throwable? {1 {:ret :boolean}}
 build-kwargs-body {2 {:ret :list, :args [nil :seqable]}}

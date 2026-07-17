@@ -130,6 +130,20 @@
          ;; (prn arg-type '-> ret)
          ret))))
 
+(defn strip-positions
+  "Strips positions from a map type's :val entries, recursively. A cached
+  return's entry positions have no consumer: findings about resolved values
+  report at the call site, and serializing them only grows the cache."
+  [t]
+  (if (and (map? t) (:val t))
+    (update t :val update-vals
+            (fn [e]
+              (let [e (dissoc e :row :col :end-row :end-col)]
+                (if (:tag e)
+                  (update e :tag strip-positions)
+                  e))))
+    t))
+
 (defn not-empty-arity [m]
   (when (and m
              (or (:args m)
@@ -144,7 +158,7 @@
                     (let [t (resolve-arg-type idacs ret)]
                       (if (identical? t :any)
                         (not-empty-arity (dissoc v :ret))
-                        (assoc v :ret t)))
+                        (assoc v :ret (strip-positions t))))
                     (not-empty-arity v))]
         (if new-v
           (assoc! m arity new-v)
