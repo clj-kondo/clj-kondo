@@ -2131,7 +2131,14 @@
        '({:row 1 :col 68
           :message "Expected: string, received: positive integer for key :port"})
        (lint! "(defn cfg [] {:port 1}) (defn f [{:keys [port]}] (subs port 0)) (f (cfg))"
-              config)))
+              config))
+      (testing "a nil or false key is named, not treated as no key"
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string for key nil"})
+         (lint! "(defn cfg [] {nil \"bad\"}) (defn f [{x nil}] (inc x)) (f (cfg))" config))
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string for key false"})
+         (lint! "(defn cfg [] {false \"bad\"}) (defn f [{x false}] (inc x)) (f (cfg))" config))))
     (testing "nil and false are valid destructuring keys"
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: string."})
