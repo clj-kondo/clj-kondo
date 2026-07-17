@@ -2080,7 +2080,19 @@
     (testing "the :as binding is the whole init"
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: map."})
-       (lint! "(let [{:as cfg} {:port 8080}] (inc cfg))" config)))))
+       (lint! "(let [{:as cfg} {:port 8080}] (inc cfg))" config)))
+    (testing "nested map destructuring chains value types"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{{:keys [y]} :inner} {:inner {:y \"s\"}}] (inc y))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:inner {:y \"s\"}}) (defn go [] (let [{{:keys [y]} :inner} (cfg)] (inc y)))"
+              config)))
+    (testing "string keys via :strs"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{:strs [port]} {\"port\" \"8080\"}] (inc port))" config)))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
