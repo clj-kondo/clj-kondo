@@ -645,6 +645,55 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
+(defn inferable-params
+  "The params backward type inference may constrain: [index binding
+  seed-constraints] per simple positional param that is untagged or hinted
+  nilable, a nilable hint being sugar for a union constraint. Nil when
+  inference is off for this fn: a macro, the linter disabled, or a user spec
+  covering this arity, which wins outright. Coverage includes the :varargs
+  fallback, same as spec lookup at call sites."
+  [ctx arg-vec arg-bindings arity macro?]
+  (when (and arg-vec (not macro?)
+             (not (linter-disabled? ctx :type-mismatch))
+             (not (when-let [cfg-arities
+                             (some-> (config/type-mismatch-config
+                                      (:config ctx) (-> ctx :ns :name) (:in-def ctx))
+                                     :arities)]
+                    (if-let [fa (:fixed-arity arity)]
+                      (types/args-spec-from-arities cfg-arities fa)
+                      (contains? cfg-arities :varargs)))))
+    (loop [[node & more] (:children arg-vec)
+           i 0
+           acc []]
+      (if (nil? node)
+        (seq acc)
+        (let [v (when (identical? :token (tag node))
+                  (:value node))]
+          (if (= '& v)
+            (seq acc)
+            (recur more (inc i)
+                   (if-let [b (and (symbol? v)
+                                   (not (namespace v))
+                                   (get arg-bindings v))]
+                     (let [t (:tag b)]
+                       (cond (nil? t) (conj acc [i b []])
+                             (and (keyword? t) (types/nilable? t))
+                             (conj acc [i b [(types/desugar-nilable t)]])
+                             :else acc))
+                     acc))))))))
+
+(defn ctx-with-param-infers
+  "Makes `simple-params` visible for inference, next to the params of
+  enclosing fns: a usage in this body may constrain an enclosing fn's param
+  when nothing conditional separates them, invoking this fn is the caller's
+  way of using that param. The mark pins the branch count at fn entry, a
+  usage constrains only while the count still equals it."
+  [ctx simple-params param-infer]
+  (let [entry {:param-infer param-infer
+               :mark (:branch-count ctx 0)}]
+    (update ctx :param-infers (fnil into {})
+            (map (fn [[_ b]] [b entry]) simple-params))))
+
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
@@ -659,57 +708,13 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
-        ;; backward parameter-type inference: [index binding seed-constraints]
-        ;; per simple positional param that is untagged or hinted nilable
-        simple-params (when (and arg-vec (not macro?)
-                                 (not (linter-disabled? ctx :type-mismatch))
-                                 ;; a user spec covering this arity wins
-                                 ;; outright, so don't even infer. Coverage
-                                 ;; includes the :varargs fallback, same as
-                                 ;; spec lookup at call sites
-                                 (not (when-let [cfg-arities
-                                                 (some-> (config/type-mismatch-config
-                                                          (:config ctx) (-> ctx :ns :name) (:in-def ctx))
-                                                         :arities)]
-                                        (if-let [fa (:fixed-arity arity)]
-                                          (types/args-spec-from-arities cfg-arities fa)
-                                          (contains? cfg-arities :varargs)))))
-                        (loop [[node & more] (:children arg-vec)
-                               i 0
-                               acc []]
-                          (if (nil? node)
-                            (seq acc)
-                            (let [v (when (identical? :token (tag node))
-                                      (:value node))]
-                              (if (= '& v)
-                                (seq acc)
-                                (recur more (inc i)
-                                       (if-let [b (and (symbol? v)
-                                                       (not (namespace v))
-                                                       (get arg-bindings v))]
-                                         (let [t (:tag b)]
-                                           (cond (nil? t) (conj acc [i b []])
-                                                 (and (keyword? t) (types/nilable? t))
-                                                 ;; a nilable hint is sugar for a
-                                                 ;; union, seed it as an ordinary
-                                                 ;; constraint
-                                                 (conj acc [i b [(types/desugar-nilable t)]])
-                                                 :else acc))
-                                         acc)))))))
+        simple-params (inferable-params ctx arg-vec arg-bindings arity macro?)
         param-infer (when simple-params
                       (atom (into {}
                                   (map (fn [[_ b seed]] [b seed]))
                                   simple-params)))
-        ;; make these params visible for inference, next to those of enclosing
-        ;; fns: a usage in this body may constrain an enclosing fn's param when
-        ;; nothing conditional separates them, invoking this fn is the caller's
-        ;; way of using that param. The mark pins the branch count at fn entry,
-        ;; a usage constrains only while the count still equals it.
         ctx (cond-> ctx
-              param-infer (update :param-infers (fnil into {})
-                                  (let [entry {:param-infer param-infer
-                                               :mark (:branch-count ctx 0)}]
-                                    (map (fn [[_ b]] [b entry]) simple-params))))
+              param-infer (ctx-with-param-infers simple-params param-infer))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))

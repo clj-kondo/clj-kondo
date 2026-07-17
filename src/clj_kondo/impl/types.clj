@@ -522,6 +522,16 @@
     #{:nil (unnil s)}
     s))
 
+(defn constraining-spec?
+  "A spec worth recording as evidence: a named type, a union, a :keys map spec
+  or a deferred :arg-spec-of pointer. :any and unknown operator maps prove
+  nothing."
+  [s]
+  (if (map? s)
+    (utils/one-of (:op s) [:arg-spec-of :keys])
+    (or (set? s)
+        (and (keyword? s) (not (identical? :any s))))))
+
 (defn infer-local-usage!
   "Backward parameter-type inference, triggered where a local usage is
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
@@ -548,10 +558,7 @@
                    :arg-idx idx
                    :lang (:lang ctx)
                    :base-lang (:base-lang ctx)}))]
-        (when (if (map? s)
-                (utils/one-of (:op s) [:arg-spec-of :keys])
-                (or (set? s)
-                    (and (keyword? s) (not (identical? :any s)))))
+        (when (constraining-spec? s)
           (let [s (desugar-nilable s)]
             (swap! param-infer update b
                    (fn [cur]
@@ -581,24 +588,24 @@
     :else
     (let [as (if (set? a) a #{a})
           bs (if (set? b) b #{b})
-          sat (fn [t s] (some #(is-a? t %) s))
+          covers? (fn [t union] (some #(is-a? t %) union))
           ;; every named type that satisfies both unions: input members alone
           ;; miss types that imply both without being listed in either, e.g.
           ;; :vector when intersecting get's union with :seqable
-          all (into #{} (filter (fn [t]
-                                  (and (not (identical? :any t))
-                                       (sat t as)
-                                       (sat t bs))))
-                    known-types)
+          common (into #{} (filter (fn [t]
+                                     (and (not (identical? :any t))
+                                          (covers? t as)
+                                          (covers? t bs))))
+                       known-types)
           ;; keep the maximal elements, subsumed members add nothing
-          m (into #{} (remove (fn [t]
-                                (some #(and (not (identical? t %)) (is-a? t %))
-                                      all)))
-                  all)]
-      (case (count m)
+          maximal (into #{} (remove (fn [t]
+                                      (some #(and (not (identical? t %)) (is-a? t %))
+                                            common)))
+                        common)]
+      (case (count maximal)
         0 nil
-        1 (first m)
-        m))))
+        1 (first maximal)
+        maximal))))
 
 (defn merge-inferred-arg-tags
   "Fills in arg specs for params from their collected constraints: keyword and
@@ -628,26 +635,34 @@
 (defn inferred-and? [s]
   (and (map? s) (identical? :and (:op s))))
 
+(declare resolve-inferred-spec)
+
+(defn resolve-deferred-arg-spec
+  "Resolves one {:op :arg-spec-of ..} constraint via the callee's :args in
+  idacs, which may itself be inferred, so inference chains through user fns.
+  Nil when the callee or its spec is unknown, or when the chain recurs into
+  `seen`."
+  [idacs c seen]
+  (let [k [(:ns c) (:name c) (:arity c) (:arg-idx c)]]
+    (when-not (contains? seen k)
+      (when-let [called-fn (utils/resolve-call* idacs c (:ns c) (:name c))]
+        (when-let [s (args-spec-from-arities (:arities called-fn) (:arity c))]
+          (let [s (get s (:arg-idx c))]
+            (cond (keyword? s) (desugar-nilable s)
+                  (set? s) s
+                  (inferred-and? s)
+                  (resolve-inferred-spec idacs s (conj seen k)))))))))
+
 (defn resolve-inferred-spec
   "Resolves an inferred :args entry {:op :and :specs ..} to a concrete spec, or
-  nil when nothing is provable. A deferred {:op :arg-spec-of ..} member looks
-  up the callee's :args in idacs, which may itself be inferred, so inference
-  chains through user fns. `seen` guards against recursive call chains."
+  nil when nothing is provable."
   [idacs {:keys [specs]} seen]
   (reduce
    (fn [acc c]
      (let [t (cond (keyword? c) c
                    (set? c) c
                    (identical? :arg-spec-of (:op c))
-                   (let [k [(:ns c) (:name c) (:arity c) (:arg-idx c)]]
-                     (when-not (contains? seen k)
-                       (when-let [called-fn (utils/resolve-call* idacs c (:ns c) (:name c))]
-                         (when-let [s (args-spec-from-arities (:arities called-fn) (:arity c))]
-                           (let [s (get s (:arg-idx c))]
-                             (cond (keyword? s) (desugar-nilable s)
-                                   (set? s) s
-                                   (inferred-and? s)
-                                   (resolve-inferred-spec idacs s (conj seen k)))))))))]
+                   (resolve-deferred-arg-spec idacs c seen))]
        (if t
          (or (intersect acc t)
              ;; conflicting constraints prove nothing
@@ -655,6 +670,14 @@
          ;; an unresolvable constraint contributes nothing
          acc)))
    nil specs))
+
+(defn trim-trailing-nils
+  "Trailing nils check nothing, missing slots neither."
+  [v]
+  (loop [v v]
+    (if (and (pos? (count v)) (nil? (peek v)))
+      (recur (pop v))
+      v)))
 
 (defn resolve-inferred-arg-types
   "Resolves inferred {:op :and :specs ..} arg specs in `ns-data`'s vars to
@@ -669,18 +692,14 @@
              (reduce-kv
               (fn [as arity {:keys [args] :as arity-data}]
                 (if (vector? args)
-                  (let [args* (if (some inferred-and? args)
-                                (mapv (fn [s]
-                                        (if (inferred-and? s)
-                                          (resolve-inferred-spec idacs s #{})
-                                          s))
-                                      args)
-                                args)
-                        ;; trailing nils check nothing, missing slots neither
-                        args* (loop [a args*]
-                                (if (and (pos? (count a)) (nil? (peek a)))
-                                  (recur (pop a))
-                                  a))]
+                  (let [args* (trim-trailing-nils
+                               (if (some inferred-and? args)
+                                 (mapv (fn [s]
+                                         (if (inferred-and? s)
+                                           (resolve-inferred-spec idacs s #{})
+                                           s))
+                                       args)
+                                 args))]
                     (cond (empty? args*)
                           ;; nothing proven, dead weight
                           (assoc as arity (type-utils/not-empty-arity
