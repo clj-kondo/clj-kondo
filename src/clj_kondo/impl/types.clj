@@ -494,15 +494,23 @@
 
 (defn add-arg-type-from-expr
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
-  ([ctx expr tag]
+  ([ctx expr arg-tag]
    (when-let [arg-types (:arg-types ctx)]
-     (let [m (meta expr)]
-       (swap! arg-types conj (when tag
-                               {:tag tag
-                                :row (:row m)
-                                :col (:col m)
-                                :end-row (:end-row m)
-                                :end-col (:end-col m)}))))))
+     (let [m (meta expr)
+           ;; a literal keyword or string arg keeps its value: fn specs like
+           ;; assoc's use it to extend a map's :val precisely
+           v (when (identical? :token (tag expr))
+               (case arg-tag
+                 :keyword (when-not (:namespaced? expr) (:k expr))
+                 :string (utils/string-from-token expr)
+                 nil))]
+       (swap! arg-types conj (when arg-tag
+                               (cond-> {:tag arg-tag
+                                        :row (:row m)
+                                        :col (:col m)
+                                        :end-row (:end-row m)
+                                        :end-col (:end-col m)}
+                                 (some? v) (assoc :value v))))))))
 
 (defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]

@@ -132,16 +132,22 @@
                                        {:op :rest
                                         :spec [:any :any]}]}}
            :fn (fn [args]
-                 (let [farg (first args)]
+                 (let [[farg & kvs] args]
                    (if-let [t (:tag farg)]
                      (case t
                        :map :map
                        :vector :vector
                        (if (and (map? t)
                                 (identical? :map (:type t)))
-                         ;; assoc adds keys the seed's :val does not list,
-                         ;; so absence proves nothing
-                         (cond-> t (:val t) (assoc :open true))
+                         ;; a known assoc'd key extends the seed's :val, the
+                         ;; result stays closed. An unknown key could be any
+                         ;; key, that opens the map
+                         (reduce (fn [t [k v]]
+                                   (if-some [kv (:value k)]
+                                     (assoc-in t [:val kv] {:tag (:tag v)})
+                                     (cond-> t (:val t) (assoc :open true))))
+                                 t
+                                 (partition 2 kvs))
                          :associative))
                      :associative)))}
    ;; 202

@@ -260,13 +260,13 @@ access on the call itself.
   placeholder `{}` that metabase's defendpoint binds params against, is
   marked `:open` in `map->tag` and proves nothing by absence, detected by
   the generated flag or missing location, and `:or`-defaulted bindings get
-  no tag from the init at all. The into and assoc fn specs mark a
-  passed-through seed `:open` too, they add keys the seed's `:val` does not
-  list, and `lint-map!` skips required-key reporting for open args. For
-  assoc that is an under-approximation, the result is really still closed
-  with the added keys, but the fn spec only sees arg tags, not literal key
-  values, so it cannot name them. Carrying literal keyword values in arg
-  types would allow the precise model. Corpus: two new metabase findings,
+  no tag from the init at all. The into fn spec marks a passed-through seed
+  `:open`, it adds keys the seed's `:val` does not list, and `lint-map!`
+  skips required-key reporting for open args. assoc is modeled precisely:
+  arg types carry the literal value of keyword and string token args, so
+  its fn spec extends the seed's `:val` with each known assoc'd key and the
+  result stays closed, opening only for a dynamic key. Corpus: two new
+  metabase findings,
   both adjudicated true positives, an OSS defenterprise stub returning `{}`
   whose caller does `(pos? (:max-users ..))` unguarded, plus one ductile
   finding, comment scratch code passing a fn where its call result was
