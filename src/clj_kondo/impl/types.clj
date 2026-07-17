@@ -851,18 +851,20 @@
                                              (str " for key " k)
                                              "."))}))))
 
-(defn span-contains?
-  "Whether position map `inner` lies within `outer`'s span. A map value
+(defn pos-within-span?
+  "Whether position map `pos`'s start lies within `span`. A map value
   entry resolved through a fn's return carries the producer's coordinates,
-  which lie outside the argument at the call site, or even in another file."
-  [outer inner]
-  (and (:row outer) (:row inner) (:end-row outer)
-       (or (< (:row outer) (:row inner))
-           (and (= (:row outer) (:row inner))
-                (<= (:col outer) (:col inner))))
-       (or (> (:end-row outer) (:row inner))
-           (and (= (:end-row outer) (:row inner))
-                (>= (:end-col outer) (:col inner))))))
+  which lie outside the argument at the call site, or even in another file.
+  Unlike the full-span ignore matching in findings.clj, this only tests the
+  start position."
+  [span pos]
+  (and (:row span) (:row pos) (:end-row span)
+       (or (< (:row span) (:row pos))
+           (and (= (:row span) (:row pos))
+                (<= (:col span) (:col pos))))
+       (or (> (:end-row span) (:row pos))
+           (and (= (:end-row span) (:row pos))
+                (>= (:end-col span) (:col pos))))))
 
 (defn emit-more-input-expected! [ctx call arg]
   (let [expr (or arg call)]
@@ -899,7 +901,7 @@
               ;; a value entry from a directly passed literal points at the
               ;; offending value. One resolved through a fn's return carries
               ;; the producer's coordinates, report at the argument instead
-              (if (span-contains? arg v)
+              (if (pos-within-span? arg v)
                 (emit-non-match! ctx target v t)
                 (emit-non-match! ctx target arg t k)))))
         (when required?
