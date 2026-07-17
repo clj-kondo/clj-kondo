@@ -14,6 +14,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
+- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
+- Type checker: `contains?` accepts nil as its collection argument
+- Type checker: infer the type of a function param from how it is used in the body. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn, since the evidence `(subs s 1)` tells us that `s` should be a string.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
 - Type checker: narrow the type of a local in the then-branch of `if` or the body of `when` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
 - Clojure 1.13 CLJ-2961: map destructuring `:keys!` `:syms!` `:strs!` with required keys
