@@ -313,11 +313,21 @@
                          m (meta expr)
                          t (or (types/tag-from-meta (:tag m))
                                (:tag opts))
-                         v (cond-> (assoc m
-                                          :name s
-                                          :filename (:filename ctx)
-                                          :tag t
-                                          :auto-resolved (:namespaced? expr))
+                         v (utils/binding-rec {:name s
+                                               :filename (:filename ctx)
+                                               :row (:row m)
+                                               :col (:col m)
+                                               :end-row (:end-row m)
+                                               :end-col (:end-col m)
+                                               :tag t
+                                               :auto-resolved (:namespaced? expr)})
+                         ;; meta beyond the positions, e.g. :user-meta,
+                         ;; :clj-kondo/skip-reg-binding or the generated flag,
+                         ;; rides along
+                         v (if (and (= 4 (count m)) (:row m))
+                             v
+                             (merge v (dissoc m :row :col :end-row :end-col :tag)))
+                         v (cond-> v
                              (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                              (assoc :required true)
                              (:analyze-locals? ctx)
@@ -342,11 +352,18 @@
              (if keys-destructuring?
                (let [s (-> k name symbol)
                      m (meta expr)
-                     v (cond-> (assoc m
-                                      :name s
-                                      :keyword k
-                                      :filename (:filename ctx)
-                                      :auto-resolved (:namespaced? expr))
+                     v (utils/binding-rec {:name s
+                                           :keyword k
+                                           :filename (:filename ctx)
+                                           :row (:row m)
+                                           :col (:col m)
+                                           :end-row (:end-row m)
+                                           :end-col (:end-col m)
+                                           :auto-resolved (:namespaced? expr)})
+                     v (if (and (= 4 (count m)) (:row m))
+                         v
+                         (merge v (dissoc m :row :col :end-row :end-col)))
+                     v (cond-> v
                          (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                          (assoc :required true)
                          (:analyze-locals? ctx)
@@ -1703,9 +1720,17 @@
         name-exprs (map #(-> % :children first) fns)
         bindings (when (seq name-exprs)
                    (mapv (fn [name-expr]
-                           (let [v (cond-> (assoc (meta name-expr)
-                                                  :name (:value name-expr)
-                                                  :filename (:filename ctx))
+                           (let [m (meta name-expr)
+                                 v (utils/binding-rec {:name (:value name-expr)
+                                                       :filename (:filename ctx)
+                                                       :row (:row m)
+                                                       :col (:col m)
+                                                       :end-row (:end-row m)
+                                                       :end-col (:end-col m)})
+                                 v (if (and (= 4 (count m)) (:row m))
+                                     v
+                                     (merge v (dissoc m :row :col :end-row :end-col)))
+                                 v (cond-> v
                                      (:analyze-locals? ctx)
                                      (-> (assoc :id (swap! (:id-gen ctx) inc)
                                                 :str (:str name-expr))

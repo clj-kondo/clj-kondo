@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Performance: use a record for bindings, offsetting the cost of the destructuring type features
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
 - Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.
 - Type checker: a key missing from a map literal is provably nil, also through destructuring, keyword access chains and function return maps. E.g. `(inc (:y {}))` will warn. A key with an `:or` default, generated maps in macro expansions, and maps that went through `into` or `assoc` are exempt.

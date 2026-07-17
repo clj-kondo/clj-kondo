@@ -49,6 +49,23 @@
   ;; RestFn for > 20 args, allocating an args seq per usage.
   `(new clj_kondo.impl.utils.VarUsage ~@(map #(clojure.core/get m %) var-usage-basis)))
 
+(defrecord Binding
+    [name filename row col end-row end-col tag auto-resolved required
+     keyword id str scope-end-row scope-end-col derived-location])
+
+(def ^:private binding-basis
+  (map clojure.core/keyword (Binding/getBasis)))
+
+(defmacro binding-rec
+  "Builds a Binding record from a literal map, positionally at compile time,
+  avoiding an intermediate hash map per binding. Keys must be literal
+  keywords naming Binding fields."
+  [m]
+  (assert (map? m) "binding-rec expects a literal map")
+  (let [unknown (remove (set binding-basis) (keys m))]
+    (assert (empty? unknown) (str "Unknown Binding keys: " (vec unknown))))
+  `(new clj_kondo.impl.utils.Binding ~@(map #(clojure.core/get m %) binding-basis)))
+
 (let [not-found (Object.)]
   (defn select-keys
     "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys
