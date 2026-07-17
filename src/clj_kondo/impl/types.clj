@@ -640,8 +640,7 @@
                    (set? c) c
                    (identical? :arg-spec-of (:op c))
                    (let [k [(:ns c) (:name c) (:arity c) (:arg-idx c)]]
-                     (when (and (:lang c) (:base-lang c)
-                                (not (contains? seen k)))
+                     (when-not (contains? seen k)
                        (when-let [called-fn (utils/resolve-call* idacs c (:ns c) (:name c))]
                          (when-let [s (args-spec-from-arities (:arities called-fn) (:arity c))]
                            (let [s (get s (:arg-idx c))]
