@@ -153,13 +153,13 @@ Metabase src, in-process, min of 7 runs, interleaved with master
 
 | | min | median | alloc |
 |---|---|---|---|
-| master | 3323ms | 3383ms | 3598.6MB |
-| this branch | 3302ms | 3348ms | 3648.4MB |
+| master | 3312ms | 3428ms | 3561.6MB |
+| this branch | 3301ms | 3393ms | 3683.8MB |
 
-Wall clock within noise, +1.4% allocation with the call-site trigger, +0.6%
-more with the head-meta usage-point trigger (the meta map per eligible call).
-Spec and predicate lookups only run when a local actually appears as a direct
-argument.
+Final numbers, measured on the finished branch: branch-count reachability,
+cache-sync resolution, the honest some-> expansion and the 1.13 built-in
+cache. Wall clock within noise, +3.4% allocation. Spec and predicate lookups
+only run when a local actually appears as a direct argument.
 
 ## Corpus results
 
