@@ -706,18 +706,18 @@
   union-set constraints intersect to the most specific union, a conflict proves
   nothing, and constraints with deferred or map-shaped members are stored as
   {:op :and :specs ..}, resolved when the cache is synced, see
-  resolve-inferred-arg-types. A single {:op :keys} constraint passes through
-  verbatim. A map-destructured binding's constraints, [i b seed k defaulted]
-  entries, become the value type of key `k` in the param's {:op :keys} spec:
-  under :req when the spec excludes nil and the key has no :or default, the
-  key is proven required since its absence crashes the body, otherwise under
-  :opt, next to any required keys the destructuring itself established."
+  resolve-types. A single {:op :keys} constraint passes through
+  verbatim. A map-destructured binding descriptor, carrying a :key, has its
+  constraints become the value type of that key in the param's {:op :keys}
+  spec: under :req when the spec excludes nil and the key has no :or default,
+  the key is proven required since its absence crashes the body, otherwise
+  under :opt, next to any required keys the destructuring itself established."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i b _ k defaulted :as entry]]
+  (reduce (fn [tags {i :idx b :binding k :key defaulted :defaulted :as descriptor}]
             (let [ts (get @param-infer b)
-                  ;; nil and false are valid map keys, a keyed entry is
-                  ;; recognized by shape
-                  keyed? (> (count entry) 3)]
+                  ;; nil and false are valid map keys, a keyed descriptor is
+                  ;; recognized by the presence of :key, not its value
+                  keyed? (contains? descriptor :key)]
               (if (seq ts)
                 (if keyed?
                   (if-let [spec (when (not-any? map? ts)
@@ -795,40 +795,60 @@
       (recur (pop v))
       v)))
 
-(defn resolve-inferred-arg-types
-  "Resolves inferred {:op :and :specs ..} arg specs in `ns-data`'s vars to
-  concrete specs, the twin of resolve-return-types. Runs when syncing the
-  cache, so both linting and the cache only see the plain spec vocabulary,
-  which older versions read fine."
+(defn resolve-arity
+  "Resolves a cached arity's :ret and inferred :args to concrete specs, then
+  normalizes, returning nil when nothing checkable is left. Runs when syncing
+  the cache, so both linting and the cache only see the plain spec
+  vocabulary, which older versions read fine."
+  [idacs arity-data]
+  (let [ret (:ret arity-data)
+        arity-data (if ret
+                     (let [t (type-utils/resolve-arg-type idacs ret)]
+                       (if (identical? t :any)
+                         (dissoc arity-data :ret)
+                         (assoc arity-data :ret (type-utils/strip-positions t))))
+                     arity-data)
+        args (:args arity-data)
+        arity-data (if (vector? args)
+                     (let [args* (trim-trailing-nils
+                                  (if (some inferred-and? args)
+                                    (mapv (fn [s]
+                                            (if (inferred-and? s)
+                                              (resolve-inferred-spec idacs s #{})
+                                              s))
+                                          args)
+                                    args))]
+                       (if (empty? args*)
+                         ;; nothing proven, dead weight
+                         (dissoc arity-data :args)
+                         (assoc arity-data :args args*)))
+                     arity-data)]
+    (type-utils/not-empty-arity arity-data)))
+
+(defn resolve-types
+  "Resolves the :ret and inferred :args of every var's arities in `ns-data` in
+  one walk, dropping arities and vars left empty. Runs when syncing the
+  cache."
   [idacs ns-data]
-  (reduce-kv
-   (fn [m k v]
-     (if-let [arities (:arities v)]
-       (let [new-arities
-             (reduce-kv
-              (fn [as arity {:keys [args] :as arity-data}]
-                (if (vector? args)
-                  (let [args* (trim-trailing-nils
-                               (if (some inferred-and? args)
-                                 (mapv (fn [s]
-                                         (if (inferred-and? s)
-                                           (resolve-inferred-spec idacs s #{})
-                                           s))
-                                       args)
-                                 args))]
-                    (cond (empty? args*)
-                          ;; nothing proven, dead weight
-                          (assoc as arity (type-utils/not-empty-arity
-                                           (dissoc arity-data :args)))
-                          (identical? args* args) as
-                          :else (assoc as arity (assoc arity-data :args args*))))
-                  as))
-              arities arities)]
-         (if (identical? new-arities arities)
-           m
-           (assoc m k (assoc v :arities new-arities))))
-       m))
-   ns-data ns-data))
+  (persistent!
+   (reduce-kv
+    (fn [m k v]
+      (assoc! m k
+              (if-let [arities (:arities v)]
+                (let [new-arities
+                      (persistent!
+                       (reduce-kv (fn [as arity arity-data]
+                                    (if-let [a (resolve-arity idacs arity-data)]
+                                      (assoc! as arity a)
+                                      (dissoc! as arity)))
+                                  (transient {})
+                                  arities))]
+                  (if (seq new-arities)
+                    (assoc v :arities new-arities)
+                    (dissoc v :arities)))
+                v)))
+    (transient {})
+    ns-data)))
 
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))

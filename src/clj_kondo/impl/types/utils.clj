@@ -151,31 +151,3 @@
                  (:ret m)))
     m))
 
-(defn resolve-arity-return-types [idacs arities]
-  (persistent!
-   (reduce-kv
-    (fn [m arity v]
-      (let [new-v (if-let [ret (:ret v)]
-                    (let [t (resolve-arg-type idacs ret)]
-                      (if (identical? t :any)
-                        (not-empty-arity (dissoc v :ret))
-                        (assoc v :ret (strip-positions t))))
-                    (not-empty-arity v))]
-        (if new-v
-          (assoc! m arity new-v)
-          (dissoc! m arity))))
-    (transient {})
-    arities)))
-
-(defn resolve-return-types [idacs ns-data]
-  (persistent!
-   (reduce-kv
-    (fn [m k v]
-      (assoc! m k (if-let [arities (:arities v)]
-                    (let [new-arities (not-empty (resolve-arity-return-types idacs arities))]
-                      (if new-arities
-                        (assoc v :arities new-arities)
-                        (dissoc v :arities)))
-                    v)))
-    (transient {})
-    ns-data)))

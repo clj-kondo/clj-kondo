@@ -718,13 +718,14 @@
         :else nil))
 
 (defn inferable-params
-  "The params backward type inference may constrain: [index binding
-  seed-constraints] per simple positional param, plus [index binding
-  seed-constraints map-key] per map-destructured binding, for params that are
-  untagged or hinted nilable, a nilable hint being sugar for a union
-  constraint. Nil when inference is off for this fn: a macro, the linter
-  disabled, or a user spec covering this arity, which wins outright. Coverage
-  includes the :varargs fallback, same as spec lookup at call sites."
+  "The params backward type inference may constrain, as descriptor maps
+  {:idx :binding :constraints}, plus :key and :defaulted for a
+  map-destructured binding, for params that are untagged or hinted nilable,
+  a nilable hint being sugar for a union constraint. Nil when inference is
+  off for this fn:
+  a macro, the linter disabled, or a user spec covering this arity, which
+  wins outright. Coverage includes the :varargs fallback, same as spec lookup
+  at call sites."
   [ctx arg-vec arg-bindings arity macro? keys-bindings]
   (when (and arg-vec (not macro?)
              (not (linter-disabled? ctx :type-mismatch))
@@ -749,12 +750,13 @@
                      (if-let [b (and (symbol? v)
                                      (not (namespace v))
                                      (get arg-bindings v))]
-                       (if-let [seed (initial-constraints (:tag b))]
-                         (conj acc [i b seed])
+                       (if-let [ic (initial-constraints (:tag b))]
+                         (conj acc {:idx i :binding b :constraints ic})
                          acc)
                        (reduce (fn [acc [k b defaulted]]
-                                 (if-let [seed (initial-constraints (:tag b))]
-                                   (conj acc [i b seed k defaulted])
+                                 (if-let [ic (initial-constraints (:tag b))]
+                                   (conj acc {:idx i :binding b :constraints ic
+                                              :key k :defaulted defaulted})
                                    acc))
                                acc
                                (when kbs (nth kbs i nil))))))))))))
@@ -769,7 +771,7 @@
   (let [entry {:param-infer param-infer
                :mark (:branch-count ctx 0)}]
     (update ctx :param-infers (fnil into {})
-            (map (fn [[_ b]] [b entry]) simple-params))))
+            (map (fn [{:keys [binding]}] [binding entry]) simple-params))))
 
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
@@ -788,7 +790,8 @@
         simple-params (inferable-params ctx arg-vec arg-bindings arity macro? keys-bindings)
         param-infer (when simple-params
                       (atom (into {}
-                                  (map (fn [[_ b seed]] [b seed]))
+                                  (map (fn [{:keys [binding constraints]}]
+                                         [binding constraints]))
                                   simple-params)))
         ctx (cond-> ctx
               param-infer (ctx-with-param-infers simple-params param-infer))

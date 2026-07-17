@@ -2,7 +2,6 @@
   {:no-doc true}
   (:require
    [clj-kondo.impl.types :as types]
-   [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -153,9 +152,7 @@
                 (let [source (:source ns-data)
                       resolve? (and (not (one-of source [:disk :built-in]))
                                     (seq ns-data))
-                      resolve-types (fn [nsd]
-                                      (->> (tu/resolve-return-types idacs nsd)
-                                           (types/resolve-inferred-arg-types idacs)))
+                      resolve-types (fn [nsd] (types/resolve-types idacs nsd))
                       ns-data
                       (if resolve?
                         (if (identical? lang :cljc)
