@@ -1438,14 +1438,13 @@
             body-exprs (next children)
             scoped (if if? (first body-exprs) expr)
             two-forms? (= 2 (count (:children bv)))
+            value-id (when two-forms? (gensym))
             ;; a vector binding form would leak the whole init tag onto its
-            ;; elements, see the :vector branch of extract-bindings
+            ;; elements, see the :vector branch of extract-bindings.
             ;; when-first binds the first element, not the init, so it
             ;; gets no tag until element types are modeled
-            value-id (when (and two-forms?
-                                (not= 'when-first call)
-                                (one-of (some-> bv :children first tag) [:token :map]))
-                       (gensym))
+            tag-form? (and (not= 'when-first call)
+                           (one-of (some-> bv :children first tag) [:token :map]))
             analyzed-condition (let [cctx (update ctx :callstack conj [:vector])
                                      cnode (cond-> condition
                                              value-id (assoc :id value-id))]
@@ -1455,11 +1454,19 @@
                                    (analyze-expression** cctx cnode)
                                    (analyze-condition cctx cnode)))
             raw-tag (when value-id (init-tag ctx value-id condition))
-            ;; a provably nil init means the bound branch never runs
+            ;; a provably nil init means the bound branch never runs, for
+            ;; any binding form
             dead-body? (identical? :nil raw-tag)
+            ;; a dead bound branch gets no type errors: the body, but also
+            ;; destructuring defaults and key exprs, which only evaluate
+            ;; behind the failed condition
+            dead-ctx (fn [c]
+                       (if dead-body?
+                         (utils/ctx-with-linters-disabled c [:type-mismatch])
+                         c))
             ;; the init's tag types the binding, like in let, minus nil:
             ;; the body only runs when the value is non-nil
-            btag (when-not dead-body?
+            btag (when (and tag-form? (not dead-body?))
                    (cond (set? raw-tag) (let [t* (disj raw-tag :nil)]
                                           (case (count t*)
                                             0 nil
@@ -1469,7 +1476,7 @@
                          (types/unnil raw-tag)
                          :else raw-tag))
             bindings (if two-forms?
-                       (extract-bindings (update ctx :callstack conj [:nil :vector])
+                       (extract-bindings (dead-ctx (update ctx :callstack conj [:nil :vector]))
                                          (-> bv :children first)
                                          scoped
                                          {:tag btag})
@@ -1481,14 +1488,9 @@
         (concat (:analyzed bindings)
                 analyzed-condition
                 ;; bodies are conditionally evaluated, so no param inference
+                ;; the else branch of if-let stays live
                 (let [ctx (in-branch-ctx ctx)
-                      ctx-with-binding (in-branch-ctx ctx-with-binding)
-                      ;; a dead bound branch gets no type errors, the else
-                      ;; branch of if-let stays live
-                      dead-ctx (fn [c]
-                                 (if dead-body?
-                                   (utils/ctx-with-linters-disabled c [:type-mismatch])
-                                   c))]
+                      ctx-with-binding (in-branch-ctx ctx-with-binding)]
                   (if if?
                     ;; in the case of if, the binding is only valid in the first expression
                     (concat

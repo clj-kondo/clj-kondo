@@ -2146,7 +2146,12 @@
       (testing "the else branch of if-let stays live"
         (assert-submaps2
          '({:row 1 :message "Expected: number, received: string."})
-         (lint! "(if-let [x (:missing {})] x (inc \"bad\"))" config))))
+         (lint! "(if-let [x (:missing {})] x (inc \"bad\"))" config)))
+      (testing "deadness covers any binding form"
+        (is (empty? (lint! "(when-let [[x] nil] (inc \"bad\"))" config))))
+      (testing "deadness covers destructuring defaults"
+        (is (empty? (lint! "(when-let [{:keys [x] :or {x (inc \"bad\")}} (:missing {})] x)"
+                           config)))))
     (testing "when-first's condition is seq, not truthiness"
       (is (empty? (lint! "(when-first [x []] x)"
                          (assoc-in config [:linters :condition-always-true :level]

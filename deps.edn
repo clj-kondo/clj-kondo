@@ -7,11 +7,11 @@
         babashka/fs {:mvn/version "0.5.31"}
         org.ow2.asm/asm {:mvn/version "9.7"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
- :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.3"}}}
+ :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
            :clj-kondo/dev
            {:main-opts ["-m" "clj-kondo.main"]
             :extra-deps
-            {org.clojure/clojure {:mvn/version "1.11.3"}}
+            {org.clojure/clojure {:mvn/version "1.11.4"}}
             :jvm-opts ["-Dclojure.main.report=stderr"]}
            :extract
            {:extra-paths ["extract" "classes"]
