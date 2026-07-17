@@ -211,15 +211,28 @@ for such declared polymorphism is a per-fn config spec, rule 1.
   on metabase. Chains are a few map lookups deep, there is little to save.
   Revisit only if a real profile shows resolution.
 
+## Destructured params
+
+`(defn foo [{:keys [a]}] (inc a))` infers `{:op :keys :nilable true :opt {:a
+:number}}` for the param, so `(foo {:a "s"})` and `(foo 42)` warn while
+`(foo {})` and `(foo nil)` stay quiet, destructuring nil-punts. The map
+branch of `extract-bindings` collects [map-key binding] pairs, covering
+`:keys`/`:syms`/`:strs` and their `!` variants via the existing
+`destructuring-key` resolution (prefixes, `::auto`), plus `{sym :key}`
+renames via `types/map-key`. The pairs travel as `:key-bindings` meta next
+to `:keys-spec`, per param through the arg vector's `:keys-bindings`, into
+`inferable-params`, which emits [index binding seed key] entries. The
+recording side is unchanged, bindings are bindings. At merge, a keyed
+binding's constraints intersect into the value type of its key under `:opt`,
+joining any `:req` keys the CLJ-2961 work established, in which case the
+spec stays non-nilable, nil really is missing required keys. Keys specs
+also chain: `resolve-deferred-arg-spec` passes a callee's `{:op :keys}`
+spec through, so wrappers inherit it.
+
 ## Future work
 
-- Destructured params: `(defn foo [{:keys [a]}] (inc a))` can infer a map
-  param spec `{:op :keys :opt {:a :number}}`. The pieces mostly exist:
-  `lint-map!` checks such specs at call sites and `extract-bindings` already
-  feeds `:keys-spec` into `:args` for the CLJ-2961 required-keys work. New
-  part: collect destructured key bindings into param-infer with a
-  [param-idx key] path and merge constraints into the keys spec. Start with
-  `:opt` plus a type. An unconditional use also proves the key required
-  (missing means nil and a crash), so promoting to `:req` is a candidate
-  second step. Direct keyword constraints only at first, no deferred entries
-  inside map specs.
+- Destructured params, second steps: constraints on the `:as` binding could
+  constrain the param directly, deferred members inside key value types are
+  currently dropped at merge, and an unconditional key use also proves the
+  key required (missing means nil and a crash), so promoting to `:req` is a
+  candidate.

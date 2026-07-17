@@ -245,7 +245,8 @@
           (:syms :syms!) (if-let [ens (namespace entry-name)]
                            (symbol ens nm)
                            (symbol (some-> modifier-ns str) nm))
-          (:strs :strs!) nm)))))
+          (:strs :strs!) nm
+          nil)))))
 
 (defn- destructuring-keys
   [ctx modifier-node modifier-type entries]
@@ -405,6 +406,11 @@
                                                    (:keys-spec m))
                                                  (:tag m))))
                                          v)
+                       keys-bindings (when-not all-tokens?
+                                       (map-indexed (fn [i b]
+                                                      (when (and amp-idx (< i amp-idx))
+                                                        (:key-bindings (meta b))))
+                                                    v))
                        expr-meta (meta expr)
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
@@ -413,7 +419,8 @@
                      ;; this is used for checking the return tag of a function body
                      (assoc expr-meta
                             :tag t
-                            :tags tags)))
+                            :tags tags
+                            :keys-bindings keys-bindings)))
          :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr
                                            (assoc opts :namespaced-map true))
          :map
@@ -445,6 +452,9 @@
                                  [{} {}]
                                  kvs)]
            (key-linter/lint-map-keys ctx expr)
+           ;; [map-key binding] per destructured entry, for backward
+           ;; param-type inference, see inferable-params
+           (let [key-bindings (volatile! [])]
            (loop [[k v & rest-kvs] (:children expr)
                   res {}]
                (if k
@@ -461,6 +471,7 @@
                                                    :keys-destructuring? true
                                                    :destructuring-type key-name
                                                    :destructuring-expr k)
+                                       modifier-ns (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name)))
                                        ;; before & are bindings, after & only literal keys
                                        res (loop [children (:children v) amp? false res res]
                                              (if-let [child (first children)]
@@ -481,8 +492,12 @@
                                                        (usages/analyze-keyword ctx child opts))
                                                      (recur (next children) true res))
                                                  :else
-                                                 (recur (next children) false
-                                                        (merge res (extract-bindings ctx child scoped-expr opts))))
+                                                 (let [bnds (extract-bindings ctx child scoped-expr opts)]
+                                                   (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
+                                                     (when-let [dk (destructuring-key ctx modifier-ns key-name child)]
+                                                       (when-let [b (some-> bnds first val)]
+                                                         (vswap! key-bindings conj [dk b]))))
+                                                   (recur (next children) false (merge res bnds))))
                                                res))]
                                    (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
@@ -526,11 +541,17 @@
                                                (recur rest-kvs res))
                                    (recur rest-kvs res)))))
                          :else
-                         (recur rest-kvs (merge res
-                                                (extract-bindings ctx k scoped-expr opts)
-                                                {:analyzed (analyze-expression** ctx v)}))))
+                         (let [bnds (extract-bindings ctx k scoped-expr opts)]
+                           ;; k is a binding form, v its lookup key
+                           (when (utils/symbol-token? k)
+                             (when-let [mk (types/map-key ctx v)]
+                               (when-let [b (some-> bnds first val)]
+                                 (vswap! key-bindings conj [mk b]))))
+                           (recur rest-kvs (merge res bnds
+                                                  {:analyzed (analyze-expression** ctx v)})))))
                  (cond-> res
-                   (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})))))
+                   (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
+                   (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings))))))
          (findings/reg-finding!
           ctx
           (node->line (:filename ctx)
@@ -594,13 +615,15 @@
               (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
                     arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
                     {return-tag :tag
-                     arg-tags :tags} (meta arg-bindings)
+                     arg-tags :tags
+                     keys-bindings :keys-bindings} (meta arg-bindings)
                     arity (analyze-arity arg-vec)
                     ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
                                  :arity arity
                                  :analyzed-arg-vec (:analyzed arg-bindings)
                                  :arg-vec arg-vec
                                  :args arg-tags
+                                 :keys-bindings keys-bindings
                                  :ret return-tag}
                           (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
                 ret)))
@@ -645,14 +668,23 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
+(defn param-seed
+  "Seed constraint vector for a param binding tag: empty for untagged, the
+  desugared union for a nilable hint, nil for a hard hint, which is excluded
+  from inference."
+  [t]
+  (cond (nil? t) []
+        (and (keyword? t) (types/nilable? t)) [(types/desugar-nilable t)]))
+
 (defn inferable-params
   "The params backward type inference may constrain: [index binding
-  seed-constraints] per simple positional param that is untagged or hinted
-  nilable, a nilable hint being sugar for a union constraint. Nil when
-  inference is off for this fn: a macro, the linter disabled, or a user spec
-  covering this arity, which wins outright. Coverage includes the :varargs
-  fallback, same as spec lookup at call sites."
-  [ctx arg-vec arg-bindings arity macro?]
+  seed-constraints] per simple positional param, plus [index binding
+  seed-constraints map-key] per map-destructured binding, for params that are
+  untagged or hinted nilable, a nilable hint being sugar for a union
+  constraint. Nil when inference is off for this fn: a macro, the linter
+  disabled, or a user spec covering this arity, which wins outright. Coverage
+  includes the :varargs fallback, same as spec lookup at call sites."
+  [ctx arg-vec arg-bindings arity macro? keys-bindings]
   (when (and arg-vec (not macro?)
              (not (linter-disabled? ctx :type-mismatch))
              (not (when-let [cfg-arities
@@ -662,25 +694,29 @@
                     (if-let [fa (:fixed-arity arity)]
                       (types/args-spec-from-arities cfg-arities fa)
                       (contains? cfg-arities :varargs)))))
-    (loop [[node & more] (:children arg-vec)
-           i 0
-           acc []]
-      (if (nil? node)
-        (seq acc)
-        (let [v (when (identical? :token (tag node))
-                  (:value node))]
-          (if (= '& v)
-            (seq acc)
-            (recur more (inc i)
-                   (if-let [b (and (symbol? v)
-                                   (not (namespace v))
-                                   (get arg-bindings v))]
-                     (let [t (:tag b)]
-                       (cond (nil? t) (conj acc [i b []])
-                             (and (keyword? t) (types/nilable? t))
-                             (conj acc [i b [(types/desugar-nilable t)]])
-                             :else acc))
-                     acc))))))))
+    (let [kbs (some-> keys-bindings vec)]
+      (loop [[node & more] (:children arg-vec)
+             i 0
+             acc []]
+        (if (nil? node)
+          (seq acc)
+          (let [v (when (identical? :token (tag node))
+                    (:value node))]
+            (if (= '& v)
+              (seq acc)
+              (recur more (inc i)
+                     (if-let [b (and (symbol? v)
+                                     (not (namespace v))
+                                     (get arg-bindings v))]
+                       (if-let [seed (param-seed (:tag b))]
+                         (conj acc [i b seed])
+                         acc)
+                       (reduce (fn [acc [k b]]
+                                 (if-let [seed (param-seed (:tag b))]
+                                   (conj acc [i b seed k])
+                                   acc))
+                               acc
+                               (when kbs (nth kbs i nil))))))))))))
 
 (defn ctx-with-param-infers
   "Makes `simple-params` visible for inference, next to the params of
@@ -698,7 +734,7 @@
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [arg-bindings
-                arity analyzed-arg-vec arglist-str arg-vec]
+                arity analyzed-arg-vec arglist-str arg-vec keys-bindings]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
         ctx (-> (ctx-with-bindings ctx arg-bindings)
@@ -708,7 +744,7 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
-        simple-params (inferable-params ctx arg-vec arg-bindings arity macro?)
+        simple-params (inferable-params ctx arg-vec arg-bindings arity macro? keys-bindings)
         param-infer (when simple-params
                       (atom (into {}
                                   (map (fn [[_ b seed]] [b seed]))

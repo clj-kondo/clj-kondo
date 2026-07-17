@@ -1999,6 +1999,40 @@
          '({:row 1 :message "Expected: string, received: positive integer."})
          (lint! "(defn f ([x] x) ([x _y] (subs x 1))) (f 42 1)" cfg))))))
 
+(deftest backward-inference-keys-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a destructured key's usage becomes its value type"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f {:x \"foo\"})" config))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f {:x 1})" config))))
+    (testing "an absent key and a nil argument are fine, destructuring nil-punts"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f {})" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f nil)" config))))
+    (testing "a non-map argument is reported"
+      (assert-submaps2
+       '({:row 1 :message "Expected: map, received: positive integer."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f 42)" config)))
+    (testing "renamed and namespaced keys carry their exact key"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [{y :y}] (subs y 1)) (f {:y 42})" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:person/keys [age]}] (inc age)) (f {:person/age \"x\"})" config)))
+    (testing "a guarded key usage proves nothing"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (when (number? x) (inc x))) (f {:x \"s\"})" config))))
+    (testing "inferred value types join required keys from :keys!"
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: :y"}
+         {:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys! [x y]}] [(inc x) y]) (f {:x \"s\"})" config)))
+    (testing "keys specs chain through wrappers"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h {:x \"s\"})" config))
+      (is (empty? (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h nil)" config))))))
+
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "inference chains through user fns"

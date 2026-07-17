@@ -607,27 +607,44 @@
         1 (first maximal)
         maximal))))
 
+(defn intersect-all
+  "Intersects a constraint vector to one spec, nil on conflict."
+  [ts]
+  (reduce (fn [acc t]
+            (or (intersect acc t) (reduced nil)))
+          nil ts))
+
 (defn merge-inferred-arg-tags
   "Fills in arg specs for params from their collected constraints: keyword and
   union-set constraints intersect to the most specific union, a conflict proves
   nothing, and constraints with deferred or map-shaped members are stored as
   {:op :and :specs ..}, resolved when the cache is synced, see
   resolve-inferred-arg-types. A single {:op :keys} constraint passes through
-  verbatim."
+  verbatim. A map-destructured binding's constraints, [i b seed k] entries,
+  become the value type of key `k` in the param's {:op :keys} spec under :opt,
+  next to any required keys the destructuring itself established."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i b]]
+  (reduce (fn [tags [i b _ k]]
             (let [ts (get @param-infer b)]
               (if (seq ts)
-                (cond
-                  (not-any? map? ts)
-                  (assoc tags i (reduce (fn [acc t]
-                                          (or (intersect acc t) (reduced nil)))
-                                        nil ts))
-                  (and (= 1 (count ts))
-                       (identical? :keys (:op (first ts))))
-                  (assoc tags i (first ts))
-                  :else
-                  (assoc tags i {:op :and :specs ts}))
+                (if k
+                  (if-let [spec (when (not-any? map? ts)
+                                  (intersect-all ts))]
+                    (update tags i (fn [cur]
+                                     (if (and (map? cur) (identical? :keys (:op cur)))
+                                       (assoc-in cur [:opt k] spec)
+                                       ;; destructuring nil-punts, so nil stays
+                                       ;; a legal argument when no key is required
+                                       {:op :keys :nilable true :opt {k spec}})))
+                    tags)
+                  (cond
+                    (not-any? map? ts)
+                    (assoc tags i (intersect-all ts))
+                    (and (= 1 (count ts))
+                         (identical? :keys (:op (first ts))))
+                    (assoc tags i (first ts))
+                    :else
+                    (assoc tags i {:op :and :specs ts})))
                 tags)))
           (vec arg-tags)
           simple-params))
@@ -650,6 +667,7 @@
           (let [s (get s (:arg-idx c))]
             (cond (keyword? s) (desugar-nilable s)
                   (set? s) s
+                  (and (map? s) (identical? :keys (:op s))) s
                   (inferred-and? s)
                   (resolve-inferred-spec idacs s (conj seen k)))))))))
 
