@@ -318,7 +318,6 @@
                                                :filename (:filename ctx)
                                                :tag t
                                                :auto-resolved (:namespaced? expr)})
-                         v (utils/merge-binding-meta v m)
                          v (cond-> v
                              (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                              (assoc :required true)
@@ -349,7 +348,6 @@
                                            :keyword k
                                            :filename (:filename ctx)
                                            :auto-resolved (:namespaced? expr)})
-                     v (utils/merge-binding-meta v m)
                      v (cond-> v
                          (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                          (assoc :required true)
@@ -1740,7 +1738,6 @@
                                  v (utils/binding-rec m
                                                       {:name (:value name-expr)
                                                        :filename (:filename ctx)})
-                                 v (utils/merge-binding-meta v m)
                                  v (cond-> v
                                      (:analyze-locals? ctx)
                                      (-> (assoc :id (swap! (:id-gen ctx) inc)

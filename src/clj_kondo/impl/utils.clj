@@ -56,25 +56,6 @@
 (def ^:private binding-basis
   (map clojure.core/keyword (Binding/getBasis)))
 
-(defmacro binding-rec
-  "Builds a Binding record positionally at compile time, avoiding an
-  intermediate hash map per binding. Each field comes from the literal
-  `overrides` map when present, else it is copied from source map expr
-  `m`, absent keys giving nil fields. Override keys must be literal
-  keywords naming Binding fields."
-  [m overrides]
-  (assert (map? overrides) "binding-rec expects a literal overrides map")
-  (let [unknown (remove (set binding-basis) (keys overrides))]
-    (assert (empty? unknown) (str "Unknown Binding keys: " (vec unknown))))
-  (let [msym (gensym "m")]
-    `(let [~msym ~m]
-       (new clj_kondo.impl.utils.Binding
-            ~@(map (fn [k]
-                     (if (contains? overrides k)
-                       (clojure.core/get overrides k)
-                       `(clojure.core/get ~msym ~k)))
-                   binding-basis)))))
-
 (defn merge-binding-meta
   "Merges meta keys beyond a Binding's own fields into binding `v`:
   :user-meta, :clj-kondo/skip-reg-binding or the generated flag ride along.
@@ -83,6 +64,28 @@
   (if (and (= 4 (count m)) (:row m))
     v
     (merge v (dissoc m :row :col :end-row :end-col :tag))))
+
+(defmacro binding-rec
+  "Builds a Binding record positionally at compile time, avoiding an
+  intermediate hash map per binding. Each field comes from the literal
+  `overrides` map when present, else it is copied from source map expr
+  `m`, absent keys giving nil fields, and meta keys beyond the fields are
+  merged in via merge-binding-meta. Override keys must be literal keywords
+  naming Binding fields."
+  [m overrides]
+  (assert (map? overrides) "binding-rec expects a literal overrides map")
+  (let [unknown (remove (set binding-basis) (keys overrides))]
+    (assert (empty? unknown) (str "Unknown Binding keys: " (vec unknown))))
+  (let [msym (gensym "m")]
+    `(let [~msym ~m]
+       (merge-binding-meta
+        (new clj_kondo.impl.utils.Binding
+             ~@(map (fn [k]
+                      (if (contains? overrides k)
+                        (clojure.core/get overrides k)
+                        `(clojure.core/get ~msym ~k)))
+                    binding-basis))
+        ~msym))))
 
 (let [not-found (Object.)]
   (defn select-keys
