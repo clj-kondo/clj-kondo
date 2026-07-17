@@ -232,6 +232,16 @@ nil really is missing required keys. Keys specs also chain:
 `resolve-deferred-arg-spec` passes a callee's `{:op :keys}` spec through, so
 wrappers inherit it.
 
+The forward direction also flows: a destructured binding gets the value type
+of its key when the init's map type is known. `analyze-let-like-bindings`
+computes the init tag for map binding forms too, and the map branch of
+`extract-bindings` distributes it per key instead of letting `:tag` in opts
+leak wholesale to children, the `:select` precedent. A concrete
+`{:type :map :val ..}` init yields concrete key tags. A deferred `{:call ..}`
+init, a user fn's return, defers per key via `:kw-calls`, the same shape
+keyword access on a call records, so lint-time resolution is untouched. The
+`:as` binding gets the whole init tag. An unknown init types nothing.
+
 ## Future work
 
 - Destructured params, second steps: constraints on the `:as` binding could

@@ -2045,6 +2045,27 @@
        '({:row 1 :message "Missing required key: :x"})
        (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h {})" config)))))
 
+(deftest destructured-map-value-types-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a known map init types its destructured keys"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{:keys [port]} {:port \"8080\"}] (inc port))" config))
+      (is (empty? (lint! "(let [{:keys [port]} {:port 8080}] (inc port))" config))))
+    (testing "a user fn's returned map types destructured keys, resolved lazily"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:port \"8080\"}) (defn go [] (let [{:keys [port]} (cfg)] (inc port)))"
+              config))
+      (is (empty? (lint! "(defn cfg [] {:port 8080}) (defn go [] (let [{:keys [port]} (cfg)] (inc port)))"
+                         config))))
+    (testing "a renamed key carries its value type"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{p :port} {:port \"8080\"}] (inc p))" config)))
+    (testing "an unknown init types nothing"
+      (is (empty? (lint! "(defn f [m] (let [{:keys [port]} m] port)) (f {})" config))))))
+
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "inference chains through user fns"

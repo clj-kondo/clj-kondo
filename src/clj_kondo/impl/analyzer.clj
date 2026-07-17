@@ -431,7 +431,20 @@
                                   (fn [_ _] false)
                                   (fn [k kw] (and (= kw (:k k))
                                                   (not (:namespaced? k)))))
-               opts (dissoc opts :allow-amp :namespaced-map)
+               form-tag (:tag opts)
+               ;; value types of a known map init, distributed per key below.
+               ;; :tag must not leak to children wholesale. A deferred
+               ;; {:call ..} init defers per key via :kw-calls, resolved at
+               ;; lint time like keyword access on the call itself
+               val-tags (when (identical? :map (:type form-tag))
+                          (:val form-tag))
+               deferred-call (:call form-tag)
+               key-val-tag (fn [dk]
+                             (cond val-tags (some-> (get val-tags dk) :tag)
+                                   (and deferred-call (keyword? dk))
+                                   {:call (assoc deferred-call :kw-calls
+                                                 ((fnil conj []) (:kw-calls deferred-call) dk))}))
+               opts (dissoc opts :allow-amp :namespaced-map :tag)
                kvs (partition 2 (:children expr))
                select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
                or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
@@ -499,12 +512,16 @@
                                                        (usages/analyze-keyword ctx child opts))
                                                      (recur (next children) true res))
                                                  :else
-                                                 (let [bnds (extract-bindings ctx child scoped-expr opts)]
-                                                   (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
-                                                     (when-let [dk (destructuring-key ctx modifier-ns key-name child)]
-                                                       (when-let [b (some-> bnds first val)]
-                                                         (vswap! key-bindings conj
-                                                                 [dk b (contains? or-names (:name b))]))))
+                                                 (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
+                                                            (destructuring-key ctx modifier-ns key-name child))
+                                                       child-opts (if-let [vt (when dk (key-val-tag dk))]
+                                                                    (assoc opts :tag vt)
+                                                                    opts)
+                                                       bnds (extract-bindings ctx child scoped-expr child-opts)]
+                                                   (when dk
+                                                     (when-let [b (some-> bnds first val)]
+                                                       (vswap! key-bindings conj
+                                                               [dk b (contains? or-names (:name b))])))
                                                    (recur (next children) false (merge res bnds))))
                                                res))]
                                    (recur rest-kvs res)))
@@ -549,13 +566,16 @@
                                                (recur rest-kvs res))
                                    (recur rest-kvs res)))))
                          :else
-                         (let [bnds (extract-bindings ctx k scoped-expr opts)]
-                           ;; k is a binding form, v its lookup key
-                           (when (utils/symbol-token? k)
-                             (when-let [mk (types/map-key ctx v)]
-                               (when-let [b (some-> bnds first val)]
-                                 (vswap! key-bindings conj
-                                         [mk b (contains? or-names (:name b))]))))
+                         ;; k is a binding form, v its lookup key
+                         (let [mk (types/map-key ctx v)
+                               child-opts (if-let [vt (when mk (key-val-tag mk))]
+                                            (assoc opts :tag vt)
+                                            opts)
+                               bnds (extract-bindings ctx k scoped-expr child-opts)]
+                           (when (and mk (utils/symbol-token? k))
+                             (when-let [b (some-> bnds first val)]
+                               (vswap! key-bindings conj
+                                       [mk b (contains? or-names (:name b))])))
                            (recur rest-kvs (merge res bnds
                                                   {:analyzed (analyze-expression** ctx v)})))))
                  (cond-> res
@@ -1213,7 +1233,7 @@
                           cbu-collector (dissoc :conditional-build-up-collector))
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
-                  tag (when (and let? binding (= :token (tag binding)))
+                  tag (when (and let? binding (one-of (tag binding) [:token :map]))
                         (let [maybe-call (get @(:calls-by-id ctx) value-id)]
                           (cond maybe-call (:ret maybe-call)
                                 value (types/expr->tag ctx* value))))
