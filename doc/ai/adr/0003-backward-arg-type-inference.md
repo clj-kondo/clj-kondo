@@ -269,6 +269,12 @@ tracking covers keyword and string tokens only.
 
 ## Future work
 
+- resolve-return-types and resolve-inferred-arg-types are twin full walks
+  over every var's arities in update-defs, ret side in types.utils, args
+  side in types.clj for its intersect dependency. One combined walk would
+  halve the traversal and co-locate the cache vocabulary enforcement,
+  worth doing when either next changes.
+
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
   currently dropped at merge, an `:or` default value could be checked
