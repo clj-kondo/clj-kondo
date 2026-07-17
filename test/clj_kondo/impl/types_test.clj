@@ -65,6 +65,21 @@
       (testing (format "intersect is idempotent for %s" a)
         (is (= (norm a) (norm (types/intersect a a))))))))
 
+(deftest trim-trailing-nils-test
+  (is (= [] (types/trim-trailing-nils [])))
+  (is (= [] (types/trim-trailing-nils [nil nil])))
+  (is (= [:string] (types/trim-trailing-nils [:string nil nil])))
+  (is (= [nil :string] (types/trim-trailing-nils [nil :string nil]))))
+
+(deftest constraining-spec-test
+  (doseq [s [:string #{:string :nil} {:op :keys :req {}}
+             {:op :arg-spec-of :ns 'x :name 'y}]]
+    (testing (format "%s is evidence" s)
+      (is (types/constraining-spec? s))))
+  (doseq [s [nil :any {:op :and :specs []} {:op :rest :spec :int}]]
+    (testing (format "%s proves nothing" s)
+      (is (not (types/constraining-spec? s))))))
+
 (deftest match-test
   (is (not (types/match? :var :number))))
 
