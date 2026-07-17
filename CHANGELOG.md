@@ -13,7 +13,51 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- The minimum Clojure version to run clj-kondo on the JVM is now `1.11` (CI tests against 1.11.4)
+### Highlights
+
+The type checker now infers much more.
+
+It derives argument types from how a param is used in the body:
+
+``` clojure
+(defn f [s] (subs s 1))
+(f 42)
+   ^ Expected: string, received: positive integer.
+```
+
+It types the keys and values of destructured maps:
+
+``` clojure
+(defn f [{:keys [x]}] (inc x))
+(f {:x "foo"})
+       ^ Expected: number, received: string.
+```
+
+It flows map types from return values into destructured bindings:
+
+``` clojure
+(defn cfg [] {:port "8080"})
+(let [{:keys [port]} (cfg)] (inc port))
+                                 ^ Expected: number, received: string.
+```
+
+It flags keys that are provably nil:
+
+``` clojure
+(inc (:y {}))
+     ^ Expected: number, received: nil.
+```
+
+And it narrows the type of a local after it flowed through a known predicate:
+
+``` clojure
+(defn f [x] (if (string? x) (inc x) x))
+                                 ^ Expected: number, received: string.
+```
+
+### Other
+
+- The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
 - Performance: use a record for bindings (~4%)
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
 - Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.
