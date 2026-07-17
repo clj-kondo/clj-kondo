@@ -313,12 +313,9 @@
                          m (meta expr)
                          t (or (types/tag-from-meta (:tag m))
                                (:tag opts))
-                         v (utils/binding-rec {:name s
+                         v (utils/binding-rec m
+                                              {:name s
                                                :filename (:filename ctx)
-                                               :row (:row m)
-                                               :col (:col m)
-                                               :end-row (:end-row m)
-                                               :end-col (:end-col m)
                                                :tag t
                                                :auto-resolved (:namespaced? expr)})
                          ;; meta beyond the positions, e.g. :user-meta,
@@ -352,13 +349,10 @@
              (if keys-destructuring?
                (let [s (-> k name symbol)
                      m (meta expr)
-                     v (utils/binding-rec {:name s
+                     v (utils/binding-rec m
+                                          {:name s
                                            :keyword k
                                            :filename (:filename ctx)
-                                           :row (:row m)
-                                           :col (:col m)
-                                           :end-row (:end-row m)
-                                           :end-col (:end-col m)
                                            :auto-resolved (:namespaced? expr)})
                      v (if (and (= 4 (count m)) (:row m))
                          v
@@ -1725,12 +1719,9 @@
         bindings (when (seq name-exprs)
                    (mapv (fn [name-expr]
                            (let [m (meta name-expr)
-                                 v (utils/binding-rec {:name (:value name-expr)
-                                                       :filename (:filename ctx)
-                                                       :row (:row m)
-                                                       :col (:col m)
-                                                       :end-row (:end-row m)
-                                                       :end-col (:end-col m)})
+                                 v (utils/binding-rec m
+                                                      {:name (:value name-expr)
+                                                       :filename (:filename ctx)})
                                  v (if (and (= 4 (count m)) (:row m))
                                      v
                                      (merge v (dissoc m :row :col :end-row :end-col)))
