@@ -2121,6 +2121,12 @@
       (is (empty? (lint! "(let [{:keys [y] :or {y 0}} {}] (inc y))" config))))
     (testing "a present key with an unknown value type stays unknown"
       (is (empty? (lint! "(defn f [x] (let [{:keys [a]} {:a x}] (inc a)))" config))))
+    (testing "a map that went through into or assoc is open, they add keys"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {} [[:x 1]]))" config)))
+      (is (empty? (lint! "(inc (:a (assoc {} :a 1)))" config)))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {:x \"s\"} []))" config)))
     (testing "a call-shaped map value carries the call's return type"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: number."})

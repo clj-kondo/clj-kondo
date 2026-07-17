@@ -864,7 +864,9 @@
           (emit-non-match! ctx :map a t))
         :else
         (when-let [mval (-> t :val)]
-          (lint-map-types! ctx a mval s :req true)
+          ;; an open map may have keys its :val does not list, so absence
+          ;; is no missing-key proof
+          (lint-map-types! ctx a mval s :req (not (:open t)))
           (lint-map-types! ctx a mval s :opt false))))
 
 (defn lint-arg-types

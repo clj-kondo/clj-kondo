@@ -139,7 +139,9 @@
                        :vector :vector
                        (if (and (map? t)
                                 (identical? :map (:type t)))
-                         t
+                         ;; assoc adds keys the seed's :val does not list,
+                         ;; so absence proves nothing
+                         (cond-> t (:val t) (assoc :open true))
                          :associative))
                      :associative)))}
    ;; 202
@@ -1054,9 +1056,11 @@
                     3 {:args [:coll :transducer :seqable]}}
           :fn (fn [args]
                 (let [t (:tag (first args))]
-                  (if (identical? :any t)
-                    :coll
-                    t)))}
+                  (cond (identical? :any t) :coll
+                        ;; into adds entries the seed's :val does not list,
+                        ;; so absence proves nothing
+                        (and (map? t) (:val t)) (assoc t :open true)
+                        :else t)))}
    ;; 6903
    'mapv {:arities {:varargs {:args '[:ifn :seqable {:op :rest
                                                      :spec :seqable}]

@@ -260,9 +260,19 @@ access on the call itself.
   placeholder `{}` that metabase's defendpoint binds params against, is
   marked `:open` in `map->tag` and proves nothing by absence, detected by
   the generated flag or missing location, and `:or`-defaulted bindings get
-  no tag from the init at all. Corpus: two new metabase findings, both
-  adjudicated true positives, an OSS defenterprise stub returning `{}`
-  whose caller does `(pos? (:max-users ..))` unguarded.
+  no tag from the init at all. The into and assoc fn specs mark a
+  passed-through seed `:open` too, they add keys the seed's `:val` does not
+  list, and `lint-map!` skips required-key reporting for open args. For
+  assoc that is an under-approximation, the result is really still closed
+  with the added keys, but the fn spec only sees arg tags, not literal key
+  values, so it cannot name them. Carrying literal keyword values in arg
+  types would allow the precise model. Corpus: two new metabase findings,
+  both adjudicated true positives, an OSS defenterprise stub returning `{}`
+  whose caller does `(pos? (:max-users ..))` unguarded, plus one ductile
+  finding, comment scratch code passing a fn where its call result was
+  meant. The ductile corpus also caught the into seed FP, it needs
+  GITHUB_DUCTILE_PAT and runs as a fourth regression test next to metabase,
+  clerk and the clj-kondo classpath.
 - Vector element types do not flow: `loop`, `doseq` and `for` destructuring
   are untyped, loop also because recur can rebind with other types. A vector
   binding form deliberately gets no init tag, the :vector branch of
