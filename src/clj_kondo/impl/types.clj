@@ -326,6 +326,12 @@
         :quote true
         false)))
 
+(defn known-map-key?
+  "Whether map-key returned an actual key. nil and false are valid keys,
+  compare against the sentinel, not truthiness."
+  [k]
+  (not (identical? ::unknown k)))
+
 (defn map->tag [ctx expr]
   (let [children (:children expr)
         kexprs (take-nth 2 children)
@@ -707,10 +713,13 @@
   key is proven required since its absence crashes the body, otherwise under
   :opt, next to any required keys the destructuring itself established."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i b _ k defaulted]]
-            (let [ts (get @param-infer b)]
+  (reduce (fn [tags [i b _ k defaulted :as entry]]
+            (let [ts (get @param-infer b)
+                  ;; nil and false are valid map keys, a keyed entry is
+                  ;; recognized by shape
+                  keyed? (> (count entry) 3)]
               (if (seq ts)
-                (if k
+                (if keyed?
                   (if-let [spec (when (not-any? map? ts)
                                   (intersect-all ts))]
                     (update tags i (fn [cur]
@@ -848,7 +857,7 @@
                                            (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                                              (format " (%s)" t))
                                            (if k
-                                             (str " for key " k)
+                                             (str " for key " (pr-str k))
                                              "."))}))))
 
 (defn emit-more-input-expected! [ctx call arg]
@@ -870,7 +879,7 @@
                           :end-row (:end-row arg)
                           :end-col (:end-col arg)
                           :type :type-mismatch
-                          :message (str "Missing required key: " k)}))
+                          :message (str "Missing required key: " (pr-str k))}))
 
 (declare lint-map!)
 

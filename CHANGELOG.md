@@ -13,7 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- **BREAKING**: the minimum Clojure version to run clj-kondo on the JVM is now 1.11
+- **BREAKING**: the minimum Clojure version to run clj-kondo on the JVM is now 1.11 (CI tests against 1.11.4)
 - Performance: use a record for bindings, offsetting the cost of the destructuring type features
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
 - Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.

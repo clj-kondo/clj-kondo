@@ -1677,7 +1677,7 @@
     (testing ":syms! and :strs!"
       (assert-submaps2
        '({:file "<stdin>", :row 4, :col 21, :level :error, :message "Missing required key: x"}
-         {:file "<stdin>", :row 5, :col 22, :level :error, :message "Missing required key: y"})
+         {:file "<stdin>", :row 5, :col 22, :level :error, :message "Missing required key: \"y\""})
        (lint! "
 (defn fsym [{:syms! [x]}] x)
 (defn fstr [{:strs! [y]}] y)
@@ -1698,8 +1698,8 @@
               config)))
     (testing "multiple bang modifiers merge"
       (assert-submaps2
-       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"}
-         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: y"})
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: \"y\""}
+         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"})
        (lint! "
 (defn f [{:keys! [a] :strs! [y]}] [a y])
 (f {})"
@@ -1764,7 +1764,7 @@
               config)))
     (testing ":strs and :syms selections"
       (assert-submaps2
-       '({:file "<stdin>", :row 4, :level :error, :message "Missing required key: y"}
+       '({:file "<stdin>", :row 4, :level :error, :message "Missing required key: \"y\""}
          {:file "<stdin>", :row 6, :level :error, :message "Missing required key: s"})
        (lint! "
 (defn fs [{:strs! [y]}] y)
@@ -2132,6 +2132,16 @@
           :message "Expected: string, received: positive integer for key :port"})
        (lint! "(defn cfg [] {:port 1}) (defn f [{:keys [port]}] (subs port 0)) (f (cfg))"
               config)))
+    (testing "nil and false are valid destructuring keys"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{x nil}] (inc x)) (f {nil \"bad\"})" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{x false} {false \"bad\"}] (inc x))" config))
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: nil"})
+       (lint! "(defn f [{x nil}] (inc x)) (f {})" config)))
     (testing "a let-bound literal in the same scope points at the offending value"
       (assert-submaps2
        '({:row 1 :col 44 :message "Expected: number, received: string."})

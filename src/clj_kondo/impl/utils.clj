@@ -56,6 +56,12 @@
 (def ^:private binding-basis
   (map clojure.core/keyword (Binding/getBasis)))
 
+(def ^:private meta-shielded-binding-fields
+  ;; user metadata must not overwrite the record's own fields, e.g.
+  ;; ^{:name "hacked" :filename "evil.clj"}. :derived-location is the
+  ;; exception, hook postprocessing legitimately sets it in meta
+  (remove #{:derived-location} binding-basis))
+
 (defn merge-binding-meta
   "Merges meta keys beyond a Binding's own fields into binding `v`:
   :user-meta, :clj-kondo/skip-reg-binding or the generated flag ride along.
@@ -63,7 +69,7 @@
   [v m]
   (if (and (= 4 (count m)) (:row m))
     v
-    (merge v (dissoc m :row :col :end-row :end-col :tag))))
+    (merge v (apply dissoc m meta-shielded-binding-fields))))
 
 (defmacro binding-rec
   "Builds a Binding record positionally at compile time, avoiding an

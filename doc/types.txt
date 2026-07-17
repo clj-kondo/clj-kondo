@@ -82,8 +82,8 @@ test-all-vars {1 {:ret :nil}}
 run-all-tests {1 {:args [:regex]}}
 file-position {1 {:ret :vector, :args [:int]}}
 join-fixtures {1 {:args [:seqable]}}
-file-and-line {2 {:ret #{{:type :map, :val {:file {:row 344, :end-row 344, :col 14, :end-col 17, :tag :nil}, :line {:row 344, :end-row 344, :col 24, :end-col 27, :tag :nil}}, :row 344, :col 7, :end-row 344, :end-col 28} {:type :map, :val {:file {:row 343, :end-row 343, :col 16, :end-col 32}, :line {:row 343, :end-row 343, :col 39, :end-col 57}}, :row 343, :col 9, :end-row 343, :end-col 58}}, :args [nil :number]}}
-stacktrace-file-and-line {1 {:ret #{{:type :map, :val {:file {:row 350, :end-row 350, :col 14, :end-col 30}, :line {:row 350, :end-row 350, :col 37, :end-col 55}}, :row 350, :col 7, :end-row 350, :end-col 56} {:type :map, :val {:file {:row 351, :end-row 351, :col 12, :end-col 15, :tag :nil}, :line {:row 351, :end-row 351, :col 22, :end-col 25, :tag :nil}}, :row 351, :col 5, :end-row 351, :end-col 26}}, :args [:seqable]}}
+file-and-line {2 {:ret #{{:type :map, :val {:file {}, :line {}}, :row 343, :col 9, :end-row 343, :end-col 58} {:type :map, :val {:file {:tag :nil}, :line {:tag :nil}}, :row 344, :col 7, :end-row 344, :end-col 28}}, :args [nil :number]}}
+stacktrace-file-and-line {1 {:ret #{{:type :map, :val {:file {}, :line {}}, :row 350, :col 7, :end-row 350, :end-col 56} {:type :map, :val {:file {:tag :nil}, :line {:tag :nil}}, :row 351, :col 5, :end-row 351, :end-col 26}}, :args [:seqable]}}
 compose-fixtures {2 {:ret :fn}}
 assert-predicate {2 {:args [nil :seqable]}}
 function? {1 {:ret #{:nil :boolean}}}
@@ -116,7 +116,7 @@ naive-seq-reduce {3 {:args [:seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.junit.transit.json  ===
 escape-xml {1 {:args [:seqable]}}
-suite-attrs {2 {:ret #{{:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}, :package {}}, :row 101, :col 7, :end-row 101, :end-col 37} {:type :map, :val {:name {:row 99, :end-row 99, :col 22, :end-col 31}}, :row 102, :col 7, :end-row 102, :end-col 12}}}}
+suite-attrs {2 {:ret #{{:type :map, :val {:name {}}, :row 102, :col 7, :end-row 102, :end-col 12} {:type :map, :val {:name {}, :package {}}, :row 101, :col 7, :end-row 101, :end-col 37}}}}
 start-suite {1 nil}
 failure-el {3 nil}
 message-el {4 nil}
@@ -254,7 +254,7 @@ alt-impl {3 {:ret :associative}}
 pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 regex-spec-impl {2 nil}
 merge-spec-impl {3 {:args [:seqable :seqable]}}
-explain-data* {5 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :end-row 221, :col 19, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :end-row 222, :col 15, :end-col 19}, :value {:row 223, :end-row 223, :col 16, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
+explain-data* {5 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {}, :value {}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 add-ret {3 nil}
 and-k-gen {1 {:args [:seqable]}}
 assert* {2 nil}
@@ -280,7 +280,7 @@ rep+impl {2 nil}
 deriv {2 nil}
 exercise-fn {1 nil, 2 nil}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq, :args [nil nil #{:string :array :nil :set :ilookup :map}]}}
-explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:row 221, :end-row 221, :col 19, :end-col 24, :tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {:row 222, :end-row 222, :col 15, :end-col 19}, :value {:row 223, :end-row 223, :col 16, :end-col 17}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
+explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {}, :value {}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 tuple-impl {2 {:args [:seqable :seqable]}, 3 {:args [:seqable :seqable]}}
 multi-spec-impl {3 {:args [nil :ideref]}, 4 {:args [nil :ideref]}}
 conform {2 nil}
@@ -298,7 +298,7 @@ alt* {3 nil}
 macroexpand-check {2 nil}
 explain-str {2 {:ret :nilable/string}}
 with-gen {2 nil}
-rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {:row 1406, :col 30, :end-row 1406, :end-col 50, :tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
+rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {:tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
 op-describe {1 nil}
 describe {1 nil}
 explain-1 {6 nil}
@@ -307,7 +307,7 @@ re-gen {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 filter-alt {4 {:ret #{:vector}}}
 call-valid? {3 {:ret #{:nil :boolean}}}
 op-unform {2 nil}
-rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {:row 1406, :col 30, :end-row 1406, :end-col 50, :tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:row 1404, :end-row 1404, :col 19, :end-col 24, :tag :keyword}, :p2 {:row 1404, :end-row 1404, :col 30, :end-col 32}, :splice {:row 1404, :end-row 1404, :col 42, :end-col 48}, :forms {:row 1404, :end-row 1404, :col 57, :end-col 61}, :id {:row 1404, :end-row 1404, :col 66, :end-col 93}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
+rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {:tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
 maybe-impl {2 {:ret :associative}}
 validate-fn {3 nil}
 

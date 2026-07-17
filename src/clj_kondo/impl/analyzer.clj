@@ -454,9 +454,10 @@
                                            [req (merge sel (destructuring-keys ctx k key-name (:children v)))]
                                            ;; k is a binding form, v its lookup key
                                            (nil? key-name)
-                                           [req (if-let [mk (types/map-key ctx v)]
-                                                  (assoc sel mk :any)
-                                                  sel)]
+                                           [req (let [mk (types/map-key ctx v)]
+                                                  (if (types/known-map-key? mk)
+                                                    (assoc sel mk :any)
+                                                    sel))]
                                            :else [req sel])))
                                  [{} {}]
                                  kvs)]
@@ -571,13 +572,14 @@
                          :else
                          ;; k is a binding form, v its lookup key
                          (let [mk (types/map-key ctx v)
-                               child-opts (if-let [vt (when mk
+                               known-key? (types/known-map-key? mk)
+                               child-opts (if-let [vt (when known-key?
                                                         (types/destructured-key-tag
                                                          form-tag mk (contains? or-names (:value k))))]
                                             (assoc opts :tag vt)
                                             opts)
                                bnds (extract-bindings ctx k scoped-expr child-opts)]
-                           (when (and mk (utils/symbol-token? k))
+                           (when (and known-key? (utils/symbol-token? k))
                              (when-let [b (some-> bnds first val)]
                                (vswap! key-bindings conj
                                        [mk b (contains? or-names (:name b))])))

@@ -135,14 +135,15 @@
   return's entry positions have no consumer: findings about resolved values
   report at the call site, and serializing them only grows the cache."
   [t]
-  (if (and (map? t) (:val t))
-    (update t :val update-vals
-            (fn [e]
-              (let [e (dissoc e :row :col :end-row :end-col)]
-                (if (:tag e)
-                  (update e :tag strip-positions)
-                  e))))
-    t))
+  (cond (set? t) (into #{} (map strip-positions) t)
+        (and (map? t) (:val t))
+        (update t :val update-vals
+                (fn [e]
+                  (let [e (dissoc e :row :col :end-row :end-col)]
+                    (if (:tag e)
+                      (update e :tag strip-positions)
+                      e))))
+        :else t))
 
 (defn not-empty-arity [m]
   (when (and m

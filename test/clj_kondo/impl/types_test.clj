@@ -77,6 +77,11 @@
       (testing (format "intersect is idempotent for %s" a)
         (is (= (norm a) (norm (types/intersect a a))))))))
 
+(deftest strip-positions-test
+  (is (= #{{:type :map :val {:x {:tag :string}}} :nil}
+         (types-utils/strip-positions
+          #{{:type :map :val {:x {:row 1 :col 2 :tag :string}}} :nil}))))
+
 (deftest trim-trailing-nils-test
   (is (= [] (types/trim-trailing-nils [])))
   (is (= [] (types/trim-trailing-nils [nil nil])))
