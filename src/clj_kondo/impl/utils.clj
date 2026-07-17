@@ -75,6 +75,15 @@
                        `(clojure.core/get ~msym ~k)))
                    binding-basis)))))
 
+(defn merge-binding-meta
+  "Merges meta keys beyond a Binding's own fields into binding `v`:
+  :user-meta, :clj-kondo/skip-reg-binding or the generated flag ride along.
+  Meta that is exactly the four positions has nothing to add."
+  [v m]
+  (if (and (= 4 (count m)) (:row m))
+    v
+    (merge v (dissoc m :row :col :end-row :end-col :tag))))
+
 (let [not-found (Object.)]
   (defn select-keys
     "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys

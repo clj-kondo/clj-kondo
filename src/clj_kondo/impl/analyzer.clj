@@ -318,12 +318,7 @@
                                                :filename (:filename ctx)
                                                :tag t
                                                :auto-resolved (:namespaced? expr)})
-                         ;; meta beyond the positions, e.g. :user-meta,
-                         ;; :clj-kondo/skip-reg-binding or the generated flag,
-                         ;; rides along
-                         v (if (and (= 4 (count m)) (:row m))
-                             v
-                             (merge v (dissoc m :row :col :end-row :end-col :tag)))
+                         v (utils/merge-binding-meta v m)
                          v (cond-> v
                              (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                              (assoc :required true)
@@ -354,9 +349,7 @@
                                            :keyword k
                                            :filename (:filename ctx)
                                            :auto-resolved (:namespaced? expr)})
-                     v (if (and (= 4 (count m)) (:row m))
-                         v
-                         (merge v (dissoc m :row :col :end-row :end-col)))
+                     v (utils/merge-binding-meta v m)
                      v (cond-> v
                          (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                          (assoc :required true)
@@ -1747,9 +1740,7 @@
                                  v (utils/binding-rec m
                                                       {:name (:value name-expr)
                                                        :filename (:filename ctx)})
-                                 v (if (and (= 4 (count m)) (:row m))
-                                     v
-                                     (merge v (dissoc m :row :col :end-row :end-col)))
+                                 v (utils/merge-binding-meta v m)
                                  v (cond-> v
                                      (:analyze-locals? ctx)
                                      (-> (assoc :id (swap! (:id-gen ctx) inc)
