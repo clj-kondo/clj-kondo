@@ -1,0 +1,225 @@
+# ADR 0003: Backward parameter-type inference
+
+## Status
+
+Accepted, on branch `spike-backward-infer`, review complete.
+
+## Context
+
+For a user fn the `:args` spec came only from `^type` hints on params. The body
+already constrains the params:
+
+    (defn slugify [s] (subs s 1))   ;; subs proves s is a string
+    (slugify 42)                    ;; was not flagged
+
+Return types were inferred from the body, argument types were not.
+
+## Decision
+
+While a fn body is analyzed, a param passed directly to a callee with a known
+arg spec records that spec as a constraint on the param. After the body the
+constraints are merged into the arity's `:args`, and existing call-site
+checking does the rest.
+
+Rules, in order of precedence:
+
+1. A user config spec for the fn wins. This falls out of the existing lookup
+   order in `lint-arg-types`: config, then built-in, then `:arities`. A
+   config-specced arity is also skipped at analysis time, so no inference work
+   or cached `:args` for it at all. Matters for malli-style generated configs
+   that spec whole codebases. Unspecced sibling arities still infer.
+2. A hard `^Type` hinted param is not inferred. A nilable hint is sugar for a
+   union (`^String` means `#{:nil :string}`) and is seeded as an ordinary
+   constraint, so the upgrade to the non-nil tag when the body proves a non-nil
+   use, and the fallback to the declaration when nothing resolves, both emerge
+   from rule 3's intersection. A hint conflicting with the body leaves callers
+   unchecked, and the body itself is flagged at the contradiction by the
+   ordinary call-site check.
+3. Constraints intersect to the most specific union: keywords and union sets
+   normalize to sets, `intersect` keeps the maximal named types implying both
+   sides, an
+   empty intersection is a conflict and proves nothing, a partial intersection is a set, which
+   is a legal spec. So `(defn f [x] (symbol x) (contains? x 1))` infers exactly
+   `#{:string}`, the intersection of the two unions. A param whose only
+   constraint is a `{:op :keys ..}` map spec passes it through verbatim, so
+   wrappers propagate required keys from config specs. Map-shaped constraints
+   have no intersection, mixed with others they are parked in `{:op :and :specs ..}`
+   and resolved when the cache is synced, where unresolvable members
+   contribute nothing.
+4. A conditionally guarded usage proves nothing: a usage inside a conditional
+   branch
+   (`if`, `if-not`, `when`, `when-not`, `cond`, `condp`, `case`, `and`, `or`,
+   `if-let`, `when-let`, `if-some`, `when-some`) is skipped via a branch
+   count on the ctx. What always evaluates stays on the spine: the first
+   operand of `and` and `or`, the first `cond` test, and the `condp` pred and
+   dispatch expr. `some->` and `some->>` expand honestly via
+   `macroexpand/expand-some->` to `(let [g init] (when (some? g) (-> g ..)))`,
+   so the initial expression is spine and the threaded forms are guarded, with
+   no inference special case. An unresolved call could be a macro, so its args
+   count as a conditional branch too, like a when body. A user config spec
+   covering an arity suppresses inference for it, including coverage through
+   the `:varargs` fallback, mirroring spec lookup at call sites. Only the body's unconditional
+   spine constrains, and a spine usage constrains even when the param is
+   type-tested elsewhere, the use runs regardless:
+   `(defn f [x] (when (nil? x) x) (subs x 1))` proves `x` is a string, so
+   `(f nil)` is flagged, it throws. Type predicates need no special handling
+   for inference, their arg spec is `:any` and records nothing. An earlier
+   revision marked predicate-tested params `:poly` (never infer). That masked
+   the case above and only protected type dispatch through unresolved macros,
+   which the branch treatment of unresolved calls now covers structurally.
+   Narrowed usages need no separate skip, narrowing only happens in branches.
+   If spine narrowing ever exists (assert, :pre, guard clauses that throw), a
+   narrowed spine usage should constrain: the guard enforces the type at
+   runtime, so it is the contract, and :pre could even seed inference
+   directly. Reachability is a single `:branch-count` int on the ctx, bumped
+   on entering conditionally evaluated code. Each fn entry adds its params to
+   the `:param-infers` map with the count at that point as their mark, and a
+   usage constrains only while the count still equals the mark, meaning no
+   conditional was crossed since that fn's entry on this descent path. So a
+   nested fn's own params infer regardless of enclosing conditionals, a usage
+   of an enclosing fn's param in the nested body still constrains it, closing
+   over a param is using it, and a fn created inside a branch, or a guarded
+   usage inside the fn, proves nothing about the outer param. Settled
+   empirically: both including and excluding nested-fn usages produced zero
+   corpus deltas, so the version that catches
+   `(defn f [x] #(subs x 1)) (f 42)` at write time won.
+5. `:char-sequence` constraints propagate on both platforms. The JVM impls
+   coerce via `.toString`, so a symbol into `str/replace` happens to work
+   there, but the clojure.string ns docstring (design note 4) documents the
+   contract as CharSequence, and the CLJS impls throw or, for `ends-with?`,
+   return a wrong answer silently. Provable means provable by contract. An
+   earlier revision skipped these constraints on `:clj` and was reverted.
+
+## The trigger point
+
+Inference triggers where a local usage is analyzed, not by scanning call
+arguments. `analyze-call` attaches `::types/infer-call [ns name arity]` to the
+metadata of the callstack entry it pushes, for resolved calls in fn bodies with
+inferable params. At the single place where a token resolves to a binding
+(usages.clj, next to `reg-used-binding!`), the binding is a direct argument of
+an inference-eligible call exactly when the callstack head carries that key,
+and the argument index is the current `:arg-types` count.
+`types/infer-local-usage!` classifies the callee and records the constraint.
+This keeps local recognition structural: `(var x)` and quoted forms never reach
+the usage path, a local inside a collection argument sits under a `[nil
+:vector]` head with no key, and there is no stored state to go stale.
+
+One callstack wart surfaced: `analyze-hof` pushes the hof'd fn as a
+pseudo-frame ((map inc xs) analyzes under a pretend `[clojure.core inc]`
+frame), shadowing the hof call's own entry while the remaining args are still
+positionally the hof's args. The pseudo-frame carries the previous head's
+`::types/infer-call` forward. Longer term callstack entries could become maps,
+making this key and the pseudo-frame marking plain data (queued as its own
+refactor, 65 consumer sites, needs benching since entry matching is hot).
+
+Two earlier revisions: a call-site hook scanning argument tokens syntactically,
+and a ctx-level descriptor with a memoized classification. All three produced
+identical behavior and corpus results. The head-meta version is the smallest
+and structurally soundest, classification is a few map lookups so the memo was
+not worth its volatile.
+
+## Transitive inference
+
+`(defn foo [x] (bar x))` constrains `x` by whatever `bar` requires, including
+when `bar`'s own params were inferred. A call to a spec-less resolved user fn
+records a deferred `{:op :arg-spec-of :ns .. :name .. :arity .. :arg-idx ..}`
+constraint. Constraints with deferred or map-shaped members are stored as
+`{:op :and :specs [..]}` in `:args`, joining the existing spec operator family
+(`:rest`, `:keys`). The specs vector is insertion ordered with record-time
+dedup, for deterministic output. When the cache is synced,
+`types/resolve-inferred-arg-types` resolves each `{:op :and}` entry to a
+concrete spec via `types/resolve-inferred-spec`: look up the callee's `:args`
+in idacs (possibly itself inferred, so chains), guard cycles with a seen set,
+intersect the contributions. This is the twin of `resolve-return-types`, which
+flattens deferred `{:call ..}` return tags in the same `update-defs` walk, and
+it keeps an invariant: the cached `:args`/`:ret` vocabulary is plain tags plus
+`:rest` and `:keys`, so older versions read caches written by newer ones. An
+earlier revision resolved lazily in the linters phase, which leaked
+`{:op :and}` into the cache and made older binaries warn
+"No matching clause: :and" per affected call. The spec op dispatch in
+`lint-arg-types` now also skips unknown ops instead of throwing, so future
+vocabulary extensions degrade to unchecked args.
+
+Cross-namespace chains still resolve when linting a single file against a warm
+cache, the editor scenario: the callee's cached spec is already concrete, the
+caller's deferred constraint resolves against it at sync time. A cached spec
+is a snapshot, it updates when its own namespace is relinted, same staleness
+contract as cached return types and arities.
+
+## Performance
+
+Metabase src, in-process, min of 7 runs, interleaved with master
+(benchmarks/bench.clj, same methodology as ADR 0001):
+
+| | min | median | alloc |
+|---|---|---|---|
+| master | 3312ms | 3428ms | 3561.6MB |
+| this branch | 3301ms | 3393ms | 3683.8MB |
+
+Final numbers, measured on the finished branch: branch-count reachability,
+cache-sync resolution, the honest some-> expansion and the 1.13 built-in
+cache. Wall clock within noise, +3.4% allocation. Spec and predicate lookups
+only run when a local actually appears as a direct argument.
+
+## Corpus results
+
+Fourteen findings on the regression corpora, all metabase, all contract
+violations per the built-in specs, none crashing at runtime: three
+char-sequence findings (a `^Character` into ring's `url-encode` two hops
+through `str/replace`, symbols into a `str/replace` helper), four
+keyword-family (`(keyword {})` and `(keyword nil)` one hop out), six
+get-family (metabase's map-or-id idiom, ids into fns whose spine `get`s the
+argument), one nil into an associative-strict op. The get-family findings
+proved actionable at every site: callers over-narrowing maps they already held
+via `u/the-id`, or a callee hiding type dispatch behind `get`'s totality.
+Zero mechanical false positives, two `intersect` implementation bugs were
+caught by 32 interim corpus findings and fixed with regression tests.
+Earlier iterations without rule 4 produced 76 findings, dominated by
+guarded-polymorphic fns like metabase's `js=`. Committed code has survivorship
+bias against the crashing bug class this catches, unconditional param misuse
+fails on first call, so much of the feature's value is at write time in the
+editor.
+
+## Spec strictness under propagation
+
+Inference amplifies spec opinions to callers, which forces per-spec rulings.
+The dividing principle: runtime tolerance earns a spec slot when core's own
+code or the documented contract relies on it, implementation fall-through does
+not. So `contains?` gained `:nil` (clojure.core nil-puns it in `ns-resolve`),
+while `get` stays strict (numbers hit RT/get's return-nil-forever fall-through,
+nothing in core relies on it) and the char-sequence fns stay strict (the
+clojure.string ns docstring names CharSequence as the contract). Corpus
+findings from strict specs proved actionable: callers over-narrowing values
+they already held, or callees hiding a type dispatch behind a total function
+(metabase's map-or-id fns dispatching via `get`'s nil return). The right home
+for such declared polymorphism is a per-fn config spec, rule 1.
+
+## Caveats
+
+- `cond`-style branch suppression is per-form. Unresolved calls count as
+  branches, but a resolved macro analyzed through the generic catch-all has its
+  args treated as evaluated code, consistent with how call-site checking
+  already treats macro args.
+- The `{:op :and ..}` entries enlarge cached `:arities` slightly.
+- The param-infer atoms key on binding maps. Fine today: the same long-lived
+  objects are looked up repeatedly, hasheq is cached after the first hash, and
+  the maps hold a handful of entries. If bindings ever become a record, key on
+  an int `:id` field instead (`:id-gen` exists but only under
+  `:analyze-locals?`).
+- Memoizing the lazy resolutions (ret tags, inferred args) was tried and
+  dropped: -5% time and -6% alloc on a synthetic 5000-call-site hot fn, noise
+  on metabase. Chains are a few map lookups deep, there is little to save.
+  Revisit only if a real profile shows resolution.
+
+## Future work
+
+- Destructured params: `(defn foo [{:keys [a]}] (inc a))` can infer a map
+  param spec `{:op :keys :opt {:a :number}}`. The pieces mostly exist:
+  `lint-map!` checks such specs at call sites and `extract-bindings` already
+  feeds `:keys-spec` into `:args` for the CLJ-2961 required-keys work. New
+  part: collect destructured key bindings into param-infer with a
+  [param-idx key] path and merge constraints into the keys spec. Start with
+  `:opt` plus a type. An unconditional use also proves the key required
+  (missing means nil and a crash), so promoting to `:req` is a candidate
+  second step. Direct keyword constraints only at first, no deferred entries
+  inside map specs.

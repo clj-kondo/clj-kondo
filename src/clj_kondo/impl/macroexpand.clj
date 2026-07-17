@@ -86,6 +86,26 @@
                                   (str resolved-as-name " requires even number of clauses"))))
         ret))))
 
+(defn expand-some->
+  "Expands some-> and some->>. The initial expression evaluates
+  unconditionally, the threaded forms are nil-guarded."
+  [_ctx expr resolved-as-name]
+  (let [[_ start-expr & forms] (:children expr)]
+    (when start-expr
+      (let [thread-sym (case resolved-as-name
+                         some-> 'clojure.core/->
+                         some->> 'clojure.core/->>)
+            g (with-meta-of (token-node (gensym))
+                (with-meta start-expr (assoc (meta start-expr) :clj-kondo.impl/generated true)))]
+        (list-node
+         [(token-node 'clojure.core/let)
+          (vector-node [g start-expr])
+          (if (seq forms)
+            (list-node [(token-node 'clojure.core/when)
+                        (list-node [(token-node 'clojure.core/some?) g])
+                        (list-node (list* (token-node thread-sym) g forms))])
+            g)])))))
+
 (defn expand-doto [_ctx expr]
   (when-let [children (next (:children expr))]
     (let [[x & forms] children
