@@ -252,12 +252,17 @@ access on the call itself.
   currently dropped at merge, an `:or` default value could be checked
   against the key's inferred spec, and a definition-site style warning could
   suggest `:keys!` for a proven-required key once 1.13 adoption exists.
-- Known map types are open: a missing key resolves to unknown, not to
-  provable nil, so `(inc (:y {}))` and its destructured equivalents stay
-  quiet. Closing provably complete maps, literals and single-literal-return
-  fns, would be sound and catch NPEs, but ret maps built via merge or
-  conditional assoc may under-approximate their keys, so this needs corpus
-  adjudication first.
+- Map literals the user wrote are closed: a missing key is provably nil, in
+  direct keyword access, chains, destructuring and fn return maps, and
+  keyword access on provable nil is nil. Only literals produce `:val` map
+  types, so completeness is exact; maps built via merge, assoc or branching
+  get no `:val` and stay open. A generated literal, e.g. a hook's
+  placeholder `{}` that metabase's defendpoint binds params against, is
+  marked `:open` in `map->tag` and proves nothing by absence, detected by
+  the generated flag or missing location, and `:or`-defaulted bindings get
+  no tag from the init at all. Corpus: two new metabase findings, both
+  adjudicated true positives, an OSS defenterprise stub returning `{}`
+  whose caller does `(pos? (:max-users ..))` unguarded.
 - Vector element types do not flow: `loop`, `doseq` and `for` destructuring
   are untyped, loop also because recur can rebind with other types. A vector
   binding form deliberately gets no init tag, the :vector branch of

@@ -325,8 +325,15 @@
                        ;; NOTE: be careful to not include any non-serializable data here, see issue #2165
                        (cond-> (select-keys m [:row :end-row :col :end-col])
                          t (assoc :tag t)))) mvals)]
-    {:type :map
-     :val (zipmap ks vtags)}))
+    (cond-> {:type :map
+             :val (zipmap ks vtags)}
+      ;; a generated literal, e.g. a hook's placeholder map, is no evidence
+      ;; of absence: only a map the user wrote is closed
+      (let [m (meta expr)]
+        (or (:clj-kondo.impl/generated expr)
+            (:clj-kondo.impl/generated m)
+            (not (:row m))))
+      (assoc :open true))))
 
 (defn called-arity [arities arity]
   (or (get arities arity)
@@ -383,11 +390,20 @@
                                                         nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
-                  (if (:req t)
-                    {:tag (get (:req (:tag arg-type))
+                  (cond (:req t)
+                        {:tag (get (:req (:tag arg-type))
                                nm)}
-                    (when-let [v (:val t)]
-                      {:tag (get v nm)}))))))))))
+                        ;; keyword access on provable nil is nil
+                        (identical? :nil t)
+                        {:tag :nil}
+                        :else
+                        (when-let [v (:val t)]
+                          ;; a closed literal map without the key provably
+                          ;; yields nil. A present key with an unknown value
+                          ;; type stays unknown
+                          {:tag (if-let [e (find v nm)]
+                                  (val e)
+                                  (when-not (:open t) :nil))}))))))))))
 
 (defn- array-class-literal? [sym]
   (when (and (symbol? sym) (namespace sym))

@@ -2106,7 +2106,21 @@
        (lint! "(when-let [x (subs \"ab\" 0)] (inc x))" config)))
     (testing "a vector binding form does not leak the init tag onto its elements"
       (is (empty? (lint! "(defn ft [] (when true [1 \"x\"])) (defn go [s] (when-let [[i _] (ft)] (subs s 0 i)))"
-                         config))))))
+                         config))))
+    (testing "a key missing from a closed literal map is provably nil"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(inc (:y {}))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(defn cfg [] {}) (defn go [] (let [{{:keys [y]} :inner} (cfg)] (inc y)))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(inc (:b (:a {})))" config)))
+    (testing "an :or default keeps a missing key unknown"
+      (is (empty? (lint! "(let [{:keys [y] :or {y 0}} {}] (inc y))" config))))
+    (testing "a present key with an unknown value type stays unknown"
+      (is (empty? (lint! "(defn f [x] (let [{:keys [a]} {:a x}] (inc a)))" config))))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

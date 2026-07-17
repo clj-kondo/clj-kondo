@@ -49,13 +49,22 @@
                        (when-let [t (:type arg-type)]
                          (if (identical? t :map)
                            (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
-                             (let [resolved-tag (-> arg-type :val (get kw-call) :tag)]
+                             ;; a known literal map without the key provably
+                             ;; yields nil, and any deeper lookup on nil stays nil
+                             (let [entry (find (:val arg-type) kw-call)
+                                   closed? (not (:open arg-type))
+                                   resolved-tag (if entry
+                                                  (:tag (val entry))
+                                                  (when closed? :nil))]
                                (cond
                                  (and rest-kw-calls
                                       (= :map (:type resolved-tag)))
                                  (resolve-arg-type idacs
                                                    (assoc resolved-tag :kw-calls rest-kw-calls)
                                                    seen-calls)
+
+                                 (nil? entry)
+                                 (when closed? :nil)
 
                                  rest-kw-calls
                                  nil
@@ -82,13 +91,20 @@
                                  (if-let [kw-calls (:kw-calls call)]
                                    (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
-                                           resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
+                                           entry (find (:val resolved-arg-type) kw-call)
+                                           closed? (not (:open resolved-arg-type))
+                                           resolved-tag (if entry
+                                                          (:tag (val entry))
+                                                          (when closed? :nil))]
                                        (cond
                                          (and rest-kw-calls
                                               (= :map (:type resolved-tag)))
                                          (resolve-arg-type idacs
                                                            (assoc resolved-tag :kw-calls rest-kw-calls)
                                                            seen-calls)
+
+                                         (nil? entry)
+                                         (when closed? :nil)
 
                                          rest-kw-calls
                                          nil

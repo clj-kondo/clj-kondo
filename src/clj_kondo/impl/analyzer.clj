@@ -439,11 +439,17 @@
                val-tags (when (identical? :map (:type form-tag))
                           (:val form-tag))
                deferred-call (:call form-tag)
-               key-val-tag (fn [dk]
-                             (cond val-tags (some-> (get val-tags dk) :tag)
-                                   (and deferred-call (keyword? dk))
-                                   {:call (assoc deferred-call :kw-calls
-                                                 ((fnil conj []) (:kw-calls deferred-call) dk))}))
+               ;; a defaulted binding's runtime value may be the :or default,
+               ;; so it gets no tag from the init. A known literal map without
+               ;; the key provably yields nil
+               key-val-tag (fn [dk defaulted]
+                             (when-not defaulted
+                               (cond val-tags (if-let [e (find val-tags dk)]
+                                                (:tag (val e))
+                                                (when-not (:open form-tag) :nil))
+                                     (and deferred-call (keyword? dk))
+                                     {:call (assoc deferred-call :kw-calls
+                                                   ((fnil conj []) (:kw-calls deferred-call) dk))})))
                opts (dissoc opts :allow-amp :namespaced-map :tag)
                kvs (partition 2 (:children expr))
                select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
@@ -514,7 +520,10 @@
                                                  :else
                                                  (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
                                                             (destructuring-key ctx modifier-ns key-name child))
-                                                       child-opts (if-let [vt (when dk (key-val-tag dk))]
+                                                       bname (or (:value child)
+                                                                 (some-> (:k child) name symbol))
+                                                       child-opts (if-let [vt (when dk
+                                                                                (key-val-tag dk (contains? or-names bname)))]
                                                                     (assoc opts :tag vt)
                                                                     opts)
                                                        bnds (extract-bindings ctx child scoped-expr child-opts)]
@@ -570,7 +579,8 @@
                          :else
                          ;; k is a binding form, v its lookup key
                          (let [mk (types/map-key ctx v)
-                               child-opts (if-let [vt (when mk (key-val-tag mk))]
+                               child-opts (if-let [vt (when mk
+                                                        (key-val-tag mk (contains? or-names (:value k))))]
                                             (assoc opts :tag vt)
                                             opts)
                                bnds (extract-bindings ctx k scoped-expr child-opts)]
