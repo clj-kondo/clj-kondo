@@ -694,6 +694,26 @@
   :langs (),
   :message "Unquote (~) not syntax-quoted",
   :row 97}
+ {:end-row 214,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 21,
+  :end-col 30,
+  :langs (),
+  :message "Expected: number, received: nil.",
+  :row 214}
+ {:end-row 220,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 70,
+  :end-col 79,
+  :langs (),
+  :message "Expected: number, received: nil.",
+  :row 220}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,

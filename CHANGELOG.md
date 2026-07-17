@@ -13,7 +13,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
+- **BREAKING**: the minimum Clojure version to run clj-kondo on the JVM is now 1.11 (CI tests against 1.11.4)
+- Performance: use a record for bindings, offsetting the cost of the destructuring type features
+- Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
+- Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.
+- Type checker: a key missing from a map literal is provably nil, also through destructuring, keyword access chains and function return maps. E.g. `(inc (:y {}))` will warn. A key with an `:or` default, generated maps in macro expansions, maps with dynamic keys, and maps that went through `into` or an `assoc` with a dynamic key are exempt.
+- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 155 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
 - Type checker: `contains?` accepts nil as its collection argument
 - Type checker: infer the type of a function param from how it is used in the body. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn, since the evidence `(subs s 1)` tells us that `s` should be a string.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`

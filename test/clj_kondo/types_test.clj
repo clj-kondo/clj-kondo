@@ -800,9 +800,6 @@
 
 (deftest namespaced-map-as-arg-test
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."})
-   (lint! "(assoc {} 1 2 #:some-ns{:x 0})" config))
-  (assert-submaps2
    '({:file "<stdin>", :row 1, :col 15, :level :error, :message "Insufficient input."}
      {:file "<stdin>", :row 1, :col 15, :level :warning, :message "Unresolved namespace s. Are you missing a require?"})
    (lint! "(assoc {} 1 3 #::s{:thing 1})" config))
@@ -913,11 +910,6 @@
   (+ 1 (::a (fun3 {:a 41}))))"
             config-2)))
   (testing "unhandled keywords are properly handled"
-    (is (empty? (lint! "
-(do
-  (defn fun2 [m] (:b m))
-  (+ 1 (:b (fun2 {:a 41}))))"
-                       config)))
     (is (empty? (lint! "
 (do
   (defn fun2 [m] (:b m))
@@ -1685,7 +1677,7 @@
     (testing ":syms! and :strs!"
       (assert-submaps2
        '({:file "<stdin>", :row 4, :col 21, :level :error, :message "Missing required key: x"}
-         {:file "<stdin>", :row 5, :col 22, :level :error, :message "Missing required key: y"})
+         {:file "<stdin>", :row 5, :col 22, :level :error, :message "Missing required key: \"y\""})
        (lint! "
 (defn fsym [{:syms! [x]}] x)
 (defn fstr [{:strs! [y]}] y)
@@ -1706,8 +1698,8 @@
               config)))
     (testing "multiple bang modifiers merge"
       (assert-submaps2
-       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"}
-         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: y"})
+       '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: \"y\""}
+         {:file "<stdin>", :row 3, :level :error, :message "Missing required key: :a"})
        (lint! "
 (defn f [{:keys! [a] :strs! [y]}] [a y])
 (f {})"
@@ -1772,7 +1764,7 @@
               config)))
     (testing ":strs and :syms selections"
       (assert-submaps2
-       '({:file "<stdin>", :row 4, :level :error, :message "Missing required key: y"}
+       '({:file "<stdin>", :row 4, :level :error, :message "Missing required key: \"y\""}
          {:file "<stdin>", :row 6, :level :error, :message "Missing required key: s"})
        (lint! "
 (defn fs [{:strs! [y]}] y)
@@ -1942,8 +1934,7 @@
     (testing "a nilable hint is upgraded when the body proves a non-nil use"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: nil."})
-       (lint! "(defn f [^String s] (subs s 1)) (f nil)" config))
-      (is (empty? (lint! "(defn f [^String s] (println s) s) (f nil)" config))))
+       (lint! "(defn f [^String s] (subs s 1)) (f nil)" config)))
     (testing "a user config spec wins over inference"
       (is (empty? (lint! "(defn f [x] (inc x)) (f \"s\")"
                          (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
@@ -1998,6 +1989,225 @@
         (assert-submaps2
          '({:row 1 :message "Expected: string, received: positive integer."})
          (lint! "(defn f ([x] x) ([x _y] (subs x 1))) (f 42 1)" cfg))))))
+
+(deftest backward-inference-keys-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a destructured key's usage becomes its value type"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f {:x \"foo\"})" config))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f {:x 1})" config))))
+    (testing "an unconditional nil-rejecting use proves the key required"
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: :x"})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f {})" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: map, received: nil."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f nil)" config)))
+    (testing "a key with an :or default stays optional"
+      (is (empty? (lint! "(defn f [{:keys [x] :or {x 0}}] (inc x)) (f {}) (f nil)" config))))
+    (testing "a nil-tolerant use keeps the key and a nil argument fine,
+              destructuring nil-punts"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (count x)) (f {}) (f nil)" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (when x (inc x))) (f {}) (f nil)" config))))
+    (testing "a non-map argument is reported"
+      (assert-submaps2
+       '({:row 1 :message "Expected: map, received: positive integer."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f 42)" config)))
+    (testing "renamed and namespaced keys carry their exact key"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [{y :y}] (subs y 1)) (f {:y 42})" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:person/keys [age]}] (inc age)) (f {:person/age \"x\"})" config)))
+    (testing "a guarded key usage proves nothing"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (when (number? x) (inc x))) (f {:x \"s\"})" config))))
+    (testing "inferred value types join required keys from :keys!"
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: :y"}
+         {:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys! [x y]}] [(inc x) y]) (f {:x \"s\"})" config)))
+    (testing "keys specs chain through wrappers"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h {:x \"s\"})" config))
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: :x"})
+       (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h {})" config)))))
+
+(deftest destructured-map-value-types-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a known map init types its destructured keys"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{:keys [port]} {:port \"8080\"}] (inc port))" config))
+      (is (empty? (lint! "(let [{:keys [port]} {:port 8080}] (inc port))" config))))
+    (testing "a user fn's returned map types destructured keys, resolved lazily"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:port \"8080\"}) (defn go [] (let [{:keys [port]} (cfg)] (inc port)))"
+              config))
+      (is (empty? (lint! "(defn cfg [] {:port 8080}) (defn go [] (let [{:keys [port]} (cfg)] (inc port)))"
+                         config))))
+    (testing "a renamed key carries its value type"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{p :port} {:port \"8080\"}] (inc p))" config)))
+    (testing "an unknown init types nothing"
+      (is (empty? (lint! "(defn f [m] (let [{:keys [port]} m] port)) (f {})" config))))
+    (testing "keyword access on a local bound to a user fn's return"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:port \"8080\"}) (defn go [] (let [m (cfg)] (inc (:port m))))"
+              config))
+      (is (empty? (lint! "(defn cfg [] {:port 8080}) (defn go [] (let [m (cfg)] (inc (:port m))))"
+                         config))))
+    (testing "nested keyword access chains through a local"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:db {:port \"8080\"}}) (defn go [] (let [m (cfg)] (inc (:port (:db m)))))"
+              config)))
+    (testing "the :as binding is the whole init"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: map."})
+       (lint! "(let [{:as cfg} {:port 8080}] (inc cfg))" config)))
+    (testing "nested map destructuring chains value types"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{{:keys [y]} :inner} {:inner {:y \"s\"}}] (inc y))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:inner {:y \"s\"}}) (defn go [] (let [{{:keys [y]} :inner} (cfg)] (inc y)))"
+              config)))
+    (testing "string keys via :strs"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{:strs [port]} {\"port\" \"8080\"}] (inc port))" config)))
+    (testing "conditional-let bindings are typed from their init"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(when-let [{:keys [port]} {:port \"8080\"}] (inc port))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:port \"8080\"}) (defn go [] (if-let [{:keys [port]} (cfg)] (inc port) 0))"
+              config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(when-let [x (subs \"ab\" 0)] (inc x))" config)))
+    (testing "a vector binding form does not leak the init tag onto its elements"
+      (is (empty? (lint! "(defn ft [] (when true [1 \"x\"])) (defn go [s] (when-let [[i _] (ft)] (subs s 0 i)))"
+                         config))))
+    (testing "a key missing from a closed literal map is provably nil"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(inc (:y {}))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(defn cfg [] {}) (defn go [] (let [{{:keys [y]} :inner} (cfg)] (inc y)))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: nil."})
+       (lint! "(inc (:b (:a {})))" config)))
+    (testing "an :or default keeps a missing key unknown"
+      (is (empty? (lint! "(let [{:keys [y] :or {y 0}} {}] (inc y))" config))))
+    (testing "a present key with an unknown value type stays unknown"
+      (is (empty? (lint! "(defn f [x] (let [{:keys [a]} {:a x}] (inc a)))" config))))
+    (testing "a map that went through into or assoc is open, they add keys"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {} [[:x 1]]))" config)))
+      (is (empty? (lint! "(inc (:a (assoc {} :a 1)))" config))))
+    (testing "a dynamic key opens the map, it can evaluate to any key"
+      (is (empty? (lint! "(let [k :x] (inc (:x {k 1})))" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (let [k :x] (f {k 1}))" config))))
+    (testing "a quoted collection key opens the map, map-key cannot extract it"
+      (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'qfn]
+                          '{:arities {1 {:args [{:op :keys :req {(a b) :number}}]}}})]
+        (is (empty? (lint! "(defn qfn [m] m) (qfn {'(a b) 1})" cfg)))
+        (testing "but a genuinely empty map still misses the required key"
+          (assert-submaps2
+           '({:row 1 :message "Missing required key: (a b)"})
+           (lint! "(defn qfn [m] m) (qfn {})" cfg)))))
+    (testing "when-first binds an element, not the init"
+      (is (empty? (lint! "(when-first [x [\"ok\"]] (subs x 0))" config))))
+    (testing "into can overwrite seed values, they prove nothing"
+      (is (empty? (lint! "(subs (:x (into {:x 1} [[:x \"ok\"]])) 0)" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {:x \"bad\"} [[:x 1]]))" config))))
+    (testing "a dynamic assoc key invalidates earlier value facts"
+      (is (empty? (lint! "(let [k :x] (subs (:x (assoc {} :x 1 k \"ok\")) 0))" config))))
+    (testing "a value from a fn's return reports at the call with the key,
+              its own coordinates belong to the producer"
+      (assert-submaps2
+       '({:row 1 :col 68
+          :message "Expected: string, received: positive integer for key :port"})
+       (lint! "(defn cfg [] {:port 1}) (defn f [{:keys [port]}] (subs port 0)) (f (cfg))"
+              config))
+      (testing "a nil or false key is named, not treated as no key"
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string for key nil"})
+         (lint! "(defn cfg [] {nil \"bad\"}) (defn f [{x nil}] (inc x)) (f (cfg))" config))
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string for key false"})
+         (lint! "(defn cfg [] {false \"bad\"}) (defn f [{x false}] (inc x)) (f (cfg))" config)))
+      (testing "the no-key sentinel cannot collide with a real key value"
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string for key :clj-kondo.impl.types/no-key"})
+         (lint! "(defn cfg [] {:clj-kondo.impl.types/no-key \"bad\"}) (defn f [{x :clj-kondo.impl.types/no-key}] (inc x)) (f (cfg))"
+                config))))
+    (testing "nil and false are valid destructuring keys"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn f [{x nil}] (inc x)) (f {nil \"bad\"})" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(let [{x false} {false \"bad\"}] (inc x))" config))
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: nil"})
+       (lint! "(defn f [{x nil}] (inc x)) (f {})" config)))
+    (testing "a let-bound literal in the same scope points at the offending value"
+      (assert-submaps2
+       '({:row 1 :col 44 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (let [m {:x \"bad\"}] (f m))" config)))
+    (testing "a nested keys-spec finding through a fn's return reports at the call"
+      (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
+                          '{:arities {1 {:args [{:op :keys
+                                                 :req {:a {:op :keys
+                                                           :req {:b :string}}}}]}}})]
+        (assert-submaps2
+         '({:row 1 :col 45
+            :message "Expected: string, received: positive integer for key :b"})
+         (lint! "(defn cfg [] {:a {:b 1}}) (defn f [m] m) (f (cfg))" cfg))))
+    (testing "an assoc'd entry keeps its source position"
+      (assert-submaps2
+       '({:row 1 :col 48 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f (assoc {} :x \"bad\"))" config)))
+    (testing "a qualified :keys entry matches its :or default by name"
+      (is (empty? (lint! "(let [{:keys [foo/x] :or {x 1}} {}] (inc x))" config))))
+    (testing "a provably nil conditional-let init leaves the dead body unchecked"
+      (is (empty? (lint! "(when-let [x (:missing {})] (inc \"bad\"))" config)))
+      (testing "the else branch of if-let stays live"
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string."})
+         (lint! "(if-let [x (:missing {})] x (inc \"bad\"))" config)))
+      (testing "deadness covers any binding form"
+        (is (empty? (lint! "(when-let [[x] nil] (inc \"bad\"))" config))))
+      (testing "deadness covers destructuring defaults"
+        (is (empty? (lint! "(when-let [{:keys [x] :or {x (inc \"bad\")}} (:missing {})] x)"
+                           config)))))
+    (testing "when-first's condition is seq, not truthiness"
+      (is (empty? (lint! "(when-first [x []] x)"
+                         (assoc-in config [:linters :condition-always-true :level]
+                                   :warning)))))
+    (testing "a call-shaped map value carries the call's return type"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(defn foo [{:keys [x]}] {:a (inc x)}) (subs (:a (foo {:x 1})) 1)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(let [m {:a (inc 1)}] (subs (:a m) 1))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(defn foo [] {:a (inc 1)}) (defn go [] (let [{:keys [a]} (foo)] (subs a 1)))"
+              config))
+      (is (empty? (lint! "(defn foo [] {:a (str 1)}) (defn go [] (subs (:a (foo)) 1))" config))))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

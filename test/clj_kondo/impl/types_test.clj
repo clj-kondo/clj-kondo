@@ -46,11 +46,23 @@
   (testing "fix for #1023"
     (is (= #{} (types-utils/union-type)))))
 
+(deftest desugar-nilable-test
+  (is (= #{:nil :string} (types/desugar-nilable :nilable/string)))
+  (is (= :string (types/desugar-nilable :string)))
+  (is (= #{:nil :string} (types/desugar-nilable #{:nil :string})))
+  (testing "a union that would contain :any simplifies to :any"
+    (is (= :any (types/desugar-nilable :nilable/any)))
+    (is (= :any (types/desugar-nilable #{:nil :any})))))
+
 (deftest intersect-test
-  (testing ":any constrains nothing, on either side"
+  (testing "an any spec constrains nothing, on either side, alone or in a union"
     (is (= :long (types/intersect :any :long)))
     (is (= :long (types/intersect :long :any)))
-    (is (= :any (types/intersect :any :any))))
+    (is (= :any (types/intersect :any :any)))
+    (is (= :string (types/intersect #{:nil :any} :string)))
+    (is (= :string (types/intersect :string #{:nil :any})))
+    (is (= :any (types/intersect #{:nil :any} :any)))
+    (is (= :any (types/intersect #{:nil :any} #{:string :any}))))
   (testing "conflicting types intersect to nil"
     (is (nil? (types/intersect :string :number))))
   (let [kts (conj (vec types/known-types) :any)
@@ -64,6 +76,11 @@
     (doseq [a kts]
       (testing (format "intersect is idempotent for %s" a)
         (is (= (norm a) (norm (types/intersect a a))))))))
+
+(deftest strip-positions-test
+  (is (= #{{:type :map :val {:x {:tag :string}}} :nil}
+         (types-utils/strip-positions
+          #{{:type :map :val {:x {:row 1 :col 2 :tag :string}}} :nil}))))
 
 (deftest trim-trailing-nils-test
   (is (= [] (types/trim-trailing-nils [])))
