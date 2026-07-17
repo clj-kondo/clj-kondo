@@ -373,7 +373,9 @@
         (when (and (keyword? nm)
                    (= 1 arg-count))
           (when-let [arg-type (first arg-types)]
-            (let [call* (:call arg-type)]
+            ;; a local tagged with a deferred call, e.g. a binding of a user
+            ;; fn's return, carries the call under its :tag
+            (let [call* (or (:call arg-type) (:call (:tag arg-type)))]
               (if call*
                 {:call (assoc call*
                               ;; build chain of keyword calls

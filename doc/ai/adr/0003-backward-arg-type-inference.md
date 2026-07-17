@@ -241,6 +241,9 @@ leak wholesale to children, the `:select` precedent. A concrete
 init, a user fn's return, defers per key via `:kw-calls`, the same shape
 keyword access on a call records, so lint-time resolution is untouched. The
 `:as` binding gets the whole init tag. An unknown init types nothing.
+Keyword access on a tagged local chases a deferred call under the local's
+:tag, so `(let [m (cfg)] (:port m))` and nested chains resolve like keyword
+access on the call itself.
 
 ## Future work
 

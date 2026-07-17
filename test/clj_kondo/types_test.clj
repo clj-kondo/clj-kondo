@@ -2064,7 +2064,23 @@
        '({:row 1 :message "Expected: number, received: string."})
        (lint! "(let [{p :port} {:port \"8080\"}] (inc p))" config)))
     (testing "an unknown init types nothing"
-      (is (empty? (lint! "(defn f [m] (let [{:keys [port]} m] port)) (f {})" config))))))
+      (is (empty? (lint! "(defn f [m] (let [{:keys [port]} m] port)) (f {})" config))))
+    (testing "keyword access on a local bound to a user fn's return"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:port \"8080\"}) (defn go [] (let [m (cfg)] (inc (:port m))))"
+              config))
+      (is (empty? (lint! "(defn cfg [] {:port 8080}) (defn go [] (let [m (cfg)] (inc (:port m))))"
+                         config))))
+    (testing "nested keyword access chains through a local"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:db {:port \"8080\"}}) (defn go [] (let [m (cfg)] (inc (:port (:db m)))))"
+              config)))
+    (testing "the :as binding is the whole init"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: map."})
+       (lint! "(let [{:as cfg} {:port 8080}] (inc cfg))" config)))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
