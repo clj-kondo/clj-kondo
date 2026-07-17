@@ -2120,7 +2120,19 @@
     (testing "an :or default keeps a missing key unknown"
       (is (empty? (lint! "(let [{:keys [y] :or {y 0}} {}] (inc y))" config))))
     (testing "a present key with an unknown value type stays unknown"
-      (is (empty? (lint! "(defn f [x] (let [{:keys [a]} {:a x}] (inc a)))" config))))))
+      (is (empty? (lint! "(defn f [x] (let [{:keys [a]} {:a x}] (inc a)))" config))))
+    (testing "a call-shaped map value carries the call's return type"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(defn foo [{:keys [x]}] {:a (inc x)}) (subs (:a (foo {:x 1})) 1)" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(let [m {:a (inc 1)}] (subs (:a m) 1))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: number."})
+       (lint! "(defn foo [] {:a (inc 1)}) (defn go [] (let [{:keys [a]} (foo)] (subs a 1)))"
+              config))
+      (is (empty? (lint! "(defn foo [] {:a (str 1)}) (defn go [] (subs (:a (foo)) 1))" config))))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

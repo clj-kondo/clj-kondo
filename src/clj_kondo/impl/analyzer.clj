@@ -3851,10 +3851,16 @@
                      analyzed (analyze-children
                                (-> ctx
                                    mark-non-tail-recur
-                                   (update :callstack #(cons [nil t] %))) children)]
-                 (types/add-arg-type-from-expr ctx (assoc expr
-                                                          :children children
-                                                          :analyzed analyzed))
+                                   (update :callstack #(cons [nil t] %))) children)
+                     expr (assoc expr
+                                 :children children
+                                 :analyzed analyzed)
+                     tag* (types/expr->tag ctx expr)]
+                 ;; a binding or fn body ending in this map reads its type
+                 ;; here, like a call's return, see init-tag
+                 (when-let [id (:id expr)]
+                   (swap! (:calls-by-id ctx) assoc id {:ret tag*}))
+                 (types/add-arg-type-from-expr ctx expr tag*)
                  analyzed))
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
