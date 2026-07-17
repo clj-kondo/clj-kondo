@@ -2006,9 +2006,19 @@
        '({:row 1 :message "Expected: number, received: string."})
        (lint! "(defn f [{:keys [x]}] (inc x)) (f {:x \"foo\"})" config))
       (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f {:x 1})" config))))
-    (testing "an absent key and a nil argument are fine, destructuring nil-punts"
-      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f {})" config)))
-      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f nil)" config))))
+    (testing "an unconditional nil-rejecting use proves the key required"
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: :x"})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f {})" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: map, received: nil."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f nil)" config)))
+    (testing "a key with an :or default stays optional"
+      (is (empty? (lint! "(defn f [{:keys [x] :or {x 0}}] (inc x)) (f {}) (f nil)" config))))
+    (testing "a nil-tolerant use keeps the key and a nil argument fine,
+              destructuring nil-punts"
+      (is (empty? (lint! "(defn f [{:keys [x]}] (count x)) (f {}) (f nil)" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (when x (inc x))) (f {}) (f nil)" config))))
     (testing "a non-map argument is reported"
       (assert-submaps2
        '({:row 1 :message "Expected: map, received: positive integer."})
@@ -2031,7 +2041,9 @@
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: string."})
        (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h {:x \"s\"})" config))
-      (is (empty? (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h nil)" config))))))
+      (assert-submaps2
+       '({:row 1 :message "Missing required key: :x"})
+       (lint! "(defn g [{:keys [x]}] (inc x)) (defn h [m] (g m)) (h {})" config)))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

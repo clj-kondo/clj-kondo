@@ -452,9 +452,16 @@
                                  [{} {}]
                                  kvs)]
            (key-linter/lint-map-keys ctx expr)
-           ;; [map-key binding] per destructured entry, for backward
-           ;; param-type inference, see inferable-params
-           (let [key-bindings (volatile! [])]
+           ;; [map-key binding defaulted] per destructured entry, for backward
+           ;; param-type inference, see inferable-params. A binding with an
+           ;; :or default never proves its key required
+           (let [key-bindings (volatile! [])
+                 or-names (when or?
+                            (into #{}
+                                  (comp (filter (fn [[k _]] (plain-directive? k :or)))
+                                        (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
+                                        (keep :value))
+                                  kvs))]
            (loop [[k v & rest-kvs] (:children expr)
                   res {}]
                (if k
@@ -496,7 +503,8 @@
                                                    (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
                                                      (when-let [dk (destructuring-key ctx modifier-ns key-name child)]
                                                        (when-let [b (some-> bnds first val)]
-                                                         (vswap! key-bindings conj [dk b]))))
+                                                         (vswap! key-bindings conj
+                                                                 [dk b (contains? or-names (:name b))]))))
                                                    (recur (next children) false (merge res bnds))))
                                                res))]
                                    (recur rest-kvs res)))
@@ -546,7 +554,8 @@
                            (when (utils/symbol-token? k)
                              (when-let [mk (types/map-key ctx v)]
                                (when-let [b (some-> bnds first val)]
-                                 (vswap! key-bindings conj [mk b]))))
+                                 (vswap! key-bindings conj
+                                         [mk b (contains? or-names (:name b))]))))
                            (recur rest-kvs (merge res bnds
                                                   {:analyzed (analyze-expression** ctx v)})))))
                  (cond-> res
@@ -711,9 +720,9 @@
                        (if-let [seed (param-seed (:tag b))]
                          (conj acc [i b seed])
                          acc)
-                       (reduce (fn [acc [k b]]
+                       (reduce (fn [acc [k b defaulted]]
                                  (if-let [seed (param-seed (:tag b))]
-                                   (conj acc [i b seed k])
+                                   (conj acc [i b seed k defaulted])
                                    acc))
                                acc
                                (when kbs (nth kbs i nil))))))))))))

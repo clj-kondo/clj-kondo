@@ -223,16 +223,19 @@ renames via `types/map-key`. The pairs travel as `:key-bindings` meta next
 to `:keys-spec`, per param through the arg vector's `:keys-bindings`, into
 `inferable-params`, which emits [index binding seed key] entries. The
 recording side is unchanged, bindings are bindings. At merge, a keyed
-binding's constraints intersect into the value type of its key under `:opt`,
-joining any `:req` keys the CLJ-2961 work established, in which case the
-spec stays non-nilable, nil really is missing required keys. Keys specs
-also chain: `resolve-deferred-arg-spec` passes a callee's `{:op :keys}`
-spec through, so wrappers inherit it.
+binding's constraints intersect into the value type of its key: under `:req`
+when the spec excludes nil and the key has no `:or` default, absence then
+means nil and a crash, so the key is proven required and `(foo* {})` warns
+with a missing required key. Otherwise under `:opt`, joining any `:req` keys
+the CLJ-2961 work established. Any required key makes the spec non-nilable,
+nil really is missing required keys. Keys specs also chain:
+`resolve-deferred-arg-spec` passes a callee's `{:op :keys}` spec through, so
+wrappers inherit it.
 
 ## Future work
 
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
-  currently dropped at merge, and an unconditional key use also proves the
-  key required (missing means nil and a crash), so promoting to `:req` is a
-  candidate.
+  currently dropped at merge, an `:or` default value could be checked
+  against the key's inferred spec, and a definition-site style warning could
+  suggest `:keys!` for a proven-required key once 1.13 adoption exists.

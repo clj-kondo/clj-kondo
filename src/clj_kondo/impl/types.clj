@@ -614,28 +614,43 @@
             (or (intersect acc t) (reduced nil)))
           nil ts))
 
+(defn tag-matches?
+  "Whether a value of tag `t` satisfies keyword-or-union spec `s`."
+  [t s]
+  (if (set? s)
+    (some #(match? t %) s)
+    (match? t s)))
+
 (defn merge-inferred-arg-tags
   "Fills in arg specs for params from their collected constraints: keyword and
   union-set constraints intersect to the most specific union, a conflict proves
   nothing, and constraints with deferred or map-shaped members are stored as
   {:op :and :specs ..}, resolved when the cache is synced, see
   resolve-inferred-arg-types. A single {:op :keys} constraint passes through
-  verbatim. A map-destructured binding's constraints, [i b seed k] entries,
-  become the value type of key `k` in the param's {:op :keys} spec under :opt,
-  next to any required keys the destructuring itself established."
+  verbatim. A map-destructured binding's constraints, [i b seed k defaulted]
+  entries, become the value type of key `k` in the param's {:op :keys} spec:
+  under :req when the spec excludes nil and the key has no :or default, the
+  key is proven required since its absence crashes the body, otherwise under
+  :opt, next to any required keys the destructuring itself established."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i b _ k]]
+  (reduce (fn [tags [i b _ k defaulted]]
             (let [ts (get @param-infer b)]
               (if (seq ts)
                 (if k
                   (if-let [spec (when (not-any? map? ts)
                                   (intersect-all ts))]
                     (update tags i (fn [cur]
-                                     (if (and (map? cur) (identical? :keys (:op cur)))
-                                       (assoc-in cur [:opt k] spec)
-                                       ;; destructuring nil-punts, so nil stays
-                                       ;; a legal argument when no key is required
-                                       {:op :keys :nilable true :opt {k spec}})))
+                                     (let [slot (if (and (map? cur) (identical? :keys (:op cur)))
+                                                  cur
+                                                  ;; destructuring nil-punts, so nil
+                                                  ;; stays a legal argument when no
+                                                  ;; key is required
+                                                  {:op :keys :nilable true})]
+                                       (if (and (not defaulted) (not (tag-matches? :nil spec)))
+                                         (-> slot
+                                             (assoc-in [:req k] spec)
+                                             (dissoc :nilable))
+                                         (assoc-in slot [:opt k] spec)))))
                     tags)
                   (cond
                     (not-any? map? ts)
