@@ -520,7 +520,7 @@
                                                  :else
                                                  (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
                                                             (destructuring-key ctx modifier-ns key-name child))
-                                                       bname (or (:value child)
+                                                       bname (or (some-> (:value child) name symbol)
                                                                  (some-> (:k child) name symbol))
                                                        child-opts (if-let [vt (when dk
                                                                                 (types/destructured-key-tag
@@ -1449,7 +1449,10 @@
             two-forms? (= 2 (count (:children bv)))
             ;; a vector binding form would leak the whole init tag onto its
             ;; elements, see the :vector branch of extract-bindings
+            ;; when-first binds the first element, not the init, so it
+            ;; gets no tag until element types are modeled
             value-id (when (and two-forms?
+                                (not= 'when-first call)
                                 (one-of (some-> bv :children first tag) [:token :map]))
                        (gensym))
             analyzed-condition (analyze-condition (update ctx :callstack conj [:vector])
@@ -1457,7 +1460,20 @@
                                                     value-id (assoc :id value-id)))
             ;; the init's tag types the binding, like in let
             btag (when value-id
-                   (init-tag ctx value-id condition))
+                   (let [t (init-tag ctx value-id condition)]
+                     ;; the body only runs when the value is non-nil, so
+                     ;; strip nil. A provably nil init means a dead body,
+                     ;; which deserves its own warning, not type errors
+                     ;; inside unreachable code
+                     (cond (identical? :nil t) nil
+                           (set? t) (let [t* (disj t :nil)]
+                                      (case (count t*)
+                                        0 nil
+                                        1 (first t*)
+                                        t*))
+                           (and (clojure.core/keyword? t) (types/nilable? t))
+                           (types/unnil t)
+                           :else t)))
             bindings (if two-forms?
                        (extract-bindings (update ctx :callstack conj [:nil :vector])
                                          (-> bv :children first)

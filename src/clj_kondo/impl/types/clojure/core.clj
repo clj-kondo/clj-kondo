@@ -141,11 +141,16 @@
                                 (identical? :map (:type t)))
                          ;; a known assoc'd key extends the seed's :val, the
                          ;; result stays closed. An unknown key could be any
-                         ;; key, that opens the map
+                         ;; key: it opens the map and invalidates earlier
+                         ;; value facts, which later known pairs re-establish
                          (reduce (fn [t [k v]]
                                    (if-some [kv (:value k)]
-                                     (assoc-in t [:val kv] {:tag (:tag v)})
-                                     (cond-> t (:val t) (assoc :open true))))
+                                     (assoc-in t [:val kv]
+                                               (cond-> (select-keys v [:row :col :end-row :end-col])
+                                                 (:tag v) (assoc :tag (:tag v))))
+                                     (cond-> t
+                                       (:val t) (update :val update-vals #(dissoc % :tag))
+                                       true (assoc :open true))))
                                  t
                                  (partition 2 kvs))
                          :associative))
@@ -1063,9 +1068,13 @@
           :fn (fn [args]
                 (let [t (:tag (first args))]
                   (cond (identical? :any t) :coll
-                        ;; into adds entries the seed's :val does not list,
-                        ;; so absence proves nothing
-                        (and (map? t) (:val t)) (assoc t :open true)
+                        ;; into adds entries and can overwrite the seed's:
+                        ;; keys stay present, value facts do not survive,
+                        ;; absence proves nothing
+                        (and (map? t) (:val t))
+                        (-> t
+                            (assoc :open true)
+                            (update :val update-vals #(dissoc % :tag)))
                         :else t)))}
    ;; 6903
    'mapv {:arities {:varargs {:args '[:ifn :seqable {:op :rest

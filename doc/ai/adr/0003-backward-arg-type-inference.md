@@ -245,6 +245,20 @@ Keyword access on a tagged local chases a deferred call under the local's
 :tag, so `(let [m (cfg)] (:port m))` and nested chains resolve like keyword
 access on the call itself.
 
+A second review round hardened the closed-map semantics: a dynamic map key,
+an unquoted symbol or computed form, can evaluate to any key, so such a map
+is open and the dynamic entries never land in `:val`. into can overwrite the
+seed's entries, so its result keeps key presence but drops value facts, and
+a dynamic assoc key does the same for earlier pairs while later known pairs
+re-establish them. assoc'd entries keep their source positions for
+diagnostics. when-first binds an element, not the init, so it gets no tag.
+A qualified `:keys` entry matches its `:or` default by local binding name.
+A nil-testing conditional-let strips nil from the binding's eager tag, and a
+provably nil init leaves the dead body unchecked, the dead-body warning
+stays future work. Known gaps: deferred destructuring resolves keyword keys
+only, `:strs`/`:syms` through a fn return are untyped, and literal value
+tracking covers keyword and string tokens only.
+
 ## Future work
 
 - Destructured params, second steps: constraints on the `:as` binding could

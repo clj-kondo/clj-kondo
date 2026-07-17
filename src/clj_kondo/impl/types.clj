@@ -315,24 +315,43 @@
                ::unknown))
     ::unknown))
 
+(defn static-map-key?
+  "Whether a map key expr evaluates to a statically known value: a
+  self-evaluating token or a quoted form. An unquoted symbol or a computed
+  form can evaluate to any key."
+  [ctx expr]
+  (or (:quoted ctx)
+      (case (tag expr)
+        :token (not (utils/symbol-token? expr))
+        :quote true
+        false)))
+
 (defn map->tag [ctx expr]
   (let [children (:children expr)
-        ks (map #(map-key ctx %) (take-nth 2 children))
+        kexprs (take-nth 2 children)
         mvals (take-nth 2 (rest children))
-        vtags (map (fn [e]
-                     (let [t (expr->tag ctx e)
-                           m (meta e)]
-                       ;; NOTE: be careful to not include any non-serializable data here, see issue #2165
-                       (cond-> (select-keys m [:row :end-row :col :end-col])
-                         t (assoc :tag t)))) mvals)]
+        all-static? (every? #(static-map-key? ctx %) kexprs)
+        entries (map (fn [k e]
+                       (when (static-map-key? ctx k)
+                         (let [mk (map-key ctx k)]
+                           (when-not (identical? ::unknown mk)
+                             (let [t (expr->tag ctx e)
+                                   m (meta e)]
+                               ;; NOTE: be careful to not include any
+                               ;; non-serializable data here, see issue #2165
+                               [mk (cond-> (select-keys m [:row :end-row :col :end-col])
+                                     t (assoc :tag t))])))))
+                     kexprs mvals)]
     (cond-> {:type :map
-             :val (zipmap ks vtags)}
+             :val (into {} (remove nil?) entries)}
       ;; a generated literal, e.g. a hook's placeholder map, is no evidence
-      ;; of absence: only a map the user wrote is closed
-      (let [m (meta expr)]
-        (or (:clj-kondo.impl/generated expr)
-            (:clj-kondo.impl/generated m)
-            (not (:row m))))
+      ;; of absence, and a dynamic key can evaluate to any key: only a map
+      ;; the user wrote with static keys is closed
+      (or (not all-static?)
+          (let [m (meta expr)]
+            (or (:clj-kondo.impl/generated expr)
+                (:clj-kondo.impl/generated m)
+                (not (:row m)))))
       (assoc :open true))))
 
 (defn destructured-key-tag

@@ -2123,10 +2123,25 @@
       (is (empty? (lint! "(defn f [x] (let [{:keys [a]} {:a x}] (inc a)))" config))))
     (testing "a map that went through into or assoc is open, they add keys"
       (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {} [[:x 1]]))" config)))
-      (is (empty? (lint! "(inc (:a (assoc {} :a 1)))" config)))
+      (is (empty? (lint! "(inc (:a (assoc {} :a 1)))" config))))
+    (testing "a dynamic key opens the map, it can evaluate to any key"
+      (is (empty? (lint! "(let [k :x] (inc (:x {k 1})))" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (let [k :x] (f {k 1}))" config))))
+    (testing "when-first binds an element, not the init"
+      (is (empty? (lint! "(when-first [x [\"ok\"]] (subs x 0))" config))))
+    (testing "into can overwrite seed values, they prove nothing"
+      (is (empty? (lint! "(subs (:x (into {:x 1} [[:x \"ok\"]])) 0)" config)))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {:x \"bad\"} [[:x 1]]))" config))))
+    (testing "a dynamic assoc key invalidates earlier value facts"
+      (is (empty? (lint! "(let [k :x] (subs (:x (assoc {} :x 1 k \"ok\")) 0))" config))))
+    (testing "an assoc'd entry keeps its source position"
       (assert-submaps2
-       '({:row 1 :message "Expected: number, received: string."})
-       (lint! "(defn f [{:keys [x]}] (inc x)) (f (into {:x \"s\"} []))" config)))
+       '({:row 1 :col 48 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (f (assoc {} :x \"bad\"))" config)))
+    (testing "a qualified :keys entry matches its :or default by name"
+      (is (empty? (lint! "(let [{:keys [foo/x] :or {x 1}} {}] (inc x))" config))))
+    (testing "a provably nil conditional-let init leaves the dead body unchecked"
+      (is (empty? (lint! "(when-let [x (:missing {})] (inc x))" config))))
     (testing "a call-shaped map value carries the call's return type"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: number."})
