@@ -268,3 +268,12 @@ access on the call itself.
   binding form deliberately gets no init tag, the :vector branch of
   extract-bindings would leak it wholesale onto elements, which :select
   relies on.
+- Conditional-let bindings keep the raw init tag. The body of `when-let` and
+  `if-let` only runs when the value is truthy, so a nilable tag should be
+  un-nilled there, and an init that is provably `:nil` means the body is
+  dead: that deserves a condition-always-false or dead-code style warning at
+  the binding, not a type-mismatch inside the body. Seen on the metabase
+  corpus: `airgap-check-user-count` when-lets over a provably nil return, so
+  its body is a no-op in OSS, reported today as "Expected: number, received:
+  nil" at the usage, adjudicated as a true positive wearing the wrong
+  message.
