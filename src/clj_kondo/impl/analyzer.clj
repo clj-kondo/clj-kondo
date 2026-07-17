@@ -1421,13 +1421,34 @@
       (let [if? (one-of call [if-let if-some])
             condition (-> bv :children second)
             body-exprs (next children)
-            bindings (expr-bindings ctx bv (if if? (first body-exprs) expr))
+            scoped (if if? (first body-exprs) expr)
+            two-forms? (= 2 (count (:children bv)))
+            ;; a vector binding form would leak the whole init tag onto its
+            ;; elements, see the :vector branch of extract-bindings
+            value-id (when (and two-forms?
+                                (one-of (some-> bv :children first tag) [:token :map]))
+                       (gensym))
+            analyzed-condition (analyze-condition (update ctx :callstack conj [:vector])
+                                                  (cond-> condition
+                                                    value-id (assoc :id value-id)))
+            ;; the init's tag types the binding, like in let
+            btag (when value-id
+                   (let [maybe-call (get @(:calls-by-id ctx) value-id)
+                         t (cond maybe-call (:ret maybe-call)
+                                 condition (types/expr->tag ctx condition))]
+                     (or (:tag t) t)))
+            bindings (if two-forms?
+                       (extract-bindings (update ctx :callstack conj [:nil :vector])
+                                         (-> bv :children first)
+                                         scoped
+                                         {:tag btag})
+                       (expr-bindings ctx bv scoped))
             ctx-with-binding (ctx-with-bindings ctx
                                                 (dissoc bindings
                                                         :analyzed))]
         (lint-two-forms-binding-vector! ctx call bv)
         (concat (:analyzed bindings)
-                (analyze-condition (update ctx :callstack conj [:vector]) condition)
+                analyzed-condition
                 ;; bodies are conditionally evaluated, so no param inference
                 (let [ctx (in-branch-ctx ctx)
                       ctx-with-binding (in-branch-ctx ctx-with-binding)]

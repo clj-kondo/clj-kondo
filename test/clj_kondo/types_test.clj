@@ -2092,7 +2092,21 @@
     (testing "string keys via :strs"
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: string."})
-       (lint! "(let [{:strs [port]} {\"port\" \"8080\"}] (inc port))" config)))))
+       (lint! "(let [{:strs [port]} {\"port\" \"8080\"}] (inc port))" config)))
+    (testing "conditional-let bindings are typed from their init"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(when-let [{:keys [port]} {:port \"8080\"}] (inc port))" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(defn cfg [] {:port \"8080\"}) (defn go [] (if-let [{:keys [port]} (cfg)] (inc port) 0))"
+              config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: number, received: string."})
+       (lint! "(when-let [x (subs \"ab\" 0)] (inc x))" config)))
+    (testing "a vector binding form does not leak the init tag onto its elements"
+      (is (empty? (lint! "(defn ft [] (when true [1 \"x\"])) (defn go [s] (when-let [[i _] (ft)] (subs s 0 i)))"
+                         config))))))
 
 (deftest backward-inference-transitive-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

@@ -252,3 +252,14 @@ access on the call itself.
   currently dropped at merge, an `:or` default value could be checked
   against the key's inferred spec, and a definition-site style warning could
   suggest `:keys!` for a proven-required key once 1.13 adoption exists.
+- Known map types are open: a missing key resolves to unknown, not to
+  provable nil, so `(inc (:y {}))` and its destructured equivalents stay
+  quiet. Closing provably complete maps, literals and single-literal-return
+  fns, would be sound and catch NPEs, but ret maps built via merge or
+  conditional assoc may under-approximate their keys, so this needs corpus
+  adjudication first.
+- Vector element types do not flow: `loop`, `doseq` and `for` destructuring
+  are untyped, loop also because recur can rebind with other types. A vector
+  binding form deliberately gets no init tag, the :vector branch of
+  extract-bindings would leak it wholesale onto elements, which :select
+  relies on.
