@@ -2138,7 +2138,12 @@
          (lint! "(defn cfg [] {nil \"bad\"}) (defn f [{x nil}] (inc x)) (f (cfg))" config))
         (assert-submaps2
          '({:row 1 :message "Expected: number, received: string for key false"})
-         (lint! "(defn cfg [] {false \"bad\"}) (defn f [{x false}] (inc x)) (f (cfg))" config))))
+         (lint! "(defn cfg [] {false \"bad\"}) (defn f [{x false}] (inc x)) (f (cfg))" config)))
+      (testing "the no-key sentinel cannot collide with a real key value"
+        (assert-submaps2
+         '({:row 1 :message "Expected: number, received: string for key :clj-kondo.impl.types/no-key"})
+         (lint! "(defn cfg [] {:clj-kondo.impl.types/no-key \"bad\"}) (defn f [{x :clj-kondo.impl.types/no-key}] (inc x)) (f (cfg))"
+                config))))
     (testing "nil and false are valid destructuring keys"
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: string."})

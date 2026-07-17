@@ -838,9 +838,12 @@
                 (map? x) "map")]
     l))
 
+;; nil, false and any keyword are valid map keys, absence needs a sentinel
+;; that can never equal a real key
+(def ^:private no-key (Object.))
+
 (defn emit-non-match!
-  ;; nil and false are valid map keys, absence needs its own sentinel
-  ([ctx s arg t] (emit-non-match! ctx s arg t ::no-key))
+  ([ctx s arg t] (emit-non-match! ctx s arg t no-key))
   ([ctx s arg t k]
    (let [expected-label (tag->label s)
          offending-tag-label (tag->label t)]
@@ -857,7 +860,7 @@
                                            ", received: " offending-tag-label
                                            (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
                                              (format " (%s)" t))
-                                           (if (identical? ::no-key k)
+                                           (if (identical? no-key k)
                                              "."
                                              (str " for key " (pr-str k))))}))))
 
