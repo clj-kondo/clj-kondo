@@ -645,6 +645,55 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
+(defn inferable-params
+  "The params backward type inference may constrain: [index binding
+  seed-constraints] per simple positional param that is untagged or hinted
+  nilable, a nilable hint being sugar for a union constraint. Nil when
+  inference is off for this fn: a macro, the linter disabled, or a user spec
+  covering this arity, which wins outright. Coverage includes the :varargs
+  fallback, same as spec lookup at call sites."
+  [ctx arg-vec arg-bindings arity macro?]
+  (when (and arg-vec (not macro?)
+             (not (linter-disabled? ctx :type-mismatch))
+             (not (when-let [cfg-arities
+                             (some-> (config/type-mismatch-config
+                                      (:config ctx) (-> ctx :ns :name) (:in-def ctx))
+                                     :arities)]
+                    (if-let [fa (:fixed-arity arity)]
+                      (types/args-spec-from-arities cfg-arities fa)
+                      (contains? cfg-arities :varargs)))))
+    (loop [[node & more] (:children arg-vec)
+           i 0
+           acc []]
+      (if (nil? node)
+        (seq acc)
+        (let [v (when (identical? :token (tag node))
+                  (:value node))]
+          (if (= '& v)
+            (seq acc)
+            (recur more (inc i)
+                   (if-let [b (and (symbol? v)
+                                   (not (namespace v))
+                                   (get arg-bindings v))]
+                     (let [t (:tag b)]
+                       (cond (nil? t) (conj acc [i b []])
+                             (and (keyword? t) (types/nilable? t))
+                             (conj acc [i b [(types/desugar-nilable t)]])
+                             :else acc))
+                     acc))))))))
+
+(defn ctx-with-param-infers
+  "Makes `simple-params` visible for inference, next to the params of
+  enclosing fns: a usage in this body may constrain an enclosing fn's param
+  when nothing conditional separates them, invoking this fn is the caller's
+  way of using that param. The mark pins the branch count at fn entry, a
+  usage constrains only while the count still equals it."
+  [ctx simple-params param-infer]
+  (let [entry {:param-infer param-infer
+               :mark (:branch-count ctx 0)}]
+    (update ctx :param-infers (fnil into {})
+            (map (fn [[_ b]] [b entry]) simple-params))))
+
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
@@ -659,6 +708,13 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
+        simple-params (inferable-params ctx arg-vec arg-bindings arity macro?)
+        param-infer (when simple-params
+                      (atom (into {}
+                                  (map (fn [[_ b seed]] [b seed]))
+                                  simple-params)))
+        ctx (cond-> ctx
+              param-infer (ctx-with-param-infers simple-params param-infer))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))
@@ -725,7 +781,10 @@
                                tag (cond maybe-call (:ret maybe-call)
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
-            [parsed ret-tag]))]
+            [parsed ret-tag]))
+        arg-tags (if param-infer
+                   (types/merge-inferred-arg-tags simple-params param-infer arg-tags)
+                   arg-tags)]
     (assoc arity
            :parsed
            (concat analyzed-arg-vec analyze-pre-post parsed)
@@ -926,15 +985,26 @@
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
+(defn in-branch-ctx
+  "Enters conditionally evaluated code: bumps the branch count, which stops
+  every currently visible param from constraining. No-op when inference is
+  off."
+  [ctx]
+  (if (:param-infers ctx)
+    (update ctx :branch-count (fnil inc 0))
+    ctx))
+
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
-        matched-val (first children)
-        [test-ctx test-opts]
-        (if (identical? :cljs (:lang ctx))
-          [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
-           nil]
-          [ctx {:quote? true}])]
+        matched-val (first children)]
     (analyze-expression** ctx matched-val)
+    ;; branches are conditionally evaluated, so no param inference
+    (let [ctx (in-branch-ctx ctx)
+          [test-ctx test-opts]
+          (if (identical? :cljs (:lang ctx))
+            [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
+             nil]
+            [ctx {:quote? true}])]
     (loop [[constant expr & exprs] (rest children)
            seen-constants #{}]
       (when constant
@@ -981,7 +1051,7 @@
               (analyze-usages2 test-ctx constant test-opts))
             (when expr
               (analyze-expression** ctx expr)
-              (recur exprs (into seen-constants (map str dupe-cands))))))))))
+              (recur exprs (into seen-constants (map str dupe-cands)))))))))))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (let [ctx (update ctx :callstack conj [:nil :vector])]
@@ -1291,15 +1361,18 @@
         (lint-two-forms-binding-vector! ctx call bv)
         (concat (:analyzed bindings)
                 (analyze-condition (update ctx :callstack conj [:vector]) condition)
-                (if if?
-                  ;; in the case of if, the binding is only valid in the first expression
-                  (concat
-                   (analyze-expression** (ctx-with-bindings ctx
-                                                            (dissoc bindings
-                                                                    :analyzed))
-                                         (first body-exprs))
-                   (analyze-children ctx (rest body-exprs) false))
-                  (analyze-children ctx-with-binding body-exprs false)))))))
+                ;; bodies are conditionally evaluated, so no param inference
+                (let [ctx (in-branch-ctx ctx)
+                      ctx-with-binding (in-branch-ctx ctx-with-binding)]
+                  (if if?
+                    ;; in the case of if, the binding is only valid in the first expression
+                    (concat
+                     (analyze-expression** (ctx-with-bindings ctx
+                                                              (dissoc bindings
+                                                                      :analyzed))
+                                           (first body-exprs))
+                     (analyze-children ctx (rest body-exprs) false))
+                    (analyze-children ctx-with-binding body-exprs false))))))))
 
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
@@ -2295,18 +2368,20 @@
           narrowing (when-not (linter-disabled? ctx :type-mismatch)
                       (narrowing-from-condition ctx condition))]
       (analyze-condition ctx condition)
-      (if narrowing
-        (let [ctx (assoc ctx :len (count clauses))]
-          (concat (analyze-expression** (-> ctx (assoc :idx 0) (narrow-binding narrowing)) then)
-                  (when else (analyze-expression** (assoc ctx :idx 1) else))))
-        (analyze-children ctx clauses false)))))
+      (let [branch-ctx (in-branch-ctx ctx)]
+        (if narrowing
+          (let [branch-ctx (assoc branch-ctx :len (count clauses))]
+            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-binding narrowing)) then)
+                    (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
+          (analyze-children branch-ctx clauses false))))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"
   [ctx expr]
   (let [[condition & clauses] (rest (:children expr))]
     (analyze-condition ctx condition)
-    (analyze-children ctx clauses false)))
+    (analyze-children (in-branch-ctx ctx)
+                      clauses false)))
 
 (defn analyze-is
   [ctx expr]
@@ -2386,7 +2461,9 @@
         expr
         :missing-body-in-when
         "Missing body in when"))
-      (analyze-children (cond-> ctx narrowing (narrow-binding narrowing)) body false))))
+      (analyze-children (in-branch-ctx
+                         (cond-> ctx narrowing (narrow-binding narrowing)))
+                        body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
   (let [children (next (:children expr))
@@ -2548,7 +2625,14 @@
                     arg-count)
         ctx (update ctx :callstack
                     (fn [cs]
-                      (cons [resolved-namespace resolved-name]
+                      ;; the pseudo-frame for the hof'd fn shadows the hof
+                      ;; call's own entry, but the remaining args are still
+                      ;; positionally the hof's args, so its ::types/infer-call
+                      ;; moves along
+                      (cons (if-let [ic (some-> (first cs) meta ::types/infer-call)]
+                              (with-meta [resolved-namespace resolved-name]
+                                {::types/infer-call ic})
+                              [resolved-namespace resolved-name])
                             cs)))]
     (cond var?
           (let [{:keys [row end-row col end-col]} (meta f)]
@@ -2934,8 +3018,9 @@
                                                        (with-meta unresolved-ns
                                                          (assoc (meta full-fn-name)
                                                                 :name fn-name))))
-                (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
-                                                               fn-name])
+                (analyze-children (in-branch-ctx
+                                   (update ctx :callstack conj [:clj-kondo/unknown-namespace
+                                                                fn-name]))
                                   children))
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
@@ -3056,13 +3141,18 @@
                                               ns-name resolved-namespace)
                         ctx (if (and resolved-var-sym
                                      (not (= 'clojure.core/doto resolved-var-sym)))
-                              (update ctx :callstack
-                                      (fn [cs]
-                                        (let [generated? (:clj-kondo.impl/generated expr)]
-                                          (cons (with-meta [resolved-namespace* resolved-name]
-                                                  (cond-> expr-meta
-                                                    generated?
-                                                    (assoc :clj-kondo.impl/generated true))) cs))))
+                              (let [cs-entry (with-meta [resolved-namespace* resolved-name]
+                                               (cond-> expr-meta
+                                                 (:clj-kondo.impl/generated expr)
+                                                 (assoc :clj-kondo.impl/generated true)
+                                                 ;; a local usage directly under this
+                                                 ;; call may constrain a param, see
+                                                 ;; types/infer-local-usage!
+                                                 (and arg-types (:param-infers ctx)
+                                                      (not unresolved?))
+                                                 (assoc ::types/infer-call
+                                                        [resolved-namespace resolved-name arg-count])))]
+                                (update ctx :callstack (fn [cs] (cons cs-entry cs))))
                               (update ctx :callstack conj [nil nil]))
                         resolved-as-clojure-var-name
                         (when (one-of resolved-as-namespace [clojure.core cljs.core])
@@ -3110,10 +3200,14 @@
                                       ctx)
                                 ctx (assoc ctx :in-comment true)]
                             (analyze-children ctx children))
-                          (-> some->)
+                          ->
                           (analyze-expression** ctx (macroexpand/expand-> ctx expr))
-                          (->> some->>)
+                          ->>
                           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
+                          (some-> some->>)
+                          (analyze-expression** ctx (macroexpand/expand-some->
+                                                     ctx expr
+                                                     resolved-as-name))
                           doto
                           (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                           reify (analyze-reify ctx expr defined-by defined-by->lint-as)
@@ -3184,6 +3278,17 @@
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
                           (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name)
+                          ;; the first operand, the first cond test and the
+                          ;; condp pred and dispatch expr always evaluate,
+                          ;; everything after is conditional
+                          (cond and or)
+                          (concat (analyze-children ctx (take 1 children) false)
+                                  (analyze-children (in-branch-ctx ctx)
+                                                    (rest children) false))
+                          condp
+                          (concat (analyze-children ctx (take 2 children) false)
+                                  (analyze-children (in-branch-ctx ctx)
+                                                    (drop 2 children) false))
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
@@ -3339,7 +3444,11 @@
                                                       [clojure.core lazy-cat]])
                                              (-> (assoc-in [:recur-arity :fixed-arity] 0)
                                                  (assoc :seen-recur? (volatile! nil))
-                                                 (dissoc :protocol-fn)))]
+                                                 (dissoc :protocol-fn))
+                                             ;; an unresolved call could be a macro,
+                                             ;; treat its args as conditionally
+                                             ;; evaluated, like a when body
+                                             unresolved? (in-branch-ctx))]
                               (analyze-children next-ctx children false))))]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed

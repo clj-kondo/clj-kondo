@@ -492,6 +492,228 @@
     (when-let [s (:args ca)]
       (vec s))))
 
+(defn spec-args
+  "Positional expected-type spec vector for a call to `called-ns`/`called-name`
+  at `arity`, from a user-configured or built-in spec. Nil when no spec is
+  known. Used for backward parameter-type inference."
+  [config called-ns called-name arity]
+  (when-let [spec (or (config/type-mismatch-config config called-ns called-name)
+                      (get (get built-in-specs called-ns) called-name))]
+    (when-let [a (:arities spec)]
+      (args-spec-from-arities a arity))))
+
+(defn spec-at
+  "Positional spec for argument `idx`, where a {:op :rest} entry covers all
+  remaining positions."
+  [specs idx]
+  (loop [i 0
+         ss (seq specs)]
+    (when-let [s (first ss)]
+      (if (and (map? s) (identical? :rest (:op s)))
+        (:spec s)
+        (if (== i idx)
+          s
+          (recur (inc i) (rest ss)))))))
+
+(defn desugar-nilable
+  "A nilable keyword spec is sugar for a union with :nil."
+  [s]
+  (if (and (keyword? s) (nilable? s))
+    #{:nil (unnil s)}
+    s))
+
+(defn constraining-spec?
+  "A spec worth recording as evidence: a named type, a union, a :keys map spec
+  or a deferred :arg-spec-of pointer. :any and unknown operator maps prove
+  nothing."
+  [s]
+  (if (map? s)
+    (utils/one-of (:op s) [:arg-spec-of :keys])
+    (or (set? s)
+        (and (keyword? s) (not (identical? :any s))))))
+
+(defn infer-local-usage!
+  "Backward parameter-type inference, triggered where a local usage is
+  analyzed: binding `b` appears as argument `idx` of the call `[called-ns
+  called-name arity]`, taken from the callstack head's ::infer-call meta.
+  Records the callee's expected type as a constraint on the param, or a
+  deferred {:op :arg-spec-of ..} constraint for a spec-less user fn. A usage in
+  a conditional branch proves nothing, the guard may be what makes it safe.
+  That covers narrowed usages, narrowing only happens in branches, and spine
+  narrowing (assert, :pre), when it exists, should constrain: the guard throws,
+  so the type is the contract. Type predicates need no special case: their arg
+  spec is :any, so they record nothing."
+  [ctx [called-ns called-name arity] infers b idx]
+  (when-let [{:keys [param-infer mark]} (get infers b)]
+    ;; equal counts mean no conditional was crossed since the param's fn entry
+    (when (== mark (:branch-count ctx 0))
+      (let [core? (utils/one-of called-ns [clojure.core cljs.core])
+            s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
+                (spec-at specs idx)
+                (when-not core?
+                  {:op :arg-spec-of
+                   :ns called-ns
+                   :name called-name
+                   :arity arity
+                   :arg-idx idx
+                   :lang (:lang ctx)
+                   :base-lang (:base-lang ctx)}))]
+        (when (constraining-spec? s)
+          (let [s (desugar-nilable s)]
+            (swap! param-infer update b
+                   (fn [cur]
+                     ;; insertion-ordered with dedup, for deterministic output
+                     (if (some #(= % s) cur)
+                       cur
+                       (conj (or cur []) s))))))))))
+
+(defn is-a?
+  "Provable subtype check: every value of tag `a` is also of tag `b`."
+  [a b]
+  (or (identical? a b)
+      (contains? (get is-a-relations a) b)))
+
+(defn intersect
+  "Intersects specs `a` and `b`, keywords or union sets: the most specific
+  union satisfying both, as the maximal named types implying each side. The
+  dual of `union-type`. Returns a keyword, a set, or nil when nothing
+  satisfies both. nil `a` means no evidence yet."
+  [a b]
+  (cond
+    (nil? a) b
+    ;; :any constrains nothing. Not all named types are related to :any in
+    ;; is-a-relations, so the lattice scan would wrongly conflict on some
+    (identical? :any a) b
+    (identical? :any b) a
+    :else
+    (let [as (if (set? a) a #{a})
+          bs (if (set? b) b #{b})
+          covers? (fn [t union] (some #(is-a? t %) union))
+          ;; every named type that satisfies both unions: input members alone
+          ;; miss types that imply both without being listed in either, e.g.
+          ;; :vector when intersecting get's union with :seqable
+          common (into #{} (filter (fn [t]
+                                     (and (not (identical? :any t))
+                                          (covers? t as)
+                                          (covers? t bs))))
+                       known-types)
+          ;; keep the maximal elements, subsumed members add nothing
+          maximal (into #{} (remove (fn [t]
+                                      (some #(and (not (identical? t %)) (is-a? t %))
+                                            common)))
+                        common)]
+      (case (count maximal)
+        0 nil
+        1 (first maximal)
+        maximal))))
+
+(defn merge-inferred-arg-tags
+  "Fills in arg specs for params from their collected constraints: keyword and
+  union-set constraints intersect to the most specific union, a conflict proves
+  nothing, and constraints with deferred or map-shaped members are stored as
+  {:op :and :specs ..}, resolved when the cache is synced, see
+  resolve-inferred-arg-types. A single {:op :keys} constraint passes through
+  verbatim."
+  [simple-params param-infer arg-tags]
+  (reduce (fn [tags [i b]]
+            (let [ts (get @param-infer b)]
+              (if (seq ts)
+                (cond
+                  (not-any? map? ts)
+                  (assoc tags i (reduce (fn [acc t]
+                                          (or (intersect acc t) (reduced nil)))
+                                        nil ts))
+                  (and (= 1 (count ts))
+                       (identical? :keys (:op (first ts))))
+                  (assoc tags i (first ts))
+                  :else
+                  (assoc tags i {:op :and :specs ts}))
+                tags)))
+          (vec arg-tags)
+          simple-params))
+
+(defn inferred-and? [s]
+  (and (map? s) (identical? :and (:op s))))
+
+(declare resolve-inferred-spec)
+
+(defn resolve-deferred-arg-spec
+  "Resolves one {:op :arg-spec-of ..} constraint via the callee's :args in
+  idacs, which may itself be inferred, so inference chains through user fns.
+  Nil when the callee or its spec is unknown, or when the chain recurs into
+  `seen`."
+  [idacs c seen]
+  (let [k [(:ns c) (:name c) (:arity c) (:arg-idx c)]]
+    (when-not (contains? seen k)
+      (when-let [called-fn (utils/resolve-call* idacs c (:ns c) (:name c))]
+        (when-let [s (args-spec-from-arities (:arities called-fn) (:arity c))]
+          (let [s (get s (:arg-idx c))]
+            (cond (keyword? s) (desugar-nilable s)
+                  (set? s) s
+                  (inferred-and? s)
+                  (resolve-inferred-spec idacs s (conj seen k)))))))))
+
+(defn resolve-inferred-spec
+  "Resolves an inferred :args entry {:op :and :specs ..} to a concrete spec, or
+  nil when nothing is provable."
+  [idacs {:keys [specs]} seen]
+  (reduce
+   (fn [acc c]
+     (let [t (cond (keyword? c) c
+                   (set? c) c
+                   (identical? :arg-spec-of (:op c))
+                   (resolve-deferred-arg-spec idacs c seen))]
+       (if t
+         (or (intersect acc t)
+             ;; conflicting constraints prove nothing
+             (reduced nil))
+         ;; an unresolvable constraint contributes nothing
+         acc)))
+   nil specs))
+
+(defn trim-trailing-nils
+  "Trailing nils check nothing, missing slots neither."
+  [v]
+  (loop [v v]
+    (if (and (pos? (count v)) (nil? (peek v)))
+      (recur (pop v))
+      v)))
+
+(defn resolve-inferred-arg-types
+  "Resolves inferred {:op :and :specs ..} arg specs in `ns-data`'s vars to
+  concrete specs, the twin of resolve-return-types. Runs when syncing the
+  cache, so both linting and the cache only see the plain spec vocabulary,
+  which older versions read fine."
+  [idacs ns-data]
+  (reduce-kv
+   (fn [m k v]
+     (if-let [arities (:arities v)]
+       (let [new-arities
+             (reduce-kv
+              (fn [as arity {:keys [args] :as arity-data}]
+                (if (vector? args)
+                  (let [args* (trim-trailing-nils
+                               (if (some inferred-and? args)
+                                 (mapv (fn [s]
+                                         (if (inferred-and? s)
+                                           (resolve-inferred-spec idacs s #{})
+                                           s))
+                                       args)
+                                 args))]
+                    (cond (empty? args*)
+                          ;; nothing proven, dead weight
+                          (assoc as arity (type-utils/not-empty-arity
+                                           (dissoc arity-data :args)))
+                          (identical? args* args) as
+                          :else (assoc as arity (assoc arity-data :args args*))))
+                  as))
+              arities arities)]
+         (if (identical? new-arities arities)
+           m
+           (assoc m k (assoc v :arities new-arities))))
+       m))
+   ns-data ns-data))
+
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
@@ -601,7 +823,9 @@
                              all-tags)
                       :keys
                       (do (lint-map! ctx s a t)
-                          (recur check-ctx rest-args-spec rest-args rest-tags)))
+                          (recur check-ctx rest-args-spec rest-args rest-tags))
+                      ;; an op from a newer version's cache: skip this arg
+                      (recur check-ctx rest-args-spec rest-args rest-tags))
                     (nil? s) (cond (seq all-specs)
                                    ;; nil is :any
                                    (recur check-ctx rest-args-spec rest-args rest-tags)

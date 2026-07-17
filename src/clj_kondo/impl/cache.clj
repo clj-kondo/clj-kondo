@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
   (:require
+   [clj-kondo.impl.types :as types]
    [clj-kondo.impl.types.utils :as tu]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
@@ -152,13 +153,16 @@
                 (let [source (:source ns-data)
                       resolve? (and (not (one-of source [:disk :built-in]))
                                     (seq ns-data))
+                      resolve-types (fn [nsd]
+                                      (->> (tu/resolve-return-types idacs nsd)
+                                           (types/resolve-inferred-arg-types idacs)))
                       ns-data
                       (if resolve?
                         (if (identical? lang :cljc)
                           (-> ns-data
-                              (update :clj #(tu/resolve-return-types idacs %))
-                              (update :cljs #(tu/resolve-return-types idacs %)))
-                          (tu/resolve-return-types idacs ns-data))
+                              (update :clj resolve-types)
+                              (update :cljs resolve-types))
+                          (resolve-types ns-data))
                         ns-data)]
                   ;; (when resolve? (prn ns-data))
                   (when (and cache-dir resolve?)
