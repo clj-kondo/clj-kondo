@@ -851,21 +851,6 @@
                                              (str " for key " k)
                                              "."))}))))
 
-(defn pos-within-span?
-  "Whether position map `pos`'s start lies within `span`. A map value
-  entry resolved through a fn's return carries the producer's coordinates,
-  which lie outside the argument at the call site, or even in another file.
-  Unlike the full-span ignore matching in findings.clj, this only tests the
-  start position."
-  [span pos]
-  (and (:row span) (:row pos) (:end-row span)
-       (or (< (:row span) (:row pos))
-           (and (= (:row span) (:row pos))
-                (<= (:col span) (:col pos))))
-       (or (> (:end-row span) (:row pos))
-           (and (= (:end-row span) (:row pos))
-                (>= (:end-col span) (:col pos))))))
-
 (defn emit-more-input-expected! [ctx call arg]
   (let [expr (or arg call)]
     (findings/reg-finding! ctx
@@ -900,10 +885,10 @@
             ;; fall back to the argument
             (lint-map! ctx target (if (:row v) v arg) t)
             (when-not (match? t target)
-              ;; a value entry from a directly passed literal points at the
-              ;; offending value. One resolved through a fn's return carries
-              ;; the producer's coordinates, report at the argument instead
-              (if (pos-within-span? arg v)
+              ;; an in-run entry points at the offending value. One resolved
+              ;; through the cache is position-stripped, see strip-positions:
+              ;; report at the argument, naming the key
+              (if (:row v)
                 (emit-non-match! ctx target v t)
                 (emit-non-match! ctx target arg t k)))))
         (when required?

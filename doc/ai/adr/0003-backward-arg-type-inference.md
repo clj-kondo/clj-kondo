@@ -251,17 +251,15 @@ is open and the dynamic entries never land in `:val`. into can overwrite the
 seed's entries, so its result keeps key presence but drops value facts, and
 a dynamic assoc key does the same for earlier pairs while later known pairs
 re-establish them. assoc'd entries keep their source positions for
-diagnostics. A value-type finding uses an entry's own coordinates only when
-they lie within the argument's span: a directly passed literal points at
-the offending value, while an entry that traveled through an indirection
-reports at the argument and names the key in the message. Cached return
+diagnostics. A value-type finding points at the entry's own coordinates when it has
+any, else at the argument, naming the key in the message. Cached return
 maps have their entry positions stripped at cache sync, they have no
 consumer there, the producer's coordinates could even name another file,
-and serializing them only grows the cache. The span check still covers
-in-run indirections that never pass through the sync walk, a let-bound
-literal passed by name reaches the call through its binding tag with its
-positions intact. A position-stripped entry cannot anchor nested keys-spec
-findings, those fall back to the argument. when-first binds an element, not the init, so it gets no tag.
+and serializing them only grows the cache. In-run flows keep positions:
+a direct literal, or one reaching the call through a let binding, points
+at the offending value in the same scope, while anything cross-fn passes
+the sync walk and arrives stripped. A stripped entry cannot anchor nested
+keys-spec findings either, those fall back to the argument. when-first binds an element, not the init, so it gets no tag.
 A qualified `:keys` entry matches its `:or` default by local binding name.
 A nil-testing conditional-let strips nil from the binding's eager tag, and a
 provably nil init leaves the dead body unchecked, the dead-body warning

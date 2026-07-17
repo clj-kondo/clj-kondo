@@ -2132,6 +2132,10 @@
           :message "Expected: string, received: positive integer for key :port"})
        (lint! "(defn cfg [] {:port 1}) (defn f [{:keys [port]}] (subs port 0)) (f (cfg))"
               config)))
+    (testing "a let-bound literal in the same scope points at the offending value"
+      (assert-submaps2
+       '({:row 1 :col 44 :message "Expected: number, received: string."})
+       (lint! "(defn f [{:keys [x]}] (inc x)) (let [m {:x \"bad\"}] (f m))" config)))
     (testing "a nested keys-spec finding through a fn's return reports at the call"
       (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'f]
                           '{:arities {1 {:args [{:op :keys
