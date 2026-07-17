@@ -1292,7 +1292,6 @@
              (not= 'fn* core-sym)
              (not= 'let* core-sym)
              (or
-              ;; zero or one children
               (zero-or-one-children?)
               (and core?
                    (not (:condition expr))
