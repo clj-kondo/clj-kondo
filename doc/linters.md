@@ -1721,7 +1721,8 @@ because of an explicit or implicit do as the direct parent s-expression.
 
 *Example trigger:* `(defn foo [] (do 1))`.
 
-*Example message:* `redundant do`.
+*Example messages:* `Redundant do: fewer than two expressions` and
+`Redundant do: body of defn already provides sequencing`.
 
 ### Redundant call
 

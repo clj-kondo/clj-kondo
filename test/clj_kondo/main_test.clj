@@ -124,18 +124,18 @@
 
 (deftest redundant-do-test
   (assert-submaps
-   '({:row 3, :col 1, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 4, :col 7, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 5, :col 14, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 6, :col 8, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 7, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
+   '({:row 3, :col 1, :file "corpus/redundant_do.clj" :message "Redundant do: fewer than two expressions"}
+     {:row 4, :col 7, :file "corpus/redundant_do.clj" :message "Redundant do: fewer than two expressions"}
+     {:row 5, :col 14, :file "corpus/redundant_do.clj" :message "Redundant do: body of defn already provides sequencing"}
+     {:row 6, :col 8, :file "corpus/redundant_do.clj" :message "Redundant do: body of fn already provides sequencing"}
+     {:row 7, :col 16, :file "corpus/redundant_do.clj" :message "Redundant do: body of let already provides sequencing"}
      {:row 8, :col 1, :file "corpus/redundant_do.clj" :message "Missing body in when"}
-     {:row 9, :col 12, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 10, :col 16, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 11, :col 9, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 13, :col 25, :file "corpus/redundant_do.clj" :message "redundant do"}
-     {:row 14, :col 18, :file "corpus/redundant_do.clj" :message "redundant do"})
+     {:row 9, :col 12, :file "corpus/redundant_do.clj" :message "Redundant do: body of when already provides sequencing"}
+     {:row 10, :col 16, :file "corpus/redundant_do.clj" :message "Redundant do: body of when-not already provides sequencing"}
+     {:row 11, :col 9, :file "corpus/redundant_do.clj" :message "Redundant do: body of future already provides sequencing"}
+     {:row 12, :col 17, :file "corpus/redundant_do.clj" :message "Redundant do: body of when-let already provides sequencing"}
+     {:row 13, :col 25, :file "corpus/redundant_do.clj" :message "Redundant do: body of when-first already provides sequencing"}
+     {:row 14, :col 18, :file "corpus/redundant_do.clj" :message "Redundant do: body of when-some already provides sequencing"})
    (lint! (io/file "corpus" "redundant_do.clj")
           {:linters {:redundant-expression {:level :off}}}))
   (assert-submaps2
@@ -143,7 +143,7 @@
      :row 1,
      :col 27,
      :level :warning,
-     :message "redundant do"}]
+     :message "Redundant do: fewer than two expressions"}]
    (lint! "(try 1 (catch Exception _ (do 1)))"))
   (is (empty? (lint! "(do 1 `(do 1 2 3))"
                      {:linters {:redundant-expression {:level :off}}})))
