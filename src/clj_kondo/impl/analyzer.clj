@@ -448,6 +448,9 @@
                                   (fn [_ _] false)
                                   (fn [k kw] (and (= kw (:k k))
                                                   (not (:namespaced? k)))))
+               ;; inference is the only consumer of the key-bindings
+               ;; collection, other linters do read binding tags
+               types-off? (linter-disabled? ctx :type-mismatch)
                ;; the init's tag types each destructured binding, see
                ;; types/destructured-key-tag. :tag must not leak to children
                ;; wholesale
@@ -477,7 +480,7 @@
            ;; param-type inference, see inferable-params. A binding with an
            ;; :or default never proves its key required
            (let [key-bindings (volatile! [])
-                 or-names (when or?
+                 or-names (when (and or? (not types-off?))
                             (into #{}
                                   (comp (filter (fn [[k _]] (plain-directive? k :or)))
                                         (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
@@ -499,7 +502,8 @@
                                                    :keys-destructuring? true
                                                    :destructuring-type key-name
                                                    :destructuring-expr k)
-                                       modifier-ns (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name)))
+                                       modifier-ns (when-not types-off?
+                                                     (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
                                        ;; before & are bindings, after & only literal keys
                                        res (loop [children (:children v) amp? false res res]
                                              (if-let [child (first children)]
