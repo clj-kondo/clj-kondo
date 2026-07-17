@@ -980,7 +980,7 @@
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
 
-(defn- in-branch-ctx
+(defn in-branch-ctx
   "Enters conditionally evaluated code: bumps the branch count, which stops
   every currently visible param from constraining. No-op when inference is
   off."

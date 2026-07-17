@@ -572,8 +572,13 @@
   dual of `union-type`. Returns a keyword, a set, or nil when nothing
   satisfies both. nil `a` means no evidence yet."
   [a b]
-  (if (nil? a)
-    b
+  (cond
+    (nil? a) b
+    ;; :any constrains nothing. Not all named types are related to :any in
+    ;; is-a-relations, so the lattice scan would wrongly conflict on some
+    (identical? :any a) b
+    (identical? :any b) a
+    :else
     (let [as (if (set? a) a #{a})
           bs (if (set? b) b #{b})
           sat (fn [t s] (some #(is-a? t %) s))
@@ -620,7 +625,7 @@
           (vec arg-tags)
           simple-params))
 
-(defn- inferred-and? [s]
+(defn inferred-and? [s]
   (and (map? s) (identical? :and (:op s))))
 
 (defn resolve-inferred-spec

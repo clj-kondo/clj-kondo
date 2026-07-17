@@ -46,6 +46,25 @@
   (testing "fix for #1023"
     (is (= #{} (types-utils/union-type)))))
 
+(deftest intersect-test
+  (testing ":any constrains nothing, on either side"
+    (is (= :long (types/intersect :any :long)))
+    (is (= :long (types/intersect :long :any)))
+    (is (= :any (types/intersect :any :any))))
+  (testing "conflicting types intersect to nil"
+    (is (nil? (types/intersect :string :number))))
+  (let [kts (conj (vec types/known-types) :any)
+        norm (fn [x] (if (set? x) x (when x #{x})))]
+    (doseq [a kts b kts]
+      (testing (format "intersect is commutative for %s and %s" a b)
+        (is (= (norm (types/intersect a b)) (norm (types/intersect b a)))))
+      (when (types/is-a? a b)
+        (testing (format "%s is a %s => intersection is %s" a b a)
+          (is (= (norm a) (norm (types/intersect a b)))))))
+    (doseq [a kts]
+      (testing (format "intersect is idempotent for %s" a)
+        (is (= (norm a) (norm (types/intersect a a))))))))
+
 (deftest match-test
   (is (not (types/match? :var :number))))
 
