@@ -304,6 +304,24 @@ tracking covers keyword and string tokens only.
 
 ## Future work
 
+- Guarded evidence with call-site discharge. The dormant-constraint design
+  generalizes: evidence plus a premise, believed when the premise is
+  discharged. A sink's premise is "this fn runs on the spine", discharged
+  at analysis time by an invocation site. A branch-guarded usage could
+  record its evidence with the premise "this guard holds", discharged per
+  call site from the argument tags: `(defn f [x b] (if b (subs x 1) (inc
+  x)))` then `(f 42 true)` warns, a keyword or number arg proves the guard
+  truthy, :nil proves it falsy, :boolean or a mixed union proves nothing.
+  Guard language stays tiny: a bare param or a known predicate on a param.
+  The wall is the cache: a cross-argument conditional spec is new
+  vocabulary that cannot be resolved away at sync, so it would start
+  in-memory only, cross-library callers see just the unconditional spec.
+  The self-guarded case needs no vocabulary at all: "b truthy implies b is
+  a number" collapses to the union of the evidence with the falsy tags,
+  `#{:number :nil :boolean}`, an ordinary spec, and would catch a caller
+  passing a string where today's design only stays quiet on nil.
+  Prototyped on branch `self-guard-infer`.
+
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
   currently dropped at merge, an `:or` default value could be checked
