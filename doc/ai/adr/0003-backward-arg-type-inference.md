@@ -330,6 +330,18 @@ tracking covers keyword and string tokens only.
   version is ever built, the prototype's guard threading and routing arm
   are its foundation.
 
+- Arg-type checking at local fn call sites: `(let [f (fn [i] (inc i))] (f
+  "foo"))` is silent while the defn twin warns, only arity is checked. The
+  data already flows, extract-arity-info keeps the inferred :args and :ret
+  per arity and analyze-binding-call has both the local's arity entry and
+  an :arg-types atom for the call's children. The work is an inline check
+  at analysis time: args-spec-from-arities plus tag-matches?, skipping
+  deferred {:call ..} argument tags and in-memory {:op :and} spec members,
+  neither resolvable before cache sync. No cache involvement, locals never
+  serialize. letfn likely falls out of the same path. Needs corpus
+  validation, inferred local specs meeting real call sites is new false
+  positive surface.
+
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
   currently dropped at merge, an `:or` default value could be checked
