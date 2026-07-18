@@ -710,11 +710,11 @@
   other tag: a hard hint is trusted as is, the param is excluded from
   inference."
   [t]
-  (cond (nil? t) []
+  (cond (nil? t) #{}
         (and (keyword? t) (types/nilable? t))
         (let [s (types/desugar-nilable t)]
           ;; :nilable/any desugars to :any, which constrains nothing
-          (if (identical? :any s) [] [s]))
+          (if (identical? :any s) #{} #{s}))
         :else nil))
 
 (defn inferable-params
@@ -798,7 +798,7 @@
         ;; a nested fn may run conditionally or never: constraints on
         ;; enclosing params collect here, dormant until a call site proves
         ;; the fn invoked on the spine, see types/activate-pending!
-        pending-sink (when (:param-infers ctx) (atom []))
+        pending-sink (when (:param-infers ctx) (atom {}))
         ctx (cond-> ctx
               pending-sink (-> (update :fn-depth (fnil inc 0))
                                (assoc :pending-infers pending-sink)))
@@ -1602,8 +1602,8 @@
         fixed-arities (when arities (into #{} (filter number?) (keys arities)))
         varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
         arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
-        pending-infer (not-empty (into [] (comp (keep :pending-infer) cat (distinct))
-                                       parsed-bodies))
+        pending-infer (not-empty (reduce #(merge-with into %1 %2) {}
+                                         (keep :pending-infer parsed-bodies)))
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (when (and (not (linter-disabled? ctx :def-fn))
                (def-fn? ctx))

@@ -84,9 +84,10 @@ Rules, in order of precedence:
    dormant: fn-body entry allocates a pending sink and bumps a `:fn-depth`
    ctx counter (`:branch-count` is real conditionals only), and
    `record-constraint!` routes three ways. Same branch count and same
-   depth commits to the param, same count but deeper parks `[binding
-   spec]` in the innermost fn's sink, a differing count drops, the guard
-   may be what makes the usage safe. The sink travels out on the fn's
+   depth commits to the param, same count but deeper parks the spec in the
+   innermost fn's sink, a map of binding to spec set, the dormant twin of
+   the param-infer map, a differing count drops, the guard may be what
+   makes the usage safe. The sink travels out on the fn's
    analysis meta next to `:arity`, into the local's `:arities` entry for a
    let-bound fn. A call site that proves the fn invoked drains it via
    `activate-pending!`, which replays every entry through the same
@@ -152,8 +153,13 @@ when `bar`'s own params were inferred. A call to a spec-less resolved user fn
 records a deferred `{:op :arg-spec-of :ns .. :name .. :arity .. :arg-idx ..}`
 constraint. Constraints with deferred or map-shaped members are stored as
 `{:op :and :specs [..]}` in `:args`, joining the existing spec operator family
-(`:rest`, `:keys`). The specs vector is insertion ordered with record-time
-dedup, for deterministic output. When the cache is synced,
+(`:rest`, `:keys`). Constraints collect in a set, order is immaterial:
+intersect is a commutative meet, and resolution intersects every member at
+cache sync before anything is serialized, so cache bytes are stable
+regardless of recording order, verified by byte-comparing caches under
+permuted constraint orders. An earlier revision kept insertion-ordered
+vectors with manual dedup, from when unresolved :and entries could reach
+the cache verbatim. When the cache is synced,
 `types/resolve-types` walks every var's arities once, resolving each
 `{:op :and}` arg entry to a concrete spec via `types/resolve-inferred-spec`:
 look up the callee's `:args` in idacs (possibly itself inferred, so chains),

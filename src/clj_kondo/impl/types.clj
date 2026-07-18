@@ -612,13 +612,6 @@
     (or (set? s)
         (and (keyword? s) (not (identical? :any s))))))
 
-(defn conj-distinct
-  "Insertion-ordered conj with dedup, for deterministic output."
-  [cur x]
-  (if (some #(= % x) cur)
-    cur
-    (conj (or cur []) x)))
-
 (defn record-constraint!
   "Routes constraint `s` for param binding `b` by reachability. On the
   owning fn's spine it commits to the param. In a nested fn, when no
@@ -631,10 +624,10 @@
     (when (== mark (:branch-count ctx 0))
       (let [depth (:fn-depth ctx 0)]
         (cond (== depth fn-depth)
-              (swap! param-infer update b conj-distinct s)
+              (swap! param-infer update b (fnil conj #{}) s)
               (> depth fn-depth)
               (when-let [sink (:pending-infers ctx)]
-                (swap! sink conj-distinct [b s])))))))
+                (swap! sink update b (fnil conj #{}) s)))))))
 
 (defn activate-pending!
   "Commits a fn's dormant constraints at a site that proves the fn
@@ -644,7 +637,8 @@
   second site routes again and dedup absorbs repeats."
   [ctx pending]
   (when-let [infers (:param-infers ctx)]
-    (doseq [[b s] pending]
+    (doseq [[b ss] pending
+            s ss]
       (record-constraint! ctx infers b s))))
 
 (defn infer-local-usage!
