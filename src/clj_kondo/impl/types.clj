@@ -612,19 +612,51 @@
     (or (set? s)
         (and (keyword? s) (not (identical? :any s))))))
 
+(defn conj-distinct
+  "Insertion-ordered conj with dedup, for deterministic output."
+  [cur x]
+  (if (some #(= % x) cur)
+    cur
+    (conj (or cur []) x)))
+
+(defn record-constraint!
+  "Routes constraint `s` for param binding `b` by reachability. On the
+  owning fn's spine it commits to the param. In a nested fn, when no
+  conditional was crossed since the owner's entry, it goes dormant into
+  that fn's pending sink, committed when a call site proves the fn invoked
+  on the spine, see activate-pending!. A crossed conditional drops it, the
+  guard may be what makes the usage safe."
+  [ctx infers b s]
+  (when-let [{:keys [param-infer mark fn-depth]} (get infers b)]
+    (when (== mark (:branch-count ctx 0))
+      (let [depth (:fn-depth ctx 0)]
+        (cond (== depth fn-depth)
+              (swap! param-infer update b conj-distinct s)
+              (> depth fn-depth)
+              (when-let [sink (:pending-infers ctx)]
+                (swap! sink conj-distinct [b s])))))))
+
+(defn activate-pending!
+  "Commits a fn's dormant constraints at a site that proves the fn
+  invoked: every entry re-routes through record-constraint!, so a spine
+  site commits, a site inside a deeper nested fn re-pends on that fn, and
+  a site in a conditional branch drops. Sites do not consume entries, a
+  second site routes again and dedup absorbs repeats."
+  [ctx pending]
+  (when-let [infers (:param-infers ctx)]
+    (doseq [[b s] pending]
+      (record-constraint! ctx infers b s))))
+
 (defn infer-local-usage!
   "Backward parameter-type inference, triggered where a local usage is
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
   called-name arity]`, taken from the callstack head's ::infer-call meta.
-  Records the callee's expected type as a constraint on the param, or a
-  deferred {:op :arg-spec-of ..} constraint for a spec-less user fn. A usage in
-  a conditional branch proves nothing, the guard may be what makes it safe.
-  That covers narrowed usages, narrowing only happens in branches, and spine
-  narrowing (assert, :pre), when it exists, should constrain: the guard throws,
-  so the type is the contract. Type predicates need no special case: their arg
-  spec is :any, so they record nothing."
+  Computes the callee's expected type as a constraint on the param, or a
+  deferred {:op :arg-spec-of ..} constraint for a spec-less user fn, and
+  routes it through record-constraint!. Type predicates need no special
+  case: their arg spec is :any, so they record nothing."
   [ctx [called-ns called-name arity] infers b idx]
-  (when-let [{:keys [param-infer mark]} (get infers b)]
+  (when-let [{:keys [mark]} (get infers b)]
     ;; equal counts mean no conditional was crossed since the param's fn entry
     (when (== mark (:branch-count ctx 0))
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
@@ -639,13 +671,7 @@
                    :lang (:lang ctx)
                    :base-lang (:base-lang ctx)}))]
         (when (constraining-spec? s)
-          (let [s (desugar-nilable s)]
-            (swap! param-infer update b
-                   (fn [cur]
-                     ;; insertion-ordered with dedup, for deterministic output
-                     (if (some #(= % s) cur)
-                       cur
-                       (conj (or cur []) s))))))))))
+          (record-constraint! ctx infers b (desugar-nilable s)))))))
 
 (defn is-a?
   "Provable subtype check: every value of tag `a` is also of tag `b`."

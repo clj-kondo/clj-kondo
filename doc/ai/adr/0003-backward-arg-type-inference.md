@@ -79,24 +79,37 @@ Rules, in order of precedence:
    usage constrains only while the count still equals the mark, meaning no
    conditional was crossed since that fn's entry on this descent path. So a
    nested fn's own params infer regardless of enclosing conditionals, only a
-   fn's own unconditional spine constrains its params. Exception: a fn form
-   written directly in the fn position of a known higher-order call (the
-   `analyze-hof` set: map, filter, reduce, swap!, update and friends) skips
-   its bump via an `:invoked-fn` ctx flag, consumed at fn-body entry, the
-   hof invokes it right there. Strictly a seq hof runs its fn zero or more
-   times, a caller could pass a wrong-typed arg plus an always-empty coll,
-   accepted as far-fetched. The flag never resets the count, so a hof call
-   inside a branch still proves nothing, and only the syntactic fn argument
-   gets it: a named local passed to a hof was analyzed at its binding,
-   where its invocation sites are unknown. An earlier revision let every
-   nested body constrain enclosing params, closing over a param is using
-   it, chosen because corpus deltas were zero either way and it caught
-   `(defn f [x] #(subs x 1)) (f 42)` at write time. Reverted on the first
-   real-world report: a local fn whose body divides by a closed-over param
-   was only invoked under `(cond-> d avg (out))`, callers passing nil were
-   correct, corpus tests missed it because the pattern needs a nil argument
-   at a call site in the same codebase. An immediately invoked fn form
-   `((fn [] ..))` does not get the flag yet, rare enough to defer.
+   fn's own unconditional spine constrains its params directly. A nested
+   fn's constraints on enclosing params are not dropped though, they go
+   dormant: fn-body entry allocates a pending sink and bumps a `:fn-depth`
+   ctx counter (`:branch-count` is real conditionals only), and
+   `record-constraint!` routes three ways. Same branch count and same
+   depth commits to the param, same count but deeper parks `[binding
+   spec]` in the innermost fn's sink, a differing count drops, the guard
+   may be what makes the usage safe. The sink travels out on the fn's
+   analysis meta next to `:arity`, into the local's `:arities` entry for a
+   let-bound fn. A call site that proves the fn invoked drains it via
+   `activate-pending!`, which replays every entry through the same
+   routing: on the owner's spine it commits, inside another nested fn it
+   re-pends on that fn, so chains of local fns compose, and in a branch it
+   drops, which is exactly the reported false positive, `(cond-> d avg
+   (out))` activates nothing. Drains do not consume, dedup absorbs a
+   second site. Activation sites: calling a local fn binding
+   (analyze-binding-call), and the fn argument of a known higher-order
+   call (the analyze-hof set: map, filter, reduce, swap!, update and
+   friends), whether written inline or passed by name. Strictly a seq hof
+   runs its fn zero or more times, a caller could pass a wrong-typed arg
+   plus an always-empty coll, accepted as far-fetched. A fn that is only
+   returned or stored stays dormant forever. An earlier revision let every
+   nested body constrain enclosing params directly, closing over a param
+   is using it, chosen because corpus deltas were zero either way and it
+   caught `(defn f [x] #(subs x 1)) (f 42)` at write time. Reverted on the
+   first real-world report: a local fn whose body divides by a closed-over
+   param was only invoked under `(cond-> d avg (out))`, callers passing
+   nil were correct, corpus tests missed it because the pattern needs a
+   nil argument at a call site in the same codebase. Immediately invoked
+   fn forms `((fn [] ..))` and letfn bindings do not activate yet, rare
+   enough to defer.
 5. `:char-sequence` constraints propagate on both platforms. The JVM impls
    coerce via `.toString`, so a symbol into `str/replace` happens to work
    there, but the clojure.string ns docstring (design note 4) documents the

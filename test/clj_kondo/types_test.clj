@@ -1929,12 +1929,29 @@
       (testing "but a fn created inside the hof fn is not invoked"
         (is (empty? (lint! "(defn f [x coll] (map (fn [_] (fn [] (subs x 1))) coll)) (f 42 [1])" config))))
       (testing "and an enclosing conditional still suppresses"
-        (is (empty? (lint! "(defn f [x b coll] (when b (map #(subs x %) coll))) (f 42 true [1])" config))))
-      (testing "and a named local passed to the hof proves nothing, its body was analyzed at the binding"
+        (is (empty? (lint! "(defn f [x b coll] (when b (map #(subs x %) coll))) (f 42 true [1])" config)))))
+    (testing "a local fn's dormant constraints activate at a spine call"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (let [g (fn [i] (subs x i))] (g 1))) (f 42)" config))
+      (testing "also when passed by name to a hof"
+        (assert-submaps2
+         '({:row 1 :message "Expected: string, received: positive integer."})
+         (lint! "(defn f [x coll] (let [g (fn [i] (subs x i))] (map g coll))) (f 42 [1])" config)))
+      (testing "and through a chain of local fns, each proven invoked"
+        (assert-submaps2
+         '({:row 1 :message "Expected: string, received: positive integer."})
+         (lint! "(defn f [x] (let [g (fn [i] (subs x i)) h (fn [] (g 1))] (h))) (f 42)" config)))
+      (testing "a conditional call site activates nothing, the guard may be what makes it safe"
+        (is (empty? (lint! "(defn f [x b] (let [g (fn [i] (subs x i))] (when b (g 1)))) (f 42 true)" config)))
         (is (empty? (lint! "(defn f [x b coll]
                               (let [g (fn [i] (subs x i))]
                                 (when b (map g coll))))
-                            (f 42 true [1])" config)))))
+                            (f 42 true [1])" config))))
+      (testing "a chain link that is never proven invoked stays dormant"
+        (is (empty? (lint! "(defn f [x] (let [g (fn [i] (subs x i))] (fn [] (g 1)))) (f 42)" config))))
+      (testing "a conditional inside the local fn drops the constraint even when activated"
+        (is (empty? (lint! "(defn f [x b] (let [g (fn [i] (when b (subs x i)))] (g 1))) (f 42 true)" config)))))
     (testing "a nested fn created in a conditional branch does not constrain"
       (is (empty? (lint! "(defn f [x b] (when b #(subs x 1))) (f 42 true)" config))))
     (testing "a conditional inside the nested fn does not constrain the outer param"

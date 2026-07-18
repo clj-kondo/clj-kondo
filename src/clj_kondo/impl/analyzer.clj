@@ -770,29 +770,20 @@
     (update ctx :branch-count (fnil inc 0))
     ctx))
 
-(defn fn-form?
-  "Whether expr is written as a fn: an #(..) literal or a (fn ..) list."
-  [expr]
-  (let [t (tag expr)]
-    (or (identical? :fn t)
-        (and (identical? :list t)
-             (one-of (utils/symbol-from-token (first (:children expr))) [fn fn*])))))
-
 (defn ctx-with-param-infers
   "Makes `simple-params` visible for inference. The mark pins the branch
   count at fn entry, a usage constrains only while the count still equals
   it, so only this fn's own unconditional spine constrains its params."
   [ctx simple-params param-infer]
   (let [entry {:param-infer param-infer
-               :mark (:branch-count ctx 0)}]
+               :mark (:branch-count ctx 0)
+               :fn-depth (:fn-depth ctx 0)}]
     (update ctx :param-infers (fnil into {})
             (map (fn [{:keys [binding]}] [binding entry]) simple-params))))
 
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
-        invoked-fn (:invoked-fn ctx)
-        ctx (dissoc ctx :invoked-fn)
         {:keys [arg-bindings
                 arity analyzed-arg-vec arglist-str arg-vec keys-bindings]
          return-tag :ret
@@ -804,10 +795,13 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
-        ;; a nested fn may run conditionally or never: its body proves
-        ;; nothing about enclosing params, unless it sits in the fn position
-        ;; of a known higher-order call
-        ctx (if invoked-fn ctx (in-branch-ctx ctx))
+        ;; a nested fn may run conditionally or never: constraints on
+        ;; enclosing params collect here, dormant until a call site proves
+        ;; the fn invoked on the spine, see types/activate-pending!
+        pending-sink (when (:param-infers ctx) (atom []))
+        ctx (cond-> ctx
+              pending-sink (-> (update :fn-depth (fnil inc 0))
+                               (assoc :pending-infers pending-sink)))
         simple-params (inferable-params ctx arg-vec arg-bindings arity macro? keys-bindings)
         param-infer (when simple-params
                       (atom (into {}
@@ -886,13 +880,14 @@
         arg-tags (if param-infer
                    (types/merge-inferred-arg-tags simple-params param-infer arg-tags)
                    arg-tags)]
-    (assoc arity
-           :parsed
-           (concat analyzed-arg-vec analyze-pre-post parsed)
-           :ret return-tag
-           :arglist-str arglist-str
-           :arg-vec arg-vec
-           :args arg-tags)))
+    (cond-> (assoc arity
+                   :parsed
+                   (concat analyzed-arg-vec analyze-pre-post parsed)
+                   :ret return-tag
+                   :arglist-str arglist-str
+                   :arg-vec arg-vec
+                   :args arg-tags)
+      pending-sink (assoc :pending-infer (not-empty @pending-sink)))))
 
 (defn fn-bodies [ctx children body]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -1281,8 +1276,10 @@
                   next-arities (if arity
                                  ;; in this case binding-sexpr is a symbol,
                                  ;; since functions cannot be destructured
-                                 (assoc arities binding-val (assoc arity
-                                                                   :types types-by-arity))
+                                 (assoc arities binding-val
+                                        (cond-> (assoc arity :types types-by-arity)
+                                          (:pending-infer m)
+                                          (assoc :pending-infer (:pending-infer m))))
                                  ;; a non-fn binding shadows any prior local fn
                                  ;; of the same name: drop its stale arity info
                                  (dissoc arities binding-val))]
@@ -1605,6 +1602,8 @@
         fixed-arities (when arities (into #{} (filter number?) (keys arities)))
         varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
         arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
+        pending-infer (not-empty (into [] (comp (keep :pending-infer) cat (distinct))
+                                       parsed-bodies))
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (when (and (not (linter-disabled? ctx :def-fn))
                (def-fn? ctx))
@@ -1614,7 +1613,8 @@
         (cond-> {:arity {:fixed-arities fixed-arities
                          :varargs-min-arity varargs-min-arity}
                  :arities arities}
-          (seq arglist-strs) (assoc-in [:arity :arglist-strs] arglist-strs))))))
+          (seq arglist-strs) (assoc-in [:arity :arglist-strs] arglist-strs)
+          pending-infer (assoc :pending-infer pending-infer))))))
 
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
@@ -2008,6 +2008,10 @@
         children (:children expr)
         binding-info (get (:arities ctx) fn-name)
         tag (get-in ctx [:bindings fn-name :tag])]
+    ;; calling a local fn is proof it runs here: commit its dormant
+    ;; constraints on enclosing params, subject to reachability
+    (when-let [pending (:pending-infer binding-info)]
+      (types/activate-pending! ctx pending))
     (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
         (findings/reg-finding! ctx (node->line (:filename ctx) expr
@@ -2721,15 +2725,19 @@
                                (drop f-args-n children)]
         ;; _ (prn :prepending prepending :f f :f-args f-args)
         _ (analyze-children ctx prepending false)
-        fana (analyze-expression** (cond-> ctx
-                                     (and f (fn-form? f)) (assoc :invoked-fn true))
-                                   f)
+        fana (analyze-expression** ctx f)
         t (tag f)
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)
         arity (if binding
                 (get (:arities ctx) fsym)
                 (-> fana meta :arity))
+        ;; the hof invokes its fn argument right here: commit the dormant
+        ;; constraints of an fn literal or a local fn passed by name
+        _ (when-let [pending (if binding
+                               (:pending-infer (get (:arities ctx) fsym))
+                               (-> fana meta :pending-infer))]
+            (types/activate-pending! ctx pending))
         ns (:ns ctx)
         var? (and fsym (not binding))
         ns-name (:name ns)
