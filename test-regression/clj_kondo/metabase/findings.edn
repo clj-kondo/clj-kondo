@@ -2156,18 +2156,6 @@
   :langs (),
   :message "Test assertion message should be a string",
   :row 42}
- {:end-row 256,
-  :type :type-mismatch,
-  :level :error,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/util_test.cljc",
-  :col 5,
-  :end-col 8,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Expected: associative collection or set, received: nil.",
-  :row 256}
  {:end-row 33,
   :type :unresolved-symbol,
   :level :error,

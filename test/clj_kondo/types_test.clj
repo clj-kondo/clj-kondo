@@ -1910,13 +1910,48 @@
       (is (empty? (lint! "(defn f [x m] (if-let [v (:k m)] (subs x v) x)) (f 42 {})" config))))
     (testing "a usage on a narrowed binding does not constrain"
       (is (empty? (lint! "(defn f [x] (when (string? x) (subs x 1)) x) (f 42)" config))))
-    (testing "a nested fn's usage constrains the outer param, closing over it is using it"
+    (testing "a nested fn's usage does not constrain the outer param, the fn may run conditionally or never"
+      (is (empty? (lint! "(defn f [x] #(subs x 1)) (f 42)" config)))
+      (is (empty? (lint! "(defn f [d avg]
+                            (let [out (fn [row] (/ 1 (double avg)))]
+                              (cond-> d avg (out))))
+                          (f {} nil)" config))))
+    (testing "a fn in the fn position of a known hof constrains, it is invoked there"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: positive integer."})
-       (lint! "(defn f [x] #(subs x 1)) (f 42)" config))
+       (lint! "(defn f [x coll] (map (fn [i] (subs x i)) coll)) (f 42 [1])" config))
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: positive integer."})
-       (lint! "(defn f [x coll] (map (fn [i] (subs x i)) coll)) (f 42 [1])" config)))
+       (lint! "(defn f [x coll] (map #(subs x %) coll)) (f 42 [1])" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x a] (swap! a (fn [v] (subs x v)))) (f 42 (atom 1))" config))
+      (testing "but a fn created inside the hof fn is not invoked"
+        (is (empty? (lint! "(defn f [x coll] (map (fn [_] (fn [] (subs x 1))) coll)) (f 42 [1])" config))))
+      (testing "and an enclosing conditional still suppresses"
+        (is (empty? (lint! "(defn f [x b coll] (when b (map #(subs x %) coll))) (f 42 true [1])" config)))))
+    (testing "a local fn's dormant constraints activate at a spine call"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [x] (let [g (fn [i] (subs x i))] (g 1))) (f 42)" config))
+      (testing "also when passed by name to a hof"
+        (assert-submaps2
+         '({:row 1 :message "Expected: string, received: positive integer."})
+         (lint! "(defn f [x coll] (let [g (fn [i] (subs x i))] (map g coll))) (f 42 [1])" config)))
+      (testing "and through a chain of local fns, each proven invoked"
+        (assert-submaps2
+         '({:row 1 :message "Expected: string, received: positive integer."})
+         (lint! "(defn f [x] (let [g (fn [i] (subs x i)) h (fn [] (g 1))] (h))) (f 42)" config)))
+      (testing "a conditional call site activates nothing, the guard may be what makes it safe"
+        (is (empty? (lint! "(defn f [x b] (let [g (fn [i] (subs x i))] (when b (g 1)))) (f 42 true)" config)))
+        (is (empty? (lint! "(defn f [x b coll]
+                              (let [g (fn [i] (subs x i))]
+                                (when b (map g coll))))
+                            (f 42 true [1])" config))))
+      (testing "a chain link that is never proven invoked stays dormant"
+        (is (empty? (lint! "(defn f [x] (let [g (fn [i] (subs x i))] (fn [] (g 1)))) (f 42)" config))))
+      (testing "a conditional inside the local fn drops the constraint even when activated"
+        (is (empty? (lint! "(defn f [x b] (let [g (fn [i] (when b (subs x i)))] (g 1))) (f 42 true)" config)))))
     (testing "a nested fn created in a conditional branch does not constrain"
       (is (empty? (lint! "(defn f [x b] (when b #(subs x 1))) (f 42 true)" config))))
     (testing "a conditional inside the nested fn does not constrain the outer param"
@@ -2118,6 +2153,11 @@
     (testing "a dynamic key opens the map, it can evaluate to any key"
       (is (empty? (lint! "(let [k :x] (inc (:x {k 1})))" config)))
       (is (empty? (lint! "(defn f [{:keys [x]}] (inc x)) (let [k :x] (f {k 1}))" config))))
+    (testing "an inferred key value spec can be a union"
+      (assert-submaps2
+       '({:row 1 :message "Expected: symbol or string or keyword, received: positive integer."})
+       (lint! "(defn f [{:keys [x]}] (keyword x)) (f {:x 1})" config))
+      (is (empty? (lint! "(defn f [{:keys [x]}] (keyword x)) (f {:x \"s\"})" config))))
     (testing "a quoted collection key opens the map, map-key cannot extract it"
       (let [cfg (assoc-in config [:linters :type-mismatch :namespaces 'user 'qfn]
                           '{:arities {1 {:args [{:op :keys :req {(a b) :number}}]}}})]

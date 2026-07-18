@@ -69,7 +69,6 @@ signum {1 {:ret :double, :args (:double)}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.gen.alpha.transit.json  ===
 qualified? {1 {:ret :boolean}}
-delay-impl {1 {:args [:ideref]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.test.transit.json  ===
 test-all-vars {1 {:ret :nil}}
@@ -133,7 +132,7 @@ realize-parameter-list {2 {:ret :vector}}
 pprint-ns {1 {:args [:seqable]}}
 get-format-arg {1 {:ret :vector}}
 split-at-newline {1 {:ret :vector, :args [:seqable]}}
-group-by* {2 {:ret :seq, :args [:nat-int :seqable]}}
+group-by* {2 {:ret :seq, :args [nil :seqable]}}
 init-navigator {1 {:args [:seqable]}}
 insert-decimal {2 {:ret #{:string}, :args [nil :number]}}
 ltrim {2 {:args [:seqable]}}
@@ -188,7 +187,6 @@ pprint-defn {1 {:args [:seqable]}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.alpha.transit.json  ===
 alt-impl {3 {:ret :associative}}
 pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
-merge-spec-impl {3 {:args [:seqable :seqable]}}
 explain-data* {5 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {}, :value {}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 and-k-gen {1 {:args [:seqable]}}
 fn-sym {1 {:ret #{:symbol :nil}}}
@@ -206,7 +204,6 @@ int-in-range? {3 {:ret #{:nil :boolean}}}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq, :args [nil nil #{:string :array :nil :set :ilookup :map}]}}
 explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {}, :value {}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 tuple-impl {2 {:args [:seqable :seqable]}, 3 {:args [:seqable :seqable]}}
-multi-spec-impl {3 {:args [nil :ideref]}, 4 {:args [nil :ideref]}}
 inck {2 {:ret :associative, :args [#{:associative :nil}]}}
 gensub {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 invalid? {1 {:ret :boolean}}
@@ -359,8 +356,6 @@ file-path {1 {:args [#{:string :nil}]}}
 ex-triage {1 {:ret :associative}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.walk.transit.json  ===
-prewalk-replace {2 {:args [#{:associative :string :nil :set}]}}
-postwalk-replace {2 {:args [#{:associative :string :nil :set}]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.template.transit.json  ===
 apply-template {3 {:args [:seqable nil :seqable]}}
@@ -427,7 +422,7 @@ take-last {2 {:args [:nat-int :seqable]}}
 reader-conditional {2 {:args [nil #{:nil :boolean}]}}
 qualified-keyword? {1 {:ret :boolean}}
 satisfies? {2 {:ret :boolean}}
-take-nth {1 {:ret :fn, :args [:number]}, 2 {:ret :seq, :args [nil :seqable]}}
+take-nth {1 {:ret :fn}, 2 {:ret :seq, :args [nil :seqable]}}
 seq? {1 {:ret :boolean}}
 with-bindings* {:varargs {:min-arity 2, :args [nil :ifn]}}
 inst-ms {1 {:ret :long, :args [:inst]}}
@@ -451,8 +446,8 @@ seq-to-map-for-destructuring {1 {:args [:seqable]}}
 thread-bound? {:varargs {:ret :boolean, :min-arity 0}}
 any? {1 {:ret :boolean}}
 rand-int {1 {:ret :int}}
-map {1 {:ret :fn, :args [:ifn]}, 2 {:ret :seq, :args [nil :seqable]}, 3 {:ret :seq, :args [nil :seqable :seqable]}, 4 {:ret :seq, :args [nil :seqable :seqable :seqable]}, :varargs {:ret :seq, :min-arity 4, :args [:ifn]}}
-juxt {1 {:ret :fn, :args [:ifn]}, 2 {:ret :fn, :args [:ifn :ifn]}, 3 {:ret :fn, :args [:ifn :ifn :ifn]}, :varargs {:ret :fn, :min-arity 3}}
+map {1 {:ret :fn}, 2 {:ret :seq, :args [nil :seqable]}, 3 {:ret :seq, :args [nil :seqable :seqable]}, 4 {:ret :seq, :args [nil :seqable :seqable :seqable]}, :varargs {:ret :seq, :min-arity 4, :args [:ifn]}}
+juxt {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 < {1 {:ret :boolean}, :varargs {:min-arity 2, :args [:number :number]}}
 test {1 {:ret #{:keyword}}}
 emit-deftype* {6 {:args [nil nil nil #{:coll :nil} nil :seqable]}}
@@ -474,18 +469,18 @@ generate-class {1 {:ret :vector, :args [:seqable]}}
 -cache-protocol-fn {4 {:args [nil nil #{:class :nil}]}}
 map-indexed {1 {:ret :fn}}
 rand-nth {1 {:args [:seqable]}}
-comp {2 {:ret :fn, :args [nil :ifn]}}
+comp {2 {:ret :fn}}
 future-done? {1 {:args [#{:future :nil}]}}
 dorun {1 {:args [:seqable]}, 2 {:args [nil :seqable]}}
 simple-symbol? {1 {:ret #{:nil :boolean}}}
 assert-valid-fdecl {1 {:args [:seqable]}}
 partitionv {2 {:ret :seq}, 3 {:ret :seq, :args [nil nil :seqable]}, 4 {:ret :seq, :args [nil nil nil :seqable]}}
-fnil {2 {:ret :fn, :args [:ifn]}, 3 {:ret :fn, :args [:ifn]}, 4 {:ret :fn, :args [:ifn]}}
+fnil {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}}
 nthrest {2 {:args [nil :number]}}
 sequential? {1 {:ret :boolean}}
 build-positional-factory {3 {:args [nil nil :seqable]}}
 unchecked-float {1 {:args [#{:number :nil}]}}
-pmap {2 {:ret :seq, :args [nil :seqable]}, :varargs {:ret :seq, :min-arity 2, :args [:ifn]}}
+pmap {2 {:ret :seq, :args [nil :seqable]}, :varargs {:ret :seq, :min-arity 2}}
 float? {1 {:ret #{:boolean}}}
 normalize-slurp-opts {1 {:args [:seqable]}}
 set? {1 {:ret :boolean}}
@@ -538,7 +533,6 @@ overload-name {2 {:args [nil :seqable]}}
 pcalls {:varargs {:ret :seq, :min-arity 0}}
 ns-resolve {3 {:args [nil #{:associative :string :nil :set}]}}
 most-specific {1 {:args [:seqable]}}
-trampoline {:varargs {:min-arity 1, :args [:ifn]}}
 double? {1 {:ret :boolean}}
 fits-table? {1 {:ret :boolean, :args [:seqable]}}
 map-entry? {1 {:ret :boolean}}
@@ -605,7 +599,7 @@ maybe-destructured {2 {:args [:seqable]}}
 maybe-min-hash {1 {:args [:seqable]}}
 qualified-ident? {1 {:ret :boolean}}
 / {1 {:ret :number, :args [:number]}, :varargs {:min-arity 2, :args [:number :number]}}
-binding-conveyor-fn {1 {:ret :fn, :args [:ifn]}}
+binding-conveyor-fn {1 {:ret :fn}}
 reader-conditional? {1 {:ret :boolean}}
 vector {0 {:ret :vector}, 1 {:ret :vector}, 2 {:ret :vector}, 3 {:ret :vector}, 4 {:ret :vector}, 5 {:ret :vector}, 6 {:ret :vector}}
 >= {1 {:ret :boolean}, :varargs {:min-arity 2, :args [:number :number]}}
@@ -637,7 +631,7 @@ ifn? {1 {:ret :boolean}}
 nat-int? {1 {:ret #{:nil :boolean}}}
 proxy-name {2 {:args [#{:class :nil}]}}
 subvec {2 {:ret :vector, :args [:vector :nat-int]}}
-partial {2 {:ret :fn, :args [:ifn]}, 3 {:ret :fn, :args [:ifn]}, 4 {:ret :fn, :args [:ifn]}, :varargs {:ret :fn, :min-arity 4, :args [:ifn]}}
+partial {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}, :varargs {:ret :fn, :min-arity 4}}
 chunked-seq? {1 {:ret :boolean}}
 replicate {2 {:ret :seq, :args [:nat-int]}}
 unchecked-byte {1 {:args [#{:number :nil}]}}
@@ -689,7 +683,7 @@ clojure-version {0 {:ret :string}}
 merge-hash-collisions {4 {:ret :vector}}
 comparator {1 {:ret :fn}}
 drop-while {1 {:ret :fn}, 2 {:ret :seq}}
-complement {1 {:ret :fn, :args [:ifn]}}
+complement {1 {:ret :fn}}
 with-redefs-fn {2 {:args [:seqable]}}
 constantly {1 {:ret :fn}}
 make-array {2 {:args [#{:class :nil} #{:number :char}]}, :varargs {:min-arity 2, :args [#{:class :nil}]}}

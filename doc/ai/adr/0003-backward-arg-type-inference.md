@@ -71,18 +71,46 @@ Rules, in order of precedence:
    If spine narrowing ever exists (assert, :pre, guard clauses that throw), a
    narrowed spine usage should constrain: the guard enforces the type at
    runtime, so it is the contract, and :pre could even feed inference
-   directly. Reachability is a single `:branch-count` int on the ctx, bumped
-   on entering conditionally evaluated code. Each fn entry adds its params to
-   the `:param-infers` map with the count at that point as their mark, and a
-   usage constrains only while the count still equals the mark, meaning no
-   conditional was crossed since that fn's entry on this descent path. So a
-   nested fn's own params infer regardless of enclosing conditionals, a usage
-   of an enclosing fn's param in the nested body still constrains it, closing
-   over a param is using it, and a fn created inside a branch, or a guarded
-   usage inside the fn, proves nothing about the outer param. Settled
-   empirically: both including and excluding nested-fn usages produced zero
-   corpus deltas, so the version that catches
-   `(defn f [x] #(subs x 1)) (f 42)` at write time won.
+   directly. Reachability is two ints on the ctx: `:branch-count`, bumped
+   on entering conditionally evaluated code, and `:fn-depth`, bumped on
+   entering a nested fn body, the fn may run conditionally or never. Each
+   fn entry adds its params to the `:param-infers` map with both counters
+   pinned as `:branch-mark` and `:fn-mark`, and a usage constrains a param
+   directly only while both counters still equal their marks, meaning
+   neither a conditional nor an fn boundary was crossed since that fn's
+   entry on this descent path. So a
+   nested fn's own params infer regardless of enclosing conditionals, only a
+   fn's own unconditional spine constrains its params directly. A nested
+   fn's constraints on enclosing params are not dropped though, they go
+   dormant: fn-body entry allocates a pending sink, and
+   `record-constraint!` routes three ways. Same branch count and same
+   depth commits to the param, same count but deeper parks the spec in the
+   innermost fn's sink, a map of binding to spec set, the dormant twin of
+   the param-infer map, a differing count drops, the guard may be what
+   makes the usage safe. The sink travels out on the fn's
+   analysis meta next to `:arity`, into the local's `:arities` entry for a
+   let-bound fn. A call site that proves the fn invoked drains it via
+   `activate-pending!`, which replays every entry through the same
+   routing: on the owner's spine it commits, inside another nested fn it
+   re-pends on that fn, so chains of local fns compose, and in a branch it
+   drops, which is exactly the reported false positive, `(cond-> d avg
+   (out))` activates nothing. Drains do not consume, dedup absorbs a
+   second site. Activation sites: calling a local fn binding
+   (analyze-binding-call), and the fn argument of a known higher-order
+   call (the analyze-hof set: map, filter, reduce, swap!, update and
+   friends), whether written inline or passed by name. Strictly a seq hof
+   runs its fn zero or more times, a caller could pass a wrong-typed arg
+   plus an always-empty coll, accepted as far-fetched. A fn that is only
+   returned or stored stays dormant forever. An earlier revision let every
+   nested body constrain enclosing params directly, closing over a param
+   is using it, chosen because corpus deltas were zero either way and it
+   caught `(defn f [x] #(subs x 1)) (f 42)` at write time. Reverted on the
+   first real-world report: a local fn whose body divides by a closed-over
+   param was only invoked under `(cond-> d avg (out))`, callers passing
+   nil were correct, corpus tests missed it because the pattern needs a
+   nil argument at a call site in the same codebase. Immediately invoked
+   fn forms `((fn [] ..))` and letfn bindings do not activate yet, rare
+   enough to defer.
 5. `:char-sequence` constraints propagate on both platforms. The JVM impls
    coerce via `.toString`, so a symbol into `str/replace` happens to work
    there, but the clojure.string ns docstring (design note 4) documents the
@@ -125,8 +153,13 @@ when `bar`'s own params were inferred. A call to a spec-less resolved user fn
 records a deferred `{:op :arg-spec-of :ns .. :name .. :arity .. :arg-idx ..}`
 constraint. Constraints with deferred or map-shaped members are stored as
 `{:op :and :specs [..]}` in `:args`, joining the existing spec operator family
-(`:rest`, `:keys`). The specs vector is insertion ordered with record-time
-dedup, for deterministic output. When the cache is synced,
+(`:rest`, `:keys`). Constraints collect in a set, order is immaterial:
+intersect is a commutative meet, and resolution intersects every member at
+cache sync before anything is serialized, so cache bytes are stable
+regardless of recording order, verified by byte-comparing caches under
+permuted constraint orders. An earlier revision kept insertion-ordered
+vectors with manual dedup, from when unresolved :and entries could reach
+the cache verbatim. When the cache is synced,
 `types/resolve-types` walks every var's arities once, resolving each
 `{:op :and}` arg entry to a concrete spec via `types/resolve-inferred-spec`:
 look up the callee's `:args` in idacs (possibly itself inferred, so chains),
@@ -270,6 +303,44 @@ only, `:strs`/`:syms` through a fn return are untyped, and literal value
 tracking covers keyword and string tokens only.
 
 ## Future work
+
+- Guarded evidence with call-site discharge. The dormant-constraint design
+  generalizes: evidence plus a premise, believed when the premise is
+  discharged. A sink's premise is "this fn runs on the spine", discharged
+  at analysis time by an invocation site. A branch-guarded usage could
+  record its evidence with the premise "this guard holds", discharged per
+  call site from the argument tags: `(defn f [x b] (if b (subs x 1) (inc
+  x)))` then `(f 42 true)` warns, a keyword or number arg proves the guard
+  truthy, :nil proves it falsy, :boolean or a mixed union proves nothing.
+  Guard language stays tiny: a bare param or a known predicate on a param.
+  The wall is the cache: a cross-argument conditional spec is new
+  vocabulary that cannot be resolved away at sync, so it would start
+  in-memory only, cross-library callers see just the unconditional spec.
+  The self-guarded case needs no vocabulary at all: "b truthy implies b is
+  a number" collapses to the union of the evidence with the falsy tags,
+  `#{:number :nil :boolean}`, an ordinary spec, and would catch a caller
+  passing a string where today's design only stays quiet on nil.
+  Prototyped on branch `self-guard-infer` (8f62b238), shelved on the
+  evidence: sound, tests green, four corpora green, but zero finding
+  deltas and zero new cached specs across the clojure and clojurescript
+  core sources, the direct pattern barely occurs in library code. What
+  does fire is the interplay with activation, a guarded call of a local fn
+  whose closure constrains the guard param, the reported false positive's
+  own shape with a wrong-typed caller. Revisit if the cross-argument
+  version is ever built, the prototype's guard threading and routing arm
+  are its foundation.
+
+- Arg-type checking at local fn call sites: `(let [f (fn [i] (inc i))] (f
+  "foo"))` is silent while the defn twin warns, only arity is checked. The
+  data already flows, extract-arity-info keeps the inferred :args and :ret
+  per arity and analyze-binding-call has both the local's arity entry and
+  an :arg-types atom for the call's children. The work is an inline check
+  at analysis time: args-spec-from-arities plus tag-matches?, skipping
+  deferred {:call ..} argument tags and in-memory {:op :and} spec members,
+  neither resolvable before cache sync. No cache involvement, locals never
+  serialize. letfn likely falls out of the same path. Needs corpus
+  validation, inferred local specs meeting real call sites is new false
+  positive surface.
 
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
