@@ -320,7 +320,15 @@ tracking covers keyword and string tokens only.
   a number" collapses to the union of the evidence with the falsy tags,
   `#{:number :nil :boolean}`, an ordinary spec, and would catch a caller
   passing a string where today's design only stays quiet on nil.
-  Prototyped on branch `self-guard-infer`.
+  Prototyped on branch `self-guard-infer` (8f62b238), shelved on the
+  evidence: sound, tests green, four corpora green, but zero finding
+  deltas and zero new cached specs across the clojure and clojurescript
+  core sources, the direct pattern barely occurs in library code. What
+  does fire is the interplay with activation, a guarded call of a local fn
+  whose closure constrains the guard param, the reported false positive's
+  own shape with a wrong-typed caller. Revisit if the cross-argument
+  version is ever built, the prototype's guard threading and routing arm
+  are its foundation.
 
 - Destructured params, second steps: constraints on the `:as` binding could
   constrain the param directly, deferred members inside key value types are
