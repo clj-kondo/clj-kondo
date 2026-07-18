@@ -761,12 +761,27 @@
                                acc
                                (when kbs (nth kbs i nil))))))))))))
 
+(defn in-branch-ctx
+  "Enters conditionally evaluated code: bumps the branch count, which stops
+  every currently visible param from constraining. No-op when inference is
+  off."
+  [ctx]
+  (if (:param-infers ctx)
+    (update ctx :branch-count (fnil inc 0))
+    ctx))
+
+(defn fn-form?
+  "Whether expr is written as a fn: an #(..) literal or a (fn ..) list."
+  [expr]
+  (let [t (tag expr)]
+    (or (identical? :fn t)
+        (and (identical? :list t)
+             (one-of (utils/symbol-from-token (first (:children expr))) [fn fn*])))))
+
 (defn ctx-with-param-infers
-  "Makes `simple-params` visible for inference, next to the params of
-  enclosing fns: a usage in this body may constrain an enclosing fn's param
-  when nothing conditional separates them, invoking this fn is the caller's
-  way of using that param. The mark pins the branch count at fn entry, a
-  usage constrains only while the count still equals it."
+  "Makes `simple-params` visible for inference. The mark pins the branch
+  count at fn entry, a usage constrains only while the count still equals
+  it, so only this fn's own unconditional spine constrains its params."
   [ctx simple-params param-infer]
   (let [entry {:param-infer param-infer
                :mark (:branch-count ctx 0)}]
@@ -776,6 +791,8 @@
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
+        invoked-fn (:invoked-fn ctx)
+        ctx (dissoc ctx :invoked-fn)
         {:keys [arg-bindings
                 arity analyzed-arg-vec arglist-str arg-vec keys-bindings]
          return-tag :ret
@@ -787,6 +804,10 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
+        ;; a nested fn may run conditionally or never: its body proves
+        ;; nothing about enclosing params, unless it sits in the fn position
+        ;; of a known higher-order call
+        ctx (if invoked-fn ctx (in-branch-ctx ctx))
         simple-params (inferable-params ctx arg-vec arg-bindings arity macro? keys-bindings)
         param-infer (when simple-params
                       (atom (into {}
@@ -1064,15 +1085,6 @@
                            :fn))))
     (docstring/lint-docstring! ctx doc-node docstring)
     (mapcat :parsed parsed-bodies)))
-
-(defn in-branch-ctx
-  "Enters conditionally evaluated code: bumps the branch count, which stops
-  every currently visible param from constraining. No-op when inference is
-  off."
-  [ctx]
-  (if (:param-infers ctx)
-    (update ctx :branch-count (fnil inc 0))
-    ctx))
 
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
@@ -2709,7 +2721,9 @@
                                (drop f-args-n children)]
         ;; _ (prn :prepending prepending :f f :f-args f-args)
         _ (analyze-children ctx prepending false)
-        fana (analyze-expression** ctx f)
+        fana (analyze-expression** (cond-> ctx
+                                     (and f (fn-form? f)) (assoc :invoked-fn true))
+                                   f)
         t (tag f)
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)

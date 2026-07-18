@@ -924,7 +924,8 @@
             ;; a position-stripped entry cannot anchor nested findings,
             ;; fall back to the argument
             (lint-map! ctx target (if (:row v) v arg) t)
-            (when-not (match? t target)
+            ;; target may be a union, e.g. an inferred key value spec
+            (when-not (tag-matches? t target)
               ;; an in-run entry points at the offending value. One resolved
               ;; through the cache is position-stripped, see strip-positions:
               ;; report at the argument, naming the key

@@ -72,17 +72,31 @@ Rules, in order of precedence:
    narrowed spine usage should constrain: the guard enforces the type at
    runtime, so it is the contract, and :pre could even feed inference
    directly. Reachability is a single `:branch-count` int on the ctx, bumped
-   on entering conditionally evaluated code. Each fn entry adds its params to
-   the `:param-infers` map with the count at that point as their mark, and a
+   on entering conditionally evaluated code, including a nested fn body: the
+   fn may run conditionally or never, so a usage of an enclosing fn's param
+   inside it proves nothing. Each fn entry adds its params to the
+   `:param-infers` map with the count at that point as their mark, and a
    usage constrains only while the count still equals the mark, meaning no
    conditional was crossed since that fn's entry on this descent path. So a
-   nested fn's own params infer regardless of enclosing conditionals, a usage
-   of an enclosing fn's param in the nested body still constrains it, closing
-   over a param is using it, and a fn created inside a branch, or a guarded
-   usage inside the fn, proves nothing about the outer param. Settled
-   empirically: both including and excluding nested-fn usages produced zero
-   corpus deltas, so the version that catches
-   `(defn f [x] #(subs x 1)) (f 42)` at write time won.
+   nested fn's own params infer regardless of enclosing conditionals, only a
+   fn's own unconditional spine constrains its params. Exception: a fn form
+   written directly in the fn position of a known higher-order call (the
+   `analyze-hof` set: map, filter, reduce, swap!, update and friends) skips
+   its bump via an `:invoked-fn` ctx flag, consumed at fn-body entry, the
+   hof invokes it right there. Strictly a seq hof runs its fn zero or more
+   times, a caller could pass a wrong-typed arg plus an always-empty coll,
+   accepted as far-fetched. The flag never resets the count, so a hof call
+   inside a branch still proves nothing, and only the syntactic fn argument
+   gets it: a named local passed to a hof was analyzed at its binding,
+   where its invocation sites are unknown. An earlier revision let every
+   nested body constrain enclosing params, closing over a param is using
+   it, chosen because corpus deltas were zero either way and it caught
+   `(defn f [x] #(subs x 1)) (f 42)` at write time. Reverted on the first
+   real-world report: a local fn whose body divides by a closed-over param
+   was only invoked under `(cond-> d avg (out))`, callers passing nil were
+   correct, corpus tests missed it because the pattern needs a nil argument
+   at a call site in the same codebase. An immediately invoked fn form
+   `((fn [] ..))` does not get the flag yet, rare enough to defer.
 5. `:char-sequence` constraints propagate on both platforms. The JVM impls
    coerce via `.toString`, so a symbol into `str/replace` happens to work
    there, but the clojure.string ns docstring (design note 4) documents the
