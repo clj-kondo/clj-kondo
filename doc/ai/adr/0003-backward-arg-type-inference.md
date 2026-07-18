@@ -75,15 +75,17 @@ Rules, in order of precedence:
    on entering conditionally evaluated code, including a nested fn body: the
    fn may run conditionally or never, so a usage of an enclosing fn's param
    inside it proves nothing. Each fn entry adds its params to the
-   `:param-infers` map with the count at that point as their mark, and a
-   usage constrains only while the count still equals the mark, meaning no
+   `:param-infers` map with the count at that point as their branch mark,
+   and a usage constrains only while the count still equals the mark,
+   meaning no
    conditional was crossed since that fn's entry on this descent path. So a
    nested fn's own params infer regardless of enclosing conditionals, only a
    fn's own unconditional spine constrains its params directly. A nested
    fn's constraints on enclosing params are not dropped though, they go
    dormant: fn-body entry allocates a pending sink and bumps a `:fn-depth`
-   ctx counter (`:branch-count` is real conditionals only), and
-   `record-constraint!` routes three ways. Same branch count and same
+   ctx counter (`:branch-count` is real conditionals only), each param
+   entry pins both counters at fn entry as `:branch-mark` and `:fn-mark`,
+   and `record-constraint!` routes three ways. Same branch count and same
    depth commits to the param, same count but deeper parks the spec in the
    innermost fn's sink, a map of binding to spec set, the dormant twin of
    the param-infer map, a differing count drops, the guard may be what

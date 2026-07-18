@@ -620,12 +620,12 @@
   on the spine, see activate-pending!. A crossed conditional drops it, the
   guard may be what makes the usage safe."
   [ctx infers b s]
-  (when-let [{:keys [param-infer mark fn-depth]} (get infers b)]
-    (when (== mark (:branch-count ctx 0))
+  (when-let [{:keys [param-infer branch-mark fn-mark]} (get infers b)]
+    (when (== branch-mark (:branch-count ctx 0))
       (let [depth (:fn-depth ctx 0)]
-        (cond (== depth fn-depth)
+        (cond (== depth fn-mark)
               (swap! param-infer update b (fnil conj #{}) s)
-              (> depth fn-depth)
+              (> depth fn-mark)
               (when-let [sink (:pending-infers ctx)]
                 (swap! sink update b (fnil conj #{}) s)))))))
 
@@ -650,9 +650,9 @@
   routes it through record-constraint!. Type predicates need no special
   case: their arg spec is :any, so they record nothing."
   [ctx [called-ns called-name arity] infers b idx]
-  (when-let [{:keys [mark]} (get infers b)]
+  (when-let [{:keys [branch-mark]} (get infers b)]
     ;; equal counts mean no conditional was crossed since the param's fn entry
-    (when (== mark (:branch-count ctx 0))
+    (when (== branch-mark (:branch-count ctx 0))
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)
