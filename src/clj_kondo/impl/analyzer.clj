@@ -2729,7 +2729,9 @@
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)
         ;; a local passed by name has its fn info in :arities, a literal
-        ;; carries it on its analysis meta, same keys either way
+        ;; carries it on its analysis meta. The shapes differ, the arity
+        ;; data sits at different spots, but :pending-infer is top-level
+        ;; in both
         finfo (if binding
                 (get (:arities ctx) fsym)
                 (meta fana))
