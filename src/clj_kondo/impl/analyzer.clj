@@ -2487,6 +2487,14 @@
   [ctx [sym tag]]
   (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 
+(defn guard-binding-from-condition
+  "When `condition` is a bare local, returns its binding: the local's
+  truthiness guards the then-branch, see types/record-constraint!."
+  [ctx condition]
+  (when (identical? :token (tag condition))
+    (when-let [sym (utils/symbol-from-token condition)]
+      (get (:bindings ctx) sym))))
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr]
@@ -2504,12 +2512,17 @@
     (let [[condition & clauses] args
           [then else] clauses
           narrowing (when-not (linter-disabled? ctx :type-mismatch)
-                      (narrowing-from-condition ctx condition))]
+                      (narrowing-from-condition ctx condition))
+          guard (when-not (linter-disabled? ctx :type-mismatch)
+                  (guard-binding-from-condition ctx condition))]
       (analyze-condition ctx condition)
       (let [branch-ctx (in-branch-ctx ctx)]
-        (if narrowing
-          (let [branch-ctx (assoc branch-ctx :len (count clauses))]
-            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-binding narrowing)) then)
+        (if (or narrowing guard)
+          (let [branch-ctx (assoc branch-ctx :len (count clauses))
+                then-ctx (cond-> (assoc branch-ctx :idx 0)
+                           narrowing (narrow-binding narrowing)
+                           guard (assoc :guard-binding guard))]
+            (concat (analyze-expression** then-ctx then)
                     (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
           (analyze-children branch-ctx clauses false))))))
 
@@ -2586,7 +2599,10 @@
         ;; when-not negates the condition, so narrow only for when
         narrowing (when (and (= 'when op)
                              (not (linter-disabled? ctx :type-mismatch)))
-                    (narrowing-from-condition ctx condition))]
+                    (narrowing-from-condition ctx condition))
+        guard (when (and (= 'when op)
+                         (not (linter-disabled? ctx :type-mismatch)))
+                (guard-binding-from-condition ctx condition))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.
@@ -2600,7 +2616,9 @@
         :missing-body-in-when
         "Missing body in when"))
       (analyze-children (in-branch-ctx
-                         (cond-> ctx narrowing (narrow-binding narrowing)))
+                         (cond-> ctx
+                           narrowing (narrow-binding narrowing)
+                           guard (assoc :guard-binding guard)))
                         body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]

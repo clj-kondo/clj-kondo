@@ -618,16 +618,25 @@
   conditional was crossed since the owner's entry, it goes dormant into
   that fn's pending sink, committed when a call site proves the fn invoked
   on the spine, see activate-pending!. A crossed conditional drops it, the
-  guard may be what makes the usage safe."
+  guard may be what makes the usage safe. Exception: a usage in a branch
+  guarded by the very param it constrains commits the union of the
+  evidence with the falsy tags, \"b truthy implies b is s\" is an ordinary
+  spec."
   [ctx infers b s]
   (when-let [{:keys [param-infer mark fn-depth]} (get infers b)]
-    (when (== mark (:branch-count ctx 0))
-      (let [depth (:fn-depth ctx 0)]
-        (cond (== depth fn-depth)
-              (swap! param-infer update b (fnil conj #{}) s)
-              (> depth fn-depth)
-              (when-let [sink (:pending-infers ctx)]
-                (swap! sink update b (fnil conj #{}) s)))))))
+    (let [bc (:branch-count ctx 0)
+          depth (:fn-depth ctx 0)]
+      (cond (and (== mark bc) (== depth fn-depth))
+            (swap! param-infer update b (fnil conj #{}) s)
+            (and (== mark bc) (> depth fn-depth))
+            (when-let [sink (:pending-infers ctx)]
+              (swap! sink update b (fnil conj #{}) s))
+            (and (== (inc mark) bc)
+                 (== depth fn-depth)
+                 (= b (:guard-binding ctx))
+                 (or (keyword? s) (set? s)))
+            (swap! param-infer update b (fnil conj #{})
+                   (into #{:nil :boolean} (if (set? s) s #{s})))))))
 
 (defn activate-pending!
   "Commits a fn's dormant constraints at a site that proves the fn
@@ -651,8 +660,9 @@
   case: their arg spec is :any, so they record nothing."
   [ctx [called-ns called-name arity] infers b idx]
   (when-let [{:keys [mark]} (get infers b)]
-    ;; equal counts mean no conditional was crossed since the param's fn entry
-    (when (== mark (:branch-count ctx 0))
+    ;; cheap gate: spine, or at most one branch deep for the self-guard
+    ;; arm, record-constraint! decides the rest
+    (when (<= (:branch-count ctx 0) (inc mark))
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)

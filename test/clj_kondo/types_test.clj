@@ -1850,6 +1850,32 @@
     (testing "a string argument is fine"
       (is (empty? (lint! "(parse-long \"42\")" config))))))
 
+(deftest self-guard-inference-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a usage guarded by the constrained param itself commits the union with the falsy tags"
+      (assert-submaps2
+       '({:row 1 :message "Expected: number or nil or boolean, received: string."})
+       (lint! "(defn f [b] (when b (inc b))) (f \"5\")" config))
+      (assert-submaps2
+       '({:row 1 :message "Expected: string or nil or boolean, received: positive integer."})
+       (lint! "(defn f [b] (if b (subs b 1) :none)) (f 42)" config))
+      (testing "falsy and matching callers stay quiet"
+        (is (empty? (lint! "(defn f [b] (when b (inc b))) (f nil) (f false) (f 3)" config)))))
+    (testing "a local fn's dormant constraints route through the self-guard arm at a guarded call"
+      (assert-submaps2
+       '({:row 2 :message "Expected: number or nil or boolean, received: string."})
+       (lint! "(defn r [d avg] (let [out (fn [_] (/ 1 (double avg)))] (if avg (out d) d)))
+               (r {} \"5\")" config))
+      (is (empty? (lint! "(defn r [d avg] (let [out (fn [_] (/ 1 (double avg)))] (if avg (out d) d)))
+                          (r {} nil)" config))))
+    (testing "what stays out of scope proves nothing"
+      (testing "a guard on a different param"
+        (is (empty? (lint! "(defn f [x b] (if b (subs x 1) x)) (f 42 true)" config))))
+      (testing "negated polarity"
+        (is (empty? (lint! "(defn f [b] (when-not b (inc b))) (f \"s\")" config))))
+      (testing "a second undischarged premise"
+        (is (empty? (lint! "(defn f [b c] (when b (when c (inc b)))) (f \"s\" 1)" config)))))))
+
 (deftest backward-inference-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "a param used in a spec'd position constrains callers"
