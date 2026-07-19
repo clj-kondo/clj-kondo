@@ -7,11 +7,17 @@
 
 (defn- wrap-string
   [s]
-  (format "\"%s\"" s))
+  (str "\"" s "\""))
 
 (defn- join-lines
   [lines]
   (string/join "\n" lines))
+
+(defn- maybe-unescape
+  [s]
+  (if (string/includes? s "\\")
+    (edn/read-string (wrap-string s))
+    s))
 
 (defrecord StringNode [lines]
   node/Node
@@ -22,10 +28,9 @@
   (printable-only? [_]
     false)
   (sexpr [_]
-    (join-lines
-     (map
-      (comp edn/read-string wrap-string)
-      lines)))
+    (if (= (count lines) 1)
+      (maybe-unescape (nth lines 0))
+      (join-lines (map maybe-unescape lines))))
   (length [_]
     (+ 2 (reduce + (map count lines))))
   (string [_]

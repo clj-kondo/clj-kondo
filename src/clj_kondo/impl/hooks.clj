@@ -1,17 +1,17 @@
 (ns clj-kondo.impl.hooks
   {:no-doc true}
+  (:refer-clojure :exclude [select-keys macroexpand])
   (:require
    [clj-kondo.hooks-api :as api]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.utils :as utils]
+   [clj-kondo.impl.utils :as utils :refer [select-keys]]
    [clojure.java.io :as io]
    [clojure.pprint]
    [clojure.string :as str]
    [sci.core :as sci]
-   [sci.ctx-store :as store])
-  (:refer-clojure :exclude [macroexpand]))
+   [sci.ctx-store :as store]))
 
 (set! *warn-on-reflection* true)
 
@@ -151,7 +151,7 @@
   [inner outer form]
   (cond
     (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node form)
-    (outer (update form :children #(mapv inner %)))
+    (outer (utils/update-some form :children #(mapv inner %)))
     :else (outer form)))
 
 (defn prewalk

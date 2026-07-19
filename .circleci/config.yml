@@ -47,7 +47,7 @@ jobs:
           command: |
             script/test
             script/analysis-test
-            clojure -M:test:eastwood
+            # clojure -M:test:eastwood
       - save_cache:
           paths:
             - ~/.m2

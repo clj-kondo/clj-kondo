@@ -6,52 +6,56 @@
    [clj-kondo.impl.overrides :as overrides]
    [clj-kondo.impl.utils :as utils :refer [assoc-some export-ns-sym select-some]]))
 
-(defn select-context [selector ctx]
+(defn select-context [selector context]
   (when selector
     (if (true? selector)
-      (:context ctx)
-      (select-keys (:context ctx) selector))))
+      context
+      (select-keys context selector))))
 
-(defn- merge-select-keys [m1 m2 m2-keys]
-  (persistent! (reduce (fn [acc k]
-                         (let [v (get m2 k)]
-                           (cond-> acc
-                             (some? v) (assoc! k v))))
-                       (transient m1) m2-keys)))
+(defn- assoc-some! [tm k v]
+  (cond-> tm
+    (some? v) (assoc! k v)))
 
-(defn reg-usage! [ctx filename row col from-ns to-ns var-name arity lang in-def metadata]
-  (let [analysis (:analysis ctx)]
-    (when analysis
-      (let [to-ns (export-ns-sym to-ns)]
-        (swap! analysis update :var-usages conj
-               (-> (merge-select-keys
-                    {:filename filename
-                     :row row
-                     :col col
-                     :from from-ns
-                     :to to-ns
-                     :name var-name}
-                    metadata
-                    [:private :macro
-                     :fixed-arities
-                     :varargs-min-arity
-                     :deprecated
-                     :refer
-                     :alias
-                     :defmethod
-                     :dispatch-val-str
-                     :name-row
-                     :name-col
-                     :name-end-row
-                     :name-end-col
-                     :end-row
-                     :end-col
-                     :derived-location
-                     :derived-name-location])
-                   (assoc-some :arity arity)
-                   (assoc-some :lang lang)
-                   (assoc-some :from-var in-def)
-                   (assoc-some :context (select-context (:analysis-context ctx) ctx))))))))
+(defn reg-usage! [ctx call to-ns base-lang called-fn]
+  (when-let [analysis (:analysis ctx)]
+    (let [to-ns (export-ns-sym to-ns)
+          call-name (:name call)
+          name-meta (meta call-name)
+          result (-> (transient {})
+                     ;; Taken from `call`
+                     (assoc-some! :filename (:filename call))
+                     (assoc-some! :row (:row call))
+                     (assoc-some! :col (:col call))
+                     (assoc-some! :from (:ns call))
+                     (assoc-some! :name call-name)
+                     (assoc-some! :refer (:refer call))
+                     (assoc-some! :alias (:alias call))
+                     (assoc-some! :defmethod (:defmethod call))
+                     (assoc-some! :end-row (:end-row call))
+                     (assoc-some! :end-col (:end-col call))
+                     (assoc-some! :derived-location (:derived-location call))
+                     (assoc-some! :arity (:arity call))
+                     (assoc-some! :lang (when (= :cljc base-lang)
+                                          (:lang call)))
+                     (assoc-some! :from-var (:in-def call))
+                     (assoc-some! :dispatch-val-str (:dispatch-val-str call))
+                     ;; Taken from `name-meta`
+                     (assoc-some! :name-row (:row name-meta))
+                     (assoc-some! :name-col (:col name-meta))
+                     (assoc-some! :name-end-row (:end-row name-meta))
+                     (assoc-some! :name-end-col (:end-col name-meta))
+                     (assoc-some! :derived-name-location (:derived-location name-meta))
+                     ;; Taken from `called-fn`.
+                     (assoc-some! :private (:private called-fn))
+                     (assoc-some! :macro (:macro called-fn))
+                     (assoc-some! :fixed-arities (:fixed-arities called-fn))
+                     (assoc-some! :varargs-min-arity (:varargs-min-arity called-fn))
+                     (assoc-some! :deprecated (:deprecated called-fn))
+                     ;; Misc
+                     (assoc-some! :to to-ns)
+                     (assoc-some! :context (select-context (:analysis-context ctx) (:context call))))]
+      ;; Use explicit lambda to avoid swap! going through less efficient varargs arity.
+      (swap! analysis #(update % :var-usages conj (persistent! result))))))
 
 (defn reg-symbol! [ctx filename from-ns symbol lang metadata]
   (when (:analyze-symbols? ctx)
@@ -78,7 +82,7 @@
                 :symbol symbol}
                extra-meta)
               :lang lang
-              :context (select-context (:analysis-context ctx) ctx))))))
+              :context (select-context (:analysis-context ctx) (:context ctx)))))))
 
 (defn reg-var! [{:keys [analysis-var-meta analysis base-lang lang
                         analyze-callstack-in-defs?] :as ctx}
@@ -183,7 +187,7 @@
                          :lang (when (= :cljc (:base-lang ctx)) (:lang ctx))
                          :from-var (:in-def ctx)
                          :from (get-in ctx [:ns :name])
-                         :context (select-context (:analysis-context ctx) usage))))))
+                         :context (select-context (:analysis-context ctx) (:context usage)))))))
 
 (defn reg-protocol-impl!
   [ctx filename impl-ns protocol-ns protocol-name method-node method-name-node defined-by defined-by->lint-as]

@@ -7,6 +7,7 @@
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
    [clj-kondo.impl.namespace :as namespace]
+   [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some
                                            symbol-token?]]
    [clojure.string :as str])
@@ -14,7 +15,7 @@
 
 (set! *warn-on-reflection* true)
 
-(defn ^:private resolve-keyword [ctx expr current-ns]
+(defn resolve-keyword [ctx expr current-ns]
   (let [aliased? (:namespaced? expr)
         token (if (symbol-token? expr)
                 (symbol-from-token expr)
@@ -172,6 +173,15 @@
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
                    (do
+                     (when-let [infers (:param-infers ctx)]
+                       ;; the callstack head carries ::infer-call only when
+                       ;; this local sits directly in that call's argument
+                       ;; list, see analyze-call
+                       (when-let [ic (some-> (first (:callstack ctx)) meta
+                                             ::types/infer-call)]
+                         (when-let [arg-types (:arg-types ctx)]
+                           (types/infer-local-usage! ctx ic infers b
+                                                     (count @arg-types)))))
                      (when-let [ul (:undefined-locals ctx)]
                        (when (contains? ul symbol-val)
                          (findings/reg-finding! ctx (utils/node->line (:filename ctx)
@@ -229,7 +239,8 @@
                                                       ns-name
                                                       resolved-ns)
                        (when (:analyze-var-usages? ctx)
-                         (let [usage {:type :use
+                         (let [usage (utils/var-usage
+                                      {:type :use
                                       :name (with-meta
                                               resolved-name
                                               m)
@@ -266,7 +277,7 @@
                                       ;; save some memory
                                       :expr (when-not dependencies expr)
                                       :resolved-core? resolved-core?
-                                      :condition (:condition expr)}]
+                                      :condition (:condition expr)})]
                            (namespace/reg-var-usage! ctx ns-name
                                                      usage)
                            (utils/reg-call ctx usage (:id expr))

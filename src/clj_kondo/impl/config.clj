@@ -1,9 +1,9 @@
 (ns clj-kondo.impl.config
   {:no-doc true}
-  (:refer-clojure :exclude [unquote])
+  (:refer-clojure :exclude [unquote get-in])
   (:require
    [clj-kondo.impl.findings :as findings]
-   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals]]
+   [clj-kondo.impl.utils :as utils :refer [deep-merge map-vals get-in]]
    [clojure.set :as set]
    [clojure.walk :as walk]))
 
@@ -248,14 +248,28 @@
       (assoc cfg :linters linters))
     cfg))
 
+(defn- merge-fn-types [a b]
+  (deep-merge (update a :arities merge (:arities b))
+              (dissoc b :arities)))
+
+(defn- merge-type-mismatch-namespaces [a b]
+  (merge-with (partial merge-with merge-fn-types) a b))
+
 (defn merge-config!
   ([])
   ([cfg] cfg)
   ([cfg* cfg]
    (if (empty? cfg) cfg*
-       (let [cfg (cond-> cfg
+       (let [cfg* (cond-> cfg*
+                    (contains? (:linters cfg) :type-mismatch)
+                    (update-in [:linters :type-mismatch :namespaces]
+                               merge-type-mismatch-namespaces
+                               (get-in cfg [:linters :type-mismatch :namespaces])))
+             cfg (cond-> cfg
                    (contains? (:linters cfg) :if)
-                   (assoc-in [:linters :missing-else-branch] (:if (:linters cfg))))]
+                   (assoc-in [:linters :missing-else-branch] (:if (:linters cfg)))
+                   (contains? (:linters cfg) :type-mismatch)
+                   (update-in [:linters :type-mismatch] dissoc :namespaces))]
          (deep-merge cfg* cfg))))
   ([cfg* cfg & cfgs]
    (reduce merge-config! cfg* (cons cfg cfgs))))

@@ -1,13 +1,13 @@
 (ns clj-kondo.impl.namespace
   {:no-doc true}
-  (:refer-clojure :exclude [ns-name])
+  (:refer-clojure :exclude [ns-name get-in])
   (:require
    [clj-kondo.impl.analysis :as analysis]
    [clj-kondo.impl.analysis.java :as java]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.utils :as utils
-    :refer [deep-merge export-ns-sym linter-disabled? node->line one-of]]
+    :refer [deep-merge export-ns-sym linter-disabled? node->line one-of get-in]]
    [clj-kondo.impl.var-info :as var-info]
    [clojure.string :as str])
   (:import
@@ -319,12 +319,16 @@
   (when-not dependencies
     (when-not (:interop? usage)
       (let [path [base-lang lang ns-sym]
-            usage (assoc usage
-                         :config (:config ctx)
-                         :unresolved-symbol-disabled?
-                         ;; TODO: can we do this via the ctx only?
-                         (or (:unresolved-symbol-disabled? usage)
-                             (linter-disabled? ctx :unresolved-symbol)))]
+            ;; Construction sites already set :config from the same ctx; only
+            ;; add it when missing, to avoid copying the VarUsage record.
+            usage (if (:config usage)
+                    usage
+                    (assoc usage :config (:config ctx)))
+            ;; TODO: can we do this via the ctx only?
+            usage (if (and (not (:unresolved-symbol-disabled? usage))
+                           (linter-disabled? ctx :unresolved-symbol))
+                    (assoc usage :unresolved-symbol-disabled? true)
+                    usage)]
         (swap! namespaces update-in path
                (fn [ns]
                  (update ns :used-vars (fnil conj []) usage)))))))

@@ -30,3 +30,21 @@
     (is (= "{:hooks
  {:analyze-call {slingshot.slingshot/try+ clj-kondo.slingshot.try-plus/try+}}}
 " (tu/normalize-newlines (slurp (io/file tmp-dir "imports" "clj-kondo" "slingshot" "config.edn")))))))
+
+(deftest copy-config-skips-unchanged-content
+  (let [tmp-dir (.toFile (Files/createTempDirectory "config" (into-array java.nio.file.attribute.FileAttribute [])))
+        lint! (fn [] (binding [*err* (java.io.StringWriter.)]
+                       (clj-kondo/run! {:lint [(io/file "corpus" "exports" "dir")]
+                                        :config-dir tmp-dir
+                                        :copy-configs true})))
+        config-file (io/file tmp-dir "imports" "clj-kondo" "slingshot" "config.edn")
+        hook-file (io/file tmp-dir "imports" "clj-kondo" "slingshot" "clj_kondo" "slingshot" "try_plus.clj")]
+    (lint!)
+    (testing "all files in a multi-file export are copied, not just the first"
+      (is (.exists config-file))
+      (is (.exists hook-file)))
+    (testing "second run does not rewrite unchanged files"
+      (let [before (.lastModified config-file)]
+        (Thread/sleep 100)
+        (lint!)
+        (is (= before (.lastModified config-file)))))))

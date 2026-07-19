@@ -109,6 +109,17 @@
       (let [binding (:value k)
             simple? (and (identical? :token (tag k))
                          (simple-symbol? binding))]
+        (when (:required (get m binding))
+          (let [mta (meta k)]
+            (findings/reg-finding!
+             ctx
+             {:message (str "Can't supply default value for required binding: " binding)
+              :row (:row mta)
+              :col (:col mta)
+              :end-row (:end-row mta)
+              :end-col (:end-col mta)
+              :filename (:filename ctx)
+              :type :syntax})))
         (when-not simple?
           (let [m (meta k)]
             (findings/reg-finding!
@@ -160,10 +171,30 @@
           (set/rename-keys {:end-row :scope-end-row :end-col :scope-end-col})))
 
 (defn analyze-binding-vector [ctx children]
-  (let [rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
-        varargs     (into [] (take-while #(not= :as (:k %))) rest-param+)
-        as-args     (into [] (drop-while #(not= :as (:k %))) children)]
-    (cond (< 2 (count varargs))
+  (let [as-kw? (fn [n] (and (= :as (:k n))
+                            (not (:namespaced? n))))
+        rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
+        varargs     (into [] (take-while (complement as-kw?)) rest-param+)
+        as-args     (into [] (drop-while (complement as-kw?)) children)]
+    (cond (and (< 1 (count varargs))
+               (= '& (:value (second varargs))))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (second varargs)
+                       :syntax
+                       "Invalid binding: &"))
+
+          (and (< 1 (count as-args))
+               (= '& (:value (second as-args))))
+          (findings/reg-finding!
+           ctx
+           (node->line (:filename ctx)
+                       (second as-args)
+                       :syntax
+                       "Invalid binding: &"))
+
+          (< 2 (count varargs))
           (findings/reg-finding!
            ctx
            (node->line (:filename ctx)
@@ -197,6 +228,36 @@
                        :syntax
                        "Trailing :as in binding form")))))
 
+;; must produce the same keys as types/map-key does for call-site map literals
+(defn- destructuring-key
+  [ctx modifier-ns modifier-type entry]
+  (let [entry-name (or (:value entry) (:k entry))]
+    (when entry-name
+      (let [nm (name entry-name)]
+        (case modifier-type
+          (:keys :keys!) (if (or (:namespaced? entry) (namespace entry-name))
+                           (let [resolved (usages/resolve-keyword ctx entry (-> ctx :ns :name))
+                                 ns (:ns resolved)]
+                             (when-not (identical? :clj-kondo/unknown-namespace ns)
+                               (keyword (some-> ns str) (name (:name resolved)))))
+                           (keyword (some-> modifier-ns str) nm))
+          ;; symbol keys are never alias-resolved, unlike :keys! entries
+          (:syms :syms!) (if-let [ens (namespace entry-name)]
+                           (symbol ens nm)
+                           (symbol (some-> modifier-ns str) nm))
+          (:strs :strs!) nm
+          nil)))))
+
+(defn- destructuring-keys
+  [ctx modifier-node modifier-type entries]
+  (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
+    (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
+      (into {}
+            (keep #(when-not (= '& (:value %))
+                     (when-let [k (destructuring-key ctx modifier-ns modifier-type %)]
+                       [k :any])))
+            entries))))
+
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
   ([ctx expr scoped-expr opts]
@@ -225,7 +286,7 @@
            ;; symbol
            (utils/symbol-token? expr)
            (let [sym (:value expr)]
-             (when (= :keys (:destructuring-type opts))
+             (when (one-of (:destructuring-type opts) [:keys :keys!])
                (usages/analyze-keyword ctx expr opts))
              (when-not only-arity-analysis
                (when-let [fn-dupes (:fn-dupes ctx)]
@@ -236,7 +297,14 @@
                                                      :filename (:filename ctx)
                                                      :message (str "Shadowed fn param: " sym))))
                  (swap! fn-dupes conj sym)))
-             (when (not= '& sym)
+             (if (= '& sym)
+               (when-not (:allow-amp opts)
+                 (findings/reg-finding!
+                  ctx
+                  (node->line (:filename ctx)
+                              expr
+                              :syntax
+                              "Invalid binding: &")))
                (let [ns (namespace sym)
                      valid? (or (not ns)
                                 keys-destructuring?)]
@@ -245,11 +313,14 @@
                          m (meta expr)
                          t (or (types/tag-from-meta (:tag m))
                                (:tag opts))
-                         v (cond-> (assoc m
-                                          :name s
-                                          :filename (:filename ctx)
-                                          :tag t
-                                          :auto-resolved (:namespaced? expr))
+                         v (utils/binding-rec m
+                                              {:name s
+                                               :filename (:filename ctx)
+                                               :tag t
+                                               :auto-resolved (:namespaced? expr)})
+                         v (cond-> v
+                             (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
+                             (assoc :required true)
                              (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
@@ -272,11 +343,14 @@
              (if keys-destructuring?
                (let [s (-> k name symbol)
                      m (meta expr)
-                     v (cond-> (assoc m
-                                      :name s
-                                      :keyword k
-                                      :filename (:filename ctx)
-                                      :auto-resolved (:namespaced? expr))
+                     v (utils/binding-rec m
+                                          {:name s
+                                           :keyword k
+                                           :filename (:filename ctx)
+                                           :auto-resolved (:namespaced? expr)})
+                     v (cond-> v
+                         (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
+                         (assoc :required true)
                          (:analyze-locals? ctx)
                          (-> (assoc :id (swap! (:id-gen ctx) inc)
                                     :str (str expr))
@@ -287,13 +361,13 @@
                  {s v})
                ;; TODO: we probably need to check if :as is supported in this
                ;; context, e.g. seq-destructuring?
-               (when (not= :as k)
+               (when (or (:namespaced? expr) (not= :as k))
                  (findings/reg-finding!
                   ctx
                   (node->line (:filename ctx)
                               expr
                               :syntax
-                              (str "unsupported binding form " k))))))
+                              (str "unsupported binding form " expr))))))
            :else
            (findings/reg-finding!
             ctx
@@ -307,23 +381,38 @@
                                        :exclude-destructured-as)
                        as-sym (when exclude-as?
                                 (let [[as as-sym] (take-last 2 children)]
-                                  (when (identical? :as (:k as))
+                                  (when (and (identical? :as (:k as))
+                                             (not (:namespaced? as)))
                                     as-sym)))
+                       child-opts (assoc opts :allow-amp true)
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
-                             (map #(extract-bindings ctx % scoped-expr opts) children)
+                             (map #(extract-bindings ctx % scoped-expr child-opts) children)
                              (-> (reduce (fn [[ctx acc] expr]
                                            (let [ctx (if (and as-sym (= expr as-sym))
                                                        (assoc ctx :mark-bindings-used? true)
                                                        ctx)
-                                                 bnds (extract-bindings ctx expr scoped-expr opts)]
+                                                 bnds (extract-bindings ctx expr scoped-expr child-opts)]
                                              [(ctx-with-bindings ctx bnds) (conj! acc bnds)]))
                                          [ctx
                                           (transient [])]
                                          children)
                                  second
                                  persistent!)))
-                       tags (map :tag (map meta v))
+                       ;; only map-destructure children can carry :keys-spec
+                       amp-idx (when-not all-tokens?
+                                 (count (take-while #(not= '& (:value %)) children)))
+                       tags (map-indexed (fn [i b]
+                                           (let [m (meta b)]
+                                             (or (when (and amp-idx (< i amp-idx))
+                                                   (:keys-spec m))
+                                                 (:tag m))))
+                                         v)
+                       keys-bindings (when-not all-tokens?
+                                       (map-indexed (fn [i b]
+                                                      (when (and amp-idx (< i amp-idx))
+                                                        (:key-bindings (meta b))))
+                                                    v))
                        expr-meta (meta expr)
                        t (:tag expr-meta)
                        t (when t (types/tag-from-meta t))]
@@ -332,56 +421,173 @@
                      ;; this is used for checking the return tag of a function body
                      (assoc expr-meta
                             :tag t
-                            :tags tags)))
-         :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr opts)
+                            :tags tags
+                            :keys-bindings keys-bindings)))
+         :namespaced-map (extract-bindings ctx (first (:children expr)) scoped-expr
+                                           (assoc opts :namespaced-map true))
          :map
          ;; first check even amount of keys + vals
-         (do (key-linter/lint-map-keys ctx expr)
-             (loop [[k v & rest-kvs] (:children expr)
-                    res {}]
+         (let [;; in a namespaced map the reader qualifies :as, :or and :select,
+               ;; which Clojure rejects as map directives
+               plain-directive? (if (:namespaced-map opts)
+                                  (fn [_ _] false)
+                                  (fn [k kw] (and (= kw (:k k))
+                                                  (not (:namespaced? k)))))
+               ;; inference is the only consumer of the key-bindings
+               ;; collection, other linters do read binding tags
+               types-off? (linter-disabled? ctx :type-mismatch)
+               ;; the init's tag types each destructured binding, see
+               ;; types/destructured-key-tag. :tag must not leak to children
+               ;; wholesale
+               form-tag (:tag opts)
+               opts (dissoc opts :allow-amp :namespaced-map :tag)
+               kvs (partition 2 (:children expr))
+               select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
+               or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
+               [req sel] (reduce (fn [[req sel] [k v]]
+                                   (let [key-name (some-> (:k k) name keyword)]
+                                     (cond (one-of key-name [:keys! :syms! :strs!])
+                                           (let [ks (destructuring-keys ctx k key-name (:children v))]
+                                             [(merge req ks) (merge sel ks)])
+                                           (not select?) [req sel]
+                                           (one-of key-name [:keys :syms :strs])
+                                           [req (merge sel (destructuring-keys ctx k key-name (:children v)))]
+                                           ;; k is a binding form, v its lookup key
+                                           (nil? key-name)
+                                           [req (let [mk (types/map-key ctx v)]
+                                                  (if (types/known-map-key? mk)
+                                                    (assoc sel mk :any)
+                                                    sel))]
+                                           :else [req sel])))
+                                 [{} {}]
+                                 kvs)]
+           (key-linter/lint-map-keys ctx expr)
+           ;; [map-key binding defaulted] per destructured entry, for backward
+           ;; param-type inference, see inferable-params. A binding with an
+           ;; :or default never proves its key required
+           (let [key-bindings (volatile! [])
+                 or-names (when (and or? (not types-off?))
+                            (into #{}
+                                  (comp (filter (fn [[k _]] (plain-directive? k :or)))
+                                        (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
+                                        (keep :value))
+                                  kvs))]
+           (loop [[k v & rest-kvs] (:children expr)
+                  res {}]
                (if k
                  (let [k (lift-meta-content* ctx k)]
                    (cond (:k k)
                          (let [key-name (keyword (name (:k k)))
                                ns-modifier? (one-of key-name [:keys :syms :strs
+                                                              :keys! :syms! :strs!
                                                               ;; TODO: restrict this to language :cljd
                                                               :flds])]
                            (if ns-modifier?
                              (do (usages/analyze-keyword ctx k (assoc opts :keys-destructuring-ns-modifier? true))
-                                 (recur rest-kvs
-                                        (into res (map #(extract-bindings
-                                                         ctx
-                                                         %
-                                                         scoped-expr
-                                                         (assoc opts
-                                                                :keys-destructuring? true
-                                                                :destructuring-type (some-> k :k name keyword)
-                                                                :destructuring-expr k)))
-                                              (:children v))))
+                                 (let [opts (assoc opts
+                                                   :keys-destructuring? true
+                                                   :destructuring-type key-name
+                                                   :destructuring-expr k)
+                                       modifier-ns (when-not types-off?
+                                                     (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
+                                       ;; before & are bindings, after & only literal keys
+                                       res (loop [children (:children v) amp? false res res]
+                                             (if-let [child (first children)]
+                                               (cond
+                                                 (= '& (:value child))
+                                                 (do (when amp?
+                                                       (findings/reg-finding!
+                                                        ctx (node->line (:filename ctx) child :syntax
+                                                                        "& can only appear once in map destructuring")))
+                                                     (recur (next children) true res))
+                                                 amp?
+                                                 (do (cond
+                                                       (symbol? (:value child))
+                                                       (findings/reg-finding!
+                                                        ctx (node->line (:filename ctx) child :syntax
+                                                                        (str "Binding symbols can only appear before &, use keys after: " (:value child))))
+                                                       (:k child)
+                                                       (usages/analyze-keyword ctx child opts))
+                                                     (recur (next children) true res))
+                                                 :else
+                                                 (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
+                                                            (destructuring-key ctx modifier-ns key-name child))
+                                                       bname (or (some-> (:value child) name symbol)
+                                                                 (some-> (:k child) name symbol))
+                                                       child-opts (if-let [vt (when dk
+                                                                                (types/destructured-key-tag
+                                                                                 form-tag dk (contains? or-names bname)))]
+                                                                    (assoc opts :tag vt)
+                                                                    opts)
+                                                       bnds (extract-bindings ctx child scoped-expr child-opts)]
+                                                   (when dk
+                                                     (when-let [b (some-> bnds first val)]
+                                                       (vswap! key-bindings conj
+                                                               [dk b (contains? or-names (:name b))])))
+                                                   (recur (next children) false (merge res bnds))))
+                                               res))]
+                                   (recur rest-kvs res)))
                              (do (usages/analyze-keyword ctx k)
                                  (case key-name
                                    :or
                                    ;; or doesn't introduce new bindings, it only gives defaults
-                                   (if (empty? rest-kvs)
-                                     ;; or can refer to a binding introduced by what we extracted
-                                     (let [prev-ctx ctx
-                                           ctx (ctx-with-bindings ctx res)]
-                                       (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
-                                       (recur rest-kvs res))
-                                     ;; analyze or after the rest
-                                     (let [;; prevent infinite loop with multiple :or
-                                           rest-kvs (remove #(= :or (:k %)) rest-kvs)]
-                                       (recur (concat rest-kvs [k v]) res)))
-                                   :as (if (-> ctx :config :linters :unused-binding
-                                               :exclude-destructured-as)
-                                         (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr opts)))
-                                         (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr opts))))
+                                   (cond (not (plain-directive? k :or))
+                                         (recur rest-kvs res)
+                                         (empty? rest-kvs)
+                                         ;; or can refer to a binding introduced by what we extracted
+                                         (let [prev-ctx ctx
+                                               ctx (ctx-with-bindings ctx res)]
+                                           (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                                           (recur rest-kvs res))
+                                         :else
+                                         ;; analyze or after the rest
+                                         (let [;; prevent infinite loop with multiple :or
+                                               rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
+                                           (recur (concat rest-kvs [k v]) res)))
+                                   ;; the :as binding is the whole init
+                                   :as (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
+                                         (cond (not (plain-directive? k :as))
+                                               (recur rest-kvs res)
+                                               (-> ctx :config :linters :unused-binding
+                                                   :exclude-destructured-as)
+                                               (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
+                                               :else
+                                               (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
+                                   ;; Clojure 1.13: binds a map with the keys named in this form
+                                   :select (if (plain-directive? k :select)
+                                             (recur rest-kvs
+                                                    (merge res (extract-bindings ctx v scoped-expr
+                                                                                 (assoc opts :tag {:type :map :val sel}))))
+                                             (recur rest-kvs res))
+                                   ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
+                                   :defaults (if (plain-directive? k :defaults)
+                                               (do (when-not or?
+                                                     (findings/reg-finding!
+                                                      ctx (node->line (:filename ctx) k :syntax
+                                                                      "Can't specify :defaults without :or")))
+                                                   (recur rest-kvs
+                                                          (merge res (extract-bindings ctx v scoped-expr opts))))
+                                               (recur rest-kvs res))
                                    (recur rest-kvs res)))))
                          :else
-                         (recur rest-kvs (merge res
-                                                (extract-bindings ctx k scoped-expr opts)
-                                                {:analyzed (analyze-expression** ctx v)}))))
-                 res)))
+                         ;; k is a binding form, v its lookup key
+                         (let [mk (types/map-key ctx v)
+                               known-key? (types/known-map-key? mk)
+                               child-opts (if-let [vt (when known-key?
+                                                        (types/destructured-key-tag
+                                                         form-tag mk (contains? or-names (:value k))))]
+                                            (assoc opts :tag vt)
+                                            opts)
+                               bnds (extract-bindings ctx k scoped-expr child-opts)]
+                           (when (and known-key? (utils/symbol-token? k))
+                             (when-let [b (some-> bnds first val)]
+                               (vswap! key-bindings conj
+                                       [mk b (contains? or-names (:name b))])))
+                           (recur rest-kvs (merge res bnds
+                                                  {:analyzed (analyze-expression** ctx v)})))))
+                 (cond-> res
+                   (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
+                   (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings))))))
          (findings/reg-finding!
           ctx
           (node->line (:filename ctx)
@@ -445,13 +651,15 @@
               (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
                     arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
                     {return-tag :tag
-                     arg-tags :tags} (meta arg-bindings)
+                     arg-tags :tags
+                     keys-bindings :keys-bindings} (meta arg-bindings)
                     arity (analyze-arity arg-vec)
                     ret (cond-> {:arg-bindings (dissoc arg-bindings :analyzed)
                                  :arity arity
                                  :analyzed-arg-vec (:analyzed arg-bindings)
                                  :arg-vec arg-vec
                                  :args arg-tags
+                                 :keys-bindings keys-bindings
                                  :ret return-tag}
                           (:analyze-arglists? ctx) (assoc :arglist-str (str arg-vec)))]
                 ret)))
@@ -496,11 +704,88 @@
                 (concat analyzed-key analyzed-value)))
             (partition 2 children))))
 
+(defn initial-constraints
+  "The constraints a param starts with, decided by its binding tag: none for
+  an untagged param, the desugared union for a nilable hint. Nil for any
+  other tag: a hard hint is trusted as is, the param is excluded from
+  inference."
+  [t]
+  (cond (nil? t) #{}
+        (and (keyword? t) (types/nilable? t))
+        (let [s (types/desugar-nilable t)]
+          ;; :nilable/any desugars to :any, which constrains nothing
+          (if (identical? :any s) #{} #{s}))
+        :else nil))
+
+(defn inferable-params
+  "The params backward type inference may constrain, as descriptor maps
+  {:idx :binding :constraints}, plus :key and :defaulted for a
+  map-destructured binding, for params that are untagged or hinted nilable,
+  a nilable hint being sugar for a union constraint. Nil when inference is
+  off for this fn:
+  a macro, the linter disabled, or a user spec covering this arity, which
+  wins outright. Coverage includes the :varargs fallback, same as spec lookup
+  at call sites."
+  [ctx arg-vec arg-bindings arity macro? keys-bindings]
+  (when (and arg-vec (not macro?)
+             (not (linter-disabled? ctx :type-mismatch))
+             (not (when-let [cfg-arities
+                             (some-> (config/type-mismatch-config
+                                      (:config ctx) (-> ctx :ns :name) (:in-def ctx))
+                                     :arities)]
+                    (if-let [fa (:fixed-arity arity)]
+                      (types/args-spec-from-arities cfg-arities fa)
+                      (contains? cfg-arities :varargs)))))
+    (let [kbs (some-> keys-bindings vec)]
+      (loop [[node & more] (:children arg-vec)
+             i 0
+             acc []]
+        (if (nil? node)
+          (seq acc)
+          (let [v (when (identical? :token (tag node))
+                    (:value node))]
+            (if (= '& v)
+              (seq acc)
+              (recur more (inc i)
+                     (if-let [b (and (symbol? v)
+                                     (not (namespace v))
+                                     (get arg-bindings v))]
+                       (if-let [ic (initial-constraints (:tag b))]
+                         (conj acc {:idx i :binding b :constraints ic})
+                         acc)
+                       (reduce (fn [acc [k b defaulted]]
+                                 (if-let [ic (initial-constraints (:tag b))]
+                                   (conj acc {:idx i :binding b :constraints ic
+                                              :key k :defaulted defaulted})
+                                   acc))
+                               acc
+                               (when kbs (nth kbs i nil))))))))))))
+
+(defn in-branch-ctx
+  "Enters conditionally evaluated code: bumps the branch count, which stops
+  every currently visible param from constraining. No-op when inference is
+  off."
+  [ctx]
+  (if (:param-infers ctx)
+    (update ctx :branch-count (fnil inc 0))
+    ctx))
+
+(defn ctx-with-param-infers
+  "Makes `simple-params` visible for inference. The marks pin both counters
+  at fn entry, a usage constrains only while each counter still equals its
+  mark, so only this fn's own unconditional spine constrains its params."
+  [ctx simple-params param-infer]
+  (let [entry {:param-infer param-infer
+               :branch-mark (:branch-count ctx 0)
+               :fn-mark (:fn-depth ctx 0)}]
+    (update ctx :param-infers (fnil into {})
+            (map (fn [{:keys [binding]}] [binding entry]) simple-params))))
+
 (defn analyze-fn-body [ctx body]
   (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [arg-bindings
-                arity analyzed-arg-vec arglist-str arg-vec]
+                arity analyzed-arg-vec arglist-str arg-vec keys-bindings]
          return-tag :ret
          arg-tags :args} (analyze-fn-arity ctx body)
         ctx (-> (ctx-with-bindings ctx arg-bindings)
@@ -510,6 +795,21 @@
         ctx (assoc ctx
                    :recur-arity arity
                    :top-level? false)
+        ;; a nested fn may run conditionally or never: constraints on
+        ;; enclosing params collect here, dormant until a call site proves
+        ;; the fn invoked on the spine, see types/activate-pending!
+        pending-sink (when (:param-infers ctx) (atom {}))
+        ctx (cond-> ctx
+              pending-sink (-> (update :fn-depth (fnil inc 0))
+                               (assoc :pending-infers pending-sink)))
+        simple-params (inferable-params ctx arg-vec arg-bindings arity macro? keys-bindings)
+        param-infer (when simple-params
+                      (atom (into {}
+                                  (map (fn [{:keys [binding constraints]}]
+                                         [binding constraints]))
+                                  simple-params)))
+        ctx (cond-> ctx
+              param-infer (ctx-with-param-infers simple-params param-infer))
         children (next (:children body))
         first-child (first children)
         one-child? (= 1 (count children))
@@ -576,14 +876,18 @@
                                tag (cond maybe-call (:ret maybe-call)
                                          last-expr (types/expr->tag ctx last-expr))]
                            tag))]
-            [parsed ret-tag]))]
-    (assoc arity
-           :parsed
-           (concat analyzed-arg-vec analyze-pre-post parsed)
-           :ret return-tag
-           :arglist-str arglist-str
-           :arg-vec arg-vec
-           :args arg-tags)))
+            [parsed ret-tag]))
+        arg-tags (if param-infer
+                   (types/merge-inferred-arg-tags simple-params param-infer arg-tags)
+                   arg-tags)]
+    (assoc-some (assoc arity
+                       :parsed
+                       (concat analyzed-arg-vec analyze-pre-post parsed)
+                       :ret return-tag
+                       :arglist-str arglist-str
+                       :arg-vec arg-vec
+                       :args arg-tags)
+                :pending-infer (when pending-sink (not-empty @pending-sink)))))
 
 (defn fn-bodies [ctx children body]
   (loop [[expr & rest-exprs :as exprs] children]
@@ -779,13 +1083,15 @@
 
 (defn analyze-case [ctx expr]
   (let [children (rest (:children expr))
-        matched-val (first children)
-        [test-ctx test-opts]
-        (if (identical? :cljs (:lang ctx))
-          [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
-           nil]
-          [ctx {:quote? true}])]
+        matched-val (first children)]
     (analyze-expression** ctx matched-val)
+    ;; branches are conditionally evaluated, so no param inference
+    (let [ctx (in-branch-ctx ctx)
+          [test-ctx test-opts]
+          (if (identical? :cljs (:lang ctx))
+            [(utils/ctx-with-linters-disabled ctx [:unresolved-symbol :private-call])
+             nil]
+            [ctx {:quote? true}])]
     (loop [[constant expr & exprs] (rest children)
            seen-constants #{}]
       (when constant
@@ -832,7 +1138,17 @@
               (analyze-usages2 test-ctx constant test-opts))
             (when expr
               (analyze-expression** ctx expr)
-              (recur exprs (into seen-constants (map str dupe-cands))))))))))
+              (recur exprs (into seen-constants (map str dupe-cands)))))))))))
+
+(defn init-tag
+  "Tag of a binding's init expression: the return of an init analyzed as a
+  call, via calls-by-id, else its expression tag. Unwraps a {:tag ..}
+  wrapper."
+  [ctx value-id value]
+  (let [maybe-call (get @(:calls-by-id ctx) value-id)
+        t (cond maybe-call (:ret maybe-call)
+                value (types/expr->tag ctx value))]
+    (or (:tag t) t)))
 
 (defn expr-bindings [ctx binding-vector scoped-expr]
   (let [ctx (update ctx :callstack conj [:nil :vector])]
@@ -914,13 +1230,6 @@
               ;; binding-sexpr (sexpr binding)
               for-let? (and for-like?
                             (= :let binding-val))]
-          (when (= '& binding-val)
-            (findings/reg-finding!
-             ctx
-             (node->line (:filename ctx)
-                         binding
-                         :syntax
-                         "Invalid binding: &")))
           (if for-let?
             (let [ctx* (ctx-with-bindings ctx bindings)
                   _ (analyze-redundant-bindings ctx* value)
@@ -956,11 +1265,8 @@
                           cbu-collector (dissoc :conditional-build-up-collector))
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
-                  tag (when (and let? binding (= :token (tag binding)))
-                        (let [maybe-call (get @(:calls-by-id ctx) value-id)]
-                          (cond maybe-call (:ret maybe-call)
-                                value (types/expr->tag ctx* value))))
-                  tag (or (:tag tag) tag)
+                  tag (when (and let? binding (one-of (tag binding) [:token :map]))
+                        (init-tag ctx* value-id value))
                   new-bindings (when binding (extract-bindings ctx* binding scoped-expr {:tag tag}))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
@@ -970,8 +1276,9 @@
                   next-arities (if arity
                                  ;; in this case binding-sexpr is a symbol,
                                  ;; since functions cannot be destructured
-                                 (assoc arities binding-val (assoc arity
-                                                                   :types types-by-arity))
+                                 (assoc arities binding-val
+                                        (assoc-some (assoc arity :types types-by-arity)
+                                                    :pending-infer (:pending-infer m)))
                                  ;; a non-fn binding shadows any prior local fn
                                  ;; of the same name: drop its stale arity info
                                  (dissoc arities binding-val))]
@@ -1142,22 +1449,70 @@
       (let [if? (one-of call [if-let if-some])
             condition (-> bv :children second)
             body-exprs (next children)
-            bindings (expr-bindings ctx bv (if if? (first body-exprs) expr))
+            scoped (if if? (first body-exprs) expr)
+            two-forms? (= 2 (count (:children bv)))
+            value-id (when two-forms? (gensym))
+            ;; a vector binding form would leak the whole init tag onto its
+            ;; elements, see the :vector branch of extract-bindings.
+            ;; when-first binds the first element, not the init, so it
+            ;; gets no tag until element types are modeled
+            tag-form? (and (not= 'when-first call)
+                           (one-of (some-> bv :children first tag) [:token :map]))
+            analyzed-condition (let [cctx (update ctx :callstack conj [:vector])
+                                     cnode (cond-> condition
+                                             value-id (assoc :id value-id))]
+                                 ;; when-first runs on (seq coll), not the
+                                 ;; coll's truthiness, so no condition checks
+                                 (if (= 'when-first call)
+                                   (analyze-expression** cctx cnode)
+                                   (analyze-condition cctx cnode)))
+            raw-tag (when value-id (init-tag ctx value-id condition))
+            ;; a provably nil init means the bound branch never runs, for
+            ;; any binding form
+            dead-body? (identical? :nil raw-tag)
+            ;; a dead bound branch gets no type errors: the body, but also
+            ;; destructuring defaults and key exprs, which only evaluate
+            ;; behind the failed condition
+            dead-ctx (fn [c]
+                       (if dead-body?
+                         (utils/ctx-with-linters-disabled c [:type-mismatch])
+                         c))
+            ;; the init's tag types the binding, like in let, minus nil:
+            ;; the body only runs when the value is non-nil
+            btag (when (and tag-form? (not dead-body?))
+                   (cond (set? raw-tag) (let [t* (disj raw-tag :nil)]
+                                          (case (count t*)
+                                            0 nil
+                                            1 (first t*)
+                                            t*))
+                         (and (keyword? raw-tag) (types/nilable? raw-tag))
+                         (types/unnil raw-tag)
+                         :else raw-tag))
+            bindings (if two-forms?
+                       (extract-bindings (dead-ctx (update ctx :callstack conj [:nil :vector]))
+                                         (-> bv :children first)
+                                         scoped
+                                         {:tag btag})
+                       (expr-bindings ctx bv scoped))
             ctx-with-binding (ctx-with-bindings ctx
                                                 (dissoc bindings
                                                         :analyzed))]
         (lint-two-forms-binding-vector! ctx call bv)
         (concat (:analyzed bindings)
-                (analyze-condition (update ctx :callstack conj [:vector]) condition)
-                (if if?
-                  ;; in the case of if, the binding is only valid in the first expression
-                  (concat
-                   (analyze-expression** (ctx-with-bindings ctx
-                                                            (dissoc bindings
-                                                                    :analyzed))
-                                         (first body-exprs))
-                   (analyze-children ctx (rest body-exprs) false))
-                  (analyze-children ctx-with-binding body-exprs false)))))))
+                analyzed-condition
+                ;; bodies are conditionally evaluated, so no param inference
+                ;; the else branch of if-let stays live
+                (let [ctx (in-branch-ctx ctx)
+                      ctx-with-binding (in-branch-ctx ctx-with-binding)]
+                  (if if?
+                    ;; in the case of if, the binding is only valid in the first expression
+                    (concat
+                     (analyze-expression** (dead-ctx (ctx-with-bindings ctx
+                                                                        (dissoc bindings
+                                                                                :analyzed)))
+                                           (first body-exprs))
+                     (analyze-children ctx (rest body-exprs) false))
+                    (analyze-children (dead-ctx ctx-with-binding) body-exprs false))))))))
 
 (defn fn-arity [ctx bodies]
   (let [arities (map #(analyze-fn-arity ctx %) bodies)
@@ -1246,6 +1601,8 @@
         fixed-arities (when arities (into #{} (filter number?) (keys arities)))
         varargs-min-arity (when arities (get-in arities [:varargs :min-arity]))
         arglist-strs (when arities (into [] (keep :arglist-str) (vals arities)))
+        pending-infer (not-empty (apply merge-with into {}
+                                        (keep :pending-infer parsed-bodies)))
         parsed-bodies (mapcat :parsed parsed-bodies)]
     (when (and (not (linter-disabled? ctx :def-fn))
                (def-fn? ctx))
@@ -1255,7 +1612,8 @@
         (cond-> {:arity {:fixed-arities fixed-arities
                          :varargs-min-arity varargs-min-arity}
                  :arities arities}
-          (seq arglist-strs) (assoc-in [:arity :arglist-strs] arglist-strs))))))
+          (seq arglist-strs) (assoc-in [:arity :arglist-strs] arglist-strs)
+          pending-infer (assoc :pending-infer pending-infer))))))
 
 (defn analyze-alias [ctx expr]
   (let [ns (:ns ctx)
@@ -1394,9 +1752,11 @@
         name-exprs (map #(-> % :children first) fns)
         bindings (when (seq name-exprs)
                    (mapv (fn [name-expr]
-                           (let [v (cond-> (assoc (meta name-expr)
-                                                  :name (:value name-expr)
-                                                  :filename (:filename ctx))
+                           (let [m (meta name-expr)
+                                 v (utils/binding-rec m
+                                                      {:name (:value name-expr)
+                                                       :filename (:filename ctx)})
+                                 v (cond-> v
                                      (:analyze-locals? ctx)
                                      (-> (assoc :id (swap! (:id-gen ctx) inc)
                                                 :str (:str name-expr))
@@ -1647,6 +2007,10 @@
         children (:children expr)
         binding-info (get (:arities ctx) fn-name)
         tag (get-in ctx [:bindings fn-name :tag])]
+    ;; calling a local fn is proof it runs here: commit its dormant
+    ;; constraints on enclosing params, subject to reachability
+    (when-let [pending (:pending-infer binding-info)]
+      (types/activate-pending! ctx pending))
     (when-let [k (types/keyword binding)]
       (when-not (types/match? k :ifn)
         (findings/reg-finding! ctx (node->line (:filename ctx) expr
@@ -1743,7 +2107,8 @@
   (let [ctx (update ctx :callstack conj [nil 'catch])
         [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
-        binding (extract-bindings ctx binding-expr (last exprs) {})]
+        ;; catch params are not let-bound, & is allowed there
+        binding (extract-bindings ctx binding-expr (last exprs) {:allow-amp true})]
     (analyze-children (ctx-with-bindings ctx binding)
                       exprs)))
 
@@ -2097,6 +2462,30 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
+(defn- narrowing-from-condition
+  "When `condition` is `(pred local)` with `pred` a known core type predicate and
+  `local` a binding, returns [sym tag]: the binding to narrow and the type it is
+  narrowed to when the condition holds. Returns nil otherwise."
+  [ctx condition]
+  (when (identical? :list (tag condition))
+    (let [[f arg & more] (:children condition)]
+      (when (and f arg (nil? more)
+                 (identical? :token (tag f))
+                 (identical? :token (tag arg)))
+        ;; predicate->tag and bindings lookups already constrain fsym and asym
+        (when-let [t (get types/predicate->tag (:value f))]
+          (let [asym (:value arg)]
+            (when (and (get (:bindings ctx) asym)
+                       ;; resolution is the costly check, so gate it behind the rest
+                       (namespace/core-symbol-in-scope? ctx (:value f)))
+              [asym t])))))))
+
+(defn narrow-binding
+  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
+  is stored in the binding's metadata, which binding equality ignores."
+  [ctx [sym tag]]
+  (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr]
@@ -2111,16 +2500,25 @@
        (node->line (:filename ctx) expr
                    linter
                    msg)))
-    (let [[condition & clauses] args]
+    (let [[condition & clauses] args
+          [then else] clauses
+          narrowing (when-not (linter-disabled? ctx :type-mismatch)
+                      (narrowing-from-condition ctx condition))]
       (analyze-condition ctx condition)
-      (analyze-children ctx clauses false))))
+      (let [branch-ctx (in-branch-ctx ctx)]
+        (if narrowing
+          (let [branch-ctx (assoc branch-ctx :len (count clauses))]
+            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-binding narrowing)) then)
+                    (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
+          (analyze-children branch-ctx clauses false))))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"
   [ctx expr]
   (let [[condition & clauses] (rest (:children expr))]
     (analyze-condition ctx condition)
-    (analyze-children ctx clauses false)))
+    (analyze-children (in-branch-ctx ctx)
+                      clauses false)))
 
 (defn analyze-is
   [ctx expr]
@@ -2180,10 +2578,14 @@
     (when name-sym (namespace/reg-var! ctx ns-name name-sym expr (meta name-expr)))
     (run! #(analyze-usages2 ctx %) body)))
 
-(defn analyze-when [ctx expr]
+(defn analyze-when [ctx expr op]
   (let [children (next (:children expr))
         condition (first children)
-        body (next children)]
+        body (next children)
+        ;; when-not negates the condition, so narrow only for when
+        narrowing (when (and (= 'when op)
+                             (not (linter-disabled? ctx :type-mismatch)))
+                    (narrowing-from-condition ctx condition))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.
@@ -2196,7 +2598,9 @@
         expr
         :missing-body-in-when
         "Missing body in when"))
-      (analyze-children ctx body false))))
+      (analyze-children (in-branch-ctx
+                         (cond-> ctx narrowing (narrow-binding narrowing)))
+                        body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
   (let [children (next (:children expr))
@@ -2324,9 +2728,18 @@
         t (tag f)
         fsym (utils/symbol-from-token f)
         binding (get (:bindings ctx) fsym)
-        arity (if binding
+        ;; a local passed by name has its fn info in :arities, a literal
+        ;; carries it on its analysis meta. The shapes differ, the arity
+        ;; data sits at different spots, but :pending-infer is top-level
+        ;; in both
+        finfo (if binding
                 (get (:arities ctx) fsym)
-                (-> fana meta :arity))
+                (meta fana))
+        arity (if binding finfo (:arity finfo))
+        ;; the hof invokes its fn argument right here: commit its dormant
+        ;; constraints
+        _ (when-let [pending (:pending-infer finfo)]
+            (types/activate-pending! ctx pending))
         ns (:ns ctx)
         var? (and fsym (not binding))
         ns-name (:name ns)
@@ -2358,13 +2771,21 @@
                     arg-count)
         ctx (update ctx :callstack
                     (fn [cs]
-                      (cons [resolved-namespace resolved-name]
+                      ;; the pseudo-frame for the hof'd fn shadows the hof
+                      ;; call's own entry, but the remaining args are still
+                      ;; positionally the hof's args, so its ::types/infer-call
+                      ;; moves along
+                      (cons (if-let [ic (some-> (first cs) meta ::types/infer-call)]
+                              (with-meta [resolved-namespace resolved-name]
+                                {::types/infer-call ic})
+                              [resolved-namespace resolved-name])
                             cs)))]
     (cond var?
           (let [{:keys [row end-row col end-col]} (meta f)]
             (when (:analyze-var-usages? ctx)
               (namespace/reg-var-usage! ctx ns-name
-                                        {:type (if arg-count :call :usage)
+                                        (utils/var-usage
+                                         {:type (if arg-count :call :usage)
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta
@@ -2394,7 +2815,7 @@
                                          :interop? interop?
                                          :resolved-core? resolved-core?
                                          :in-def (:in-def ctx)
-                                         :derived-location (:derived-location (meta expr))})))
+                                         :derived-location (:derived-location (meta expr))}))))
           (and arity arg-count)
           (let [{:keys [fixed-arities varargs-min-arity]} arity
                 config (:config ctx)
@@ -2755,8 +3176,9 @@
                                                        (with-meta unresolved-ns
                                                          (assoc (meta full-fn-name)
                                                                 :name fn-name))))
-                (analyze-children (update ctx :callstack conj [:clj-kondo/unknown-namespace
-                                                               fn-name])
+                (analyze-children (in-branch-ctx
+                                   (update ctx :callstack conj [:clj-kondo/unknown-namespace
+                                                                fn-name]))
                                   children))
               :else
               (let [[resolved-as-namespace resolved-as-name _lint-as?]
@@ -2832,7 +3254,8 @@
                     (when (and (:analyze-var-usages? ctx)
                                (not same-call?))
                       (namespace/reg-var-usage!
-                       ctx ns-name {:type :call
+                       ctx ns-name (utils/var-usage
+                                    {:type :call
                                     :resolved-ns resolved-namespace
                                     :ns ns-name
                                     :name (with-meta
@@ -2862,7 +3285,7 @@
                                     :resolved-core? resolved-core?
                                     :idx (:idx ctx)
                                     :len (:len ctx)
-                                    :derived-location (:derived-location expr-meta)}))
+                                    :derived-location (:derived-location expr-meta)})))
                     ;;;; This registers the namespace as used, to prevent unused warnings
                     (namespace/reg-used-namespace! ctx
                                                    ns-name
@@ -2876,13 +3299,18 @@
                                               ns-name resolved-namespace)
                         ctx (if (and resolved-var-sym
                                      (not (= 'clojure.core/doto resolved-var-sym)))
-                              (update ctx :callstack
-                                      (fn [cs]
-                                        (let [generated? (:clj-kondo.impl/generated expr)]
-                                          (cons (with-meta [resolved-namespace* resolved-name]
-                                                  (cond-> expr-meta
-                                                    generated?
-                                                    (assoc :clj-kondo.impl/generated true))) cs))))
+                              (let [cs-entry (with-meta [resolved-namespace* resolved-name]
+                                               (cond-> expr-meta
+                                                 (:clj-kondo.impl/generated expr)
+                                                 (assoc :clj-kondo.impl/generated true)
+                                                 ;; a local usage directly under this
+                                                 ;; call may constrain a param, see
+                                                 ;; types/infer-local-usage!
+                                                 (and arg-types (:param-infers ctx)
+                                                      (not unresolved?))
+                                                 (assoc ::types/infer-call
+                                                        [resolved-namespace resolved-name arg-count])))]
+                                (update ctx :callstack (fn [cs] (cons cs-entry cs))))
                               (update ctx :callstack conj [nil nil]))
                         resolved-as-clojure-var-name
                         (when (one-of resolved-as-namespace [clojure.core cljs.core])
@@ -2930,10 +3358,14 @@
                                       ctx)
                                 ctx (assoc ctx :in-comment true)]
                             (analyze-children ctx children))
-                          (-> some->)
+                          ->
                           (analyze-expression** ctx (macroexpand/expand-> ctx expr))
-                          (->> some->>)
+                          ->>
                           (analyze-expression** ctx (macroexpand/expand->> ctx expr))
+                          (some-> some->>)
+                          (analyze-expression** ctx (macroexpand/expand-some->
+                                                     ctx expr
+                                                     resolved-as-name))
                           doto
                           (analyze-expression** ctx (macroexpand/expand-doto ctx expr))
                           reify (analyze-reify ctx expr defined-by defined-by->lint-as)
@@ -3003,7 +3435,18 @@
                           (= not=) (analyze-=-not= ctx expr resolved-as-clojure-var-name)
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
-                          (when when-not) (analyze-when ctx expr)
+                          (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name)
+                          ;; the first operand, the first cond test and the
+                          ;; condp pred and dispatch expr always evaluate,
+                          ;; everything after is conditional
+                          (cond and or)
+                          (concat (analyze-children ctx (take 1 children) false)
+                                  (analyze-children (in-branch-ctx ctx)
+                                                    (rest children) false))
+                          condp
+                          (concat (analyze-children ctx (take 2 children) false)
+                                  (analyze-children (in-branch-ctx ctx)
+                                                    (drop 2 children) false))
                           (map mapv filter filterv remove reduce
                                every? not-every? some not-any? mapcat iterate
                                max-key min-key group-by partition-by map-indexed
@@ -3160,7 +3603,11 @@
                                                       [clojure.core lazy-cat]])
                                              (-> (assoc-in [:recur-arity :fixed-arity] 0)
                                                  (assoc :seen-recur? (volatile! nil))
-                                                 (dissoc :protocol-fn)))]
+                                                 (dissoc :protocol-fn))
+                                             ;; an unresolved call could be a macro,
+                                             ;; treat its args as conditionally
+                                             ;; evaluated, like a when body
+                                             unresolved? (in-branch-ctx))]
                               (analyze-children next-ctx children false))))]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed
@@ -3175,7 +3622,8 @@
                                                      node-context)]
                                         context))
                             fn-parent-loc (redundant-fn-wrapper ctx (:callstack ctx) children interop?)
-                            proto-call {:type :call
+                            proto-call (utils/var-usage
+                                        {:type :call
                                         :context context
                                         :resolved-ns resolved-namespace
                                         :ns ns-name
@@ -3207,13 +3655,14 @@
                                         :redundant-fn-wrapper-parent-loc fn-parent-loc
                                         :idx (:idx ctx)
                                         :len (:len ctx)
-                                        :derived-location (:derived-location expr-meta)}
+                                        :id id
+                                        :in-def in-def
+                                        :derived-location (:derived-location expr-meta)})
                             ret-tag (or (:ret m)
                                         (types/ret-tag-from-call ctx proto-call expr))
-                            call (cond-> proto-call
-                                   id (assoc :id id)
-                                   in-def (assoc :in-def in-def)
-                                   ret-tag (assoc :ret ret-tag))]
+                            call (if ret-tag
+                                   (assoc proto-call :ret ret-tag)
+                                   proto-call)]
                         (utils/reg-call ctx call id)
                         (when (:analyze-var-usages? ctx)
                           (namespace/reg-var-usage! ctx ns-name call))
@@ -3309,13 +3758,22 @@
                                              (format "keyword :%s is called with %s args but expects 1 or 2"
                                                      kw-str
                                                      arg-count))))))
-    (when-let [fn-parent-loc (redundant-fn-wrapper ctx (cons nil callstack) (rest (:children expr)) false)]
-      (findings/reg-finding!
-       ctx
-       (assoc fn-parent-loc
-              :filename (:filename ctx)
-              :type :redundant-fn-wrapper
-              :message "Redundant fn wrapper")))))
+    (let [callstack (cons nil callstack)
+          [enclosing-ns enclosing-name] (nth callstack 2 nil)]
+      ;; a keyword wrapper directly in spec position can't be unwrapped: as a
+      ;; bare keyword it would name a spec instead of a predicate. conformer is
+      ;; the exception, since it takes plain functions
+      (when-not (and (one-of enclosing-ns [clojure.spec.alpha cljs.spec.alpha])
+                     (not= 'conformer enclosing-name))
+        (when-let [fn-parent-loc (redundant-fn-wrapper
+                                  ctx callstack
+                                  (rest (:children expr)) false)]
+          (findings/reg-finding!
+           ctx
+           (assoc fn-parent-loc
+                  :filename (:filename ctx)
+                  :type :redundant-fn-wrapper
+                  :message "Redundant fn wrapper")))))))
 
 (defn lint-symbol-call! [ctx _the-symbol arg-count expr]
   (let [callstack (:callstack ctx)
@@ -3479,10 +3937,16 @@
                      analyzed (analyze-children
                                (-> ctx
                                    mark-non-tail-recur
-                                   (update :callstack #(cons [nil t] %))) children)]
-                 (types/add-arg-type-from-expr ctx (assoc expr
-                                                          :children children
-                                                          :analyzed analyzed))
+                                   (update :callstack #(cons [nil t] %))) children)
+                     expr (assoc expr
+                                 :children children
+                                 :analyzed analyzed)
+                     tag* (types/expr->tag ctx expr)]
+                 ;; a binding or fn body ending in this map reads its type
+                 ;; here, like a call's return, see init-tag
+                 (when-let [id (:id expr)]
+                   (swap! (:calls-by-id ctx) assoc id {:ret tag*}))
+                 (types/add-arg-type-from-expr ctx expr tag*)
                  analyzed))
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)

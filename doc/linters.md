@@ -1605,6 +1605,8 @@ Read [this](https://github.com/clj-kondo/clj-kondo/issues/1331) issue for more b
 - `Use (when (some? x) ...) instead of (when-not (nil? x) ...)`
 - `Use (if (some? x) ...) instead of (if-not (nil? x) ...)`
 
+Note: on the JVM `some?` is a function which isn't inlined, so in hot paths `(when-not (nil? x) ...)` is faster than `(when (some? x) ...)`. Often this is negligible.
+
 *Config:*
 
 ```clojure
