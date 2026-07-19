@@ -3494,6 +3494,10 @@
                             (analyze-is ctx expr)
                             ([clojure.test.check.properties for-all])
                             (analyze-like-let ctx expr)
+                            [clojure.test.check.clojure-test defspec]
+                            (do
+                              (lint-inline-def! ctx expr)
+                              (test/analyze-defspec ctx expr defined-by defined-by->lint-as))
                             [cljs.spec.alpha def]
                             (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
                             [clojure.spec.alpha def]
