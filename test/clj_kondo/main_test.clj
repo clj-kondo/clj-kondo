@@ -3921,6 +3921,16 @@ foo/"))
             (>= (+ a b) a))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest clojure-test-check-defspec-test
+  (is (empty? (lint! "(ns foo (:require [clojure.test.check.clojure-test :refer [defspec]] [clojure.test.check.properties :as prop] [clojure.test.check.generators :as gen])) (defspec my-prop 100 (prop/for-all [x gen/small-integer] (int? x))) (my-prop) (my-prop 1000) (my-prop 1000 :max-size 50)"
+                     '{:linters {:unresolved-symbol {:level :error}
+                                 :invalid-arity {:level :error}
+                                 :missing-docstring {:level :warning}}})))
+  (assert-submaps2
+   [{:file "<stdin>", :row 1, :col 211, :level :error, :message "Unresolved symbol: intt?"}]
+   (lint! "(ns foo (:require [clojure.test.check.clojure-test :refer [defspec]] [clojure.test.check.properties :as prop] [clojure.test.check.generators :as gen])) (defspec my-prop 100 (prop/for-all [x gen/small-integer] (intt? x)))"
+          '{:linters {:unresolved-symbol {:level :error}}})))
+
 (deftest special-form-test
   (is (empty?
        (lint! "(defn new [] :foo)
