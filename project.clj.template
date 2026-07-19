@@ -8,7 +8,7 @@
   :source-paths ["src" "parser" "inlined"]
   :dependencies {{dependencies|safe}}
   ;; :global-vars {*print-namespace-maps* false}
-  :profiles {:clojure-1.10.3 {:dependencies [[org.clojure/clojure "1.10.3"]]}
+  :profiles {:clojure-1.11.4 {:dependencies [[org.clojure/clojure "1.11.4"]]}
              :test {:dependencies {{test-dependencies|safe}}
                     :source-paths ["src" "parser" "inlined" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]

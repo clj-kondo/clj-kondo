@@ -46,6 +46,57 @@
   (testing "fix for #1023"
     (is (= #{} (types-utils/union-type)))))
 
+(deftest desugar-nilable-test
+  (is (= #{:nil :string} (types/desugar-nilable :nilable/string)))
+  (is (= :string (types/desugar-nilable :string)))
+  (is (= #{:nil :string} (types/desugar-nilable #{:nil :string})))
+  (testing "a union that would contain :any simplifies to :any"
+    (is (= :any (types/desugar-nilable :nilable/any)))
+    (is (= :any (types/desugar-nilable #{:nil :any})))))
+
+(deftest intersect-test
+  (testing "an any spec constrains nothing, on either side, alone or in a union"
+    (is (= :long (types/intersect :any :long)))
+    (is (= :long (types/intersect :long :any)))
+    (is (= :any (types/intersect :any :any)))
+    (is (= :string (types/intersect #{:nil :any} :string)))
+    (is (= :string (types/intersect :string #{:nil :any})))
+    (is (= :any (types/intersect #{:nil :any} :any)))
+    (is (= :any (types/intersect #{:nil :any} #{:string :any}))))
+  (testing "conflicting types intersect to nil"
+    (is (nil? (types/intersect :string :number))))
+  (let [kts (conj (vec types/known-types) :any)
+        norm (fn [x] (if (set? x) x (when x #{x})))]
+    (doseq [a kts b kts]
+      (testing (format "intersect is commutative for %s and %s" a b)
+        (is (= (norm (types/intersect a b)) (norm (types/intersect b a)))))
+      (when (types/is-a? a b)
+        (testing (format "%s is a %s => intersection is %s" a b a)
+          (is (= (norm a) (norm (types/intersect a b)))))))
+    (doseq [a kts]
+      (testing (format "intersect is idempotent for %s" a)
+        (is (= (norm a) (norm (types/intersect a a))))))))
+
+(deftest strip-positions-test
+  (is (= #{{:type :map :val {:x {:tag :string}}} :nil}
+         (types-utils/strip-positions
+          #{{:type :map :val {:x {:row 1 :col 2 :tag :string}}} :nil}))))
+
+(deftest trim-trailing-nils-test
+  (is (= [] (types/trim-trailing-nils [])))
+  (is (= [] (types/trim-trailing-nils [nil nil])))
+  (is (= [:string] (types/trim-trailing-nils [:string nil nil])))
+  (is (= [nil :string] (types/trim-trailing-nils [nil :string nil]))))
+
+(deftest constraining-spec-test
+  (doseq [s [:string #{:string :nil} {:op :keys :req {}}
+             {:op :arg-spec-of :ns 'x :name 'y}]]
+    (testing (format "%s is evidence" s)
+      (is (types/constraining-spec? s))))
+  (doseq [s [nil :any {:op :and :specs []} {:op :rest :spec :int}]]
+    (testing (format "%s proves nothing" s)
+      (is (not (types/constraining-spec? s))))))
+
 (deftest match-test
   (is (not (types/match? :var :number))))
 

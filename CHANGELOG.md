@@ -14,6 +14,58 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#2869](https://github.com/clj-kondo/clj-kondo/issues/2869) Replace type-mismatch arities instead of merging
+### Highlights
+
+The type checker now infers much more.
+
+It derives argument types from how a param is used in the body:
+
+``` clojure
+(defn f [s] (subs s 1))
+(f 42)
+   ^ Expected: string, received: positive integer.
+```
+
+It types the keys and values of destructured maps:
+
+``` clojure
+(defn f [{:keys [x]}] (inc x))
+(f {:x "foo"})
+       ^ Expected: number, received: string.
+```
+
+It flows map types from return values into destructured bindings:
+
+``` clojure
+(defn cfg [] {:port "8080"})
+(let [{:keys [port]} (cfg)] (inc port))
+                                 ^ Expected: number, received: string.
+```
+
+It flags keys that are provably nil:
+
+``` clojure
+(inc (:y {}))
+     ^ Expected: number, received: nil.
+```
+
+And it narrows the type of a local after it flowed through a known predicate:
+
+``` clojure
+(defn f [x] (if (string? x) (inc x) x))
+                                 ^ Expected: number, received: string.
+```
+
+### Other
+
+- The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
+- Performance: use a record for bindings (~4%)
+- Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
+- Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.
+- Type checker: a key missing from a map literal is provably nil, also through destructuring, keyword access chains and function return maps. E.g. `(inc (:y {}))` will warn. A key with an `:or` default, generated maps in macro expansions, maps with dynamic keys, and maps that went through `into` or an `assoc` with a dynamic key are exempt.
+- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 150 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
+- Type checker: `contains?` accepts nil as its collection argument
+- Type checker: infer the type of a function param from how it is used in the body. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn, since the evidence `(subs s 1)` tells us that `s` should be a string.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
 - Type checker: narrow the type of a local in the then-branch of `if` or the body of `when` when it is guarded by a known predicate. E.g. `(if (string? x) (inc x) ...)` will warn.
 - Clojure 1.13 CLJ-2961: map destructuring `:keys!` `:syms!` `:strs!` with required keys
@@ -28,6 +80,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2854](https://github.com/clj-kondo/clj-kondo/issues/2854): fix false positive `:invalid-arity` when an inner binding or fn param shadows a local function name ([@yuhan0](https://github.com/yuhan0))
 - Performance optimizations: [#2853](https://github.com/clj-kondo/clj-kondo/issues/2853), [#2857](https://github.com/clj-kondo/clj-kondo/issues/2857), [#2858](https://github.com/clj-kondo/clj-kondo/issues/2858), [#2859](https://github.com/clj-kondo/clj-kondo/issues/2859), [#2866](https://github.com/clj-kondo/clj-kondo/issues/2866) ([@alexander-yakushev](https://github.com/alexander-yakushev))
 - Performance: use a record for var usages: -13.5% allocation, ~5-10% faster linting
+- Bump SCI to `0.15.56`
 
 ## 2026.05.25
 

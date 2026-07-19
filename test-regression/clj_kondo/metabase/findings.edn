@@ -6,6 +6,16 @@
   :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 234,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/activity_feed/models/recent_views.clj",
+  :col 42,
+  :end-col 44,
+  :langs (),
+  :message "Expected: symbol or string or keyword, received: map.",
+  :row 234}
  {:end-row 8,
   :type :unresolved-excluded-var,
   :level :info,
@@ -36,6 +46,16 @@
   :langs (),
   :message "Condition always true",
   :row 43}
+ {:end-row 207,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
+  :col 89,
+  :end-col 92,
+  :langs (),
+  :message "Expected: symbol or string or keyword, received: nil.",
+  :row 207}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/channel/email/messages.clj",
   :row 386,
@@ -414,6 +434,16 @@
   :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 748,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
+  :col 53,
+  :end-col 55,
+  :langs (),
+  :message "Expected: symbol or string or keyword, received: map.",
+  :row 748}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/collections/models/collection.clj",
   :row 1053,
@@ -440,6 +470,16 @@
   "Var *current-user-permissions-set* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 67,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/collections/models/collection/root.clj",
+  :col 40,
+  :end-col 43,
+  :langs (),
+  :message "Expected: symbol or string or keyword, received: nil.",
+  :row 67}
  {:end-row 113,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -654,6 +694,26 @@
   :langs (),
   :message "Unquote (~) not syntax-quoted",
   :row 97}
+ {:end-row 214,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 21,
+  :end-col 30,
+  :langs (),
+  :message "Expected: number, received: nil.",
+  :row 214}
+ {:end-row 220,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 70,
+  :end-col 79,
+  :langs (),
+  :message "Expected: number, received: nil.",
+  :row 220}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -891,6 +951,18 @@
   :langs (),
   :message "Redundant let binding: include_deactivated",
   :row 244}
+ {:end-row 447,
+  :type :type-mismatch,
+  :level :error,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util.cljc",
+  :col 34,
+  :end-col 35,
+  :cljc true,
+  :langs (:clj),
+  :message "Expected: char sequence, received: character or nil.",
+  :row 447}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -1378,6 +1450,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 93}
+ {:end-row 40,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/core/init_test.clj",
+  :col 46,
+  :end-col 64,
+  :langs (),
+  :message "Expected: char sequence, received: symbol.",
+  :row 40}
+ {:end-row 42,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/core/init_test.clj",
+  :col 48,
+  :end-col 77,
+  :langs (),
+  :message "Expected: char sequence, received: symbol.",
+  :row 42}
  {:end-row 2253,
   :type :unresolved-symbol,
   :level :error,
@@ -1585,6 +1677,17 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 293}
+ {:end-row 125,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/permissions_test.clj",
+  :col 11,
+  :end-col 95,
+  :langs (),
+  :message
+  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
+  :row 125}
  {:end-row 63,
   :type :unresolved-symbol,
   :level :error,
@@ -1755,6 +1858,17 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 22}
+ {:end-row 264,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/permissions_test.clj",
+  :col 101,
+  :end-col 122,
+  :langs (),
+  :message
+  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
+  :row 264}
  {:end-row 131,
   :type :unresolved-symbol,
   :level :error,
@@ -1855,6 +1969,50 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 394}
+ {:end-row 542,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/search/api_test.clj",
+  :col 63,
+  :end-col 84,
+  :langs (),
+  :message
+  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
+  :row 542}
+ {:end-row 584,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/search/api_test.clj",
+  :col 61,
+  :end-col 78,
+  :langs (),
+  :message
+  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
+  :row 584}
+ {:end-row 585,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/search/api_test.clj",
+  :col 61,
+  :end-col 78,
+  :langs (),
+  :message
+  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
+  :row 585}
+ {:end-row 602,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/search/api_test.clj",
+  :col 63,
+  :end-col 80,
+  :langs (),
+  :message
+  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
+  :row 602}
  {:end-row 22,
   :type :unresolved-symbol,
   :level :error,

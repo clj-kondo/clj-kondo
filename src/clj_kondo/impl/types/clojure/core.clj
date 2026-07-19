@@ -132,14 +132,27 @@
                                        {:op :rest
                                         :spec [:any :any]}]}}
            :fn (fn [args]
-                 (let [farg (first args)]
+                 (let [[farg & kvs] args]
                    (if-let [t (:tag farg)]
                      (case t
                        :map :map
                        :vector :vector
                        (if (and (map? t)
                                 (identical? :map (:type t)))
-                         t
+                         ;; a known assoc'd key extends the seed's :val, the
+                         ;; result stays closed. An unknown key could be any
+                         ;; key: it opens the map and invalidates earlier
+                         ;; value facts, which later known pairs re-establish
+                         (reduce (fn [t [k v]]
+                                   (if-some [kv (:value k)]
+                                     (assoc-in t [:val kv]
+                                               (cond-> (select-keys v [:row :col :end-row :end-col])
+                                                 (:tag v) (assoc :tag (:tag v))))
+                                     (cond-> t
+                                       (:val t) (update :val update-vals #(dissoc % :tag))
+                                       true (assoc :open true))))
+                                 t
+                                 (partition 2 kvs))
                          :associative))
                      :associative)))}
    ;; 202
@@ -412,7 +425,8 @@
    ;; 1478
    'map-entry? any->boolean
    ;; 1484 'contains?
-   'contains? {:arities {2 {:args [#{:associative :set :string} :any]
+   ;; nil is a valid first arg, clojure.core itself nil-puns it (ns-resolve)
+   'contains? {:arities {2 {:args [#{:associative :set :string :nil} :any]
                             :ret :boolean}}}
    ;; NOTE: get is an any->any function on any object that implements ILookup.
    ;; 1494 'get
@@ -1053,9 +1067,15 @@
                     3 {:args [:coll :transducer :seqable]}}
           :fn (fn [args]
                 (let [t (:tag (first args))]
-                  (if (identical? :any t)
-                    :coll
-                    t)))}
+                  (cond (identical? :any t) :coll
+                        ;; into adds entries and can overwrite the seed's:
+                        ;; keys stay present, value facts do not survive,
+                        ;; absence proves nothing
+                        (and (map? t) (:val t))
+                        (-> t
+                            (assoc :open true)
+                            (update :val update-vals #(dissoc % :tag)))
+                        :else t)))}
    ;; 6903
    'mapv {:arities {:varargs {:args '[:ifn :seqable {:op :rest
                                                      :spec :seqable}]
