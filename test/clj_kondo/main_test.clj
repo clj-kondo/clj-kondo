@@ -194,6 +194,11 @@
                   (lint! "#?(:clj 1)" "--lang" "clj"))
   (assert-submaps2 [{:file "<stdin>",
                      :row 1,
+                     :col 8,
+                     :level :warning,
+                     :message "#_ with unmatched reader conditional discards the next form [cljs]"}
+                    {:file "<stdin>",
+                     :row 1,
                      :col 19,
                      :level :error,
                      :message "Expected: number, received: keyword. [clj]"}]
