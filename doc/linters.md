@@ -2340,20 +2340,34 @@ This will exclude all bindings starting with `_x`.
 
 *Keyword:* `:unreachable-code`.
 
-*Description:* warn on code that can never run: `cond` clauses after a
-catch-all, a misplaced `:default` reader conditional branch, and conditions
-that always evaluate truthy or falsy, like when passing a function instead of
-calling it, or a lazy seq in condition position (which is truthy even when
-empty; wrap it in `seq`). Literal `true` and `false` (also via a var or local)
-are not checked, since these are often dev/production toggles. The keyword
-`:always` is also exempt, as a way to express an intentional always-truthy
-condition in `cond->`. Replaces the `:condition-always-true` linter.
+*Description:* warn on code that can never run:
+
+- `cond` clauses after a catch-all test
+- a `:default` reader conditional branch that is not last
+- a condition that always evaluates truthy, like a function that is passed
+  instead of called, or a lazy seq, which is truthy even when empty. Use `seq`
+  to test a collection for emptiness
+- a condition that always evaluates falsy, like `nil`
+
+Literal `true` and `false`, also through a var or local, are not checked, since
+these are often dev/production toggles. The keyword `:always` is exempt as an
+intentional always-truthy condition in `cond->`.
+
+Replaces the `:condition-always-true` linter.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `(cond :else 1 (odd? 1) 2)`, `(if odd? :odd :even)`, `(when nil 1)`.
+*Example triggers*:
 
-*Example message:* `unreachable code`, `Condition always true`, `Condition always false`.
+- `(cond :else 1 (odd? 1) 2)`
+- `(if odd? :odd :even)`
+- `(when nil 1)`
+
+*Example messages*:
+
+- `unreachable code`
+- `Condition always true`
+- `Condition always false`
 
 ### Unused import
 
