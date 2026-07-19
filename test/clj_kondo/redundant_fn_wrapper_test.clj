@@ -60,4 +60,24 @@
                    (s/cat
                     :ba :wsbilling/billing-agreement
                     :end #(::ba-end %)))"
-                {:linters {:redundant-fn-wrapper {:level :warning}}})))))
+                {:linters {:redundant-fn-wrapper {:level :warning}}})))
+    (is (empty?
+         (lint! "(require '[clojure.spec.alpha :as s])
+                 (s/fdef f :args (s/cat :end #(::ba-end %)))"
+                {:linters {:redundant-fn-wrapper {:level :warning}
+                           :unresolved-symbol {:level :off}}})))))
+
+(deftest keyword-in-spec-body-test
+  (testing "a keyword wrapper that is not in spec position still warns"
+    (assert-submaps
+     '({:file "<stdin>" :row 2 :col 53 :level :warning :message "Redundant fn wrapper"})
+     (lint! "(require '[clojure.spec.alpha :as s])
+             (s/def ::coll (s/coll-of (fn [xs] (map #(:a %) xs))))"
+            {:linters {:redundant-fn-wrapper {:level :warning}}})))
+  (testing "conformer takes plain functions, so the wrapper is redundant"
+    (assert-submaps
+     '({:file "<stdin>" :row 2 :col 38 :level :warning :message "Redundant fn wrapper"}
+       {:file "<stdin>" :row 2 :col 50 :level :warning :message "Redundant fn wrapper"})
+     (lint! "(require '[clojure.spec.alpha :as s])
+             (s/def ::v (s/conformer #(:value %) #(:orig %)))"
+            {:linters {:redundant-fn-wrapper {:level :warning}}}))))

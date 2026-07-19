@@ -3745,16 +3745,22 @@
                                              (format "keyword :%s is called with %s args but expects 1 or 2"
                                                      kw-str
                                                      arg-count))))))
-    (when-not (:in-spec? ctx)
-      (when-let [fn-parent-loc (redundant-fn-wrapper
-                                ctx (cons nil callstack)
-                                (rest (:children expr)) false)]
-        (findings/reg-finding!
-         ctx
-         (assoc fn-parent-loc
-                :filename (:filename ctx)
-                :type :redundant-fn-wrapper
-                :message "Redundant fn wrapper"))))))
+    (let [callstack (cons nil callstack)
+          [enclosing-ns enclosing-name] (nth callstack 2 nil)]
+      ;; a keyword wrapper directly in spec position can't be unwrapped: as a
+      ;; bare keyword it would name a spec instead of a predicate. conformer is
+      ;; the exception, since it takes plain functions
+      (when-not (and (one-of enclosing-ns [clojure.spec.alpha cljs.spec.alpha])
+                     (not= 'conformer enclosing-name))
+        (when-let [fn-parent-loc (redundant-fn-wrapper
+                                  ctx callstack
+                                  (rest (:children expr)) false)]
+          (findings/reg-finding!
+           ctx
+           (assoc fn-parent-loc
+                  :filename (:filename ctx)
+                  :type :redundant-fn-wrapper
+                  :message "Redundant fn wrapper")))))))
 
 (defn lint-symbol-call! [ctx _the-symbol arg-count expr]
   (let [callstack (:callstack ctx)
