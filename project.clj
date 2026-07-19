@@ -15,7 +15,7 @@
                  [io.replikativ/datalog-parser "0.2.30"]
                  [cheshire/cheshire "5.13.0"]
                  [nrepl/bencode "1.2.0"]
-                 [org.babashka/sci "0.12.51"]
+                 [org.babashka/sci "0.15.56"]
                  [babashka/fs "0.5.31"]
                  [org.ow2.asm/asm "9.7"]
                  [com.github.javaparser/javaparser-core "3.26.1"]]
