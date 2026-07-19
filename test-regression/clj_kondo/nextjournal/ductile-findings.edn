@@ -156,6 +156,16 @@
   :langs (),
   :message "Condition always true",
   :row 5380}
+ {:end-row 6367,
+  :type :unreachable-code,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/billing.clj",
+  :col 34,
+  :end-col 126,
+  :langs (),
+  :message "Condition always true",
+  :row 6367}
  {:end-row 1852,
   :type :unreachable-code,
   :level :warning,
@@ -332,6 +342,16 @@
   :langs (),
   :message "Test assertion message should be a string",
   :row 19}
+ {:end-row 23,
+  :type :unreachable-code,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/integration/cron_test.clj",
+  :col 9,
+  :end-col 54,
+  :langs (),
+  :message "Condition always true",
+  :row 23}
  {:filename
   "test-regression/checkouts/ductile/test/integration/edi_test.clj",
   :row 94,

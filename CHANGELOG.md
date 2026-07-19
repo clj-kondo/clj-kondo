@@ -64,6 +64,8 @@ And it narrows the type of a local after it flowed through a known predicate:
 ### Other
 
 - [#721](https://github.com/clj-kondo/clj-kondo/issues/721): `:unreachable-code` now also warns on conditions that always evaluate truthy or falsy, absorbing the `:condition-always-true` linter, which no longer exists as a separate key. E.g. `(if-let [xs (filter odd? coll)] ...)` will warn, since `filter` never returns nil. `(when nil ...)` will warn with condition always false. Literal `true`/`false` conditions stay exempt as dev toggles. This is a **BREAKING** change: configure `:unreachable-code` instead of `:condition-always-true`.
+- `:unreachable-code`: a condition that calls a var resolves its return type after every namespace is analyzed, so conditions calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
+- Type checker: `re-matches` and the matcher arity of `re-find` return nil when there is no match. E.g. `(inc (re-matches #"x" s))` will warn with received: string or vector or nil.
 - The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
 - Performance: use a record for bindings (~4%)
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.

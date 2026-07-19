@@ -1430,7 +1430,9 @@
         arg-types (or (:arg-types ctx) (atom []))
         ctx (assoc ctx :arg-types arg-types)
         pos (-> ctx :arg-types deref count)
-        condition (assoc condition :condition true)
+        ;; :condition also tells analyze-do / unused-value not to treat the test
+        ;; as an implicit-do body, so it stays truthy when linting is skipped
+        condition (assoc condition :condition (if lint? true :no-lint))
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
                (not (linter-disabled? ctx :unreachable-code))
@@ -3062,7 +3064,7 @@
     (analyze-children ctx children false)))
 
 (defn- analyze-var [ctx expr children]
-  (when (:condition expr)
+  (when (true? (:condition expr))
     (condition-always-true-linter ctx expr))
   (analyze-children (assoc ctx :private-access? true) children))
 

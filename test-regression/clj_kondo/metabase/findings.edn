@@ -704,6 +704,16 @@
   :langs (),
   :message "Expected: number, received: nil.",
   :row 214}
+ {:end-row 219,
+  :type :unreachable-code,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 24,
+  :end-col 43,
+  :langs (),
+  :message "Condition always false",
+  :row 219}
  {:end-row 220,
   :type :type-mismatch,
   :level :error,

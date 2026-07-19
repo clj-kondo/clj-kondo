@@ -342,3 +342,34 @@
   (testing "unknown or nilable conditions are fine"
     (is (empty? (lint! "(defn f [x] (when x 1))" config)))
     (is (empty? (lint! "(when (seq [1 2 3]) 1)" config)))))
+
+(deftest inferred-return-type-test
+  (let [config {:linters {:type-mismatch {:level :error}
+                          :unreachable-code {:level :warning}}}]
+    (testing "the return type of a var is resolved after every namespace is analyzed"
+      (assert-submaps2
+       '({:row 1 :col 43 :message "Condition always false"})
+       (lint! "(ns foo) (defn f [] nil) (defn g [] (when (f) 1))" config))
+      (assert-submaps2
+       '({:row 1 :col 46 :message "Condition always true"})
+       (lint! "(ns foo) (defn f [] {:a 1}) (defn g [] (when (f) 1))" config))
+      (assert-submaps2
+       '({:row 1 :col 55 :message "Condition always true"})
+       (lint! "(ns foo) (defn f [] (filter odd? [1])) (defn g [] (if (f) 1 2))" config)))
+    (testing "a nilable or boolean return is fine"
+      (is (empty? (lint! "(ns foo) (defn f [] (seq [])) (defn g [] (when (f) 1))" config)))
+      (is (empty? (lint! "(ns foo) (defn f [] (odd? 1)) (defn g [] (when (f) 1))" config))))
+    (testing "a built-in call reports once, not once per phase"
+      (assert-submaps2
+       '({:row 1 :message "Condition always true"})
+       (lint! "(defn g [coll] (when (filter odd? coll) 1))" config)))
+    (testing "a return type inferred from a built-in spec keeps its nil case"
+      (is (empty? (lint! "(ns foo) (defn dt? [s] (re-matches #\"x\" s)) (defn g [s] (if (dt? s) 1 2))"
+                         config)))
+      (is (empty? (lint! "(ns foo) (defn f [s] (re-find #\"x\" s)) (defn g [s] (when (f s) 1))"
+                         config))))
+    (testing "a var with a built-in spec is left to the analysis phase"
+      (is (empty? (lint! "(when (re-matches #\"x\" \"y\") 1)" config))))
+    (testing "a lint-as'ed conditional does not check its condition"
+      (is (empty? (lint! "(ns foo) (defn t [] {:a 1}) (defmacro m [c b] c) (defn g [] (m (t) 1))"
+                         (assoc config :lint-as '{foo/m clojure.core/if})))))))

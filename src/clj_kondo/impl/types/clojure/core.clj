@@ -864,10 +864,10 @@
                          :ret #{:nil :seq}}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
-                             :ret #{:vector :string}}}}
+                             :ret #{:nil :vector :string}}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
-                          :ret #{:vector :string}}
+                          :ret #{:nil :vector :string}}
                        2 {:args [:regex :string]
                           :ret #{:nil :vector :string}}}}
    ;; 4911 'rand
