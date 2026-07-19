@@ -15,6 +15,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
 - Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
+- [#2869](https://github.com/clj-kondo/clj-kondo/issues/2869) Replace type-mismatch arities instead of merging
 ### Highlights
 
 The type checker now infers much more.
@@ -80,6 +81,7 @@ And it narrows the type of a local after it flowed through a known predicate:
 - [#2848](https://github.com/clj-kondo/clj-kondo/pull/2848): allow calling sets and vectors with 2 arguments in ClojureScript, where the second argument is the not-found value ([@p-himik](https://github.com/p-himik))
 - [#2854](https://github.com/clj-kondo/clj-kondo/issues/2854): fix false positive `:invalid-arity` when an inner binding or fn param shadows a local function name ([@yuhan0](https://github.com/yuhan0))
 - Performance optimizations: [#2853](https://github.com/clj-kondo/clj-kondo/issues/2853), [#2857](https://github.com/clj-kondo/clj-kondo/issues/2857), [#2858](https://github.com/clj-kondo/clj-kondo/issues/2858), [#2859](https://github.com/clj-kondo/clj-kondo/issues/2859), [#2866](https://github.com/clj-kondo/clj-kondo/issues/2866) ([@alexander-yakushev](https://github.com/alexander-yakushev))
+- [#2864](https://github.com/clj-kondo/clj-kondo/issues/2864): `--copy-configs` no longer rewrites and reports unchanged config files on every run ([@nikbad](https://github.com/nikbad))
 - Performance: use a record for var usages: -13.5% allocation, ~5-10% faster linting
 - Bump SCI to `0.15.56`
 
