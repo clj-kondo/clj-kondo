@@ -3092,6 +3092,18 @@
       (namespace/reg-var! ctx ns-name sym expr))
     (analyze-associative ctx fields fn-name fields)))
 
+(defn- analyze-rest [ctx children]
+  (when-not (identical? :off (-> ctx :config :linters :seq-rest :level))
+    ;; rest is usually less used than seq, hence avoiding the `analyze-seq` route
+    (let [[parent-ns parent-fn :as parent] (second (:callstack ctx))]
+      (when (and (one-of parent-ns [clojure.core cljs.core])
+                 (= 'seq parent-fn))
+        (findings/reg-finding! ctx (node->line (:filename ctx)
+                                               parent ; Makes more sense to warn on the parent expr
+                                               :seq-rest
+                                               "Prefer (next x) over (seq (rest x))")))))
+  (analyze-children ctx children false))
+
 (defn analyze-call
   [{:keys [top-level? base-lang lang ns config dependencies] :as ctx}
    {:keys [arg-count
@@ -3447,6 +3459,7 @@
                           (exists?) (analyze-cljs-exists? ctx expr)
                           (with-precision) (analyze-with-precision ctx expr children)
                           (var) (analyze-var ctx expr children)
+                          (rest) (analyze-rest ctx children)
                           ;; catch-all
                           (case [resolved-as-namespace resolved-as-name]
                             [clj-kondo.lint-as def-catch-all]
@@ -3481,6 +3494,10 @@
                             (analyze-is ctx expr)
                             ([clojure.test.check.properties for-all])
                             (analyze-like-let ctx expr)
+                            [clojure.test.check.clojure-test defspec]
+                            (do
+                              (lint-inline-def! ctx expr)
+                              (test/analyze-defspec ctx expr defined-by defined-by->lint-as))
                             [cljs.spec.alpha def]
                             (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
                             [clojure.spec.alpha def]
