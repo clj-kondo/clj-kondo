@@ -281,7 +281,13 @@
                                    (recur (conj acc processed) (next children)))
                                  (recur acc (next children)))
                                (contains? (:clj-kondo/uneval node-meta) lang)
-                               (recur acc (drop 2 children))
+                               (do (common/reg-finding!
+                                    ctx (assoc (node->line (:filename ctx) node :syntax
+                                                           (if (second children)
+                                                             "#_ with unmatched reader conditional discards the next form"
+                                                             "#_ with unmatched reader conditional discards the closing delimiter"))
+                                               :level (if (second children) :warning :error)))
+                                   (recur acc (drop 2 children)))
                                :else
                                (recur acc (next children))))
                            acc))]

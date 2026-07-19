@@ -4334,8 +4334,9 @@
           (case lang
             :cljc
             (doseq [lang features]
-              (analyze-expressions (assoc ctx :base-lang :cljc :lang lang :filename filename)
-                                   (:children (select-lang ctx parsed lang))))
+              (let [ctx (assoc ctx :base-lang :cljc :lang lang :filename filename)]
+                (analyze-expressions ctx
+                                     (:children (select-lang ctx parsed lang)))))
             (:clj :cljs :edn)
             (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
                              :uri uri)]
