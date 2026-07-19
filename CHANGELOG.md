@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## Unreleased
+- [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 
 - [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
 - Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
