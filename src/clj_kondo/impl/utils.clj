@@ -19,6 +19,80 @@
 
 (set! *warn-on-reflection* true)
 
+;; A record for var usages ("calls"). One of these is allocated for every var
+;; usage in every linted source file, and its fields are read many times by
+;; lint-var-usage and friends, so field access speed and construction cost
+;; matter. Keys not listed here still work via the record's extmap.
+(defrecord VarUsage
+    [type name resolved-ns ns alias arity
+     row col end-row end-col
+     base-lang lang filename expr callstack condition config top-ns
+     arg-types simple? interop? resolved-core?
+     unresolved? unresolved-ns unresolved-symbol-disabled?
+     allow-forward-reference? clojure-excluded? private-access?
+     idx len derived-location in-def context
+     defmethod dispatch-val-str refer id ret
+     redundant-fn-wrapper-parent-loc])
+
+(def ^:private var-usage-basis
+  (map keyword (VarUsage/getBasis)))
+
+(defmacro var-usage
+  "Builds a VarUsage record from a literal map, positionally at compile time,
+  avoiding an intermediate hash map per var usage. Keys must be literal
+  keywords naming VarUsage fields."
+  [m]
+  (assert (map? m) "var-usage expects a literal map")
+  (let [unknown (remove (set var-usage-basis) (keys m))]
+    (assert (empty? unknown) (str "Unknown VarUsage keys: " (vec unknown))))
+  ;; Direct constructor call: the positional factory fn would go through
+  ;; RestFn for > 20 args, allocating an args seq per usage.
+  `(new clj_kondo.impl.utils.VarUsage ~@(map #(clojure.core/get m %) var-usage-basis)))
+
+(defrecord Binding
+    [name filename row col end-row end-col tag auto-resolved required
+     keyword id str scope-end-row scope-end-col derived-location])
+
+(def ^:private binding-basis
+  (map clojure.core/keyword (Binding/getBasis)))
+
+(def ^:private meta-shielded-binding-fields
+  ;; user metadata must not overwrite the record's own fields, e.g.
+  ;; ^{:name "hacked" :filename "evil.clj"}. :derived-location is the
+  ;; exception, hook postprocessing legitimately sets it in meta
+  (remove #{:derived-location} binding-basis))
+
+(defn merge-binding-meta
+  "Merges meta keys beyond a Binding's own fields into binding `v`:
+  :user-meta, :clj-kondo/skip-reg-binding or the generated flag ride along.
+  Meta that is exactly the four positions has nothing to add."
+  [v m]
+  (if (and (= 4 (count m)) (:row m))
+    v
+    (merge v (apply dissoc m meta-shielded-binding-fields))))
+
+(defmacro binding-rec
+  "Builds a Binding record positionally at compile time, avoiding an
+  intermediate hash map per binding. Each field comes from the literal
+  `overrides` map when present, else it is copied from source map expr
+  `m`, absent keys giving nil fields, and meta keys beyond the fields are
+  merged in via merge-binding-meta. Override keys must be literal keywords
+  naming Binding fields."
+  [m overrides]
+  (assert (map? overrides) "binding-rec expects a literal overrides map")
+  (let [unknown (remove (set binding-basis) (keys overrides))]
+    (assert (empty? unknown) (str "Unknown Binding keys: " (vec unknown))))
+  (let [msym (gensym "m")]
+    `(let [~msym ~m]
+       (merge-binding-meta
+        (new clj_kondo.impl.utils.Binding
+             ~@(map (fn [k]
+                      (if (contains? overrides k)
+                        (clojure.core/get overrides k)
+                        `(clojure.core/get ~msym ~k)))
+                    binding-basis))
+        ~msym))))
+
 (let [not-found (Object.)]
   (defn select-keys
     "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys

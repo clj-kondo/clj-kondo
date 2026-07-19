@@ -863,6 +863,11 @@ foo/foo ;; this does use the private var
            (case 1 x 1 y 2)" {:linters {:case-symbol-test {:level :warning}}})))
 
 (deftest local-bindings-test
+  (testing "user metadata cannot overwrite the binding's own fields (:name, :filename)"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 46, :level :warning, :message "unused binding x"})
+     (lint! "(let [^{:name \"hacked\" :filename \"evil.clj\"} x 1] nil)"
+            {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
   (is (empty? (lint! "(fn [[select-keys x y z]] (select-keys))")))
   (is (empty? (lint! "(fn [{:keys [:select-keys :b]}] (select-keys))")))
@@ -1945,6 +1950,13 @@ foo/foo ;; this does use the private var
       :level :error,
       :message "unsupported binding form (x)"})
    (lint! "(let [(x) 1])"))
+  (assert-submaps
+   '({:file "<stdin>",
+      :row 1,
+      :col 10,
+      :level :error,
+      :message "unsupported binding form ::as"})
+   (lint! "(let [[a ::as b] [1 2]] [a b])"))
   (is (empty? (lint! "(fn [[x y z] :as x])" {:linters {:shadowed-fn-param {:level :off}}})))
   (is (empty? (lint! "(fn [[x y z & xs]])")))
   (is (empty? (lint! "(let [^String x \"foo\"])"))))

@@ -358,6 +358,60 @@
                                            :exclude-destructured-as true}}})))))
 
 
+(deftest select-destructuring-test
+  (testing ":select binds a name (Clojure 1.13)"
+    (is (empty? (lint! "(let [{:keys [a b] :select m} {:a 1 :b 2}] [a b m])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing "unused :select binding"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :col 26
+                        :level :warning
+                        :message "unused binding m"})
+                     (lint! "(let [{:keys [a] :select m} {}] a)"
+                            '{:linters {:unused-binding {:level :warning}}})))
+  (testing "only exact :select, :as and :or keywords are directives"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :level :error
+                        :message "Unresolved symbol: m1"}
+                       {:file "<stdin>"
+                        :row 2
+                        :level :error
+                        :message "Unresolved symbol: m2"}
+                       {:file "<stdin>"
+                        :row 3
+                        :level :error
+                        :message "Unresolved symbol: m3"}
+                       {:file "<stdin>"
+                        :row 4
+                        :level :error
+                        :message "Unresolved symbol: m4"}
+                       {:file "<stdin>"
+                        :row 5
+                        :level :error
+                        :message "Unresolved symbol: m5"}
+                       {:file "<stdin>"
+                        :row 6
+                        :level :error
+                        :message "Unresolved symbol: m6"})
+                     (lint! "(let [{:person/select m1} {}] m1)
+(let [{::select m2} {}] m2)
+(let [#:person{:keys [id] :select m3} {}] [id m3])
+(let [{:person/as m4} {}] m4)
+(let [{::as m5} {}] m5)
+(let [#:person{:keys [id2] :as m6} {}] [id2 m6])"
+                            '{:linters {:unresolved-symbol {:level :error}}}))
+    (testing "qualified :or is not a defaults directive"
+      (is (empty? (lint! "(let [{:keys [a] ::or {b 1}} {}] a)"
+                         '{:linters {:unresolved-symbol {:level :error}
+                                     :unused-binding {:level :warning}}}))))
+    (testing "a plain map nested in a namespaced map can use :select"
+      (is (empty? (lint! "(let [#:person{{:keys [b] :select m} :sub} {}] [b m])"
+                         '{:linters {:unresolved-symbol {:level :error}
+                                     :unused-binding {:level :warning}}}))))))
+
 (deftest used-underscored-binding-test
   (assert-submaps2
    '({:file "<stdin>",
@@ -405,3 +459,113 @@
                        {:linters {:unresolved-symbol {:level :error}}})))
     (is (empty? (lint! "(defmacro outer [] `(defmacro ~'inner [a# b#] `(+ ~a# ~b#)))"
                        {:linters {:unresolved-symbol {:level :error}}})))))
+
+(deftest required-keys-destructuring-test
+  (testing ":keys! binds names before &"
+    (is (empty? (lint! "(defn foo [{:keys! [x y]}] (+ x y))"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(let [{:syms! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:strs! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:person/keys! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(ns foo) (let [{::keys! [x]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys! [:x :y/z person/name]} {}] [x z name])"
+                       '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "unused :keys! binding"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "unused binding x"})
+     (lint! "(let [{:keys! [x]} {}])"
+            '{:linters {:unused-binding {:level :warning}}})))
+  (testing "Clojure 1.13: binding symbols can only appear before &, keys after"
+    (doseq [directive [":keys" ":syms" ":strs" ":keys!" ":syms!" ":strs!"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: z"})
+       (lint! (str "(defn foo [{" directive " [x & z]}] x)")
+              '{:linters {:unresolved-symbol {:level :error}}})))
+    (testing "each binding symbol after & is reported"
+      (assert-submaps2
+       '({:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: x"}
+         {:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: y"}
+         {:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: z"})
+       (lint! "(let [{:keys [& x y z]} {}])"
+              '{:linters {:unresolved-symbol {:level :error}}})))
+    (testing "qualified symbol after & is also rejected"
+      (assert-submaps2
+       '({:file "<stdin>", :level :error,
+          :message "Binding symbols can only appear before &, use keys after: y/z"})
+       (lint! "(defn foo [{:keys! [x & y/z :w]}] x)"
+              '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "Clojure 1.13: literal keys after & are allowed"
+    (is (empty? (lint! "(let [{:keys [x & :y]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:keys! [x & :y :z]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:syms! [x & :y 'z \"w\"]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(let [{:strs! [x & \"y\"]} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "Clojure 1.13: & can only appear once"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "& can only appear once in map destructuring"})
+     (lint! "(let [{:keys [x & :y & :z]} {}] x)"
+            '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest invalid-amp-binding-test
+  (testing "CLJ-2954: & is not a valid local binding name"
+    (doseq [snippet ["(let [& 42] nil)"
+                     "(loop [& 1] (recur 1))"
+                     "(let [a 1 & 2] a)"
+                     "(for [x [1] :let [& 2]] x)"
+                     "(let [{& :x} {}] nil)"
+                     "(let [{:as &} {}] nil)"
+                     "(let [[a & &] [1 2 3]] a)"
+                     "(let [[a :as &] [1]] a)"
+                     "(as-> 1 &)"
+                     "(with-open [& nil])"
+                     "(defn foo [{& :x}] nil)"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :error, :message "Invalid binding: &"})
+       (lint! snippet))))
+  (testing "& allowed as rest marker and catch binding"
+    (is (empty? (lint! "(let [[a & b] [1 2]] [a b])")))
+    (is (empty? (lint! "(fn [a & b] [a b])")))
+    (is (empty? (lint! "(let [[a & bs :as all] [1]] [a bs all])")))
+    (is (empty? (lint! "(let [{:keys [x & :z]} {}] x)")))
+    (is (empty? (lint! "(try nil (catch Exception & nil))")))))
+
+(deftest defaults-destructuring-test
+  (testing "CLJ-2966: :defaults binds a map of the applied :or defaults"
+    (is (empty? (lint! "(let [{:keys [a] :or {a 1} :defaults ds} {}] [a ds])"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(defn foo [{:keys [a] :or {a 1} :defaults ds}] [a ds])"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}}))))
+  (testing "CLJ-2966: :defaults requires :or"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Can't specify :defaults without :or"})
+     (lint! "(let [{:keys [a] :defaults ds} {}] [a ds])"
+            '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest required-binding-default-test
+  (testing ":or default for required binding is a compile error in Clojure 1.13"
+    (doseq [snippet ["(let [{:keys! [x] :or {x 1}} {}] x)"
+                     "(let [{:syms! [x] :or {x 1}} {}] x)"
+                     "(let [{:strs! [x] :or {x 1}} {}] x)"
+                     "(let [{:keys! [:x] :or {x 1}} {}] x)"
+                     "(let [{:or {x 1} :keys! [x]} {}] x)"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :error, :message "Can't supply default value for required binding: x"})
+       (lint! snippet))))
+  (testing ":or default allowed for non-required bindings"
+    (is (empty? (lint! "(let [{:keys [x] :or {x 1}} {}] x)")))
+    (is (empty? (lint! "(let [{x :x :keys! [y] :or {x 1}} {:y 1}] [x y])")))))

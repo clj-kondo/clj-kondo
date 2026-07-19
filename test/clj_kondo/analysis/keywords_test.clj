@@ -85,6 +85,19 @@
          {:name "t" :ns x}
          {:name "j" :ns foo :keys-destructuring true}]
        (:keywords a))))
+  (testing "destructuring keywords with :keys! and &"
+    (let [a (analyze "(ns foo)\n(let [{:keys! [a & :b] :keys [c & :d] :person/keys! [e]} {}] [a c e])"
+                     {:config {:analysis {:keywords true}}})]
+      (assert-submaps
+       '[{:name "keys!" :keys-destructuring-ns-modifier true}
+         {:name "a" :keys-destructuring true}
+         {:name "b" :keys-destructuring true}
+         {:name "keys" :keys-destructuring-ns-modifier true}
+         {:name "c" :keys-destructuring true}
+         {:name "d" :keys-destructuring true}
+         {:name "keys!" :ns person :keys-destructuring-ns-modifier true}
+         {:name "e" :ns person :keys-destructuring true}]
+       (:keywords a))))
   (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"
                      {:config {:analysis {:keywords true}}})]
