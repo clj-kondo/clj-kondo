@@ -32832,15 +32832,6 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
- {:end-row 126,
-  :type :unreachable-code,
-  :level :warning,
-  :filename "src/clj_kondo/impl/core.clj",
-  :col 20,
-  :end-col 57,
-  :langs (),
-  :message "Condition always true",
-  :row 126}
  {:end-row 46,
   :type :redundant-ignore,
   :level :info,

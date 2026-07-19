@@ -123,7 +123,7 @@
   last."
   [cfg-dir cfg]
   (if-let [config-paths (seq (:config-paths cfg))]
-    (if-let [paths (sanitize-paths cfg-dir config-paths)]
+    (if-let [paths (seq (sanitize-paths cfg-dir config-paths))]
       (let [configs (map process-cfg-dir paths)
             merged (reduce config/merge-config! nil configs)
             ;; cfg is merged last

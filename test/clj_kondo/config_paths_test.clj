@@ -15,6 +15,24 @@
           ;; which contains the hook code needed to lint the above file
           "--config-dir" (.getPath (io/file "corpus" ".clj-kondo2")))))
 
+(deftest nonexistent-config-path-test
+  (when-not native?
+    (let [tmp-dir (str (fs/create-temp-dir {:prefix "clj_kondo"}))
+          cfg-dir (io/file tmp-dir ".clj-kondo")
+          prog "
+(ns x {:clj-kondo/config '{:linters {:unused-binding {:level :warning}}}}
+  (:require foo.foo))
+
+(foo.foo/foo [x 1 y 2])"]
+      (fs/create-dirs cfg-dir)
+      (spit (io/file cfg-dir "config.edn")
+            "{:config-paths [\"does-not-exist\"] :lint-as {foo.foo/foo clojure.core/let}}")
+      (testing "config next to a config path that does not resolve is still used"
+        (assert-submaps2
+         '({:level :warning, :message "unused binding x"}
+           {:level :warning, :message "unused binding y"})
+         (lint! prog "--config-dir" (.getPath cfg-dir)))))))
+
 (deftest home-config-test
   (when-not native?
     (let [old-home (System/getProperty "user.home")
