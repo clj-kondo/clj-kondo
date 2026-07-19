@@ -153,6 +153,7 @@ start-block {4 {:args [nil #{:string :nil} #{:string :nil} #{:string :nil}]}}
 process-directive-table-element {1 {:ret :vector}}
 set-pprint-dispatch {1 {:ret :nil}}
 remainders {2 {:ret :seq}}
+fresh-line {0 {:ret #{:nil}}}
 get-field {2 {:args [:ideref]}}
 process-bracket {2 {:ret :vector}}
 format-error {2 {:args [nil :nat-int]}}
@@ -587,7 +588,7 @@ update-in {:varargs {:ret #{:associative}, :min-arity 3}}
 *' {0 {:ret :pos-int}, :varargs {:min-arity 2, :args [:number :number]}}
 instance? {2 {:args [#{:class :nil}]}}
 mix-collection-hash {2 {:ret :long, :args (:long :long)}}
-re-find {2 {:ret #{:string :vector}}}
+re-find {2 {:ret #{:string :vector :nil}}}
 run! {2 {:ret :nil, :args [nil :seqable]}}
 print-sequential {6 {:args [#{:string :nil} nil #{:string :nil} #{:string :nil}]}}
 filter-methods {2 {:args [#{:class :nil}]}}

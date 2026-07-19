@@ -1456,8 +1456,10 @@
         :row 1
         :col 6
         :level :error
-        :message "Expected: number, received: class."})
-     (lint! "(inc (class 42))" config))))
+        :message "Expected: number, received: class or nil."})
+     (lint! "(inc (class 42))" config)))
+  (testing "class returns nil for nil"
+    (is (empty? (lint! "(defn f [x] (when (class x) 1))" config)))))
 
 (deftest instance-test
   (testing "instance? returns boolean"

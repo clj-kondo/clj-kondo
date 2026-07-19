@@ -68,8 +68,11 @@
 (def clojure-core
   {;;; Special forms (https://clojure.org/reference/special_forms)
    ;; 'def
-   'if {:fn (fn [[_ then else]]
-              (tu/union-type then else))}
+   'if {:fn (fn [args]
+              ;; a missing else branch returns nil, which the arg count tells us
+              ;; apart from an else branch whose type we don't know
+              (let [[_ then else] args]
+                (tu/union-type then (if (< (count args) 3) :nil else))))}
    'do {:fn last}
    ;; 'let*
    'let {:fn last}
@@ -696,7 +699,8 @@
    ;; 3443 'into-array
    ;; 3460
    'class {:arities {1 {:args [:any]
-                        :ret :class}}}
+                        ;; (class nil) is nil
+                        :ret :nilable/class}}}
    ;; 3466 'type
    ;; 3473 'num
    ;; 3480
