@@ -122,6 +122,16 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 38,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/insights/untouched_fahrzeuge_report.clj",
+  :col 52,
+  :end-col 77,
+  :langs (),
+  :message "Expected: map, received: function.",
+  :row 38}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/locations.clj",
   :row 166,
