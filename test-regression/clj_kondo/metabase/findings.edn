@@ -37,7 +37,7 @@
   :message "Format string contains no format specifiers",
   :row 998}
  {:end-row 43,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/app_db/update_h2.clj",
@@ -632,7 +632,7 @@
   :message "Unused excluded var: number?",
   :row 3}
  {:end-row 708,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :lang :clj,
   :filename
@@ -775,7 +775,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 328}
  {:end-row 266,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/queries/api/card.clj",
@@ -1004,7 +1004,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 31}
  {:end-row 211,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
@@ -1111,7 +1111,7 @@
   :message "Redundant let binding: dir",
   :row 76}
  {:end-row 131,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/warehouse_schema/api/field.clj",
@@ -1121,7 +1121,7 @@
   :message "Condition always true",
   :row 131}
  {:end-row 46,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/warehouse_schema/models/field.clj",
@@ -1141,7 +1141,7 @@
   :message "Unused excluded var: defn",
   :row 2}
  {:end-row 7,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/mage/start_db_test.clj",
@@ -1211,7 +1211,7 @@
   :message "Unresolved symbol: partial=",
   :row 99}
  {:end-row 442,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1221,7 +1221,7 @@
   :message "Condition always true",
   :row 442}
  {:end-row 446,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1231,7 +1231,7 @@
   :message "Condition always true",
   :row 446}
  {:end-row 451,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1241,7 +1241,7 @@
   :message "Condition always true",
   :row 451}
  {:end-row 455,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1251,7 +1251,7 @@
   :message "Condition always true",
   :row 455}
  {:end-row 460,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1291,7 +1291,7 @@
   :message "Unresolved symbol: partial=",
   :row 38}
  {:end-row 17,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/app_db/internal_user_test.clj",
@@ -1501,7 +1501,7 @@
   :message "Unresolved symbol: partial=",
   :row 82}
  {:end-row 93,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/driver/impl_test.clj",
@@ -1521,7 +1521,7 @@
   :message "Write expected value first",
   :row 99}
  {:end-row 132,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
@@ -1581,7 +1581,7 @@
   :message "Unresolved symbol: re=",
   :row 177}
  {:end-row 185,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/embedding/api/embed_test.clj",
@@ -1601,7 +1601,7 @@
   :message "Unresolved symbol: partial=",
   :row 45}
  {:end-row 59,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/events/recent_views_test.clj",
@@ -1636,7 +1636,7 @@
   "Redundant boolean coercion - expression already has type boolean",
   :row 2032}
  {:end-row 96,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :lang :clj,
   :filename
@@ -2067,7 +2067,7 @@
   :message "Missing protocol method(s): to-job-data",
   :row 171}
  {:end-row 497,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/task_history/api_test.clj",
@@ -2117,7 +2117,7 @@
   :message "Unresolved symbol: re=",
   :row 54}
  {:end-row 41,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
@@ -2137,7 +2137,7 @@
   :message "Test assertion message should be a string",
   :row 41}
  {:end-row 42,
-  :type :condition-always-true,
+  :type :unreachable-code,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",

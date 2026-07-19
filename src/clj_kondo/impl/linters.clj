@@ -538,7 +538,7 @@
           (findings/reg-finding!
            ctx (-> call
                    utils/location
-                   (assoc :type :condition-always-true
+                   (assoc :type :unreachable-code
                           :message "Condition always true")))))
       (when arity-error?
         (findings/reg-finding!

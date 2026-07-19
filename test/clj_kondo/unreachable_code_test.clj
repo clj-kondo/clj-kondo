@@ -1,11 +1,11 @@
-(ns clj-kondo.condition-always-true-test
+(ns clj-kondo.unreachable-code-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (def config
   {:linters {:type-mismatch {:level :error}
-             :condition-always-true {:level :warning}}})
+             :unreachable-code {:level :warning}}})
 
 (deftest condition-always-true-test
   (assert-submaps2
@@ -103,7 +103,12 @@
      :row 3
      :col 16
      :level :warning
-     :message "Condition always true"}]
+     :message "Condition always true"}
+    {:file "<stdin>"
+     :row 4
+     :col 16
+     :level :warning
+     :message "Condition always false"}]
    (lint! "(let [a 4 b nil]
              (cond-> {}
                a (assoc :a a)
@@ -297,5 +302,43 @@
        :level :warning,
        :message "Condition always true"}]
      (lint! "(require '[cljs.test :refer [is]]) (is inc)"
-            {:linters {:condition-always-true {:level :warning}}
+            {:linters {:unreachable-code {:level :warning}}
              :lang :cljs}))))
+
+(deftest condition-always-false-test
+  (testing "nil literal in condition position"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 7
+       :level :warning
+       :message "Condition always false"}]
+     (lint! "(when nil 1)" config))
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 5
+       :level :warning
+       :message "Condition always false"}]
+     (lint! "(if nil 1 2)" config)))
+  (testing "a key lookup that is provably nil"
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 7
+       :level :warning
+       :message "Condition always false"}]
+     (lint! "(when (:k {}) 1)" config))
+    (assert-submaps2
+     [{:file "<stdin>"
+       :row 1
+       :col 24
+       :level :warning
+       :message "Condition always false"}]
+     (lint! "(let [n (:k {})] (when n 1))" config)))
+  (testing "false is exempt, an intentional dev toggle"
+    (is (empty? (lint! "(when false 1)" config)))
+    (is (empty? (lint! "(let [flag false] (when flag 1))" config))))
+  (testing "unknown or nilable conditions are fine"
+    (is (empty? (lint! "(defn f [x] (when x 1))" config)))
+    (is (empty? (lint! "(when (seq [1 2 3]) 1)" config)))))

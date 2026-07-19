@@ -18,7 +18,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conditional build-up](#conditional-build-up)
-    - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
@@ -294,20 +293,6 @@ enabling this linter, you can prepend the `case` expression with
 *Example trigger:* `(cond (odd? (rand-int 10)) :foo :default :bar)`.
 
 *Example message:* `use :else as the catch-all test expression in cond`.
-
-### Condition always true
-
-*Keyword:* `:condition-always-true`.
-
-*Description:* warn on a condition that evaluates to an always truthy constant,
-like when passing a function instead of calling it. This linter intentionally
-doesn't check for literally `true` values of vars since this is often a dev/production setting.
-
-*Default level:* `:off` (will be `:warning` in a future release).
-
-*Example trigger:* `(if odd? :odd :even)`.
-
-*Example message:* `Condition always true`.
 
 ### Conditional build-up
 
@@ -2355,13 +2340,20 @@ This will exclude all bindings starting with `_x`.
 
 *Keyword:* `:unreachable-code`.
 
-*Description:* warn on unreachable code.
+*Description:* warn on code that can never run: `cond` clauses after a
+catch-all, a misplaced `:default` reader conditional branch, and conditions
+that always evaluate truthy or falsy, like when passing a function instead of
+calling it, or a lazy seq in condition position (which is truthy even when
+empty; wrap it in `seq`). Literal `true` and `false` (also via a var or local)
+are not checked, since these are often dev/production toggles. The keyword
+`:always` is also exempt, as a way to express an intentional always-truthy
+condition in `cond->`. Replaces the `:condition-always-true` linter.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `(cond :else 1 (odd? 1) 2)`.
+*Example trigger:* `(cond :else 1 (odd? 1) 2)`, `(if odd? :odd :even)`, `(when nil 1)`.
 
-*Example message:* `unreachable code`.
+*Example message:* `unreachable code`, `Condition always true`, `Condition always false`.
 
 ### Unused import
 

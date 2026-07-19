@@ -180,7 +180,6 @@
               :unused-alias {:level :off}
               :alias-same-as-ns {:level :off}
               :self-requiring-namespace {:level :warning}
-              :condition-always-true {:level :off}
               :underscore-in-namespace {:level :warning}
               :multiple-async-in-deftest {:level :warning}
               :java-static-field-call {:level :error}

@@ -1417,31 +1417,41 @@
   [ctx expr]
   (findings/reg-finding! ctx (node->line (:filename ctx)
                                          expr
-                                         :condition-always-true
+                                         :unreachable-code
                                          "Condition always true")))
 
 (defn analyze-condition
-  [ctx condition]
+  "Analyzes an expression in condition position. `lint?` false skips the
+  always-true/false checks: a form lint-as'ed to a conditional need not put a
+  real condition in that position."
+  ([ctx condition] (analyze-condition ctx condition true))
+  ([ctx condition lint?]
   (let [;; arg-types could be nil due to type-mismatch being disabled
         arg-types (or (:arg-types ctx) (atom []))
         ctx (assoc ctx :arg-types arg-types)
         pos (-> ctx :arg-types deref count)
         condition (assoc condition :condition true)
         analyzed (doall (analyze-expression** ctx condition))]
-    (when (and (not (linter-disabled? ctx :condition-always-true))
+    (when (and lint?
+               (not (linter-disabled? ctx :unreachable-code))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
       (when-let [arg-type (some-> @arg-types
                                   (nth pos)
                                   :tag
                                   types/keyword)]
-        (when (not (or (types/nilable? arg-type)
+        (cond (identical? :nil arg-type)
+              (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                     condition
+                                                     :unreachable-code
+                                                     "Condition always false"))
+              (not (or (types/nilable? arg-type)
                        (types/match? arg-type :nil)
                        (types/match? arg-type :boolean)))
-          (condition-always-true-linter ctx condition))))
-    analyzed))
+              (condition-always-true-linter ctx condition))))
+    analyzed)))
 
-(defn analyze-conditional-let [ctx call expr]
+(defn analyze-conditional-let [ctx call expr lint-as?]
   (let [children (next (:children expr))
         bv (first children)
         vec? (when bv (= :vector (tag bv)))]
@@ -1465,7 +1475,7 @@
                                  ;; coll's truthiness, so no condition checks
                                  (if (= 'when-first call)
                                    (analyze-expression** cctx cnode)
-                                   (analyze-condition cctx cnode)))
+                                   (analyze-condition cctx cnode (not (or lint-as? (:clj-kondo.impl/generated expr))))))
             raw-tag (when value-id (init-tag ctx value-id condition))
             ;; a provably nil init means the bound branch never runs, for
             ;; any binding form
@@ -2488,7 +2498,7 @@
 
 (defn analyze-if
   "Analyzes if special form for arity errors"
-  [ctx expr]
+  [ctx expr lint-as?]
   (let [args (rest (:children expr))]
     (when-let [[expr msg linter]
                (case (count args)
@@ -2504,7 +2514,7 @@
           [then else] clauses
           narrowing (when-not (linter-disabled? ctx :type-mismatch)
                       (narrowing-from-condition ctx condition))]
-      (analyze-condition ctx condition)
+      (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
       (let [branch-ctx (in-branch-ctx ctx)]
         (if narrowing
           (let [branch-ctx (assoc branch-ctx :len (count clauses))]
@@ -2514,17 +2524,17 @@
 
 (defn analyze-if-not
   "Analyzes if-not macro"
-  [ctx expr]
+  [ctx expr lint-as?]
   (let [[condition & clauses] (rest (:children expr))]
-    (analyze-condition ctx condition)
+    (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
     (analyze-children (in-branch-ctx ctx)
                       clauses false)))
 
 (defn analyze-is
-  [ctx expr]
+  [ctx expr lint-as?]
   (let [[condition & body] (rest (:children expr))]
     (when condition
-      (analyze-condition ctx condition))
+      (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr)))))
     (analyze-children ctx body false)))
 
 (defn analyze-constructor
@@ -2578,7 +2588,7 @@
     (when name-sym (namespace/reg-var! ctx ns-name name-sym expr (meta name-expr)))
     (run! #(analyze-usages2 ctx %) body)))
 
-(defn analyze-when [ctx expr op]
+(defn analyze-when [ctx expr op lint-as?]
   (let [children (next (:children expr))
         condition (first children)
         body (next children)
@@ -2589,7 +2599,7 @@
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.
-    (analyze-condition ctx condition)
+    (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
     (if-not (seq body)
       (findings/reg-finding!
        ctx
@@ -3181,7 +3191,7 @@
                                                                 fn-name]))
                                   children))
               :else
-              (let [[resolved-as-namespace resolved-as-name _lint-as?]
+              (let [[resolved-as-namespace resolved-as-name lint-as?]
                     (or (when-let
                          [[ns n]
                           (config/lint-as config resolved-var-sym)]
@@ -3395,7 +3405,7 @@
                           letfn
                           (analyze-letfn ctx expr)
                           (if-let if-some when-let when-some when-first)
-                          (analyze-conditional-let ctx resolved-as-clojure-var-name expr)
+                          (analyze-conditional-let ctx resolved-as-clojure-var-name expr lint-as?)
                           do
                           (analyze-do ctx expr)
                           (fn fn* bound-fn)
@@ -3428,14 +3438,14 @@
                           import
                           (if top-level? (analyze-import ctx expr)
                               (analyze-children ctx children))
-                          if (analyze-if ctx expr)
-                          if-not (analyze-if-not ctx expr)
+                          if (analyze-if ctx expr lint-as?)
+                          if-not (analyze-if-not ctx expr lint-as?)
                           new (analyze-constructor ctx expr)
                           set! (analyze-set! ctx expr)
                           (= not=) (analyze-=-not= ctx expr resolved-as-clojure-var-name)
                           (+ -) (analyze-+- ctx resolved-name expr)
                           (with-redefs binding) (analyze-with-redefs ctx expr)
-                          (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name)
+                          (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name lint-as?)
                           ;; the first operand, the first cond test and the
                           ;; condp pred and dispatch expr always evaluate,
                           ;; everything after is conditional
@@ -3491,7 +3501,7 @@
                             ([clojure.test are] [cljs.test are])
                             (test/analyze-are ctx resolved-namespace expr)
                             ([clojure.test is] [cljs.test is])
-                            (analyze-is ctx expr)
+                            (analyze-is ctx expr lint-as?)
                             ([clojure.test.check.properties for-all])
                             (analyze-like-let ctx expr)
                             [clojure.test.check.clojure-test defspec]

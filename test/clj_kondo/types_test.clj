@@ -2233,9 +2233,7 @@
         (is (empty? (lint! "(when-let [{:keys [x] :or {x (inc \"bad\")}} (:missing {})] x)"
                            config)))))
     (testing "when-first's condition is seq, not truthiness"
-      (is (empty? (lint! "(when-first [x []] x)"
-                         (assoc-in config [:linters :condition-always-true :level]
-                                   :warning)))))
+      (is (empty? (lint! "(when-first [x []] x)" config))))
     (testing "a call-shaped map value carries the call's return type"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: number."})

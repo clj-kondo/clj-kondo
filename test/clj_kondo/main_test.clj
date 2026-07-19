@@ -1755,7 +1755,8 @@ foo/foo ;; this does use the private var
       :col 15,
       :level :warning,
       :message "unreachable code"})
-   (lint! "(cond :else 1 (odd? 1) 2)")))
+   (lint! "(cond :else 1 (odd? 1) 2)"
+          {:linters {:unreachable-code {:level :warning}}})))
 
 (deftest dont-crash-analyzer-test
   (doseq [example ["(let)" "(if-let)" "(when-let)" "(loop)" "(doseq)"]

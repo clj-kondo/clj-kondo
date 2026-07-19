@@ -24,7 +24,6 @@
                                        :repro true
                                        :config {:linters
                                                 {:redundant-fn-wrapper {:level :warning}
-                                                 :condition-always-true {:level :warning}
                                                  :not-a-function
                                                  '{:skip-args [clojure.pprint/defdirectives
                                                                cljs.pprint/defdirectives
