@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2877](https://github.com/clj-kondo/clj-kondo/issues/2877): warn when `#_` before an unmatched reader conditional discards the next form. E.g. `[#_#?(:cljs 1) 2]` reads as `[]` in `:clj` and will warn.
 - [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
 - Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
 - [#2869](https://github.com/clj-kondo/clj-kondo/issues/2869) Replace type-mismatch arities instead of merging
