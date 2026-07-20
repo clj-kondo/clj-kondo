@@ -12,11 +12,15 @@
   (assert-submaps
     '({:file "<stdin>", :row 1, :col 6, :level :warning, :message "Redundant fn wrapper"})
     (lint! "(map #(:a %) uuids)" {:linters {:redundant-fn-wrapper {:level :warning}}}))
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 6, :level :warning,
-      :message "Redundant fn wrapper"})
-   (lint! "(map #(#{:a :b} %) [:a])"
-          {:linters {:redundant-fn-wrapper {:level :warning}}}))
+  (testing "constant collection literals"
+    (doseq [form ["(map #(#{:a :b} %) [:a])"
+                  "(map #([:a :b] %) [0])"
+                  "(map #({:a 1} %) [:a])"]]
+      (assert-submaps
+       '({:file "<stdin>", :row 1, :col 6, :level :warning,
+          :message "Redundant fn wrapper"})
+       (lint! form
+              {:linters {:redundant-fn-wrapper {:level :warning}}}))))
   (assert-submaps
    '({:file "<stdin>", :row 1, :col 16, :level :warning,
       :message "Redundant fn wrapper"})
@@ -39,6 +43,17 @@
   (is (empty?
        (lint! "(fn [x] {:pre [(odd? x)]} (- x))"
               {:linters {:redundant-fn-wrapper {:level :warning}}})))
+  (testing "collection literals with evaluated members"
+    (doseq [form ["(let [x :a] #(#{x} %))"
+                  "(let [x :a] #([x] %))"
+                  "(let [x :a] #({x true} %))"
+                  "#(#{(rand)} %)"
+                  "#([(rand)] %)"
+                  "#({:a (rand)} %)"]]
+      (is (empty?
+           (lint! form
+                  {:linters
+                   {:redundant-fn-wrapper {:level :warning}}})))))
   (is (empty?
        (lint! "(let [nsm {}]
                  (fn [sym]

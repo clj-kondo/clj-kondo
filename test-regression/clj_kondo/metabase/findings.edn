@@ -1602,32 +1602,6 @@
   :langs (:clj),
   :message "Test assertion message should be a string",
   :row 819}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 477,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/card_test.cljc",
-  :col 43,
-  :end-col 47,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 475}
- {:clj-kondo.impl/fn-has-first-arg true,
-  :end-row 490,
-  :type :redundant-fn-wrapper,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/lib/card_test.cljc",
-  :col 47,
-  :end-col 65,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Redundant fn wrapper",
-  :row 489}
  {:end-row 2032,
   :type :redundant-primitive-coercion,
   :level :warning,

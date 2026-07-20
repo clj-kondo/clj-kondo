@@ -13,7 +13,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2891](https://github.com/clj-kondo/clj-kondo/issues/2891): fix false negative `:redundant-fn-wrapper` for set literal calls ([@jramosg](https://github.com/jramosg))
+- [#2891](https://github.com/clj-kondo/clj-kondo/issues/2891): fix false
+  negatives from `:redundant-fn-wrapper` for constant set, vector, and map
+  literal calls ([@jramosg](https://github.com/jramosg))
 - Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
 - Type checker: `contains?` accepts nil as its collection argument
 - Type checker: infer the type of a function param from how it is used in the body. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn, since the evidence `(subs s 1)` tells us that `s` should be a string.
