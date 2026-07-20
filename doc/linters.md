@@ -2332,7 +2332,7 @@ Also warns on unreachable code after a catch-all `cond` test.
 
 Literal `true` and `false` conditions are not checked, even when reached
 through a var or local. These are often dev/production toggles. The keyword
-`:always` is exempt in `cond->`.
+`:always` is exempt as an intentional always-truthy condition.
 
 Replaces the `:condition-always-true` linter. The `cond` catch-all warning
 moved here from `:unreachable-code`.
