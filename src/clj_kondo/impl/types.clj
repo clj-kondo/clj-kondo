@@ -48,6 +48,9 @@
     :seq
     :sorted-map
     :boolean
+    :true
+    :false
+    :truthy
     :atom
     :future
     :regex
@@ -106,13 +109,16 @@
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
+   :true #{:boolean}
+   :false #{:boolean}
    :atom #{:ideref}
    :future #{:ideref}
    :var #{:ideref :ifn}
    :array #{:seqable :ilookup}})
 
 (def could-be-relations
-  {:char-sequence #{:string}
+  {:boolean #{:true :false}
+   :char-sequence #{:string}
    ;; Subtypes and widening primitive conversions (int can widen to float/double)
    :int #{:neg-int :nat-int :pos-int :long :short :float :double :number}
    :long #{:int :neg-int :nat-int :pos-int :short :float :double :number}
@@ -180,6 +186,9 @@
    :regex "regular expression"
    :char "character"
    :boolean "boolean"
+   :true "boolean"
+   :false "boolean"
+   :truthy "truthy value"
    :atom "atom"
    :future "future"
    :ideref "deref"
@@ -213,6 +222,8 @@
     (keyword? actual)
     (or (identical? actual expected)
         (identical? actual :any)
+        ;; some truthy value of unknown type, see types.utils/truthy-part
+        (identical? actual :truthy)
         (identical? expected :any)
         (contains? (get is-a-relations actual) expected)
         (contains? (get could-be-relations actual) expected)
@@ -397,15 +408,19 @@
   "True when a value of type `t` can never be nil."
   [t]
   (and (keyword? t)
-       (not (or (identical? :any t)
-                (nilable? t)
-                (match? t :nil)))))
+       (or (identical? :truthy t)
+           (not (or (identical? :any t)
+                    (nilable? t)
+                    (match? t :nil))))))
 
 (defn- truthy-tag?
   "True when a value of type `t` can never be nil or false."
   [t]
-  (and (non-nil-tag? t)
-       (not (match? t :boolean))))
+  (and (keyword? t)
+       (or (identical? :truthy t)
+           (identical? :true t)
+           (and (non-nil-tag? t)
+                (not (match? t :boolean))))))
 
 (defn constant-verdict
   "Returns :always-true or :always-false when a value of type `t` decides the
@@ -415,12 +430,16 @@
   boolean always takes the then branch."
   ([t] (constant-verdict t false))
   ([t nil-test?]
-   (let [takes-then? (if nil-test? non-nil-tag? truthy-tag?)]
+   (let [takes-then? (if nil-test? non-nil-tag? truthy-tag?)
+         ;; false takes the then branch of if-some, it is not nil
+         takes-else? (if nil-test?
+                       #(identical? :nil %)
+                       type-utils/falsy-keyword?)]
      (when-let [t (type-utils/truthiness-tag t)]
-       (cond (identical? :nil t) :always-false
+       (cond (takes-else? t) :always-false
              (takes-then? t) :always-true
              (and (set? t) (seq t))
-             (cond (every? #(identical? :nil %) t) :always-false
+             (cond (every? takes-else? t) :always-false
                    (every? takes-then? t) :always-true))))))
 
 (defn condition-verdict

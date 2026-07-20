@@ -23,40 +23,33 @@
 
 (defn- truthy-keyword?
   "Deliberately narrow, without the type lattice: this decides whether and/or
-  stop folding, not whether a linter warns."
+  stop folding, not whether a linter warns. :true and :truthy come out of the
+  folds below, see truthy-part."
   [t]
   (and (keyword? t)
        (not (or (identical? :any t)
                 (identical? :nil t)
+                (identical? :false t)
                 (identical? :boolean t)
                 (= "nilable" (namespace t))))))
+
+(defn falsy-keyword? [t]
+  (or (identical? :nil t) (identical? :false t)))
 
 (defn- every-tag? [pred t]
   (cond (keyword? t) (pred t)
         (set? t) (and (seq t) (every? pred t))
         :else false))
 
-(defn always-nil?
-  "True when a value of this type is nil on every run."
+(defn always-falsy?
+  "True when a value of this type is nil or false on every run."
   [x]
-  (every-tag? #(identical? :nil %) (truthiness-tag x)))
+  (every-tag? falsy-keyword? (truthiness-tag x)))
 
 (defn never-falsy?
   "True when a value of this type is neither nil nor false."
   [x]
   (every-tag? truthy-keyword? (truthiness-tag x)))
-
-(defn can-be-truthy-member?
-  "For a normalized union member: false only for :nil, which no form returns
-  from a truthy position."
-  [t]
-  (not (identical? :nil t)))
-
-(defn can-be-falsy-member?
-  "For a normalized union member: true for :nil, :boolean and anything unknown.
-  The falsy position of `and` can return any of those."
-  [t]
-  (not (truthy-keyword? t)))
 
 (defn union-type
   ([] #{})
@@ -77,38 +70,86 @@
      ;; (prn x '+ y '= ret)
      ret)))
 
-(defn- passed-on-part
-  "The members of `x` that a non final arg can still be returned as. `or` only
-  returns such an arg when it is truthy, `and` only when it is falsy, so the
-  other half never reaches the result. Returns `x` when it cannot be split."
-  [x keep?]
+(defn- part-of
+  "Applies a member refinement over a normalized tag, ::nothing when no member
+  is left."
+  [t member-part]
+  (if (set? t)
+    (let [ks (into #{} (comp (map member-part)
+                             (remove #(identical? ::nothing %))
+                             ;; a member can refine to a union of its own
+                             (mapcat #(if (set? %) % [%])))
+                   t)]
+      (case (count ks)
+        0 ::nothing
+        1 (first ks)
+        ks))
+    (member-part t)))
+
+(defn truthy-part
+  "The type of `x` when it is truthy, which is what a non final arg of `or`
+  contributes. The truthy half of a boolean is :true, of an unknown value
+  :truthy: still any type, but neither nil nor false."
+  [x]
   (let [t (truthiness-tag x)]
-    (if (set? t)
-      (let [ks (filter keep? t)]
-        (case (count ks)
-          0 ::nothing
-          1 (first ks)
-          (set ks)))
-      ;; an unknown type is not splittable and stays as it is, which is not the
-      ;; same as contributing nothing
-      x)))
+    (if (nil? t)
+      :truthy
+      (part-of t (fn [t]
+                   (cond (falsy-keyword? t) ::nothing
+                         (identical? :boolean t) :true
+                         (identical? :any t) :truthy
+                         :else t))))))
+
+(defn falsy-part
+  "The type of `x` when it is falsy, which is what a non final arg of `and`
+  contributes. Falsy values are only nil and false, so this stays a plain
+  union."
+  [x]
+  (let [t (truthiness-tag x)]
+    (if (nil? t)
+      #{:nil :false}
+      (part-of t (fn [t]
+                   (cond (falsy-keyword? t) t
+                         (identical? :boolean t) :false
+                         (identical? :any t) #{:nil :false}
+                         :else ::nothing))))))
+
+(defn- absorb
+  "Drops union members that another member already covers, so the ghost tags do
+  not pile up in cached return types. Only wider members absorb: :boolean
+  covers :true and :false, :truthy covers every truthy member, :any covers all."
+  [t]
+  (if-not (set? t)
+    t
+    ;; a member can be a tag map carrying location info, so judge its tag
+    (let [mtag #(if (map? %) (or (:type %) (:tag %)) %)
+          tags (into #{} (map mtag) t)]
+      (cond (contains? tags :any) :any
+            :else
+            (let [t (cond->> t
+                      (contains? tags :boolean)
+                      (remove #(contains? #{:true :false} (mtag %)))
+                      (contains? tags :truthy)
+                      (remove #(and (truthy-keyword? (mtag %))
+                                    (not (identical? :truthy (mtag %))))))
+                  t (if (set? t) t (set t))]
+              (if (= 1 (count t)) (first t) t))))))
 
 (defn fold-logic
   "The types `and` and `or` can return. An arg matching `stop?` short circuits
-  and is the result, one matching `skip?` only passes control on and can never
-  be returned. A non final arg in between contributes only the half of its type
-  that can still be the result, see `passed-on-part`. The last arg is always a
-  candidate."
-  [args stop? skip? returnable?]
-  (loop [[a & more] args
-         acc #{}]
-    (cond (not (seq more)) (union-type acc a)
-          (stop? a) (union-type acc a)
-          (skip? a) (recur more acc)
-          :else (recur more (let [part (passed-on-part a returnable?)]
-                              (if (identical? ::nothing part)
-                                acc
-                                (union-type acc part)))))))
+  and is the result. A non final arg before that contributes only the part of
+  its type that can still be returned, see truthy-part and falsy-part. The
+  last arg is always a whole candidate."
+  [args stop? part-fn]
+  (absorb
+   (loop [[a & more] args
+          acc #{}]
+     (cond (not (seq more)) (union-type acc a)
+           (stop? a) (union-type acc a)
+           :else (recur more (let [part (part-fn a)]
+                               (if (identical? ::nothing part)
+                                 acc
+                                 (union-type acc part))))))))
 
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)

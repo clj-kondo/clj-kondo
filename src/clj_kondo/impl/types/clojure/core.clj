@@ -288,20 +288,18 @@
    'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    'and {:fn (fn [args]
-               ;; and returns the first falsy arg or the last one. An arg that
-               ;; is never falsy only passes control on, one that is always nil
-               ;; ends it
+               ;; and returns the first falsy arg or the last one. A non final
+               ;; arg contributes its falsy part, an always falsy one ends the
+               ;; fold
                (if (empty? args)
-                 :boolean
-                 (tu/fold-logic args tu/always-nil? tu/never-falsy?
-                                tu/can-be-falsy-member?)))}
+                 :true
+                 (tu/fold-logic args tu/always-falsy? tu/falsy-part)))}
    ;; 854 'or
    'or {:fn (fn [args]
               ;; or returns the first truthy arg or the last one
               (if (empty? args)
                 :nil
-                (tu/fold-logic args tu/never-falsy? tu/always-nil?
-                               tu/can-be-truthy-member?)))}
+                (tu/fold-logic args tu/never-falsy? tu/truthy-part)))}
    ;; 867
    'zero? number->boolean
    ;; 874

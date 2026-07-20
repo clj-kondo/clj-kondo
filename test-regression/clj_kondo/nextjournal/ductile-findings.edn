@@ -166,6 +166,26 @@
   :langs (),
   :message "Condition always true",
   :row 6367}
+ {:end-row 1692,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
+  :col 21,
+  :end-col 32,
+  :langs (),
+  :message "Condition always true",
+  :row 1692}
+ {:end-row 1696,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
+  :col 21,
+  :end-col 39,
+  :langs (),
+  :message "Condition always true",
+  :row 1696}
  {:end-row 1852,
   :type :constant-condition,
   :level :warning,
@@ -308,6 +328,17 @@
   :message "Var completed-other? is referred but used via alias: dsl",
   :level :info,
   :langs ()}
+ {:end-row 124,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/billing.clj",
+  :col 3,
+  :end-col 60,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 123}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
   :row 755,

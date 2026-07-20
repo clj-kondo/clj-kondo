@@ -48,6 +48,17 @@
   :langs (),
   :message "Unused excluded var: remove-ns",
   :row 2}
+ {:end-row 277,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/clerk/src/nextjournal/clerk/eval.clj",
+  :col 3,
+  :end-col 55,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 276}
  {:type :aliased-referred-var,
   :level :info,
   :lang :cljs,

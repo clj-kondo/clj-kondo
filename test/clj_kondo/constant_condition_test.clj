@@ -361,6 +361,17 @@
     (assert-submaps2
      '({:row 1 :message "Condition always false"})
      (lint! "(defn r [s] (when (and (parse-long s) nil) 1))" config)))
+  (testing "or with a never falsy last argument is always truthy"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn s [x] (when (or x :fb) 1))" config))
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn t [s] (when (or (parse-boolean s) :fb) 1))" config)))
+  (testing "and with an always falsy last argument is always falsy"
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(defn u [x] (when (and x nil) 1))" config)))
   (testing "an unknown argument cannot be split and stays"
     (is (empty? (lint! "(defn k [x] (inc (or x :fallback)))"
                        (assoc-in config [:linters :type-mismatch :level] :error)))))

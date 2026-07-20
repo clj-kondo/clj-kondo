@@ -26,6 +26,17 @@
   :langs (),
   :message "Unresolved excluded var: set!",
   :row 8}
+ {:end-row 413,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/api/common.clj",
+  :col 3,
+  :end-col 40,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 410}
  {:end-row 998,
   :type :redundant-format,
   :level :info,
@@ -480,6 +491,28 @@
   :langs (),
   :message "Expected: symbol or string or keyword, received: nil.",
   :row 67}
+ {:end-row 236,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/h2.clj",
+  :col 5,
+  :end-col 33,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 212}
+ {:end-row 251,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/h2.clj",
+  :col 5,
+  :end-col 33,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 247}
  {:end-row 113,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -619,6 +652,18 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
+ {:end-row 431,
+  :type :constant-condition,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/temporal_bucket.cljc",
+  :col 7,
+  :end-col 19,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Condition always true",
+  :row 431}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -684,6 +729,17 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 565}
+ {:end-row 121,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/parameters/custom_values.clj",
+  :col 3,
+  :end-col 82,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 119}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -941,6 +997,17 @@
   "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
+ {:end-row 1410,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/settings/models/setting.clj",
+  :col 5,
+  :end-col 75,
+  :langs (),
+  :message
+  "Redundant boolean coercion - expression already has type boolean",
+  :row 1409}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,

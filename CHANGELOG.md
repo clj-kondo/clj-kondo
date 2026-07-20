@@ -67,6 +67,7 @@ And it narrows the type of a local after it flowed through a known predicate:
 - `:constant-condition`: a condition that calls a var resolves its return type after every namespace is analyzed, so conditions calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
 - Type checker: `re-matches` and the matcher arity of `re-find` return nil when there is no match. E.g. `(inc (re-matches #"x" s))` will warn with received: string or vector or nil.
 - Type checker: `and` returns the first falsy argument or the last one, so its type only includes nil when an argument is nilable. E.g. `(inc (and (int? x) (pos? x)))` will warn with received: boolean.
+- Type checker: the truthiness of `and` and `or` is tracked through the new `:true`, `:false` and `:truthy` types. `or` with a never falsy last argument is always truthy, also when the other arguments are unknown, and `and` with a nil last argument is always falsy. E.g. `(when (or x :default) ...)` will warn with condition always true.
 - Type checker: `and` and `or` stop at an argument whose truthiness is known, since the ones after it never run. E.g. `(inc (or :foo 'bar))` will warn with received: keyword.
 - `:constant-condition`: `if-some` and `when-some` branch on nilness, not truthiness, so an init that is never nil always takes the then branch. E.g. `(if-some [x (odd? n)] x 2)` will warn.
 - Type checker: `class` returns nil for nil. E.g. `(inc (class x))` will warn with received: class or nil.
