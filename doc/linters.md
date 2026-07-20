@@ -2327,16 +2327,9 @@ This will exclude all bindings starting with `_x`.
 
 *Keyword:* `:constant-condition`.
 
-*Description:* warn on a condition whose truthiness is the same on every run:
-
-- always truthy: a function passed instead of called, or a lazy seq, which is
-  truthy even when empty. Use `seq` to test a collection for emptiness
-- always falsy: `nil`
-- a `cond` clause after a catch-all test
-- a `:default` reader conditional branch that is not last
-
-`(if odd? 1 2)` never reaches its else branch. `(when (filter odd? xs) ..)`
-always runs its body. `(is 42)` always passes.
+*Description:* warn on a condition whose truthiness is the same on every run.
+Also warns on unreachable code after a catch-all `cond` test or a `:default`
+reader conditional branch.
 
 A condition whose type comes from a call, direct or through a local binding,
 is only checked when `:type-mismatch` is enabled. Literal, keyword and var
@@ -2355,15 +2348,20 @@ Replaces the `:condition-always-true` and `:unreachable-code` linters.
 
 *Example triggers*:
 
-- `(if odd? :odd :even)`
+- `(if odd? :odd :even)`: a function passed instead of called
+- `(when (filter odd? xs) 1)`: a lazy seq is truthy even when empty, use `seq`
+  to test for emptiness
 - `(when nil 1)`
+- `(is 42)`
 - `(cond :else 1 (odd? 1) 2)`
+- `#?(:default 1 :clj 2)`
 
 *Example messages*:
 
 - `Condition always true`
 - `Condition always false`
 - `unreachable code`
+- `Unreachable code: default reader conditional branch should go last`
 
 ### Unused import
 
