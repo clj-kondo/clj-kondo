@@ -222,8 +222,11 @@
     (keyword? actual)
     (or (identical? actual expected)
         (identical? actual :any)
-        ;; some truthy value of unknown type, see types.utils/truthy-part
-        (identical? actual :truthy)
+        ;; some truthy value of unknown type, see types.utils/truthy-part. It
+        ;; can inhabit any type except the falsy ones
+        (and (identical? actual :truthy)
+             (not (identical? expected :nil))
+             (not (identical? expected :false)))
         (identical? expected :any)
         (contains? (get is-a-relations actual) expected)
         (contains? (get could-be-relations actual) expected)

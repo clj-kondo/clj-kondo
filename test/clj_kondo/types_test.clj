@@ -573,6 +573,14 @@
    (lint! "(inc (when-let [_x 1] 'symbol))"
           {:linters {:type-mismatch {:level :error}}})))
 
+(deftest truthy-match-test
+  (testing "a truthy value matches no falsy type"
+    (assert-submaps2
+     '({:row 1 :message #"Expected: nil, received: truthy value"})
+     (lint! "(ns foo) (defn need-nil [x] x) (defn f [x] (need-nil (or x :fb)))"
+            {:linters {:type-mismatch {:level :error
+                                       :namespaces '{foo {need-nil {:arities {1 {:args [:nil]}}}}}}}}))))
+
 (deftest or-test
   (testing "or stops at an argument that is always truthy"
     (assert-submaps2
