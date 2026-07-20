@@ -1918,6 +1918,18 @@
   :langs (:clj),
   :message "unused binding segs",
   :row 3278}
+ {:clj-kondo.impl/fn-has-first-arg true,
+  :end-row 3344,
+  :type :redundant-fn-wrapper,
+  :level :warning,
+  :lang :clj,
+  :filename "cljs/analyzer.cljc",
+  :col 22,
+  :end-col 49,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Redundant fn wrapper",
+  :row 3344}
  {:end-row 3389,
   :type :unused-private-var,
   :level :warning,
