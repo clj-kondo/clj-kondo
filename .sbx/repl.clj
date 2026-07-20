@@ -39,10 +39,15 @@
 (defn- sandbox-exists? [nm]
   (contains? (set (str/split-lines (out "sbx" "ls" "-q"))) nm))
 
-(defn- listening? [port]
-  (try
-    (with-open [_ (java.net.Socket. "127.0.0.1" (int port))] true)
-    (catch Exception _ false)))
+(defn- live-ports
+  "Ports of nREPLs actually running inside the sandbox. A published port still
+  accepts connections after its REPL is gone, so the host cannot tell."
+  [nm]
+  (->> (out "sbx" "exec" nm "--" "sh" "-c"
+            "ps ax | grep '[n]repl.cmdline' | grep -o -- '--port [0-9]*'")
+       str/split-lines
+       (keep #(some-> (re-find #"(\d+)" %) second parse-long))
+       set))
 
 (defn- free-port []
   (with-open [s (java.net.ServerSocket. 0)]
@@ -50,12 +55,27 @@
 
 (defn- running-port
   "The port of the REPL already serving `root`, if it is still up."
-  [root]
+  [nm root]
   (let [f (fs/file root ".nrepl-port")]
     (when (fs/exists? f)
       (let [port (parse-long (str/trim (slurp f)))]
-        (when (and port (listening? port))
+        (when (contains? (live-ports nm) port)
           port)))))
+
+(defn- published-ports [nm]
+  (->> (str/split-lines (out "sbx" "ports" nm))
+       (drop 1)
+       (keep #(some-> (re-find #"^\S+\s+(\d+)\s" %) second parse-long))
+       distinct))
+
+(defn- prune-ports!
+  "Unpublishes ports of REPLs that are gone. sbx runs on the host, so the REPL
+  cannot do this itself when it exits."
+  [nm]
+  (let [live (live-ports nm)]
+    (doseq [port (remove live (published-ports nm))]
+      (println "unpublishing dead port" port)
+      (p/shell {:continue true} "sbx" "ports" nm "--unpublish" (str port ":" port)))))
 
 (defn- start! [nm root port aliases]
   (let [;; nrepl writes .nrepl-port itself but never cleans it up, so remove it
@@ -79,7 +99,8 @@
       (p/shell "sbx" "create" "shell" "--name" nm
                "--kit" (str (fs/file proot ".sbx"))
                proot (str (fs/file (fs/home) ".m2"))))
-    (if-let [up (running-port root)]
+    (prune-ports! nm)
+    (if-let [up (running-port nm root)]
       (do (println "repl already running for" root "on port" up)
           (println up))
       (let [port (or port (free-port))]
@@ -88,7 +109,7 @@
         (start! nm root port aliases)
         (loop [n 0]
           ;; the port file must be there too, else a rerun starts a second repl
-          (cond (and (listening? port) (fs/exists? (fs/file root ".nrepl-port")))
+          (cond (= port (running-port nm root))
                 (do (println "ready") (println port))
                 (> n 120) (do (println "repl did not come up, see /tmp/nrepl-"
                                        (fs/file-name root) ".log in the sandbox")
