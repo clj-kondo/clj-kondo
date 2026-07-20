@@ -2331,37 +2331,26 @@ This will exclude all bindings starting with `_x`.
 Also warns on unreachable code after a catch-all `cond` test or a `:default`
 reader conditional branch.
 
-A condition whose type comes from a call, direct or through a local binding,
-is only checked when `:type-mismatch` is enabled. Literal, keyword and var
-conditions are checked either way.
-
-`if-some` and `when-some` branch on nilness. A binding value that is never nil
-always takes the then branch.
-
 Literal `true` and `false` conditions are not checked, even when reached
 through a var or local. These are often dev/production toggles. The keyword
 `:always` is exempt in `cond->`.
 
-Replaces the `:condition-always-true` and `:unreachable-code` linters.
+This linter replaces the `:condition-always-true` and `:unreachable-code` linters.
 
 *Default level:* `:warning`.
 
 *Example triggers*:
 
-- `(if odd? :odd :even)`: a function passed instead of called
-- `(when (filter odd? xs) 1)`: a lazy seq is truthy even when empty, use `seq`
-  to test for emptiness
-- `(when nil 1)`
-- `(is 42)`
-- `(cond :else 1 (odd? 1) 2)`
-- `#?(:default 1 :clj 2)`
-
-*Example messages*:
-
-- `Condition always true`
-- `Condition always false`
-- `unreachable code`
-- `Unreachable code: default reader conditional branch should go last`
+``` clojure
+;; a function passed instead of called:
+(if odd? :odd :even)      ;;=> Condition always true
+;; a lazy seq is truthy even when empty, use seq to test for emptiness:
+(when (filter odd? xs) 1) ;;=> Condition always true
+(when nil 1)              ;;=> Condition always false
+(is 42)                   ;;=> Condition always true
+(cond :else 1 (odd? 1) 2) ;;=> unreachable code
+#?(:default 1 :clj 2)     ;;=> Unreachable code: default reader conditional branch should go last
+```
 
 ### Unused import
 
