@@ -2327,27 +2327,27 @@ This will exclude all bindings starting with `_x`.
 
 *Keyword:* `:constant-condition`.
 
-*Description:* warn on a condition whose outcome is the same on every run. The
-value of such a condition can vary, its truthiness cannot:
+*Description:* warn on a condition whose truthiness is the same on every run:
 
-- a condition that is always truthy, like a function that is passed instead of
-  called, or a lazy seq, which is truthy even when empty. Use `seq` to test a
-  collection for emptiness
-- a condition that is always falsy, like `nil`
+- always truthy: a function passed instead of called, or a lazy seq, which is
+  truthy even when empty. Use `seq` to test a collection for emptiness
+- always falsy: `nil`
 - a `cond` clause after a catch-all test
 - a `:default` reader conditional branch that is not last
 
-The consequence differs per form. `(if odd? 1 2)` never reaches its else
-branch, while `(when (filter odd? xs) ..)` always runs its body and `(is 42)`
-always passes.
+`(if odd? 1 2)` never reaches its else branch. `(when (filter odd? xs) ..)`
+always runs its body. `(is 42)` always passes.
 
-A condition whose type comes from a call, such as `(if (filter odd? xs) ..)`,
-is only checked when `:type-mismatch` is enabled, since that is what collects
-the types of calls. Literal, keyword and var conditions are checked either way.
+A condition whose type comes from a call, direct or through a local binding,
+is only checked when `:type-mismatch` is enabled. Literal, keyword and var
+conditions are checked either way.
 
-Literal `true` and `false`, also through a var or local, are not checked, since
-these are often dev/production toggles. The keyword `:always` is exempt as an
-intentional always-truthy condition in `cond->`.
+`if-some` and `when-some` branch on nilness. A binding value that is never nil
+always takes the then branch.
+
+Literal `true` and `false` conditions are not checked, even when reached
+through a var or local. These are often dev/production toggles. The keyword
+`:always` is exempt in `cond->`.
 
 Replaces the `:condition-always-true` and `:unreachable-code` linters.
 
