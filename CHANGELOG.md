@@ -63,8 +63,8 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
-- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default, for a test whose truthiness is the same on every run. It replaces `:condition-always-true` and `:unreachable-code`, which no longer exist as separate keys. E.g. `(if-let [xs (filter odd? coll)] ...)` will warn, since `filter` never returns nil, and `(when nil ...)` will warn with condition always false. Literal `true`/`false` tests stay exempt as dev toggles. This is a **BREAKING** change: configure `:constant-condition` instead.
-- `:constant-condition`: a test that calls a var resolves its return type after every namespace is analyzed, so tests calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default, for a condition whose truthiness is the same on every run. It replaces `:condition-always-true` and `:unreachable-code`, which no longer exist as separate keys. E.g. `(if-let [xs (filter odd? coll)] ...)` will warn, since `filter` never returns nil, and `(when nil ...)` will warn with condition always false. Literal `true`/`false` conditions stay exempt as dev toggles. This is a **BREAKING** change: configure `:constant-condition` instead.
+- `:constant-condition`: a condition that calls a var resolves its return type after every namespace is analyzed, so conditions calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
 - Type checker: `re-matches` and the matcher arity of `re-find` return nil when there is no match. E.g. `(inc (re-matches #"x" s))` will warn with received: string or vector or nil.
 - Type checker: `and` returns the first falsy argument or the last one, so its type only includes nil when an argument is nilable. E.g. `(inc (and (int? x) (pos? x)))` will warn with received: boolean.
 - Type checker: `class` returns nil for nil. E.g. `(inc (class x))` will warn with received: class or nil.
