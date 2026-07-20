@@ -372,6 +372,10 @@
     (assert-submaps2
      '({:row 1 :message "Condition always false"})
      (lint! "(defn u [x] (when (and x nil) 1))" config)))
+  (testing "a seqable argument could be nil, so or does not stop at it"
+    (is (empty? (lint! "(ns foo) (defn g [x] x) (defn f [x y] (when (or (g x) y) 1))"
+                       (assoc-in config [:linters :type-mismatch :namespaces]
+                                 '{foo {g {:arities {1 {:ret :seqable}}}}})))))
   (testing "an unknown argument cannot be split and stays"
     (is (empty? (lint! "(defn k [x] (inc (or x :fallback)))"
                        (assoc-in config [:linters :type-mismatch :level] :error)))))

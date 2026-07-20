@@ -32,6 +32,8 @@
                 (identical? :nil t)
                 (identical? :false t)
                 (identical? :boolean t)
+                ;; a seqable could be nil, see could-be-relations
+                (identical? :seqable t)
                 (= "nilable" (namespace t))))))
 
 (defn falsy-keyword? [t]
