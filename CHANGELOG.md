@@ -63,7 +63,7 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
-- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default. Replaces `:condition-always-true` and `:unreachable-code` (**BREAKING**). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default. Replaces `:condition-always-true` (**BREAKING**) and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
 - Type checker: infer `and` and `or` return types. E.g. `(when (or x :default) ...)` will warn.
 - Type checker: the return types of `re-matches` and `re-find` are nilable.
 - Type checker: the return type of `class` is nilable, `(class nil)` returns nil.

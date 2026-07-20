@@ -229,13 +229,13 @@
            :message message
            :filename filename)))
 
-(defn- lint-unreachable-reader-conditional! [ctx k ts]
+(defn lint-unreachable-reader-conditional! [ctx k ts]
   (when (and (= :default (:k k))
              (seq ts)
-             (not (linter-disabled? ctx :constant-condition)))
+             (not (linter-disabled? ctx :unreachable-code)))
     (common/reg-finding! ctx (node->line (:filename ctx)
                                          k
-                                         :constant-condition
+                                         :unreachable-code
                                          "Unreachable code: default reader conditional branch should go last"))))
 
 (defn process-reader-conditional [ctx node lang splice?]

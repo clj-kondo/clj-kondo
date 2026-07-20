@@ -2328,14 +2328,14 @@ This will exclude all bindings starting with `_x`.
 *Keyword:* `:constant-condition`.
 
 *Description:* warn on a condition whose truthiness is the same on every run.
-Also warns on unreachable code after a catch-all `cond` test or a `:default`
-reader conditional branch.
+Also warns on unreachable code after a catch-all `cond` test.
 
 Literal `true` and `false` conditions are not checked, even when reached
 through a var or local. These are often dev/production toggles. The keyword
 `:always` is exempt in `cond->`.
 
-This linter replaces the `:condition-always-true` and `:unreachable-code` linters.
+Replaces the `:condition-always-true` linter. The `cond` catch-all warning
+moved here from `:unreachable-code`.
 
 *Default level:* `:warning`.
 
@@ -2349,8 +2349,20 @@ This linter replaces the `:condition-always-true` and `:unreachable-code` linter
 (when nil 1)              ;;=> Condition always false
 (is 42)                   ;;=> Condition always true
 (cond :else 1 (odd? 1) 2) ;;=> Unreachable code
-#?(:default 1 :clj 2)     ;;=> Unreachable code: default reader conditional branch should go last
 ```
+
+### Unreachable code
+
+*Keyword:* `:unreachable-code`.
+
+*Description:* warn on code that can never execute. Currently: branches after
+a `:default` reader conditional branch, which never match.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `#?(:default 1 :clj 2)`.
+
+*Example message:* `Unreachable code: default reader conditional branch should go last`.
 
 ### Unused import
 
