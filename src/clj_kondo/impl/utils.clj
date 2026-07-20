@@ -637,6 +637,15 @@
     (subs fn 0 last-dot)
     fn))
 
+(defn lint-condition?
+  "True when this expression or call sits in a condition that is linted."
+  [x]
+  (let [c (:condition x)]
+    (or (true? c) (identical? :nil-test c))))
+
+(defn nil-test-condition? [x]
+  (identical? :nil-test (:condition x)))
+
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))
 

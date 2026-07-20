@@ -407,19 +407,6 @@
   (and (non-nil-tag? t)
        (not (match? t :boolean))))
 
-(defn- truthiness-tag
-  "Reduces a tag to a keyword, or to a set of them for a union, so that only the
-  truthiness is left. Returns nil when a part of it is unknown. Reads the type
-  of a map spec rather than walking its keys."
-  [t]
-  (cond (keyword? t) t
-        (set? t) (let [ks (keep truthiness-tag t)]
-                   (when (= (count ks) (count t))
-                     (set ks)))
-        (map? t) (if (identical? :map (:type t))
-                   :map
-                   (some-> (or (:type t) (:tag t)) truthiness-tag))))
-
 (defn constant-verdict
   "Returns :always-true or :always-false when a value of type `t` decides the
   same branch on every run, else nil. Used both while analyzing and afterwards,
@@ -429,7 +416,7 @@
   ([t] (constant-verdict t false))
   ([t nil-test?]
    (let [takes-then? (if nil-test? non-nil-tag? truthy-tag?)]
-     (when-let [t (truthiness-tag t)]
+     (when-let [t (type-utils/truthiness-tag t)]
        (cond (identical? :nil t) :always-false
              (takes-then? t) :always-true
              (and (set? t) (seq t))
@@ -441,14 +428,15 @@
   the analyzed return type of `called-fn`, else nil. A built-in or configured
   spec resolves while analyzing and states nilability more precisely than an
   inferred return type, so such a call is left to the analysis phase."
-  [ctx called-fn call]
+  [ctx called-fn call nil-test?]
   (let [called-ns (or (:ns called-fn) (:resolved-ns call))
         called-name (or (:name called-fn) (:name call))]
     (when-not (or (config/type-mismatch-config (:config ctx) called-ns called-name)
                   (get-in built-in-specs [called-ns called-name]))
       (constant-verdict (some-> (:arities called-fn)
                                 (called-arity (:arity call))
-                                :ret)))))
+                                :ret)
+                        nil-test?))))
 
 (defn ret-tag-from-call
   [ctx call _expr]

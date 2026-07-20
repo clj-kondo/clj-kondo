@@ -1434,7 +1434,11 @@
         pos (-> ctx :arg-types deref count)
         ;; :condition also tells analyze-do / unused-value not to treat the test
         ;; as an implicit-do body, so it stays truthy when linting is skipped
-        condition (assoc condition :condition (if lint? true :no-lint))
+        ;; :nil-test tells the phase after analysis that this condition
+        ;; branches on nilness, see linters/lint-var-usage
+        condition (assoc condition :condition (cond (not lint?) :no-lint
+                                                    nil-test? :nil-test
+                                                    :else true))
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
                (not (linter-disabled? ctx :constant-condition))
@@ -3062,7 +3066,7 @@
     (analyze-children ctx children false)))
 
 (defn- analyze-var [ctx expr children]
-  (when (true? (:condition expr))
+  (when (utils/lint-condition? expr)
     (constant-condition-linter ctx expr))
   (analyze-children (assoc ctx :private-access? true) children))
 

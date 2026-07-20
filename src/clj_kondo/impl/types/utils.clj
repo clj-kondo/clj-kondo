@@ -2,24 +2,43 @@
   {:no-doc true}
   (:require [clj-kondo.impl.utils :as utils :refer [resolve-call*]]))
 
-(defn tag-of [x]
-  (if (map? x) (:tag x) x))
+(defn truthiness-tag
+  "Reduces a tag to a keyword, or to a set of them for a union, so that only the
+  truthiness is left. Returns nil when a part of it is unknown. Reads the type
+  of a map spec rather than walking its keys."
+  [t]
+  (cond (keyword? t) t
+        (set? t) (let [ks (keep truthiness-tag t)]
+                   (when (= (count ks) (count t))
+                     (set ks)))
+        (map? t) (if (identical? :map (:type t))
+                   :map
+                   (some-> (or (:type t) (:tag t)) truthiness-tag))))
+
+(defn- truthy-keyword?
+  "Deliberately narrow, without the type lattice: this decides whether and/or
+  stop folding, not whether a linter warns."
+  [t]
+  (and (keyword? t)
+       (not (or (identical? :any t)
+                (identical? :nil t)
+                (identical? :boolean t)
+                (= "nilable" (namespace t))))))
+
+(defn- every-tag? [pred t]
+  (cond (keyword? t) (pred t)
+        (set? t) (and (seq t) (every? pred t))
+        :else false))
 
 (defn always-nil?
   "True when a value of this type is nil on every run."
   [x]
-  (identical? :nil (tag-of x)))
+  (every-tag? #(identical? :nil %) (truthiness-tag x)))
 
 (defn never-falsy?
-  "True when a value of this type is neither nil nor false. Deliberately narrow:
-  it decides whether and/or stop folding, not whether a linter warns."
+  "True when a value of this type is neither nil nor false."
   [x]
-  (let [t (tag-of x)]
-    (and (keyword? t)
-         (not (or (identical? :any t)
-                  (identical? :nil t)
-                  (identical? :boolean t)
-                  (= "nilable" (namespace t)))))))
+  (every-tag? truthy-keyword? (truthiness-tag x)))
 
 (defn union-type
   ([] #{})

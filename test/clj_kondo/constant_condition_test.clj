@@ -305,6 +305,38 @@
             {:linters {:constant-condition {:level :warning}}
              :lang :cljs}))))
 
+(deftest some-forms-test
+  (testing "if-some and when-some branch on nilness, so a boolean takes the then branch"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn a [n] (if-some [x (odd? n)] x 2))" config))
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn b [n] (when-some [x (odd? n)] x))" config))
+    (testing "also for a call resolved after every namespace is analyzed"
+      (assert-submaps2
+       '({:row 1 :message "Condition always true"})
+       (lint! "(defn bool [n] (odd? n)) (defn a [n] (if-some [x (bool n)] x 2))" config))))
+  (testing "if-let stays quiet, false is falsy"
+    (is (empty? (lint! "(defn c [n] (if-let [x (odd? n)] x 2))" config)))
+    (is (empty? (lint! "(defn d [n] (if-some [x (seq n)] x 2))" config)))))
+
+(deftest short-circuit-test
+  (testing "and stops at an argument that is always nil"
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(defn a [] (when (and nil \"x\") 1))" config)))
+  (testing "or stops at an argument that is never falsy"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn b [] (when (or :x nil) 1))" config))
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn c [] (when (or {} nil) 1))" config)))
+  (testing "an argument that may be falsy keeps the ones after it"
+    (is (empty? (lint! "(defn d [x] (when (and x \"b\") 1))" config)))
+    (is (empty? (lint! "(defn e [x] (when (or x nil) 1))" config)))))
+
 (deftest condition-always-false-test
   (testing "nil literal in condition position"
     (assert-submaps2

@@ -532,7 +532,7 @@
       (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
                                                                                                                             :fixed-arities fixed-arities
                                                                                                                             :arity arity} (:expr call))
-      (when (and (true? (:condition call))
+      (when (and (utils/lint-condition? call)
                  (not (utils/linter-disabled? call :constant-condition)))
         ;; the level lives in the config of the call, which knows about a
         ;; namespace local config, unlike the ctx of this phase
@@ -540,7 +540,8 @@
           (if call?
             ;; a call to a var whose return type is only known once every
             ;; namespace is analyzed, see types/ret-tag-from-call
-            (when-let [verdict (types/condition-verdict ctx called-fn call)]
+            (when-let [verdict (types/condition-verdict ctx called-fn call
+                                                       (utils/nil-test-condition? call))]
               (findings/reg-finding!
                ctx (-> call
                        utils/location
