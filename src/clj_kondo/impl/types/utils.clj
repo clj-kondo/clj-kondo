@@ -26,7 +26,7 @@
                    :map
                    (some-> (or (:type t) (:tag t)) truthiness-tag))))
 
-(defn- truthy-keyword?
+(defn truthy-keyword?
   "Deliberately narrow, without the type lattice: this decides whether and/or
   stop folding, not whether a linter warns. :true and :truthy come out of the
   folds below, see truthy-part."
@@ -44,7 +44,7 @@
 (defn falsy-keyword? [t]
   (or (identical? :nil t) (identical? :false t)))
 
-(defn- every-tag? [pred t]
+(defn every-tag? [pred t]
   (cond (keyword? t) (pred t)
         (set? t) (and (seq t) (every? pred t))
         :else false))
@@ -78,7 +78,7 @@
      ;; (prn x '+ y '= ret)
      ret)))
 
-(defn- part-of
+(defn part-of
   "Applies a member refinement over a normalized tag, ::nothing when no member
   is left."
   [t member-part]
@@ -122,7 +122,7 @@
                          (identical? :any t) #{:nil :false}
                          :else ::nothing))))))
 
-(defn- absorb
+(defn absorb
   "Drops union members that another member already covers, so the ghost tags do
   not pile up in cached return types. Only wider members absorb: :boolean
   covers :true and :false, :truthy covers every truthy member, :any covers all."

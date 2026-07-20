@@ -21,8 +21,10 @@
 (def cli-spec
   {:root {:desc "Working directory for the REPL, defaults to the current one"}
    :port {:desc "nREPL port, defaults to a free one" :coerce :long}
+   ;; :repl-clojure overrides a project alias's older clojure pin, for
+   ;; clojure.repl.deps/add-libs. Injected below like :clear-main
    :aliases {:desc "Aliases to start the REPL with"
-             :default ":dev:test:clear-main"}})
+             :default ":dev:test:repl-clojure:clear-main"}})
 
 (defn- out [& args]
   (str/trim (:out (apply p/sh args))))
@@ -82,7 +84,8 @@
         ;; when the REPL exits, whether it was killed or died
         cmd (format (str "cd \"%s\" && (setsid sh -c '"
                          "clojure -Sdeps \"{:deps {nrepl/nrepl {:mvn/version \\\"1.3.1\\\"}} "
-                         ":aliases {:clear-main {:main-opts []}}}\" "
+                         ":aliases {:clear-main {:main-opts []} "
+                         ":repl-clojure {:extra-deps {org.clojure/clojure {:mvn/version \\\"1.12.1\\\"}}}}}\" "
                          "-M\"%s\" -m nrepl.cmdline "
                          "--bind 0.0.0.0 --port %s; rm -f \"%s/.nrepl-port\""
                          "' > \"/tmp/nrepl-%s.log\" 2>&1 < /dev/null &)")
