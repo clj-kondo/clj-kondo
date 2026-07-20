@@ -574,10 +574,16 @@
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest or-test
-  (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
-   (lint! "(inc (or :foo 'bar))"
-          {:linters {:type-mismatch {:level :error}}}))
+  (testing "or stops at an argument that is always truthy"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: keyword."})
+     (lint! "(inc (or :foo 'bar))"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "an argument that may be falsy keeps the ones after it"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or boolean."})
+     (lint! "(inc (or (odd? 1) 'bar))"
+            {:linters {:type-mismatch {:level :error}}})))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,

@@ -393,14 +393,19 @@
           ;; :min-arity isn't present, the arities were specified by a user
           v))))
 
-(defn- truthy-tag?
-  "True when a value of type `t` can never be nil or false."
+(defn- non-nil-tag?
+  "True when a value of type `t` can never be nil."
   [t]
   (and (keyword? t)
        (not (or (identical? :any t)
                 (nilable? t)
-                (match? t :nil)
-                (match? t :boolean)))))
+                (match? t :nil)))))
+
+(defn- truthy-tag?
+  "True when a value of type `t` can never be nil or false."
+  [t]
+  (and (non-nil-tag? t)
+       (not (match? t :boolean))))
 
 (defn- truthiness-tag
   "Reduces a tag to a keyword, or to a set of them for a union, so that only the
@@ -416,16 +421,20 @@
                    (some-> (or (:type t) (:tag t)) truthiness-tag))))
 
 (defn constant-verdict
-  "Returns :always-true or :always-false when a value of type `t` has the same
-  truthiness on every run, else nil. Used both while analyzing and afterwards,
-  so that a condition is judged the same either way."
-  [t]
-  (when-let [t (truthiness-tag t)]
-    (cond (identical? :nil t) :always-false
-          (truthy-tag? t) :always-true
-          (and (set? t) (seq t))
-          (cond (every? #(identical? :nil %) t) :always-false
-                (every? truthy-tag? t) :always-true))))
+  "Returns :always-true or :always-false when a value of type `t` decides the
+  same branch on every run, else nil. Used both while analyzing and afterwards,
+  so that a condition is judged the same either way. With `nil-test?` the
+  branch is decided by nilness rather than truthiness, as in if-some, where a
+  boolean always takes the then branch."
+  ([t] (constant-verdict t false))
+  ([t nil-test?]
+   (let [takes-then? (if nil-test? non-nil-tag? truthy-tag?)]
+     (when-let [t (truthiness-tag t)]
+       (cond (identical? :nil t) :always-false
+             (takes-then? t) :always-true
+             (and (set? t) (seq t))
+             (cond (every? #(identical? :nil %) t) :always-false
+                   (every? takes-then? t) :always-true))))))
 
 (defn condition-verdict
   "For a call in condition position, returns :always-true or :always-false from

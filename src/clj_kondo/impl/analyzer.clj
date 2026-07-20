@@ -1423,9 +1423,11 @@
 (defn analyze-condition
   "Analyzes an expression in condition position. `lint?` false skips the
   always-true/false checks: a form lint-as'ed to a conditional need not put a
-  real condition in that position."
-  ([ctx condition] (analyze-condition ctx condition true))
-  ([ctx condition lint?]
+  real condition in that position. `nil-test?` is for if-some and when-some,
+  which branch on nilness rather than on truthiness."
+  ([ctx condition] (analyze-condition ctx condition true false))
+  ([ctx condition lint?] (analyze-condition ctx condition lint? false))
+  ([ctx condition lint? nil-test?]
   (let [;; arg-types could be nil due to type-mismatch being disabled
         arg-types (or (:arg-types ctx) (atom []))
         ctx (assoc ctx :arg-types arg-types)
@@ -1438,7 +1440,7 @@
                (not (linter-disabled? ctx :constant-condition))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
-      (case (types/constant-verdict (some-> @arg-types (nth pos) :tag))
+      (case (types/constant-verdict (some-> @arg-types (nth pos) :tag) nil-test?)
         :always-false (findings/reg-finding! ctx (node->line (:filename ctx)
                                                              condition
                                                              :constant-condition
@@ -1471,7 +1473,9 @@
                                  ;; coll's truthiness, so no condition checks
                                  (if (= 'when-first call)
                                    (analyze-expression** cctx cnode)
-                                   (analyze-condition cctx cnode (not (or lint-as? (:clj-kondo.impl/generated expr))))))
+                                   (analyze-condition cctx cnode
+                                                      (not (or lint-as? (:clj-kondo.impl/generated expr)))
+                                                      (one-of call [if-some when-some]))))
             raw-tag (when value-id (init-tag ctx value-id condition))
             ;; a provably nil init means the bound branch never runs, for
             ;; any binding form

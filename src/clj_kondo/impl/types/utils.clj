@@ -2,6 +2,25 @@
   {:no-doc true}
   (:require [clj-kondo.impl.utils :as utils :refer [resolve-call*]]))
 
+(defn tag-of [x]
+  (if (map? x) (:tag x) x))
+
+(defn always-nil?
+  "True when a value of this type is nil on every run."
+  [x]
+  (identical? :nil (tag-of x)))
+
+(defn never-falsy?
+  "True when a value of this type is neither nil nor false. Deliberately narrow:
+  it decides whether and/or stop folding, not whether a linter warns."
+  [x]
+  (let [t (tag-of x)]
+    (and (keyword? t)
+         (not (or (identical? :any t)
+                  (identical? :nil t)
+                  (identical? :boolean t)
+                  (= "nilable" (namespace t)))))))
+
 (defn union-type
   ([] #{})
   ([x y]

@@ -67,6 +67,8 @@ And it narrows the type of a local after it flowed through a known predicate:
 - `:constant-condition`: a condition that calls a var resolves its return type after every namespace is analyzed, so conditions calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
 - Type checker: `re-matches` and the matcher arity of `re-find` return nil when there is no match. E.g. `(inc (re-matches #"x" s))` will warn with received: string or vector or nil.
 - Type checker: `and` returns the first falsy argument or the last one, so its type only includes nil when an argument is nilable. E.g. `(inc (and (int? x) (pos? x)))` will warn with received: boolean.
+- Type checker: `and` and `or` stop at an argument whose truthiness is known, since the ones after it never run. E.g. `(inc (or :foo 'bar))` will warn with received: keyword.
+- `:constant-condition`: `if-some` and `when-some` branch on nilness, not truthiness, so an init that is never nil always takes the then branch. E.g. `(if-some [x (odd? n)] x 2)` will warn.
 - Type checker: `class` returns nil for nil. E.g. `(inc (class x))` will warn with received: class or nil.
 - Type checker: an `if` without an else branch returns nil, so its type is a union with nil. E.g. `(defn f [x] (if x {:a 1})) (subs (f 1) 1)` will warn with received: map or nil.
 - The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.

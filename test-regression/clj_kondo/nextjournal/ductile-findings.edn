@@ -242,6 +242,16 @@
   :langs (),
   :message "Condition always true",
   :row 261}
+ {:end-row 361,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/fahrzeug.cljs",
+  :col 19,
+  :end-col 48,
+  :langs (),
+  :message "Condition always true",
+  :row 361}
  {:end-row 21,
   :type :redundant-ignore,
   :level :info,

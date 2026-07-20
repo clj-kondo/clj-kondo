@@ -289,15 +289,19 @@
    ;; 842 'and
    'and {:fn (fn [args]
                ;; and returns the first falsy arg or the last one, so a nil can
-               ;; only come from an arg that is nilable itself
+               ;; only come from an arg that is nilable itself. An arg that is
+               ;; always nil is returned, the ones after it never run
                (if (empty? args)
                  :boolean
-                 (reduce tu/union-type #{} args)))}
+                 (let [[before [stop]] (split-with (complement tu/always-nil?) args)]
+                   (reduce tu/union-type #{} (cond-> before stop (concat [stop]))))))}
    ;; 854 'or
    'or {:fn (fn [args]
+              ;; or returns the first truthy arg or the last one
               (if (empty? args)
                 :nil
-                (reduce tu/union-type #{} args)))}
+                (let [[before [stop]] (split-with (complement tu/never-falsy?) args)]
+                  (reduce tu/union-type #{} (cond-> before stop (concat [stop]))))))}
    ;; 867
    'zero? number->boolean
    ;; 874

@@ -7,7 +7,10 @@ read -r -d '' config <<'EOF' || true
 {;; :analysis {:keywords true}
  :linters
   {:redundant-fn-wrapper {:level :warning}
+   ;; master still has the linter under its old key, enable both so
+   ;; that each side reports the same findings
    :constant-condition {:level :warning}
+   :condition-always-true {:level :warning}
    :not-a-function
     {:skip-args [clojure.pprint/defdirectives
                  cljs.pprint/defdirectives
