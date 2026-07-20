@@ -372,6 +372,10 @@
     (assert-submaps2
      '({:row 1 :message "Condition always false"})
      (lint! "(defn u [x] (when (and x nil) 1))" config)))
+  (testing "the falsy half of a seqable is nil, so and stays undecided"
+    (is (empty? (lint! "(ns foo) (defn g [x] x) (defn f [x] (when (and (g x) :fallback) 1))"
+                       (assoc-in config [:linters :type-mismatch :namespaces]
+                                 '{foo {g {:arities {1 {:ret :seqable}}}}})))))
   (testing "a seqable argument could be nil, so or does not stop at it"
     (is (empty? (lint! "(ns foo) (defn g [x] x) (defn f [x y] (when (or (g x) y) 1))"
                        (assoc-in config [:linters :type-mismatch :namespaces]

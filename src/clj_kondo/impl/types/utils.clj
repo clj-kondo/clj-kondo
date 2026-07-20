@@ -114,6 +114,8 @@
       (part-of t (fn [t]
                    (cond (falsy-keyword? t) t
                          (identical? :boolean t) :false
+                         ;; the falsy half of a seqable is nil
+                         (identical? :seqable t) :nil
                          (identical? :any t) #{:nil :false}
                          :else ::nothing))))))
 
