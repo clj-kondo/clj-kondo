@@ -597,10 +597,15 @@
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest and-test
-  (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or nil or boolean."})
-   (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
-          {:linters {:type-mismatch {:level :error}}})))
+  (testing "and returns a falsy arg or the last one, so nil needs a nilable arg"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or boolean."})
+     (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 38, :level :error, :message "Expected: number, received: keyword or nil or seq."})
+     (lint! "(defn foo [x] (and (seq x) :k)) (inc (foo []))"
+            {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest return-type-inference-test
   (testing "Function return types"

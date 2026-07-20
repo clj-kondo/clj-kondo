@@ -288,7 +288,11 @@
    'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    'and {:fn (fn [args]
-               (reduce tu/union-type :nil args))}
+               ;; and returns the first falsy arg or the last one, so a nil can
+               ;; only come from an arg that is nilable itself
+               (if (empty? args)
+                 :boolean
+                 (reduce tu/union-type #{} args)))}
    ;; 854 'or
    'or {:fn (fn [args]
               (if (empty? args)
