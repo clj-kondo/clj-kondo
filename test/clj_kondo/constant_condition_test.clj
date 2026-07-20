@@ -351,6 +351,16 @@
     (assert-submaps2
      '({:row 1 :message "Condition always false"})
      (lint! "(defn j [xs] (when (and (seq xs) nil) 1))" config)))
+  (testing "a boolean argument can be returned as false from and"
+    (is (empty? (lint! "(defn p [x n] (when (and (if x (odd? n) \"s\") :fallback) :ok))"
+                       config))))
+  (testing "a nilable argument splits into nil and its base type"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn q [s] (when (or (parse-long s) :fallback) 1))" config))
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(defn r [s] (when (and (parse-long s) nil) 1))" config)))
   (testing "an unknown argument cannot be split and stays"
     (is (empty? (lint! "(defn k [x] (inc (or x :fallback)))"
                        (assoc-in config [:linters :type-mismatch :level] :error)))))

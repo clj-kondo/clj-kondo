@@ -294,14 +294,14 @@
                (if (empty? args)
                  :boolean
                  (tu/fold-logic args tu/always-nil? tu/never-falsy?
-                               #(identical? :nil %))))}
+                                tu/can-be-falsy-member?)))}
    ;; 854 'or
    'or {:fn (fn [args]
               ;; or returns the first truthy arg or the last one
               (if (empty? args)
                 :nil
                 (tu/fold-logic args tu/never-falsy? tu/always-nil?
-                              #(not (identical? :nil %)))))}
+                               tu/can-be-truthy-member?)))}
    ;; 867
    'zero? number->boolean
    ;; 874

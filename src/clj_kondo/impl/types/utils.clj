@@ -7,7 +7,11 @@
   truthiness is left. Returns nil when a part of it is unknown. Reads the type
   of a map spec rather than walking its keys."
   [t]
-  (cond (keyword? t) t
+  (cond (keyword? t) (if (= "nilable" (namespace t))
+                       ;; nil or the base type, so each half can be judged on
+                       ;; its own, e.g. by passed-on-part
+                       #{:nil (clojure.core/keyword (name t))}
+                       t)
         (set? t) (let [ks (map truthiness-tag t)]
                    (when (every? some? ks)
                      ;; a member can normalize to a union of its own, which
@@ -41,6 +45,18 @@
   "True when a value of this type is neither nil nor false."
   [x]
   (every-tag? truthy-keyword? (truthiness-tag x)))
+
+(defn can-be-truthy-member?
+  "For a normalized union member: false only for :nil, which no form returns
+  from a truthy position."
+  [t]
+  (not (identical? :nil t)))
+
+(defn can-be-falsy-member?
+  "For a normalized union member: true for :nil, :boolean and anything unknown.
+  The falsy position of `and` can return any of those."
+  [t]
+  (not (truthy-keyword? t)))
 
 (defn union-type
   ([] #{})
