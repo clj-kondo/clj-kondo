@@ -3453,7 +3453,7 @@
   :message "unused binding env",
   :row 1171}
  {:end-row 1228,
-  :type :constant-test,
+  :type :constant-condition,
   :level :warning,
   :lang :clj,
   :filename "cljs/compiler.cljc",
@@ -3461,7 +3461,7 @@
   :end-col 47,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Test always true",
+  :message "Condition always true",
   :row 1228}
  {:end-row 1319,
   :type :unused-binding,
@@ -13454,13 +13454,13 @@
   :message "unused binding opts",
   :row 185}
  {:end-row 194,
-  :type :constant-test,
+  :type :constant-condition,
   :level :warning,
   :filename "cljs/repl/browser.clj",
   :col 15,
   :end-col 32,
   :langs (),
-  :message "Test always true",
+  :message "Condition always true",
   :row 194}
  {:end-row 326,
   :type :unused-binding,
@@ -15643,13 +15643,13 @@
   :message "unused binding reader",
   :row 57}
  {:end-row 63,
-  :type :constant-test,
+  :type :constant-condition,
   :level :warning,
   :filename "cljs/tools/reader/reader_types.cljs",
   :col 15,
   :end-col 16,
   :langs (),
-  :message "Test always true",
+  :message "Condition always true",
   :row 63}
  {:end-row 65,
   :type :unused-binding,
@@ -26996,14 +26996,14 @@
   :message "unused binding reader",
   :row 55}
  {:end-row 61,
-  :type :constant-test,
+  :type :constant-condition,
   :level :warning,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/reader_types.cljs",
   :col 15,
   :end-col 16,
   :langs (),
-  :message "Test always true",
+  :message "Condition always true",
   :row 61}
  {:end-row 63,
   :type :unused-binding,

@@ -124,7 +124,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
-    - [Constant test](#constant-test)
+    - [Constant condition](#constant-condition)
     - [Unused import](#unused-import)
     - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
@@ -2323,17 +2323,17 @@ This will exclude all bindings starting with `_x`.
 
 *Config:* use `:exclude [:s]` to suppress the above warning.
 
-### Constant test
+### Constant condition
 
-*Keyword:* `:constant-test`.
+*Keyword:* `:constant-condition`.
 
-*Description:* warn on a test whose outcome is the same on every run. The value
-of such a test can vary, its truthiness cannot:
+*Description:* warn on a condition whose outcome is the same on every run. The
+value of such a condition can vary, its truthiness cannot:
 
-- a test that is always truthy, like a function that is passed instead of
+- a condition that is always truthy, like a function that is passed instead of
   called, or a lazy seq, which is truthy even when empty. Use `seq` to test a
   collection for emptiness
-- a test that is always falsy, like `nil`
+- a condition that is always falsy, like `nil`
 - a `cond` clause after a catch-all test
 - a `:default` reader conditional branch that is not last
 
@@ -2343,7 +2343,7 @@ always passes.
 
 Literal `true` and `false`, also through a var or local, are not checked, since
 these are often dev/production toggles. The keyword `:always` is exempt as an
-intentional always-truthy test in `cond->`.
+intentional always-truthy condition in `cond->`.
 
 Replaces the `:condition-always-true` and `:unreachable-code` linters.
 
@@ -2357,8 +2357,8 @@ Replaces the `:condition-always-true` and `:unreachable-code` linters.
 
 *Example messages*:
 
-- `Test always true`
-- `Test always false`
+- `Condition always true`
+- `Condition always false`
 - `unreachable code`
 
 ### Unused import
