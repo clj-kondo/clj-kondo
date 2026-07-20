@@ -13,8 +13,8 @@
                            ;; since the halves coincide for :nilable/nil
                            (hash-set :nil (clojure.core/keyword (name t)))
                            ;; a seqable includes nil, the only known-types tag
-                           ;; outside the falsy and nilable ones that does. In
-                           ;; normalized output :seqable is the non nil half
+                           ;; outside the falsy and nilable ones that does. A
+                           ;; normalized :seqable means the non-nil half
                            (identical? :seqable t) #{:nil :seqable}
                            :else t)
         (set? t) (let [ks (map truthiness-tag t)]

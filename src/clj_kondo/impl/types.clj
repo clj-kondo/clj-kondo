@@ -222,8 +222,8 @@
     (keyword? actual)
     (or (identical? actual expected)
         (identical? actual :any)
-        ;; some truthy value of unknown type, see types.utils/truthy-part. It
-        ;; can inhabit any type except a falsy one, also in its compact
+        ;; some truthy value of unknown type, see types.utils/truthy-part.
+        ;; It matches every type except a falsy one, also in its compact
         ;; :nilable/false spelling
         (and (identical? actual :truthy)
              (not (type-utils/always-falsy? expected)))

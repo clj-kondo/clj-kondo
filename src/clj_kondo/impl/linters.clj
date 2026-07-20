@@ -534,8 +534,7 @@
                                                                                                                             :arity arity} (:expr call))
       (when (and (utils/lint-condition? call)
                  (not (utils/linter-disabled? call :constant-condition)))
-        ;; the level lives in the config of the call, which knows about a
-        ;; namespace local config, unlike the ctx of this phase
+        ;; the call's config knows namespace local levels, the phase ctx does not
         (let [ctx (assoc ctx :config (:config call))]
           (if call?
             ;; a call to a var whose return type is only known once every
