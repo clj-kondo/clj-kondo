@@ -32,7 +32,8 @@
                 (identical? :nil t)
                 (identical? :false t)
                 (identical? :boolean t)
-                ;; a seqable could be nil, see could-be-relations
+                ;; a seqable could be nil: the only known-types tag
+                ;; besides the falsy and nilable ones whose values include nil
                 (identical? :seqable t)
                 (= "nilable" (namespace t))))))
 
@@ -114,7 +115,10 @@
       (part-of t (fn [t]
                    (cond (falsy-keyword? t) t
                          (identical? :boolean t) :false
-                         ;; the falsy half of a seqable is nil
+                         ;; the falsy half of a seqable is nil. Kept as an
+                         ;; explicit case: desugaring :seqable in truthiness-tag
+                         ;; would give the keyword two meanings, raw may-be-nil
+                         ;; vs normalized non-nil half, and absorb sees raw tags
                          (identical? :seqable t) :nil
                          (identical? :any t) #{:nil :false}
                          :else ::nothing))))))
