@@ -63,11 +63,11 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
-- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default, for a condition whose outcome is the same on every run: a function passed instead of called, a lazy seq, which is truthy even when empty, a provably nil value, or a `cond` clause after a catch-all. Conditions that call your own functions are checked too, directly or through a local binding, their return type resolves after every namespace is analyzed. `if-some` and `when-some` branch on nilness, so a never nil init always takes the then branch. Literal `true` and `false` conditions are exempt as dev toggles. E.g. `(if-let [xs (filter odd? coll)] ...)` will warn. Replaces `:condition-always-true` and `:unreachable-code`, a **BREAKING** change: configure `:constant-condition` instead.
-- Type checker: `and` and `or` return the first deciding argument or the last one, tracked through the new `:true`, `:false` and `:truthy` types. An argument only contributes the part of its type it can be returned as, and `or` with a never falsy last argument is always truthy. E.g. `(inc (or :foo 'bar))` will warn with received: keyword. `(when (or x :default) ...)` will warn with condition always true.
-- Type checker: `re-matches` and the matcher arity of `re-find` return nil when there is no match. E.g. `(inc (re-matches #"x" s))` will warn with received: string or vector or nil.
-- Type checker: `class` returns nil for nil. E.g. `(inc (class x))` will warn with received: class or nil.
-- Type checker: an `if` without an else branch returns nil, so its type is a union with nil. E.g. `(defn f [x] (if x {:a 1})) (subs (f 1) 1)` will warn with received: map or nil.
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default. Replaces `:condition-always-true` and `:unreachable-code` (**BREAKING**). See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
+- Type checker: infer `and` and `or` return types. E.g. `(when (or x :default) ...)` will warn.
+- Type checker: `re-matches` and `re-find` can return nil. E.g. `(inc (re-matches #"x" s))` will warn.
+- Type checker: `class` can return nil. E.g. `(inc (class x))` will warn.
+- Type checker: `if` without an else branch can return nil. E.g. `(defn f [x] (if x {:a 1})) (subs (f 1) 1)` will warn.
 - The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
 - Performance: use a record for bindings (~4%)
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
