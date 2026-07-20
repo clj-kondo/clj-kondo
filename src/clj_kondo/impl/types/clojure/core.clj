@@ -288,20 +288,18 @@
    'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    'and {:fn (fn [args]
-               ;; and returns the first falsy arg or the last one, so a nil can
-               ;; only come from an arg that is nilable itself. An arg that is
-               ;; always nil is returned, the ones after it never run
+               ;; and returns the first falsy arg or the last one. An arg that
+               ;; is never falsy only passes control on, one that is always nil
+               ;; ends it
                (if (empty? args)
                  :boolean
-                 (let [[before [stop]] (split-with (complement tu/always-nil?) args)]
-                   (reduce tu/union-type #{} (cond-> before stop (concat [stop]))))))}
+                 (tu/fold-logic args tu/always-nil? tu/never-falsy?)))}
    ;; 854 'or
    'or {:fn (fn [args]
               ;; or returns the first truthy arg or the last one
               (if (empty? args)
                 :nil
-                (let [[before [stop]] (split-with (complement tu/never-falsy?) args)]
-                  (reduce tu/union-type #{} (cond-> before stop (concat [stop]))))))}
+                (tu/fold-logic args tu/never-falsy? tu/always-nil?)))}
    ;; 867
    'zero? number->boolean
    ;; 874

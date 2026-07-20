@@ -8,9 +8,11 @@
   of a map spec rather than walking its keys."
   [t]
   (cond (keyword? t) t
-        (set? t) (let [ks (keep truthiness-tag t)]
-                   (when (= (count ks) (count t))
-                     (set ks)))
+        (set? t) (let [ks (map truthiness-tag t)]
+                   (when (every? some? ks)
+                     ;; a member can normalize to a union of its own, which
+                     ;; belongs in this one rather than nested inside it
+                     (into #{} (mapcat #(if (set? %) % [%])) ks)))
         (map? t) (if (identical? :map (:type t))
                    :map
                    (some-> (or (:type t) (:tag t)) truthiness-tag))))
@@ -58,6 +60,18 @@
                    :else (hash-set x y))]
      ;; (prn x '+ y '= ret)
      ret)))
+
+(defn fold-logic
+  "The types `and` and `or` can return. An arg matching `stop?` short circuits
+  and is the result, one matching `skip?` only passes control on and can never
+  be returned, the rest may or may not be. The last arg is always a candidate."
+  [args stop? skip?]
+  (loop [[a & more] args
+         acc #{}]
+    (cond (not (seq more)) (union-type acc a)
+          (stop? a) (union-type acc a)
+          (skip? a) (recur more acc)
+          :else (recur more (union-type acc a)))))
 
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)

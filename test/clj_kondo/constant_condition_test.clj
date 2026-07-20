@@ -333,6 +333,17 @@
     (assert-submaps2
      '({:row 1 :message "Condition always true"})
      (lint! "(defn c [] (when (or {} nil) 1))" config)))
+  (testing "an argument that cannot be the result is left out"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn f [] (when (or nil :x) 1))" config))
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(defn g [] (when (and {} nil) 1))" config)))
+  (testing "a union nested in another one is still one union"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn h [x] (when (or (if x \"a\" \"b\") nil) 1))" config)))
   (testing "an argument that may be falsy keeps the ones after it"
     (is (empty? (lint! "(defn d [x] (when (and x \"b\") 1))" config)))
     (is (empty? (lint! "(defn e [x] (when (or x nil) 1))" config)))))
