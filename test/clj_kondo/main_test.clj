@@ -194,6 +194,11 @@
                   (lint! "#?(:clj 1)" "--lang" "clj"))
   (assert-submaps2 [{:file "<stdin>",
                      :row 1,
+                     :col 8,
+                     :level :warning,
+                     :message "#_ with unmatched reader conditional discards the next form [cljs]"}
+                    {:file "<stdin>",
+                     :row 1,
                      :col 19,
                      :level :error,
                      :message "Expected: number, received: keyword. [clj]"}]
@@ -863,6 +868,11 @@ foo/foo ;; this does use the private var
            (case 1 x 1 y 2)" {:linters {:case-symbol-test {:level :warning}}})))
 
 (deftest local-bindings-test
+  (testing "user metadata cannot overwrite the binding's own fields (:name, :filename)"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 46, :level :warning, :message "unused binding x"})
+     (lint! "(let [^{:name \"hacked\" :filename \"evil.clj\"} x 1] nil)"
+            {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "(fn [select-keys] (select-keys))")))
   (is (empty? (lint! "(fn [[select-keys x y z]] (select-keys))")))
   (is (empty? (lint! "(fn [{:keys [:select-keys :b]}] (select-keys))")))
@@ -3915,6 +3925,16 @@ foo/"))
                     b gen/large-integer]
             (>= (+ a b) a))"
                      {:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest clojure-test-check-defspec-test
+  (is (empty? (lint! "(ns foo (:require [clojure.test.check.clojure-test :refer [defspec]] [clojure.test.check.properties :as prop] [clojure.test.check.generators :as gen])) (defspec my-prop 100 (prop/for-all [x gen/small-integer] (int? x))) (my-prop) (my-prop 1000) (my-prop 1000 :max-size 50)"
+                     '{:linters {:unresolved-symbol {:level :error}
+                                 :invalid-arity {:level :error}
+                                 :missing-docstring {:level :warning}}})))
+  (assert-submaps2
+   [{:file "<stdin>", :row 1, :col 211, :level :error, :message "Unresolved symbol: intt?"}]
+   (lint! "(ns foo (:require [clojure.test.check.clojure-test :refer [defspec]] [clojure.test.check.properties :as prop] [clojure.test.check.generators :as gen])) (defspec my-prop 100 (prop/for-all [x gen/small-integer] (intt? x)))"
+          '{:linters {:unresolved-symbol {:level :error}}})))
 
 (deftest special-form-test
   (is (empty?

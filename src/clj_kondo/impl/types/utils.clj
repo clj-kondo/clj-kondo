@@ -28,6 +28,15 @@
                              (and (not (:kw-calls arg-type))
                                   (identical? t :map))))))
 
+(defn map-kw-lookup
+  "Value tag of `kw-call` in map type `t`: the entry's tag, provably :nil
+  when the key is missing from a closed map, nil when missing from an open
+  one."
+  [t kw-call]
+  (if-let [e (find (:val t) kw-call)]
+    (:tag (val e))
+    (when-not (:open t) :nil)))
+
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
   ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
@@ -49,13 +58,18 @@
                        (when-let [t (:type arg-type)]
                          (if (identical? t :map)
                            (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
-                             (let [resolved-tag (-> arg-type :val (get kw-call) :tag)]
+                             ;; a key missing from a closed map is provably
+                             ;; nil, and any deeper lookup on nil stays nil
+                             (let [resolved-tag (map-kw-lookup arg-type kw-call)]
                                (cond
                                  (and rest-kw-calls
                                       (= :map (:type resolved-tag)))
                                  (resolve-arg-type idacs
                                                    (assoc resolved-tag :kw-calls rest-kw-calls)
                                                    seen-calls)
+
+                                 (identical? :nil resolved-tag)
+                                 :nil
 
                                  rest-kw-calls
                                  nil
@@ -82,13 +96,16 @@
                                  (if-let [kw-calls (:kw-calls call)]
                                    (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
-                                           resolved-tag (-> resolved-arg-type :val (get kw-call) :tag)]
+                                           resolved-tag (map-kw-lookup resolved-arg-type kw-call)]
                                        (cond
                                          (and rest-kw-calls
                                               (= :map (:type resolved-tag)))
                                          (resolve-arg-type idacs
                                                            (assoc resolved-tag :kw-calls rest-kw-calls)
                                                            seen-calls)
+
+                                         (identical? :nil resolved-tag)
+                                         :nil
 
                                          rest-kw-calls
                                          nil
@@ -113,37 +130,24 @@
          ;; (prn arg-type '-> ret)
          ret))))
 
+(defn strip-positions
+  "Strips positions from a map type's :val entries, recursively. A cached
+  return's entry positions have no consumer: findings about resolved values
+  report at the call site, and serializing them only grows the cache."
+  [t]
+  (cond (set? t) (into #{} (map strip-positions) t)
+        (and (map? t) (:val t))
+        (update t :val update-vals
+                (fn [e]
+                  (let [e (dissoc e :row :col :end-row :end-col)]
+                    (if (:tag e)
+                      (update e :tag strip-positions)
+                      e))))
+        :else t))
+
 (defn not-empty-arity [m]
   (when (and m
              (or (:args m)
                  (:ret m)))
     m))
 
-(defn resolve-arity-return-types [idacs arities]
-  (persistent!
-   (reduce-kv
-    (fn [m arity v]
-      (let [new-v (if-let [ret (:ret v)]
-                    (let [t (resolve-arg-type idacs ret)]
-                      (if (identical? t :any)
-                        (not-empty-arity (dissoc v :ret))
-                        (assoc v :ret t)))
-                    (not-empty-arity v))]
-        (if new-v
-          (assoc! m arity new-v)
-          (dissoc! m arity))))
-    (transient {})
-    arities)))
-
-(defn resolve-return-types [idacs ns-data]
-  (persistent!
-   (reduce-kv
-    (fn [m k v]
-      (assoc! m k (if-let [arities (:arities v)]
-                    (let [new-arities (not-empty (resolve-arity-return-types idacs arities))]
-                      (if new-arities
-                        (assoc v :arities new-arities)
-                        (dissoc v :arities)))
-                    v)))
-    (transient {})
-    ns-data)))

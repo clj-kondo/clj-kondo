@@ -12,9 +12,63 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## Unreleased
-
 - [#2894](https://github.com/clj-kondo/clj-kondo/issues/2894): explain why a `do` is redundant in `:redundant-do` findings ([@jramosg](https://github.com/jramosg))
+- [#1882](https://github.com/clj-kondo/clj-kondo/issues/1882): built-in support for `clojure.test.check.clojure-test/defspec`
+- [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
+- [#2877](https://github.com/clj-kondo/clj-kondo/issues/2877): warn when `#_` before an unmatched reader conditional discards the next form. E.g. `[#_#?(:cljs 1) 2]` reads as `[]` in `:clj` and will warn.
+- [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
 - Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
+- [#2869](https://github.com/clj-kondo/clj-kondo/issues/2869) Replace type-mismatch arities instead of merging
+### Highlights
+
+The type checker now infers much more.
+
+It derives argument types from how a param is used in the body:
+
+``` clojure
+(defn f [s] (subs s 1))
+(f 42)
+   ^ Expected: string, received: positive integer.
+```
+
+It types the keys and values of destructured maps:
+
+``` clojure
+(defn f [{:keys [x]}] (inc x))
+(f {:x "foo"})
+       ^ Expected: number, received: string.
+```
+
+It flows map types from return values into destructured bindings:
+
+``` clojure
+(defn cfg [] {:port "8080"})
+(let [{:keys [port]} (cfg)] (inc port))
+                                 ^ Expected: number, received: string.
+```
+
+It flags keys that are provably nil:
+
+``` clojure
+(inc (:y {}))
+     ^ Expected: number, received: nil.
+```
+
+And it narrows the type of a local after it flowed through a known predicate:
+
+``` clojure
+(defn f [x] (if (string? x) (inc x) x))
+                                 ^ Expected: number, received: string.
+```
+
+### Other
+
+- The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
+- Performance: use a record for bindings (~4%)
+- Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
+- Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.
+- Type checker: a key missing from a map literal is provably nil, also through destructuring, keyword access chains and function return maps. E.g. `(inc (:y {}))` will warn. A key with an `:or` default, generated maps in macro expansions, maps with dynamic keys, and maps that went through `into` or an `assoc` with a dynamic key are exempt.
+- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 150 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
 - Type checker: `contains?` accepts nil as its collection argument
 - Type checker: infer the type of a function param from how it is used in the body. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn, since the evidence `(subs s 1)` tells us that `s` should be a string.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
@@ -30,7 +84,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2848](https://github.com/clj-kondo/clj-kondo/pull/2848): allow calling sets and vectors with 2 arguments in ClojureScript, where the second argument is the not-found value ([@p-himik](https://github.com/p-himik))
 - [#2854](https://github.com/clj-kondo/clj-kondo/issues/2854): fix false positive `:invalid-arity` when an inner binding or fn param shadows a local function name ([@yuhan0](https://github.com/yuhan0))
 - Performance optimizations: [#2853](https://github.com/clj-kondo/clj-kondo/issues/2853), [#2857](https://github.com/clj-kondo/clj-kondo/issues/2857), [#2858](https://github.com/clj-kondo/clj-kondo/issues/2858), [#2859](https://github.com/clj-kondo/clj-kondo/issues/2859), [#2866](https://github.com/clj-kondo/clj-kondo/issues/2866) ([@alexander-yakushev](https://github.com/alexander-yakushev))
+- [#2864](https://github.com/clj-kondo/clj-kondo/issues/2864): `--copy-configs` no longer rewrites and reports unchanged config files on every run ([@nikbad](https://github.com/nikbad))
 - Performance: use a record for var usages: -13.5% allocation, ~5-10% faster linting
+- Bump SCI to `0.15.56`
 
 ## 2026.05.25
 

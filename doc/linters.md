@@ -108,6 +108,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Refer all](#refer-all)
     - [Schema misplaced return](#schema-misplaced-return)
     - [Self-requiring namespace](#self-requiring-namespace)
+    - [Seq rest](#seq-rest)
     - [Single key in](#single-key-in)
     - [Single logical operand](#single-logical-operand)
     - [Single operand comparison](#single-operand-comparison)
@@ -2023,6 +2024,18 @@ Example warning: `require with :refer`.
 *Example trigger:* `(ns foo (:require [foo]))`
 
 *Example message:* `Namespace is requiring itself: foo`
+
+### Seq rest
+
+*Keyword:* `:seq-rest`
+
+*Description:* warn on usage of `(seq (rest x))` rather than `(next x)`
+
+*Default level:* `:off`
+
+*Example trigger:* `(fn [x] (seq (rest x)))`
+
+*Example message:* `Prefer (next x) over (seq (rest x))`
 
 ### Single key in
 

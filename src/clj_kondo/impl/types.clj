@@ -315,18 +315,74 @@
                ::unknown))
     ::unknown))
 
+(defn static-map-key?
+  "Whether a map key expr evaluates to a statically known value: a
+  self-evaluating token or a quoted form. An unquoted symbol or a computed
+  form can evaluate to any key."
+  [ctx expr]
+  (or (:quoted ctx)
+      (case (tag expr)
+        :token (not (utils/symbol-token? expr))
+        :quote true
+        false)))
+
+(defn known-map-key?
+  "Whether map-key returned an actual key. nil and false are valid keys,
+  compare against the sentinel, not truthiness."
+  [k]
+  (not (identical? ::unknown k)))
+
 (defn map->tag [ctx expr]
   (let [children (:children expr)
-        ks (map #(map-key ctx %) (take-nth 2 children))
+        kexprs (take-nth 2 children)
         mvals (take-nth 2 (rest children))
-        vtags (map (fn [e]
-                     (let [t (expr->tag ctx e)
-                           m (meta e)]
-                       ;; NOTE: be careful to not include any non-serializable data here, see issue #2165
-                       (cond-> (select-keys m [:row :end-row :col :end-col])
-                         t (assoc :tag t)))) mvals)]
-    {:type :map
-     :val (zipmap ks vtags)}))
+        ;; each key resolves to [mk] when statically known, else nil. The
+        ;; wrap distinguishes a nil or false key from an unknown one. A
+        ;; quoted collection is static but map-key cannot extract it, so it
+        ;; opens the map, like a dynamic key
+        keys* (map (fn [k]
+                     (when (static-map-key? ctx k)
+                       (let [mk (map-key ctx k)]
+                         (when (known-map-key? mk) [mk]))))
+                   kexprs)
+        all-known? (every? some? keys*)
+        entries (map (fn [kw e]
+                       (when kw
+                         (let [t (expr->tag ctx e)
+                               m (meta e)]
+                           ;; NOTE: be careful to not include any
+                           ;; non-serializable data here, see issue #2165
+                           [(first kw) (cond-> (select-keys m [:row :end-row :col :end-col])
+                                         t (assoc :tag t))])))
+                     keys* mvals)]
+    (cond-> {:type :map
+             :val (into {} (remove nil?) entries)}
+      ;; a generated literal, e.g. a hook's placeholder map, is no evidence
+      ;; of absence, and a dynamic or inextractable key could be any key:
+      ;; only a map whose every key is statically known is closed
+      (or (not all-known?)
+          (let [m (meta expr)]
+            (or (:clj-kondo.impl/generated expr)
+                (:clj-kondo.impl/generated m)
+                (not (:row m)))))
+      (assoc :open true))))
+
+(defn destructured-key-tag
+  "Value tag for map key `dk` of a destructuring form whose init has tag
+  `form-tag`: the key's value type of a concrete map, provably :nil when the
+  key is missing from a closed one, and a per-key deferred lookup via
+  :kw-calls for a {:call ..} init, resolved at lint time like keyword access
+  on the call itself. A defaulted binding gets no tag, its runtime value may
+  be the :or default."
+  [form-tag dk defaulted]
+  (when-not defaulted
+    (cond (identical? :map (:type form-tag))
+          (if-let [e (find (:val form-tag) dk)]
+            (:tag (val e))
+            (when-not (:open form-tag) :nil))
+          (and (:call form-tag) (keyword? dk))
+          (let [c (:call form-tag)]
+            {:call (assoc c :kw-calls ((fnil conj []) (:kw-calls c) dk))}))))
 
 (defn called-arity [arities arity]
   (or (get arities arity)
@@ -373,7 +429,9 @@
         (when (and (keyword? nm)
                    (= 1 arg-count))
           (when-let [arg-type (first arg-types)]
-            (let [call* (:call arg-type)]
+            ;; a local tagged with a deferred call, e.g. a binding of a user
+            ;; fn's return, carries the call under its :tag
+            (let [call* (or (:call arg-type) (:call (:tag arg-type)))]
               (if call*
                 {:call (assoc call*
                               ;; build chain of keyword calls
@@ -381,11 +439,20 @@
                                                         nm))}
                 (let [t (:tag arg-type)
                       nm (:name call)]
-                  (if (:req t)
-                    {:tag (get (:req (:tag arg-type))
+                  (cond (:req t)
+                        {:tag (get (:req (:tag arg-type))
                                nm)}
-                    (when-let [v (:val t)]
-                      {:tag (get v nm)}))))))))))
+                        ;; keyword access on provable nil is nil
+                        (identical? :nil t)
+                        {:tag :nil}
+                        :else
+                        (when-let [v (:val t)]
+                          ;; a closed literal map without the key provably
+                          ;; yields nil. A present key with an unknown value
+                          ;; type stays unknown
+                          {:tag (if-let [e (find v nm)]
+                                  (val e)
+                                  (when-not (:open t) :nil))}))))))))))
 
 (defn- array-class-literal? [sym]
   (when (and (symbol? sym) (namespace sym))
@@ -459,15 +526,23 @@
 
 (defn add-arg-type-from-expr
   ([ctx expr] (add-arg-type-from-expr ctx expr (expr->tag ctx expr)))
-  ([ctx expr tag]
+  ([ctx expr arg-tag]
    (when-let [arg-types (:arg-types ctx)]
-     (let [m (meta expr)]
-       (swap! arg-types conj (when tag
-                               {:tag tag
-                                :row (:row m)
-                                :col (:col m)
-                                :end-row (:end-row m)
-                                :end-col (:end-col m)}))))))
+     (let [m (meta expr)
+           ;; a literal keyword or string arg keeps its value: fn specs like
+           ;; assoc's use it to extend a map's :val precisely
+           v (when (identical? :token (tag expr))
+               (case arg-tag
+                 :keyword (when-not (:namespaced? expr) (:k expr))
+                 :string (utils/string-from-token expr)
+                 nil))]
+       (swap! arg-types conj (when arg-tag
+                               (cond-> {:tag arg-tag
+                                        :row (:row m)
+                                        :col (:col m)
+                                        :end-row (:end-row m)
+                                        :end-col (:end-col m)}
+                                 (some? v) (assoc :value v))))))))
 
 (defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]
@@ -516,11 +591,16 @@
           (recur (inc i) (rest ss)))))))
 
 (defn desugar-nilable
-  "A nilable keyword spec is sugar for a union with :nil."
+  "A nilable keyword spec is sugar for a union with :nil. A union that would
+  contain :any simplifies to :any."
   [s]
-  (if (and (keyword? s) (nilable? s))
-    #{:nil (unnil s)}
-    s))
+  (cond (and (keyword? s) (nilable? s))
+        (let [k (unnil s)]
+          (if (identical? :any k)
+            :any
+            #{:nil k}))
+        (and (set? s) (contains? s :any)) :any
+        :else s))
 
 (defn constraining-spec?
   "A spec worth recording as evidence: a named type, a union, a :keys map spec
@@ -532,21 +612,47 @@
     (or (set? s)
         (and (keyword? s) (not (identical? :any s))))))
 
+(defn record-constraint!
+  "Routes constraint `s` for param binding `b` by reachability. On the
+  owning fn's spine it commits to the param. In a nested fn, when no
+  conditional was crossed since the owner's entry, it goes dormant into
+  that fn's pending sink, committed when a call site proves the fn invoked
+  on the spine, see activate-pending!. A crossed conditional drops it, the
+  guard may be what makes the usage safe."
+  [ctx infers b s]
+  (when-let [{:keys [param-infer branch-mark fn-mark]} (get infers b)]
+    (when (== branch-mark (:branch-count ctx 0))
+      (let [depth (:fn-depth ctx 0)]
+        (cond (== depth fn-mark)
+              (swap! param-infer update b (fnil conj #{}) s)
+              (> depth fn-mark)
+              (when-let [sink (:pending-infers ctx)]
+                (swap! sink update b (fnil conj #{}) s)))))))
+
+(defn activate-pending!
+  "Commits a fn's dormant constraints at a site that proves the fn
+  invoked: every entry re-routes through record-constraint!, so a spine
+  site commits, a site inside a deeper nested fn re-pends on that fn, and
+  a site in a conditional branch drops. Sites do not consume entries, a
+  second site routes again and dedup absorbs repeats."
+  [ctx pending]
+  (when-let [infers (:param-infers ctx)]
+    (doseq [[b ss] pending
+            s ss]
+      (record-constraint! ctx infers b s))))
+
 (defn infer-local-usage!
   "Backward parameter-type inference, triggered where a local usage is
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
   called-name arity]`, taken from the callstack head's ::infer-call meta.
-  Records the callee's expected type as a constraint on the param, or a
-  deferred {:op :arg-spec-of ..} constraint for a spec-less user fn. A usage in
-  a conditional branch proves nothing, the guard may be what makes it safe.
-  That covers narrowed usages, narrowing only happens in branches, and spine
-  narrowing (assert, :pre), when it exists, should constrain: the guard throws,
-  so the type is the contract. Type predicates need no special case: their arg
-  spec is :any, so they record nothing."
+  Computes the callee's expected type as a constraint on the param, or a
+  deferred {:op :arg-spec-of ..} constraint for a spec-less user fn, and
+  routes it through record-constraint!. Type predicates need no special
+  case: their arg spec is :any, so they record nothing."
   [ctx [called-ns called-name arity] infers b idx]
-  (when-let [{:keys [param-infer mark]} (get infers b)]
+  (when-let [{:keys [branch-mark]} (get infers b)]
     ;; equal counts mean no conditional was crossed since the param's fn entry
-    (when (== mark (:branch-count ctx 0))
+    (when (== branch-mark (:branch-count ctx 0))
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
             s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
                 (spec-at specs idx)
@@ -559,19 +665,19 @@
                    :lang (:lang ctx)
                    :base-lang (:base-lang ctx)}))]
         (when (constraining-spec? s)
-          (let [s (desugar-nilable s)]
-            (swap! param-infer update b
-                   (fn [cur]
-                     ;; insertion-ordered with dedup, for deterministic output
-                     (if (some #(= % s) cur)
-                       cur
-                       (conj (or cur []) s))))))))))
+          (record-constraint! ctx infers b (desugar-nilable s)))))))
 
 (defn is-a?
   "Provable subtype check: every value of tag `a` is also of tag `b`."
   [a b]
   (or (identical? a b)
       (contains? (get is-a-relations a) b)))
+
+(defn any-spec?
+  "A spec satisfied by every value: :any or a union containing it."
+  [s]
+  (or (identical? :any s)
+      (and (set? s) (contains? s :any))))
 
 (defn intersect
   "Intersects specs `a` and `b`, keywords or union sets: the most specific
@@ -581,10 +687,11 @@
   [a b]
   (cond
     (nil? a) b
-    ;; :any constrains nothing. Not all named types are related to :any in
-    ;; is-a-relations, so the lattice scan would wrongly conflict on some
-    (identical? :any a) b
-    (identical? :any b) a
+    ;; an any spec constrains nothing. Not all named types are related to
+    ;; :any in is-a-relations, so the lattice scan would wrongly conflict
+    (and (any-spec? a) (any-spec? b)) :any
+    (any-spec? a) b
+    (any-spec? b) a
     :else
     (let [as (if (set? a) a #{a})
           bs (if (set? b) b #{b})
@@ -607,27 +714,62 @@
         1 (first maximal)
         maximal))))
 
+(defn intersect-all
+  "Intersects a constraint vector to one spec, nil on conflict."
+  [ts]
+  (reduce (fn [acc t]
+            (or (intersect acc t) (reduced nil)))
+          nil ts))
+
+(defn tag-matches?
+  "Whether a value of tag `t` satisfies keyword-or-union spec `s`."
+  [t s]
+  (if (set? s)
+    (some #(match? t %) s)
+    (match? t s)))
+
 (defn merge-inferred-arg-tags
   "Fills in arg specs for params from their collected constraints: keyword and
   union-set constraints intersect to the most specific union, a conflict proves
   nothing, and constraints with deferred or map-shaped members are stored as
   {:op :and :specs ..}, resolved when the cache is synced, see
-  resolve-inferred-arg-types. A single {:op :keys} constraint passes through
-  verbatim."
+  resolve-types. A single {:op :keys} constraint passes through
+  verbatim. A map-destructured binding descriptor, carrying a :key, has its
+  constraints become the value type of that key in the param's {:op :keys}
+  spec: under :req when the spec excludes nil and the key has no :or default,
+  the key is proven required since its absence crashes the body, otherwise
+  under :opt, next to any required keys the destructuring itself established."
   [simple-params param-infer arg-tags]
-  (reduce (fn [tags [i b]]
-            (let [ts (get @param-infer b)]
+  (reduce (fn [tags {i :idx b :binding k :key defaulted :defaulted :as descriptor}]
+            (let [ts (get @param-infer b)
+                  ;; nil and false are valid map keys, a keyed descriptor is
+                  ;; recognized by the presence of :key, not its value
+                  keyed? (contains? descriptor :key)]
               (if (seq ts)
-                (cond
-                  (not-any? map? ts)
-                  (assoc tags i (reduce (fn [acc t]
-                                          (or (intersect acc t) (reduced nil)))
-                                        nil ts))
-                  (and (= 1 (count ts))
-                       (identical? :keys (:op (first ts))))
-                  (assoc tags i (first ts))
-                  :else
-                  (assoc tags i {:op :and :specs ts}))
+                (if keyed?
+                  (if-let [spec (when (not-any? map? ts)
+                                  (intersect-all ts))]
+                    (update tags i (fn [cur]
+                                     (let [slot (if (and (map? cur) (identical? :keys (:op cur)))
+                                                  cur
+                                                  ;; destructuring nil-punts, so nil
+                                                  ;; stays a legal argument when no
+                                                  ;; key is required
+                                                  {:op :keys :nilable true})]
+                                       (if (and (not defaulted) (not (tag-matches? :nil spec)))
+                                         (-> slot
+                                             (assoc-in [:req k] spec)
+                                             (dissoc :nilable))
+                                         (assoc-in slot [:opt k] spec)))))
+                    tags)
+                  (cond
+                    (not-any? map? ts)
+                    (assoc tags i (intersect-all ts))
+                    (and (= 1 (count ts))
+                         (identical? :keys (:op (first ts))))
+                    (assoc tags i (first ts))
+                    :else
+                    (assoc tags i {:op :and :specs ts})))
                 tags)))
           (vec arg-tags)
           simple-params))
@@ -650,6 +792,7 @@
           (let [s (get s (:arg-idx c))]
             (cond (keyword? s) (desugar-nilable s)
                   (set? s) s
+                  (and (map? s) (identical? :keys (:op s))) s
                   (inferred-and? s)
                   (resolve-inferred-spec idacs s (conj seen k)))))))))
 
@@ -679,40 +822,60 @@
       (recur (pop v))
       v)))
 
-(defn resolve-inferred-arg-types
-  "Resolves inferred {:op :and :specs ..} arg specs in `ns-data`'s vars to
-  concrete specs, the twin of resolve-return-types. Runs when syncing the
-  cache, so both linting and the cache only see the plain spec vocabulary,
-  which older versions read fine."
+(defn resolve-arity
+  "Resolves a cached arity's :ret and inferred :args to concrete specs, then
+  normalizes, returning nil when nothing checkable is left. Runs when syncing
+  the cache, so both linting and the cache only see the plain spec
+  vocabulary, which older versions read fine."
+  [idacs arity-data]
+  (let [ret (:ret arity-data)
+        arity-data (if ret
+                     (let [t (type-utils/resolve-arg-type idacs ret)]
+                       (if (identical? t :any)
+                         (dissoc arity-data :ret)
+                         (assoc arity-data :ret (type-utils/strip-positions t))))
+                     arity-data)
+        args (:args arity-data)
+        arity-data (if (vector? args)
+                     (let [args* (trim-trailing-nils
+                                  (if (some inferred-and? args)
+                                    (mapv (fn [s]
+                                            (if (inferred-and? s)
+                                              (resolve-inferred-spec idacs s #{})
+                                              s))
+                                          args)
+                                    args))]
+                       (if (empty? args*)
+                         ;; nothing proven, dead weight
+                         (dissoc arity-data :args)
+                         (assoc arity-data :args args*)))
+                     arity-data)]
+    (type-utils/not-empty-arity arity-data)))
+
+(defn resolve-types
+  "Resolves the :ret and inferred :args of every var's arities in `ns-data` in
+  one walk, dropping arities and vars left empty. Runs when syncing the
+  cache."
   [idacs ns-data]
-  (reduce-kv
-   (fn [m k v]
-     (if-let [arities (:arities v)]
-       (let [new-arities
-             (reduce-kv
-              (fn [as arity {:keys [args] :as arity-data}]
-                (if (vector? args)
-                  (let [args* (trim-trailing-nils
-                               (if (some inferred-and? args)
-                                 (mapv (fn [s]
-                                         (if (inferred-and? s)
-                                           (resolve-inferred-spec idacs s #{})
-                                           s))
-                                       args)
-                                 args))]
-                    (cond (empty? args*)
-                          ;; nothing proven, dead weight
-                          (assoc as arity (type-utils/not-empty-arity
-                                           (dissoc arity-data :args)))
-                          (identical? args* args) as
-                          :else (assoc as arity (assoc arity-data :args args*))))
-                  as))
-              arities arities)]
-         (if (identical? new-arities arities)
-           m
-           (assoc m k (assoc v :arities new-arities))))
-       m))
-   ns-data ns-data))
+  (persistent!
+   (reduce-kv
+    (fn [m k v]
+      (assoc! m k
+              (if-let [arities (:arities v)]
+                (let [new-arities
+                      (persistent!
+                       (reduce-kv (fn [as arity arity-data]
+                                    (if-let [a (resolve-arity idacs arity-data)]
+                                      (assoc! as arity a)
+                                      (dissoc! as arity)))
+                                  (transient {})
+                                  arities))]
+                  (if (seq new-arities)
+                    (assoc v :arities new-arities)
+                    (dissoc v :arities)))
+                v)))
+    (transient {})
+    ns-data)))
 
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
@@ -722,23 +885,31 @@
                 (map? x) "map")]
     l))
 
-(defn emit-non-match! [ctx s arg t]
-  (let [expected-label (tag->label s)
-        offending-tag-label (tag->label t)]
-    (findings/reg-finding! ctx
-                           {:filename (:filename ctx)
-                            :row (:row arg)
-                            :col (:col arg)
-                            :end-row (:end-row arg)
-                            :end-col (:end-col arg)
-                            :type :type-mismatch
-                            :message (str "Expected: " expected-label
-                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                            (format " (%s)" s))
-                                          ", received: " offending-tag-label
-                                          (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
-                                            (format " (%s)" t))
-                                          ".")})))
+;; nil, false and any keyword are valid map keys, absence needs a sentinel
+;; that can never equal a real key
+(def ^:private no-key (Object.))
+
+(defn emit-non-match!
+  ([ctx s arg t] (emit-non-match! ctx s arg t no-key))
+  ([ctx s arg t k]
+   (let [expected-label (tag->label s)
+         offending-tag-label (tag->label t)]
+     (findings/reg-finding! ctx
+                            {:filename (:filename ctx)
+                             :row (:row arg)
+                             :col (:col arg)
+                             :end-row (:end-row arg)
+                             :end-col (:end-col arg)
+                             :type :type-mismatch
+                             :message (str "Expected: " expected-label
+                                           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                             (format " (%s)" s))
+                                           ", received: " offending-tag-label
+                                           (when (= "true" (System/getenv "CLJ_KONDO_DEV"))
+                                             (format " (%s)" t))
+                                           (if (identical? no-key k)
+                                             "."
+                                             (str " for key " (pr-str k))))}))))
 
 (defn emit-more-input-expected! [ctx call arg]
   (let [expr (or arg call)]
@@ -759,7 +930,7 @@
                           :end-row (:end-row arg)
                           :end-col (:end-col arg)
                           :type :type-mismatch
-                          :message (str "Missing required key: " k)}))
+                          :message (str "Missing required key: " (pr-str k))}))
 
 (declare lint-map!)
 
@@ -770,9 +941,17 @@
       (if-let [v (get mval k)]
         (when-let [t (type-utils/resolve-arg-type ctx v)]
           (if (= :keys (:op target))
-            (lint-map! ctx target v t)
-            (when-not (match? t target)
-              (emit-non-match! ctx target v t))))
+            ;; a position-stripped entry cannot anchor nested findings,
+            ;; fall back to the argument
+            (lint-map! ctx target (if (:row v) v arg) t)
+            ;; target may be a union, e.g. an inferred key value spec
+            (when-not (tag-matches? t target)
+              ;; an in-run entry points at the offending value. One resolved
+              ;; through the cache is position-stripped, see strip-positions:
+              ;; report at the argument, naming the key
+              (if (:row v)
+                (emit-non-match! ctx target v t)
+                (emit-non-match! ctx target arg t k)))))
         (when required?
           (emit-missing-required-key! ctx arg k))))))
 
@@ -784,7 +963,9 @@
           (emit-non-match! ctx :map a t))
         :else
         (when-let [mval (-> t :val)]
-          (lint-map-types! ctx a mval s :req true)
+          ;; an open map may have keys its :val does not list, so absence
+          ;; is no missing-key proof
+          (lint-map-types! ctx a mval s :req (not (:open t)))
           (lint-map-types! ctx a mval s :opt false))))
 
 (defn lint-arg-types

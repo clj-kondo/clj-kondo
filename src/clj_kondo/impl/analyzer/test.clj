@@ -25,6 +25,25 @@
    defined-by
    defined-by->lint-as))
 
+(defn analyze-defspec [ctx expr defined-by defined-by->lint-as]
+  (common/analyze-defn
+   ctx
+   (-> expr
+       (update
+        :children
+        (fn [[_ name-expr & body]]
+          (list*
+           (utils/token-node 'clojure.core/defn)
+           (when name-expr (vary-meta name-expr
+                                      assoc
+                                      :defined-by->lint-as defined-by->lint-as
+                                      :defined-by defined-by
+                                      :test true))
+           (utils/vector-node [(utils/token-node '&) (utils/token-node '_args)])
+           body))))
+   defined-by
+   defined-by->lint-as))
+
 (defn analyze-cljs-test-async [ctx expr]
   (when-let [ctr (:async-counter ctx)]
     (when (pos? @ctr)
