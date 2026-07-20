@@ -50,6 +50,9 @@ Deferred, in dependency order:
 
 ## Consequences
 
+- An arg-types entry is `{:tag X :row ..}`: markers appear only under `:tag`,
+  never at the entry's top level (normalized on the #721 branch). New marker
+  kinds from 1 and 2 are tag-level values, entry consumers stay untouched.
 - Symbolic fold nodes flow into cached return types, so every consumer of
   `resolve-arg-type` must handle or resolve them, not only the condition pass.
 - Verdicts from spine evidence claim "always true in every run that survives

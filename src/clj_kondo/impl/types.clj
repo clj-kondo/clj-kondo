@@ -481,9 +481,9 @@
         (when (and (keyword? nm)
                    (= 1 arg-count))
           (when-let [arg-type (first arg-types)]
-            ;; a local tagged with a deferred call, e.g. a binding of a user
-            ;; fn's return, carries the call under its :tag
-            (let [call* (or (:call arg-type) (:call (:tag arg-type)))]
+            ;; an entry carries a deferred call under its :tag, see
+            ;; add-arg-type-from-call
+            (let [call* (:call (:tag arg-type))]
               (if call*
                 {:call (assoc call*
                               ;; build chain of keyword calls
@@ -599,20 +599,23 @@
 (defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]
     (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call expr)]
-                            (assoc r
-                                   :row (:row call)
-                                   :col (:col call)
-                                   :end-row (:end-row call)
-                                   :end-col (:end-col call))))))
+                            ;; an entry is {:tag .. :row ..}: a deferred
+                            ;; {:call ..} or {:usage ..} marker sits under
+                            ;; :tag, never at the top level
+                            {:tag (or (:tag r) r)
+                             :row (:row call)
+                             :col (:col call)
+                             :end-row (:end-row call)
+                             :end-col (:end-col call)}))))
 
 (defn add-arg-type-from-usage [ctx usage expr]
   (when-let [arg-types (:arg-types ctx)]
     (swap! arg-types conj (when-let [r (tag-from-usage ctx usage expr)]
-                            (assoc r
-                                   :row (:row usage)
-                                   :col (:col usage)
-                                   :end-row (:end-row usage)
-                                   :end-col (:end-col usage))))))
+                            {:tag (or (:tag r) r)
+                             :row (:row usage)
+                             :col (:col usage)
+                             :end-row (:end-row usage)
+                             :end-col (:end-col usage)}))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [ca (called-arity arities arity)]

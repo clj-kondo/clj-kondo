@@ -1441,10 +1441,7 @@
                (not (linter-disabled? ctx :constant-condition))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
-      (let [entry (some-> @arg-types (nth pos))
-            ;; a call entry keeps its :call marker at the top level rather
-            ;; than under :tag, see types/add-arg-type-from-call
-            tag (or (:tag entry) entry)]
+      (let [tag (some-> @arg-types (nth pos) :tag)]
         (case (types/constant-verdict tag nil-test?)
           :always-false (findings/reg-finding! ctx (node->line (:filename ctx)
                                                                condition
@@ -1906,7 +1903,11 @@
                                            (str "Var has earmuffed name but is not declared dynamic: " var-name-str)))))
     (when var-name
       (let [type (when-not dynamic?
-                   (some-> (:arg-types ctx) deref first :tag))]
+                   (let [t (some-> (:arg-types ctx) deref first :tag)]
+                     ;; a def'd var does not take a deferred marker type: its
+                     ;; value can change via alter-var-root, see mask-var-usages
+                     (when-not (and (map? t) (or (:call t) (:usage t)))
+                       t)))]
         (namespace/reg-var! ctx (-> ctx :ns :name)
                             var-name
                             expr
