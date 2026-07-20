@@ -61,7 +61,7 @@ To use clj-kondo from other Clojure programs, use the API in
 
 ``` clojure
 $ clj
-Clojure 1.10.0
+Clojure 1.11.4
 user=> (require '[clj-kondo.core :as clj-kondo])
 nil
 user=> (-> (clj-kondo/run! {:lint ["corpus"]}) :summary)

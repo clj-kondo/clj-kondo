@@ -49,6 +49,50 @@
   ;; RestFn for > 20 args, allocating an args seq per usage.
   `(new clj_kondo.impl.utils.VarUsage ~@(map #(clojure.core/get m %) var-usage-basis)))
 
+(defrecord Binding
+    [name filename row col end-row end-col tag auto-resolved required
+     keyword id str scope-end-row scope-end-col derived-location])
+
+(def ^:private binding-basis
+  (map clojure.core/keyword (Binding/getBasis)))
+
+(def ^:private meta-shielded-binding-fields
+  ;; user metadata must not overwrite the record's own fields, e.g.
+  ;; ^{:name "hacked" :filename "evil.clj"}. :derived-location is the
+  ;; exception, hook postprocessing legitimately sets it in meta
+  (remove #{:derived-location} binding-basis))
+
+(defn merge-binding-meta
+  "Merges meta keys beyond a Binding's own fields into binding `v`:
+  :user-meta, :clj-kondo/skip-reg-binding or the generated flag ride along.
+  Meta that is exactly the four positions has nothing to add."
+  [v m]
+  (if (and (= 4 (count m)) (:row m))
+    v
+    (merge v (apply dissoc m meta-shielded-binding-fields))))
+
+(defmacro binding-rec
+  "Builds a Binding record positionally at compile time, avoiding an
+  intermediate hash map per binding. Each field comes from the literal
+  `overrides` map when present, else it is copied from source map expr
+  `m`, absent keys giving nil fields, and meta keys beyond the fields are
+  merged in via merge-binding-meta. Override keys must be literal keywords
+  naming Binding fields."
+  [m overrides]
+  (assert (map? overrides) "binding-rec expects a literal overrides map")
+  (let [unknown (remove (set binding-basis) (keys overrides))]
+    (assert (empty? unknown) (str "Unknown Binding keys: " (vec unknown))))
+  (let [msym (gensym "m")]
+    `(let [~msym ~m]
+       (merge-binding-meta
+        (new clj_kondo.impl.utils.Binding
+             ~@(map (fn [k]
+                      (if (contains? overrides k)
+                        (clojure.core/get overrides k)
+                        `(clojure.core/get ~msym ~k)))
+                    binding-basis))
+        ~msym))))
+
 (let [not-found (Object.)]
   (defn select-keys
     "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys
@@ -237,7 +281,13 @@
                                    (recur (conj acc processed) (next children)))
                                  (recur acc (next children)))
                                (contains? (:clj-kondo/uneval node-meta) lang)
-                               (recur acc (drop 2 children))
+                               (do (common/reg-finding!
+                                    ctx (assoc (node->line (:filename ctx) node :syntax
+                                                           (if (second children)
+                                                             "#_ with unmatched reader conditional discards the next form"
+                                                             "#_ with unmatched reader conditional discards the closing delimiter"))
+                                               :level (if (second children) :warning :error)))
+                                   (recur acc (drop 2 children)))
                                :else
                                (recur acc (next children))))
                            acc))]
