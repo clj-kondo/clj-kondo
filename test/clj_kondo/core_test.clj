@@ -155,7 +155,7 @@
               (clj-kondo/run!
                {:lint ["-"]
                 :config {:linters {:missing-else-branch {:level :warning}
-                                   :invariant-test {:level :off}}}
+                                   :constant-test {:level :off}}}
                 :repro true}))
         findings (:findings res)
         first-and-only-finding (first findings)]

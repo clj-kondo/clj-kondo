@@ -1,11 +1,11 @@
-(ns clj-kondo.invariant-test-test
+(ns clj-kondo.constant-test-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (def config
   {:linters {:type-mismatch {:level :error}
-             :invariant-test {:level :warning}}})
+             :constant-test {:level :warning}}})
 
 (deftest condition-always-true-test
   (assert-submaps2
@@ -302,7 +302,7 @@
        :level :warning,
        :message "Test always true"}]
      (lint! "(require '[cljs.test :refer [is]]) (is inc)"
-            {:linters {:invariant-test {:level :warning}}
+            {:linters {:constant-test {:level :warning}}
              :lang :cljs}))))
 
 (deftest condition-always-false-test
@@ -345,7 +345,7 @@
 
 (deftest inferred-return-type-test
   (let [config {:linters {:type-mismatch {:level :error}
-                          :invariant-test {:level :warning}}}]
+                          :constant-test {:level :warning}}}]
     (testing "the return type of a var is resolved after every namespace is analyzed"
       (assert-submaps2
        '({:row 1 :col 43 :message "Test always false"})

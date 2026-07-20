@@ -124,7 +124,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
-    - [Invariant test](#invariant-test)
+    - [Constant test](#constant-test)
     - [Unused import](#unused-import)
     - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
@@ -2323,9 +2323,9 @@ This will exclude all bindings starting with `_x`.
 
 *Config:* use `:exclude [:s]` to suppress the above warning.
 
-### Invariant test
+### Constant test
 
-*Keyword:* `:invariant-test`.
+*Keyword:* `:constant-test`.
 
 *Description:* warn on a test whose outcome is the same on every run. The value
 of such a test can vary, its truthiness cannot:

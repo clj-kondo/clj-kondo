@@ -1748,7 +1748,7 @@ foo/foo ;; this does use the private var
     (is (empty? (lint! "(comment (def x 1) (def x 2))")))
     (is (empty? (lint! "(comment (def x 1)) (def x 2)")))))
 
-(deftest invariant-test-test
+(deftest constant-test-test
   (assert-submaps
    '({:file "<stdin>",
       :row 1,
@@ -1756,7 +1756,7 @@ foo/foo ;; this does use the private var
       :level :warning,
       :message "unreachable code"})
    (lint! "(cond :else 1 (odd? 1) 2)"
-          {:linters {:invariant-test {:level :warning}}})))
+          {:linters {:constant-test {:level :warning}}})))
 
 (deftest dont-crash-analyzer-test
   (doseq [example ["(let)" "(if-let)" "(when-let)" "(loop)" "(doseq)"]

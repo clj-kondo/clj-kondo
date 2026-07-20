@@ -1413,11 +1413,11 @@
        ctx
        (node->line (:filename ctx) expr :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
-(defn invariant-test-linter
+(defn constant-test-linter
   [ctx expr]
   (findings/reg-finding! ctx (node->line (:filename ctx)
                                          expr
-                                         :invariant-test
+                                         :constant-test
                                          "Test always true")))
 
 (defn analyze-condition
@@ -1435,7 +1435,7 @@
         condition (assoc condition :condition (if lint? true :no-lint))
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
-               (not (linter-disabled? ctx :invariant-test))
+               (not (linter-disabled? ctx :constant-test))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
       (when-let [arg-type (some-> @arg-types
@@ -1445,12 +1445,12 @@
         (cond (identical? :nil arg-type)
               (findings/reg-finding! ctx (node->line (:filename ctx)
                                                      condition
-                                                     :invariant-test
+                                                     :constant-test
                                                      "Test always false"))
               (not (or (types/nilable? arg-type)
                        (types/match? arg-type :nil)
                        (types/match? arg-type :boolean)))
-              (invariant-test-linter ctx condition))))
+              (constant-test-linter ctx condition))))
     analyzed)))
 
 (defn analyze-conditional-let [ctx call expr lint-as?]
@@ -3065,7 +3065,7 @@
 
 (defn- analyze-var [ctx expr children]
   (when (true? (:condition expr))
-    (invariant-test-linter ctx expr))
+    (constant-test-linter ctx expr))
   (analyze-children (assoc ctx :private-access? true) children))
 
 (defn- analyze-locking [ctx expr]

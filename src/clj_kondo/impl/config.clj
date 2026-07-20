@@ -42,7 +42,7 @@
               :redefined-var {:level :warning}
               :redundant-declare {:level :warning}
               :var-same-name-except-case {:level :warning}
-              :invariant-test {:level :warning}
+              :constant-test {:level :warning}
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}
               :used-underscored-binding {:level :off}

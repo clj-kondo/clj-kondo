@@ -3453,7 +3453,7 @@
   :message "unused binding env",
   :row 1171}
  {:end-row 1228,
-  :type :invariant-test,
+  :type :constant-test,
   :level :warning,
   :lang :clj,
   :filename "cljs/compiler.cljc",
@@ -13454,7 +13454,7 @@
   :message "unused binding opts",
   :row 185}
  {:end-row 194,
-  :type :invariant-test,
+  :type :constant-test,
   :level :warning,
   :filename "cljs/repl/browser.clj",
   :col 15,
@@ -15643,7 +15643,7 @@
   :message "unused binding reader",
   :row 57}
  {:end-row 63,
-  :type :invariant-test,
+  :type :constant-test,
   :level :warning,
   :filename "cljs/tools/reader/reader_types.cljs",
   :col 15,
@@ -26996,7 +26996,7 @@
   :message "unused binding reader",
   :row 55}
  {:end-row 61,
-  :type :invariant-test,
+  :type :constant-test,
   :level :warning,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/reader_types.cljs",

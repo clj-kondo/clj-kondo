@@ -63,8 +63,8 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
-- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:invariant-test` linter, on by default, for a test whose truthiness is the same on every run. It replaces `:condition-always-true` and `:unreachable-code`, which no longer exist as separate keys. E.g. `(if-let [xs (filter odd? coll)] ...)` will warn, since `filter` never returns nil, and `(when nil ...)` will warn with test always false. Literal `true`/`false` tests stay exempt as dev toggles. This is a **BREAKING** change: configure `:invariant-test` instead.
-- `:invariant-test`: a test that calls a var resolves its return type after every namespace is analyzed, so tests calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-test` linter, on by default, for a test whose truthiness is the same on every run. It replaces `:condition-always-true` and `:unreachable-code`, which no longer exist as separate keys. E.g. `(if-let [xs (filter odd? coll)] ...)` will warn, since `filter` never returns nil, and `(when nil ...)` will warn with test always false. Literal `true`/`false` tests stay exempt as dev toggles. This is a **BREAKING** change: configure `:constant-test` instead.
+- `:constant-test`: a test that calls a var resolves its return type after every namespace is analyzed, so tests calling your own functions are checked too. E.g. `(defn ts [x] (keep :t x)) (if-let [t (ts x)] ...)` will warn.
 - Type checker: `re-matches` and the matcher arity of `re-find` return nil when there is no match. E.g. `(inc (re-matches #"x" s))` will warn with received: string or vector or nil.
 - Type checker: `class` returns nil for nil. E.g. `(inc (class x))` will warn with received: class or nil.
 - Type checker: an `if` without an else branch returns nil, so its type is a union with nil. E.g. `(defn f [x] (if x {:a 1})) (subs (f 1) 1)` will warn with received: map or nil.
