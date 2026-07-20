@@ -9,7 +9,9 @@
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
  :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
            :clj-kondo/dev
-           {:main-opts ["-m" "clj-kondo.main"]
+           ;; :paths so a user level alias of the same name cannot replace them
+           {:paths ["src" "parser" "resources" "inlined"]
+            :main-opts ["-m" "clj-kondo.main"]
             :extra-deps
             {org.clojure/clojure {:mvn/version "1.11.4"}}
             :jvm-opts ["-Dclojure.main.report=stderr"]}
