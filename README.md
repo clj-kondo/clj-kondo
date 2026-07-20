@@ -197,6 +197,18 @@ warning, error.  The default level if unspecified is warning.
 --report-level <level>: minimum severity for which to report.  Supported values:
 info, warning, error.  The default level if unspecified is info.
 
+--suppressions-location <path>: path to the baseline suppressions file or
+directory. Defaults to .clj-kondo/suppressions.edn.
+
+--suppress-all: generate baseline suppressions for all current error findings.
+
+--suppress-rule <linter>: generate baseline suppressions for error findings from
+the given linter. May be repeated to suppress multiple linters.
+
+--prune-suppressions: remove baseline suppressions that no longer match findings.
+
+--pass-on-unpruned-suppressions: ignore unused suppressions.
+
 --debug: print debug information.
 ```
 
@@ -276,6 +288,8 @@ your `.gitignore` to ignore all `.cache` dirs, including the one under
 `./.clj-kondo`. Adjust accordingly if you are using a different `--cache-dir`.
 
 ## [Configuration](doc/config.md)
+
+## [Baseline suppressions](doc/suppressions.md)
 
 ## [Editor integration](doc/editor-integration.md)
 

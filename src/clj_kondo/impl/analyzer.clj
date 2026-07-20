@@ -4003,9 +4003,12 @@
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
-  [{:keys [config file-analyzed-fn total-files files] :as ctx} filename uri input lang dev?]
+  [{:keys [config file-analyzed-fn total-files files analyzed-files] :as ctx}
+   filename uri input lang dev?]
   (when (:debug ctx)
     (utils/stderr "[clj-kondo] Linting file:" filename))
+  (when analyzed-files
+    (swap! analyzed-files conj filename))
   (let [ctx (assoc ctx :filename filename)
         reader-exceptions (atom [])]
     (binding [utils/*ctx* ctx

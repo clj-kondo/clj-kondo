@@ -60,6 +60,18 @@ Options:
   --report-level <level>: minimum severity for which to report.  Supported values:
     info, warning, error.  The default level if unspecified is info.
 
+  --suppressions-location <file>: path to the baseline suppressions file. Defaults
+    to .clj-kondo/suppressions.edn.
+
+  --suppress-all: generate baseline suppressions for all current error findings.
+
+  --suppress-rule <linter>: generate baseline suppressions for error findings
+    from the given linter. May be repeated to suppress multiple linters.
+
+  --prune-suppressions: remove baseline suppressions that no longer match findings.
+
+  --pass-on-unpruned-suppressions: ignore unused suppressions.
+
   --repro: ignore home dir configuration
 
   --debug: print debug information.
@@ -85,6 +97,11 @@ Options:
     "--skip-lint"    :scalar
     "--fail-level"   :scalar
     "--report-level" :scalar
+    "--suppressions-location" :scalar
+    "--suppress-all" :scalar
+    "--suppress-rule" :coll
+    "--prune-suppressions" :scalar
+    "--pass-on-unpruned-suppressions" :scalar
     "--debug"        :scalar
     "--repro"        :scalar
     :scalar))
@@ -139,16 +156,39 @@ Options:
                      "warning")
      :report-level (or (last (get opts "--report-level"))
                        "info")
+     :suppressions-location (last (get opts "--suppressions-location"))
+     :apply-suppressions true
+     :manage-suppressions true
+     :suppress-all (contains? opts "--suppress-all")
+     :suppress-rules (mapv keyword (get opts "--suppress-rule"))
+     :prune-suppressions (contains? opts "--prune-suppressions")
+     :pass-on-unpruned-suppressions
+     (contains? opts "--pass-on-unpruned-suppressions")
      :debug (contains? opts "--debug")
      :repro (contains? opts "--repro")}))
 
 (def fail-level? #{"warning" "error"})
 (def report-level? (conj fail-level? "info"))
 
+(defn- suppression-options-error [{:keys [suppress-all suppress-rules prune-suppressions]}]
+  (cond
+    (and suppress-all (seq suppress-rules))
+    "The --suppress-all and --suppress-rule options cannot be used together."
+
+    (and prune-suppressions
+         (or suppress-all (seq suppress-rules)))
+    "The --prune-suppressions option cannot be used while generating suppressions."))
+
+(defn- print-option-error [message]
+  (binding [*out* *err*]
+    (println message))
+  2)
+
 (defn main
   [& options]
   (let [{:keys [help lint version pod dependencies fail-level report-level] :as parsed}
-        (parse-opts options)]
+        (parse-opts options)
+        suppression-error (suppression-options-error parsed)]
     (or (cond version
               (print-version)
               help
@@ -160,12 +200,22 @@ Options:
               (print-help)
               (not (report-level? report-level))
               (print-help)
-              :else (let [{:keys [summary]
+              suppression-error
+              (print-option-error suppression-error)
+              :else (let [{:keys [summary unused-suppressions]
                            :as results} (clj-kondo/run! parsed)
                           {:keys [error warning]} summary]
                       (when-not dependencies
                         (clj-kondo/print! (assoc results :report-level report-level)))
                       (cond
+                        (and (seq unused-suppressions)
+                             (not (:pass-on-unpruned-suppressions parsed)))
+                        (print-option-error
+                         (str "There are suppressions left that do not occur anymore. "
+                              "Re-run with --prune-suppressions to remove unused "
+                              "suppressions, or use --pass-on-unpruned-suppressions "
+                              "to ignore them."))
+
                         (= "warning" fail-level)
                         (cond (pos? error) 3
                               (pos? warning) 2
