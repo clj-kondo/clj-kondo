@@ -268,7 +268,7 @@
                                  (assoc (utils/location call)
                                         :type :redundant-primitive-coercion
                                         :message (str "Redundant " (:name called-fn)
-                                                      " coercion - expression already has type "
+                                                      " coercion: expression already has type "
                                                       (name expected-type))))))
       (when (and
              (= '= (:name called-fn))

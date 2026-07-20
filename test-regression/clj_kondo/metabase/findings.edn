@@ -35,7 +35,7 @@
   :end-col 40,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 410}
  {:end-row 998,
   :type :redundant-format,
@@ -500,7 +500,7 @@
   :end-col 33,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 212}
  {:end-row 251,
   :type :redundant-primitive-coercion,
@@ -511,7 +511,7 @@
   :end-col 33,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 247}
  {:end-row 113,
   :type :redundant-primitive-coercion,
@@ -522,7 +522,7 @@
   :end-col 53,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 113}
  {:end-row 2,
   :type :unused-excluded-var,
@@ -717,7 +717,7 @@
   :end-col 75,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 20}
  {:end-row 565,
   :type :redundant-let-binding,
@@ -738,7 +738,7 @@
   :end-col 82,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 119}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
@@ -1006,7 +1006,7 @@
   :end-col 75,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 1409}
  {:end-row 137,
   :type :redundant-let-binding,
@@ -1710,7 +1710,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 2032}
  {:end-row 96,
   :type :constant-condition,

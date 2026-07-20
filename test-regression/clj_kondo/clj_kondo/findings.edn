@@ -2361,7 +2361,7 @@
   :end-col 54,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 299}
  {:end-row 315,
   :type :unused-binding,

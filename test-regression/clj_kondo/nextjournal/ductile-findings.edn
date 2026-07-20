@@ -337,7 +337,7 @@
   :end-col 60,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 123}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",

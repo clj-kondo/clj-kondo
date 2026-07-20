@@ -57,7 +57,7 @@
   :end-col 55,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 276}
  {:type :aliased-referred-var,
   :level :info,

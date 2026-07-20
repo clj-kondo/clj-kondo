@@ -1899,7 +1899,7 @@ primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, 
 (float (bar))
 ```
 
-*Example message:* `Redundant double coercion - expression already has type double`.
+*Example message:* `Redundant double coercion: expression already has type double`.
 
 *Note:* This linter relies on type information from the `:type-mismatch` linter.
 If `:type-mismatch` is disabled, type tracking will not be available and the linter
