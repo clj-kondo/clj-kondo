@@ -33,11 +33,11 @@
   (str (fs/parent (out {:dir (str dir)}
                        "git" "rev-parse" "--path-format=absolute" "--git-common-dir"))))
 
-(defn- sandbox-name [project-root]
-  (str (fs/file-name project-root) "-repl"))
-
 (defn- sandbox-exists? [nm]
   (contains? (set (str/split-lines (out "sbx" "ls" "-q"))) nm))
+
+(defn- sandbox-name [project-root]
+  (str (fs/file-name project-root) "-repl"))
 
 (defn- live-ports
   "Ports of nREPLs actually running inside the sandbox. A published port still
@@ -96,9 +96,15 @@
         nm (sandbox-name proot)]
     (when-not (sandbox-exists? nm)
       (println "creating sandbox" nm "for" proot)
-      (p/shell "sbx" "create" "shell" "--name" nm
+      ;; sbx create can report a non zero exit while the sandbox is there, so
+      ;; let the listing decide whether it worked
+      (p/shell {:continue true}
+               "sbx" "create" "shell" "--name" nm
                "--kit" (str (fs/file proot ".sbx"))
-               proot (str (fs/file (fs/home) ".m2"))))
+               proot (str (fs/file (fs/home) ".m2")))
+      (when-not (sandbox-exists? nm)
+        (println "could not create sandbox" nm)
+        (System/exit 1)))
     (prune-ports! nm)
     (if-let [up (running-port nm root)]
       (do (println "repl already running for" root "on port" up)

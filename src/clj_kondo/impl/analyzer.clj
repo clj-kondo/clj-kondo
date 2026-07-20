@@ -1438,19 +1438,13 @@
                (not (linter-disabled? ctx :constant-condition))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
-      (when-let [arg-type (some-> @arg-types
-                                  (nth pos)
-                                  :tag
-                                  types/keyword)]
-        (cond (identical? :nil arg-type)
-              (findings/reg-finding! ctx (node->line (:filename ctx)
-                                                     condition
-                                                     :constant-condition
-                                                     "Condition always false"))
-              (not (or (types/nilable? arg-type)
-                       (types/match? arg-type :nil)
-                       (types/match? arg-type :boolean)))
-              (constant-condition-linter ctx condition))))
+      (case (types/constant-verdict (some-> @arg-types (nth pos) :tag))
+        :always-false (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                             condition
+                                                             :constant-condition
+                                                             "Condition always false"))
+        :always-true (constant-condition-linter ctx condition)
+        nil))
     analyzed)))
 
 (defn analyze-conditional-let [ctx call expr lint-as?]

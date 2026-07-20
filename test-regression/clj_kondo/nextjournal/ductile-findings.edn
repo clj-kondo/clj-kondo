@@ -255,6 +255,16 @@
   :langs (:clj),
   :message "Redundant ignore",
   :row 21}
+ {:end-row 487,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/service_list.cljs",
+  :col 19,
+  :end-col 54,
+  :langs (),
+  :message "Condition always true",
+  :row 487}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
   :row 1350,
