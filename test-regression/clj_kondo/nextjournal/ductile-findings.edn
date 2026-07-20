@@ -115,27 +115,27 @@
   :message "#'io.pedestal.test/response-for is deprecated since 0.8.0",
   :row 12}
  {:end-row 181,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/as400/mappers.clj",
   :col 57,
   :end-col 60,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 181}
  {:end-row 269,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/as400/mappers.clj",
   :col 57,
   :end-col 60,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 269}
  {:end-row 222,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :lang :clj,
   :filename
@@ -144,57 +144,57 @@
   :end-col 13,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Condition always true",
+  :message "Test always true",
   :row 222}
  {:end-row 5380,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/billing.clj",
   :col 34,
   :end-col 97,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 5380}
  {:end-row 6367,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/billing.clj",
   :col 34,
   :end-col 126,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 6367}
  {:end-row 1852,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
   :col 21,
   :end-col 32,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 1852}
  {:end-row 1907,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
   :col 21,
   :end-col 32,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 1907}
  {:end-row 657,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/edi/kia.clj",
   :col 30,
   :end-col 91,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 657}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/elog/tx_import.clj",
@@ -223,24 +223,24 @@
   :level :info,
   :langs ()}
  {:end-row 209,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/locations.clj",
   :col 7,
   :end-col 27,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 209}
  {:end-row 261,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/src/ductile/ui/components/table.cljs",
   :col 29,
   :end-col 33,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 261}
  {:end-row 21,
   :type :redundant-ignore,
@@ -313,24 +313,24 @@
   :level :info,
   :langs ()}
  {:end-row 309,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/integration/bmw_eurolog_test.clj",
   :col 11,
   :end-col 61,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 309}
  {:end-row 324,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/integration/bmw_eurolog_test.clj",
   :col 11,
   :end-col 55,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 324}
  {:end-row 19,
   :type :is-message-not-string,
@@ -343,14 +343,14 @@
   :message "Test assertion message should be a string",
   :row 19}
  {:end-row 23,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/integration/cron_test.clj",
   :col 9,
   :end-col 54,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 23}
  {:filename
   "test-regression/checkouts/ductile/test/integration/edi_test.clj",
@@ -401,84 +401,84 @@
   :level :info,
   :langs ()}
  {:end-row 19,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/integration/vehicle_search_test.clj",
   :col 9,
   :end-col 13,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 19}
  {:end-row 806,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/integration/workflow_test.clj",
   :col 11,
   :end-col 25,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 806}
  {:end-row 50,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
   :col 13,
   :end-col 64,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 50}
  {:end-row 52,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
   :col 13,
   :end-col 64,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 52}
  {:end-row 58,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
   :col 13,
   :end-col 71,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 57}
  {:end-row 59,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
   :col 13,
   :end-col 67,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 59}
  {:end-row 124,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
   :col 7,
   :end-col 14,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 124}
  {:end-row 125,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
   :col 7,
   :end-col 14,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 125}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
@@ -532,34 +532,34 @@
   :message "Test assertion message should be a string",
   :row 38}
  {:end-row 710,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
   :col 9,
   :end-col 29,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 710}
  {:end-row 714,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
   :col 9,
   :end-col 24,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 714}
  {:end-row 718,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
   :col 9,
   :end-col 43,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 718}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
@@ -579,14 +579,14 @@
   :level :info,
   :langs ()}
  {:end-row 2221,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
   :col 9,
   :end-col 20,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 2221}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
@@ -616,14 +616,14 @@
   :level :info,
   :langs ()}
  {:end-row 4729,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
   :col 9,
   :end-col 43,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 4729}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",

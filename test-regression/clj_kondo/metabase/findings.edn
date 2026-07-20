@@ -37,14 +37,14 @@
   :message "Format string contains no format specifiers",
   :row 998}
  {:end-row 43,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/app_db/update_h2.clj",
   :col 19,
   :end-col 57,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 43}
  {:end-row 207,
   :type :type-mismatch,
@@ -632,7 +632,7 @@
   :message "Unused excluded var: number?",
   :row 3}
  {:end-row 708,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :lang :clj,
   :filename
@@ -641,7 +641,7 @@
   :end-col 79,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Condition always true",
+  :message "Test always true",
   :row 707}
  {:end-row 2,
   :type :unused-excluded-var,
@@ -705,14 +705,14 @@
   :message "Expected: number, received: nil.",
   :row 214}
  {:end-row 219,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
   :col 24,
   :end-col 43,
   :langs (),
-  :message "Condition always false",
+  :message "Test always false",
   :row 219}
  {:end-row 220,
   :type :type-mismatch,
@@ -785,14 +785,14 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 328}
  {:end-row 266,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/queries/api/card.clj",
   :col 20,
   :end-col 31,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 266}
  {:end-row 79,
   :type :redundant-let-binding,
@@ -1014,14 +1014,14 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 31}
  {:end-row 211,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
   :col 30,
   :end-col 41,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 211}
  {:end-row 223,
   :type :redundant-format,
@@ -1121,24 +1121,24 @@
   :message "Redundant let binding: dir",
   :row 76}
  {:end-row 131,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/warehouse_schema/api/field.clj",
   :col 44,
   :end-col 71,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 131}
  {:end-row 46,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/warehouse_schema/models/field.clj",
   :col 18,
   :end-col 29,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 46}
  {:end-row 2,
   :type :unused-excluded-var,
@@ -1151,14 +1151,14 @@
   :message "Unused excluded var: defn",
   :row 2}
  {:end-row 7,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/mage/start_db_test.clj",
   :col 9,
   :end-col 30,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 7}
  {:end-row 487,
   :type :redundant-format,
@@ -1221,54 +1221,54 @@
   :message "Unresolved symbol: partial=",
   :row 99}
  {:end-row 442,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
   :col 15,
   :end-col 21,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 442}
  {:end-row 446,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
   :col 15,
   :end-col 20,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 446}
  {:end-row 451,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
   :col 15,
   :end-col 21,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 451}
  {:end-row 455,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
   :col 15,
   :end-col 20,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 455}
  {:end-row 460,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
   :col 13,
   :end-col 19,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 460}
  {:end-row 64,
   :type :unresolved-symbol,
@@ -1301,14 +1301,14 @@
   :message "Unresolved symbol: partial=",
   :row 38}
  {:end-row 17,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/app_db/internal_user_test.clj",
   :col 11,
   :end-col 25,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 17}
  {:end-row 100,
   :type :unresolved-symbol,
@@ -1511,14 +1511,14 @@
   :message "Unresolved symbol: partial=",
   :row 82}
  {:end-row 93,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/driver/impl_test.clj",
   :col 22,
   :end-col 77,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 93}
  {:end-row 99,
   :type :equals-expected-position,
@@ -1531,14 +1531,14 @@
   :message "Write expected value first",
   :row 99}
  {:end-row 132,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
   :col 17,
   :end-col 22,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 132}
  {:end-row 153,
   :type :equals-expected-position,
@@ -1591,14 +1591,14 @@
   :message "Unresolved symbol: re=",
   :row 177}
  {:end-row 185,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/embedding/api/embed_test.clj",
   :col 11,
   :end-col 58,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 184}
  {:end-row 45,
   :type :unresolved-symbol,
@@ -1611,14 +1611,14 @@
   :message "Unresolved symbol: partial=",
   :row 45}
  {:end-row 59,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/events/recent_views_test.clj",
   :col 11,
   :end-col 80,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 55}
  {:end-row 823,
   :type :is-message-not-string,
@@ -1646,7 +1646,7 @@
   "Redundant boolean coercion - expression already has type boolean",
   :row 2032}
  {:end-row 96,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :lang :clj,
   :filename
@@ -1655,7 +1655,7 @@
   :end-col 34,
   :cljc true,
   :langs (:clj :cljs),
-  :message "Condition always true",
+  :message "Test always true",
   :row 96}
  {:end-row 165,
   :type :unresolved-symbol,
@@ -2077,14 +2077,14 @@
   :message "Missing protocol method(s): to-job-data",
   :row 171}
  {:end-row 497,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/task_history/api_test.clj",
   :col 15,
   :end-col 34,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 497}
  {:end-row 123,
   :type :redundant-format,
@@ -2127,14 +2127,14 @@
   :message "Unresolved symbol: re=",
   :row 54}
  {:end-row 41,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
   :col 7,
   :end-col 9,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 41}
  {:end-row 41,
   :type :is-message-not-string,
@@ -2147,14 +2147,14 @@
   :message "Test assertion message should be a string",
   :row 41}
  {:end-row 42,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
   :col 7,
   :end-col 9,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 42}
  {:end-row 42,
   :type :is-message-not-string,

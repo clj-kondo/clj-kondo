@@ -22,7 +22,7 @@
               :if-nil-return {:level :off}
               :aliased-referred-var {:level :off}
               ;; athens has a genuine always-true condition in node_page.cljs
-              :unreachable-code {:level :off}}
+              :invariant-test {:level :off}}
     :lint-as {day8.re-frame.tracing/fn-traced   clojure.core/fn
               day8.re-frame.tracing/defn-traced clojure.core/defn
               reagent.core/with-let             clojure.core/let

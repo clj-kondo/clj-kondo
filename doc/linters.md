@@ -46,7 +46,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
-    - [Quoted case test constant](#quoted-case-test-constant)
     - [Equals expected position](#equals-expected-position)
     - [Equals float](#equals-float)
     - [Equals false](#equals-false)
@@ -125,7 +124,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
-    - [Unreachable code](#unreachable-code)
+    - [Invariant test](#invariant-test)
     - [Unused import](#unused-import)
     - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
@@ -871,18 +870,6 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(def *foo*)`
 
 *Example message:* `"Var has earmuffed name but is not declared dynamic: *foo*"`
-
-### Quoted case test constant
-
-*Keyword:* `:quoted-case-test-constant`.
-
-*Description:* warn when encountering quoted test case constants.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(case x 'a 1 :b 2)`
-
-*Example message:* `Case test is compile time constant and should not be quoted.`
 
 ### Equals expected position
 
@@ -2336,38 +2323,43 @@ This will exclude all bindings starting with `_x`.
 
 *Config:* use `:exclude [:s]` to suppress the above warning.
 
-### Unreachable code
+### Invariant test
 
-*Keyword:* `:unreachable-code`.
+*Keyword:* `:invariant-test`.
 
-*Description:* warn on code that can never run:
+*Description:* warn on a test whose outcome is the same on every run. The value
+of such a test can vary, its truthiness cannot:
 
-- `cond` clauses after a catch-all test
+- a test that is always truthy, like a function that is passed instead of
+  called, or a lazy seq, which is truthy even when empty. Use `seq` to test a
+  collection for emptiness
+- a test that is always falsy, like `nil`
+- a `cond` clause after a catch-all test
 - a `:default` reader conditional branch that is not last
-- a condition that always evaluates truthy, like a function that is passed
-  instead of called, or a lazy seq, which is truthy even when empty. Use `seq`
-  to test a collection for emptiness
-- a condition that always evaluates falsy, like `nil`
+
+The consequence differs per form. `(if odd? 1 2)` never reaches its else
+branch, while `(when (filter odd? xs) ..)` always runs its body and `(is 42)`
+always passes.
 
 Literal `true` and `false`, also through a var or local, are not checked, since
 these are often dev/production toggles. The keyword `:always` is exempt as an
-intentional always-truthy condition in `cond->`.
+intentional always-truthy test in `cond->`.
 
-Replaces the `:condition-always-true` linter.
+Replaces the `:condition-always-true` and `:unreachable-code` linters.
 
 *Default level:* `:warning`.
 
 *Example triggers*:
 
-- `(cond :else 1 (odd? 1) 2)`
 - `(if odd? :odd :even)`
 - `(when nil 1)`
+- `(cond :else 1 (odd? 1) 2)`
 
 *Example messages*:
 
+- `Test always true`
+- `Test always false`
 - `unreachable code`
-- `Condition always true`
-- `Condition always false`
 
 ### Unused import
 

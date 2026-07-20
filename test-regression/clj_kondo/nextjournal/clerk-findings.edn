@@ -69,14 +69,14 @@
   :message "Redundant declare: present+reset!",
   :row 219}
  {:end-row 10,
-  :type :unreachable-code,
+  :type :invariant-test,
   :level :warning,
   :filename
   "test-regression/checkouts/clerk/test/nextjournal/clerk/render/hashing_test.clj",
   :col 11,
   :end-col 35,
   :langs (),
-  :message "Condition always true",
+  :message "Test always true",
   :row 10}
  {:end-row 67,
   :type :redundant-fn-wrapper,

@@ -1413,12 +1413,12 @@
        ctx
        (node->line (:filename ctx) expr :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
-(defn condition-always-true-linter
+(defn invariant-test-linter
   [ctx expr]
   (findings/reg-finding! ctx (node->line (:filename ctx)
                                          expr
-                                         :unreachable-code
-                                         "Condition always true")))
+                                         :invariant-test
+                                         "Test always true")))
 
 (defn analyze-condition
   "Analyzes an expression in condition position. `lint?` false skips the
@@ -1435,7 +1435,7 @@
         condition (assoc condition :condition (if lint? true :no-lint))
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
-               (not (linter-disabled? ctx :unreachable-code))
+               (not (linter-disabled? ctx :invariant-test))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
       (when-let [arg-type (some-> @arg-types
@@ -1445,12 +1445,12 @@
         (cond (identical? :nil arg-type)
               (findings/reg-finding! ctx (node->line (:filename ctx)
                                                      condition
-                                                     :unreachable-code
-                                                     "Condition always false"))
+                                                     :invariant-test
+                                                     "Test always false"))
               (not (or (types/nilable? arg-type)
                        (types/match? arg-type :nil)
                        (types/match? arg-type :boolean)))
-              (condition-always-true-linter ctx condition))))
+              (invariant-test-linter ctx condition))))
     analyzed)))
 
 (defn analyze-conditional-let [ctx call expr lint-as?]
@@ -3065,7 +3065,7 @@
 
 (defn- analyze-var [ctx expr children]
   (when (true? (:condition expr))
-    (condition-always-true-linter ctx expr))
+    (invariant-test-linter ctx expr))
   (analyze-children (assoc ctx :private-access? true) children))
 
 (defn- analyze-locking [ctx expr]

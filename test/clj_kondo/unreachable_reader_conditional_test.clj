@@ -5,7 +5,7 @@
 (def ^:private msg "Unreachable code: default reader conditional branch should go last")
 
 (deftest unreachable-reader-conditional-test
-  (let [config {:linters {:unreachable-code {:level :warning}}}]
+  (let [config {:linters {:invariant-test {:level :warning}}}]
     (testing ":default not last"
       (assert-submaps2
        [{:row 1 :col 4 :message msg}]
@@ -23,5 +23,5 @@
 
       (testing "disabled linter"
         (is (empty? (lint! "#?(:default 1 :clj 2)"
-                           {:linters {:unreachable-code {:level :off}}}
+                           {:linters {:invariant-test {:level :off}}}
                            "--lang" "cljc")))))))

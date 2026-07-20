@@ -41,7 +41,7 @@
           (findings/reg-finding!
            ctx
            (node->line (:filename ctx) (first rest-conditions)
-                       :unreachable-code "unreachable code"))))
+                       :invariant-test "unreachable code"))))
       (recur rest-conditions))))
 
 #_(defn lint-cond-as-case! [filename expr conditions]
@@ -533,7 +533,7 @@
                                                                                                                             :fixed-arities fixed-arities
                                                                                                                             :arity arity} (:expr call))
       (when (and (true? (:condition call))
-                 (not (utils/linter-disabled? call :unreachable-code)))
+                 (not (utils/linter-disabled? call :invariant-test)))
         (if call?
           ;; a call to a var whose return type is only known once every
           ;; namespace is analyzed, see types/ret-tag-from-call
@@ -541,16 +541,16 @@
             (findings/reg-finding!
              ctx (-> call
                      utils/location
-                     (assoc :type :unreachable-code
+                     (assoc :type :invariant-test
                             :message (if (identical? :always-false verdict)
-                                       "Condition always false"
-                                       "Condition always true")))))
+                                       "Test always false"
+                                       "Test always true")))))
           (when (identical? :fn (:type called-fn))
             (findings/reg-finding!
              ctx (-> call
                      utils/location
-                     (assoc :type :unreachable-code
-                            :message "Condition always true"))))))
+                     (assoc :type :invariant-test
+                            :message "Test always true"))))))
       (when arity-error?
         (findings/reg-finding!
          ctx

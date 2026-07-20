@@ -1,20 +1,20 @@
-(ns clj-kondo.unreachable-code-test
+(ns clj-kondo.invariant-test-test
   (:require
    [clj-kondo.test-utils :refer [lint! assert-submaps2]]
    [clojure.test :as t :refer [deftest is testing]]))
 
 (def config
   {:linters {:type-mismatch {:level :error}
-             :unreachable-code {:level :warning}}})
+             :invariant-test {:level :warning}}})
 
 (deftest condition-always-true-test
   (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Condition always true"}
+   '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Test always true"}
      {:file "<stdin>",
       :row 1,
       :col 35,
       :level :warning,
-      :message "Condition always true"})
+      :message "Test always true"})
    (lint! "(defn foo [x] [(if inc x 2) (when inc 2)])"
           config))
   (is (empty?
@@ -26,7 +26,7 @@
      :row 1,
      :col 7,
      :level :warning,
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(when #'inc 2)"
           config))
   (assert-submaps2
@@ -34,7 +34,7 @@
      :row 1,
      :col 9,
      :level :warning,
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(if-not odd? 1 2)"
           config))
   (assert-submaps2
@@ -42,7 +42,7 @@
      :row 1,
      :col 12,
      :level :warning,
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(if-let [a odd?] 1 2)"
           config)))
 
@@ -80,21 +80,21 @@
      :row 1
      :col 5
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(if :a 1 2)" config))
   (assert-submaps2
    [{:file "<stdin>"
      :row 1
      :col 12
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(if-let [a :a] 1 2)" config))
   (assert-submaps2
    [{:file "<stdin>"
      :row 1
      :col 7
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(when :a 1)" config)))
 
 (deftest constants-test
@@ -103,12 +103,12 @@
      :row 3
      :col 16
      :level :warning
-     :message "Condition always true"}
+     :message "Test always true"}
     {:file "<stdin>"
      :row 4
      :col 16
      :level :warning
-     :message "Condition always false"}]
+     :message "Test always false"}]
    (lint! "(let [a 4 b nil]
              (cond-> {}
                a (assoc :a a)
@@ -147,7 +147,7 @@
      :row 1
      :col 12
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(cond-> {} :true (assoc :hello :goodbye))"
           config)))
 
@@ -158,7 +158,7 @@
        :row 1
        :col 5
        :level :warning
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(if (filter identity ()) 1 2)"
             config))
     (assert-submaps2
@@ -166,7 +166,7 @@
        :row 1
        :col 12
        :level :warning
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(if-let [a (take 5 ())] 1 2)"
             config))
     (assert-submaps2
@@ -174,7 +174,7 @@
        :row 1
        :col 7
        :level :warning
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(when (rest nil) 1)"
             config)))
   (testing "calling seq"
@@ -193,7 +193,7 @@
      :row 1
      :col 18
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(when-let [[a b] '(1 2 3)] a 2)"
           config)))
 
@@ -203,7 +203,7 @@
      :row 1
      :col 22
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(if-let [{:keys [a]} {:a :b}] a 2)"
           config))
   (assert-submaps2
@@ -211,7 +211,7 @@
      :row 1
      :col 18
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(when-let [[a b] '(1 2 3)] a 2)"
           config))
   (assert-submaps2
@@ -219,7 +219,7 @@
      :row 1
      :col 18
      :level :warning
-     :message "Condition always true"}]
+     :message "Test always true"}]
    (lint! "(when-let [[a b] [(foo) (bar)]] a 2)"
           config)))
 
@@ -239,7 +239,7 @@
        :row 1,
        :col 43,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[clojure.test :refer [is]]) (is 42)"
             config))
     (assert-submaps2
@@ -247,7 +247,7 @@
        :row 1,
        :col 43,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[clojure.test :refer [is]]) (is \"hello\")"
             config))
     (assert-submaps2
@@ -255,7 +255,7 @@
        :row 1,
        :col 43,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[clojure.test :refer [is]]) (is :keyword)"
             config)))
   (testing "functions"
@@ -264,7 +264,7 @@
        :row 1,
        :col 43,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[clojure.test :refer [is]]) (is inc)"
             config))
     (assert-submaps2
@@ -272,7 +272,7 @@
        :row 1,
        :col 43,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[clojure.test :refer [is]]) (is odd?)"
             config)))
   (testing "var"
@@ -281,7 +281,7 @@
        :row 1,
        :col 43,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[clojure.test :refer [is]]) (is #'inc)"
             config)))
   (testing "valid calls - no warnings"
@@ -300,9 +300,9 @@
        :row 1,
        :col 40,
        :level :warning,
-       :message "Condition always true"}]
+       :message "Test always true"}]
      (lint! "(require '[cljs.test :refer [is]]) (is inc)"
-            {:linters {:unreachable-code {:level :warning}}
+            {:linters {:invariant-test {:level :warning}}
              :lang :cljs}))))
 
 (deftest condition-always-false-test
@@ -312,14 +312,14 @@
        :row 1
        :col 7
        :level :warning
-       :message "Condition always false"}]
+       :message "Test always false"}]
      (lint! "(when nil 1)" config))
     (assert-submaps2
      [{:file "<stdin>"
        :row 1
        :col 5
        :level :warning
-       :message "Condition always false"}]
+       :message "Test always false"}]
      (lint! "(if nil 1 2)" config)))
   (testing "a key lookup that is provably nil"
     (assert-submaps2
@@ -327,14 +327,14 @@
        :row 1
        :col 7
        :level :warning
-       :message "Condition always false"}]
+       :message "Test always false"}]
      (lint! "(when (:k {}) 1)" config))
     (assert-submaps2
      [{:file "<stdin>"
        :row 1
        :col 24
        :level :warning
-       :message "Condition always false"}]
+       :message "Test always false"}]
      (lint! "(let [n (:k {})] (when n 1))" config)))
   (testing "false is exempt, an intentional dev toggle"
     (is (empty? (lint! "(when false 1)" config)))
@@ -345,23 +345,23 @@
 
 (deftest inferred-return-type-test
   (let [config {:linters {:type-mismatch {:level :error}
-                          :unreachable-code {:level :warning}}}]
+                          :invariant-test {:level :warning}}}]
     (testing "the return type of a var is resolved after every namespace is analyzed"
       (assert-submaps2
-       '({:row 1 :col 43 :message "Condition always false"})
+       '({:row 1 :col 43 :message "Test always false"})
        (lint! "(ns foo) (defn f [] nil) (defn g [] (when (f) 1))" config))
       (assert-submaps2
-       '({:row 1 :col 46 :message "Condition always true"})
+       '({:row 1 :col 46 :message "Test always true"})
        (lint! "(ns foo) (defn f [] {:a 1}) (defn g [] (when (f) 1))" config))
       (assert-submaps2
-       '({:row 1 :col 55 :message "Condition always true"})
+       '({:row 1 :col 55 :message "Test always true"})
        (lint! "(ns foo) (defn f [] (filter odd? [1])) (defn g [] (if (f) 1 2))" config)))
     (testing "a nilable or boolean return is fine"
       (is (empty? (lint! "(ns foo) (defn f [] (seq [])) (defn g [] (when (f) 1))" config)))
       (is (empty? (lint! "(ns foo) (defn f [] (odd? 1)) (defn g [] (when (f) 1))" config))))
     (testing "a built-in call reports once, not once per phase"
       (assert-submaps2
-       '({:row 1 :message "Condition always true"})
+       '({:row 1 :message "Test always true"})
        (lint! "(defn g [coll] (when (filter odd? coll) 1))" config)))
     (testing "a return type inferred from a built-in spec keeps its nil case"
       (is (empty? (lint! "(ns foo) (defn dt? [s] (re-matches #\"x\" s)) (defn g [s] (if (dt? s) 1 2))"
