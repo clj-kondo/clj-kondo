@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## Unreleased
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): NEW linter: `:constant-condition`: warn on a condition whose truthiness is the same on every run. On by default. Replaces `:condition-always-true` (**BREAKING**) and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
 - [#1882](https://github.com/clj-kondo/clj-kondo/issues/1882): built-in support for `clojure.test.check.clojure-test/defspec`
 - [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 
@@ -63,7 +64,6 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
-- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default. Replaces `:condition-always-true` (**BREAKING**) and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
 - Type checker: infer `and` and `or` return types. E.g. `(when (or x :default) ...)` will warn.
 - Type checker: the return types of `re-matches` and `re-find` are nilable.
 - Type checker: the return type of `class` is nilable, `(class nil)` returns nil.
