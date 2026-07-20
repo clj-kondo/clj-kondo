@@ -146,6 +146,16 @@
   :langs (:clj :cljs),
   :message "Condition always true",
   :row 222}
+ {:end-row 4895,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/billing.clj",
+  :col 9,
+  :end-col 25,
+  :langs (),
+  :message "Condition always true",
+  :row 4895}
  {:end-row 5380,
   :type :constant-condition,
   :level :warning,
@@ -166,6 +176,16 @@
   :langs (),
   :message "Condition always true",
   :row 6367}
+ {:end-row 782,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/carrier_billing.clj",
+  :col 15,
+  :end-col 31,
+  :langs (),
+  :message "Condition always true",
+  :row 782}
  {:end-row 1692,
   :type :constant-condition,
   :level :warning,
@@ -347,6 +367,16 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 43,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
+  :col 17,
+  :end-col 32,
+  :langs (),
+  :message "Condition always true",
+  :row 43}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
   :row 87,
@@ -355,6 +385,16 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 98,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message "Condition always true",
+  :row 98}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/engine.clj",
   :row 1010,
@@ -572,6 +612,16 @@
   "Var *insert-chunk-size* is referred but used via alias: pipeline",
   :level :info,
   :langs ()}
+ {:end-row 143,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/transport_test.clj",
+  :col 11,
+  :end-col 14,
+  :langs (),
+  :message "Condition always true",
+  :row 143}
  {:end-row 38,
   :type :is-message-not-string,
   :level :info,

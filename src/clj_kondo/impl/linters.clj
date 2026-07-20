@@ -373,6 +373,20 @@
 
 #_(require 'clojure.pprint)
 
+(defn lint-deferred-conditions!
+  "Judges conditions whose type contained unresolved calls while analyzing,
+  see analyzer/analyze-condition."
+  [ctx idacs]
+  (doseq [{:keys [ctx condition tag nil-test?]} @(:deferred-conditions ctx)]
+    (case (types/constant-verdict (tu/resolve-arg-type idacs tag) nil-test?)
+      :always-false (findings/reg-finding!
+                     ctx (node->line (:filename ctx) condition :constant-condition
+                                     "Condition always false"))
+      :always-true (findings/reg-finding!
+                    ctx (node->line (:filename ctx) condition :constant-condition
+                                    "Condition always true"))
+      nil)))
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -533,27 +547,16 @@
                                                                                                                             :fixed-arities fixed-arities
                                                                                                                             :arity arity} (:expr call))
       (when (and (utils/lint-condition? call)
-                 (not (utils/linter-disabled? call :constant-condition)))
+                 (not (utils/linter-disabled? call :constant-condition))
+                 (not call?)
+                 (identical? :fn (:type called-fn)))
         ;; the call's config knows namespace local levels, the phase ctx does not
-        (let [ctx (assoc ctx :config (:config call))]
-          (if call?
-            ;; a call to a var whose return type is only known once every
-            ;; namespace is analyzed, see types/ret-tag-from-call
-            (when-let [verdict (types/condition-verdict ctx called-fn call
-                                                       (utils/nil-test-condition? call))]
-              (findings/reg-finding!
-               ctx (-> call
-                       utils/location
-                       (assoc :type :constant-condition
-                              :message (if (identical? :always-false verdict)
-                                         "Condition always false"
-                                         "Condition always true")))))
-            (when (identical? :fn (:type called-fn))
-              (findings/reg-finding!
-               ctx (-> call
-                       utils/location
-                       (assoc :type :constant-condition
-                              :message "Condition always true")))))))
+        (findings/reg-finding!
+         (assoc ctx :config (:config call))
+         (-> call
+             utils/location
+             (assoc :type :constant-condition
+                    :message "Condition always true"))))
       (when arity-error?
         (findings/reg-finding!
          ctx

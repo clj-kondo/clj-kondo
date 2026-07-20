@@ -445,21 +445,6 @@
              (cond (every? takes-else? t) :always-false
                    (every? takes-then? t) :always-true))))))
 
-(defn condition-verdict
-  "For a call in condition position, returns :always-true or :always-false from
-  the analyzed return type of `called-fn`, else nil. A built-in or configured
-  spec resolves while analyzing and states nilability more precisely than an
-  inferred return type, so such a call is left to the analysis phase."
-  [ctx called-fn call nil-test?]
-  (let [called-ns (or (:ns called-fn) (:resolved-ns call))
-        called-name (or (:name called-fn) (:name call))]
-    (when-not (or (config/type-mismatch-config (:config ctx) called-ns called-name)
-                  (get-in built-in-specs [called-ns called-name]))
-      (constant-verdict (some-> (:arities called-fn)
-                                (called-arity (:arity call))
-                                :ret)
-                        nil-test?))))
-
 (defn ret-tag-from-call
   [ctx call _expr]
   ;; Note, we need to return maps here because we are adding row and col later on.

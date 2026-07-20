@@ -455,3 +455,34 @@
     (testing "a lint-as'ed conditional does not check its condition"
       (is (empty? (lint! "(ns foo) (defn t [] {:a 1}) (defmacro m [c b] c) (defn g [] (m (t) 1))"
                          (assoc config :lint-as '{foo/m clojure.core/if})))))))
+
+(deftest deferred-condition-test
+  (let [config {:linters {:type-mismatch {:level :error}
+                          :constant-condition {:level :warning}}}]
+    (testing "a local bound to a call resolves after every namespace is analyzed"
+      (assert-submaps2
+       '({:row 1 :col 70 :message "Condition always true"})
+       (lint! "(ns foo) (defn f [] (filter odd? [1])) (defn g [] (let [x (f)] (when x 1)))" config))
+      (assert-submaps2
+       '({:row 1 :col 56 :message "Condition always false"})
+       (lint! "(ns foo) (defn f [] nil) (defn g [] (let [x (f)] (when x 1)))" config)))
+    (testing "a call as the final argument of or"
+      (assert-submaps2
+       '({:row 1 :col 58 :message "Condition always true"})
+       (lint! "(ns foo) (defn f [] (filter odd? [1])) (defn g [x] (when (or x (f)) 1))" config)))
+    (testing "if-some on a call with a non-nil return"
+      (assert-submaps2
+       '({:row 1 :col 56 :message "Condition always true"})
+       (lint! "(ns foo) (defn f [] (vector 1)) (defn g [] (if-some [x (f)] x 1))" config)))
+    (testing "if-some on a call with a nilable return is fine"
+      (is (empty? (lint! "(ns foo) (defn f [x] (when x (vector 1))) (defn g [] (if-some [x (f 1)] x 1))"
+                         config))))
+    (testing "a var value is fine, its def tag misses set! and alter-var-root"
+      (is (empty? (lint! "(ns foo) (def x 1) (defn g [] (when x 1))" config)))
+      (is (empty? (lint! "(ns foo) (def x nil) (defn g [] (when x 1))" config)))
+      (is (empty? (lint! "(ns foo) (def ^:dynamic *x* nil) (defn g [] (when *x* 1))" config)))
+      (is (empty? (lint! "(ns foo) (defonce x nil) (defn g [] (when x 1))" config))))
+    (testing "a user call reports once, not once per phase"
+      (assert-submaps2
+       '({:row 1 :message "Condition always true"})
+       (lint! "(ns foo) (defn f [] (filter odd? [1])) (defn g [] (when (f) 1))" config)))))

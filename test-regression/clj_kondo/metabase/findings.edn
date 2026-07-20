@@ -1008,6 +1008,16 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 1409}
+ {:end-row 253,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/upload/impl.clj",
+  :col 7,
+  :end-col 22,
+  :langs (),
+  :message "Condition always true",
+  :row 253}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
@@ -1734,6 +1744,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 165}
+ {:end-row 93,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 29,
+  :end-col 44,
+  :langs (),
+  :message "Condition always true",
+  :row 93}
  {:end-row 72,
   :type :unresolved-symbol,
   :level :error,

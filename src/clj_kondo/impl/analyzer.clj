@@ -38,6 +38,7 @@
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions* *reader-features*]]
    [clj-kondo.impl.schema :as schema]
    [clj-kondo.impl.types :as types]
+   [clj-kondo.impl.types.utils :as types-utils]
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings linter-disabled? node->line
      one-of parse-string select-lang sexpr string-from-token symbol-call
@@ -1434,23 +1435,31 @@
         pos (-> ctx :arg-types deref count)
         ;; :condition also tells analyze-do / unused-value not to treat the test
         ;; as an implicit-do body, so it stays truthy when linting is skipped
-        ;; :nil-test tells the phase after analysis that this condition
-        ;; branches on nilness, see linters/lint-var-usage
-        condition (assoc condition :condition (cond (not lint?) :no-lint
-                                                    nil-test? :nil-test
-                                                    :else true))
+        condition (assoc condition :condition (if lint? true :no-lint))
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
                (not (linter-disabled? ctx :constant-condition))
                (not= :always (:k condition))
                (not (:clj-kondo.impl/generated condition)))
-      (case (types/constant-verdict (some-> @arg-types (nth pos) :tag) nil-test?)
-        :always-false (findings/reg-finding! ctx (node->line (:filename ctx)
-                                                             condition
-                                                             :constant-condition
-                                                             "Condition always false"))
-        :always-true (constant-condition-linter ctx condition)
-        nil))
+      (let [entry (some-> @arg-types (nth pos))
+            ;; a call entry keeps its :call marker at the top level rather
+            ;; than under :tag, see types/add-arg-type-from-call
+            tag (or (:tag entry) entry)]
+        (case (types/constant-verdict tag nil-test?)
+          :always-false (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                               condition
+                                                               :constant-condition
+                                                               "Condition always false"))
+          :always-true (constant-condition-linter ctx condition)
+          ;; a tag with unresolved calls in it gets a second chance once every
+          ;; namespace is analyzed, see linters/lint-deferred-conditions!. A
+          ;; var usage does not defer: its def tag misses set! and
+          ;; alter-var-root, as in (def x nil) guarded by (when-not x (set! x ..))
+          (when (and tag (not (:usage tag))
+                     (not (types-utils/resolved-type? tag)))
+            (when-let [deferred (:deferred-conditions ctx)]
+              (swap! deferred conj {:ctx ctx :condition condition
+                                    :tag tag :nil-test? nil-test?}))))))
     analyzed)))
 
 (defn analyze-conditional-let [ctx call expr lint-as?]
