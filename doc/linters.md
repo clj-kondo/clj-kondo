@@ -2348,7 +2348,7 @@ This linter replaces the `:condition-always-true` and `:unreachable-code` linter
 (when (filter odd? xs) 1) ;;=> Condition always true
 (when nil 1)              ;;=> Condition always false
 (is 42)                   ;;=> Condition always true
-(cond :else 1 (odd? 1) 2) ;;=> unreachable code
+(cond :else 1 (odd? 1) 2) ;;=> Unreachable code
 #?(:default 1 :clj 2)     ;;=> Unreachable code: default reader conditional branch should go last
 ```
 

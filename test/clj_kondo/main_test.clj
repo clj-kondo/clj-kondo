@@ -1754,7 +1754,7 @@ foo/foo ;; this does use the private var
       :row 1,
       :col 15,
       :level :warning,
-      :message "unreachable code"})
+      :message "Unreachable code"})
    (lint! "(cond :else 1 (odd? 1) 2)"
           {:linters {:constant-condition {:level :warning}}})))
 

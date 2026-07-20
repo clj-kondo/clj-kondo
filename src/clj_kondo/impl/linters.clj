@@ -41,7 +41,7 @@
           (findings/reg-finding!
            ctx
            (node->line (:filename ctx) (first rest-conditions)
-                       :constant-condition "unreachable code"))))
+                       :constant-condition "Unreachable code"))))
       (recur rest-conditions))))
 
 #_(defn lint-cond-as-case! [filename expr conditions]
