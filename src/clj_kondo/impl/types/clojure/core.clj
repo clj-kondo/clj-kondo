@@ -68,8 +68,11 @@
 (def clojure-core
   {;;; Special forms (https://clojure.org/reference/special_forms)
    ;; 'def
-   'if {:fn (fn [[_ then else]]
-              (tu/union-type then else))}
+   'if {:fn (fn [args]
+              ;; a missing else branch returns nil, which the arg count tells us
+              ;; apart from an else branch whose type we don't know
+              (let [[_ then else] args]
+                (tu/union-type then (if (< (count args) 3) :nil else))))}
    'do {:fn last}
    ;; 'let*
    'let {:fn last}
@@ -285,12 +288,18 @@
    'compare {:arities {2 {:ret :number}}}
    ;; 842 'and
    'and {:fn (fn [args]
-               (reduce tu/union-type :nil args))}
+               ;; and returns the first falsy arg or the last one. A non final
+               ;; arg contributes its falsy part, an always falsy one ends the
+               ;; fold
+               (if (empty? args)
+                 :true
+                 (tu/fold-logic args tu/always-falsy? tu/falsy-part)))}
    ;; 854 'or
    'or {:fn (fn [args]
+              ;; or returns the first truthy arg or the last one
               (if (empty? args)
                 :nil
-                (reduce tu/union-type #{} args)))}
+                (tu/fold-logic args tu/never-falsy? tu/truthy-part)))}
    ;; 867
    'zero? number->boolean
    ;; 874
@@ -696,7 +705,8 @@
    ;; 3443 'into-array
    ;; 3460
    'class {:arities {1 {:args [:any]
-                        :ret :class}}}
+                        ;; (class nil) is nil
+                        :ret :nilable/class}}}
    ;; 3466 'type
    ;; 3473 'num
    ;; 3480
@@ -864,10 +874,10 @@
                          :ret #{:nil :seq}}}}
    ;; 4886
    're-matches {:arities {2 {:args [:regex :string]
-                             :ret #{:vector :string}}}}
+                             :ret #{:nil :vector :string}}}}
    ;; 4898
    're-find {:arities {1 {:args [:any] ;; matcher
-                          :ret #{:vector :string}}
+                          :ret #{:nil :vector :string}}
                        2 {:args [:regex :string]
                           :ret #{:nil :vector :string}}}}
    ;; 4911 'rand

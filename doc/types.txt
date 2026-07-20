@@ -81,7 +81,7 @@ compose-fixtures {2 {:ret :fn}}
 assert-predicate {2 {:args [nil :seqable]}}
 function? {1 {:ret #{:nil :boolean}}}
 test-vars {1 {:args [:seqable]}}
-successful? {1 {:ret #{:nil :boolean}}}
+successful? {1 {:ret :boolean}}
 testing-vars-str {1 {:ret :string}}
 run-tests {0 {:ret :map}, :varargs {:ret :associative, :min-arity 0}}
 
@@ -114,12 +114,14 @@ toks {1 {:ret :seq, :args [:seqable]}}
 write-token-string {2 {:args [nil :seqable]}}
 brackets {1 {:ret #{:vector}}}
 get-section {1 {:ret :vector, :args [:seqable]}}
+linear-nl? {3 {:ret #{:truthy :boolean}}}
 base-str {2 {:args [nil :number]}}
 buffer-length {1 {:ret #{:number :nat-int}, :args [:seqable]}}
 integral? {1 {:ret #{:boolean}}}
 add-english-scales {2 {:args [:seqable]}}
 get-column {1 {:args [:ideref]}}
 pprint-let {1 {:args [:seqable]}}
+level-exceeded {0 {:ret #{:nil :boolean}}}
 write-initial-lines {2 {:args [nil #{:string :nil}]}}
 insert-scaled-decimal {2 {:ret #{:string}, :args [nil :number]}}
 round-str {4 {:ret #{:vector}}}
@@ -153,6 +155,7 @@ start-block {4 {:args [nil #{:string :nil} #{:string :nil} #{:string :nil}]}}
 process-directive-table-element {1 {:ret :vector}}
 set-pprint-dispatch {1 {:ret :nil}}
 remainders {2 {:ret :seq}}
+fresh-line {0 {:ret #{:nil}}}
 get-field {2 {:args [:ideref]}}
 process-bracket {2 {:ret :vector}}
 format-error {2 {:args [nil :nat-int]}}
@@ -174,12 +177,14 @@ pprint-condp {1 {:args [:seqable]}}
 set-field {3 {:args [:ideref]}}
 get-writer {1 {:args [:ideref]}}
 get-fixed {3 {:ret #{:string}, :args [nil :number]}}
-abort? {1 {:ret #{:boolean}, :args [:seqable]}}
+miser-nl? {3 {:ret #{:false :truthy :nil :boolean}}}
+abort? {1 {:ret :boolean, :args [:seqable]}}
+write-out {1 {:ret #{:nil :boolean}}}
 map-params {4 {:ret :nilable/map, :args [nil :seqable :seqable]}}
 consume-while {2 {:args [:ifn]}}
 absolute-reposition {2 {:args [nil :number]}}
 p-write-char {2 {:args [nil #{:int :nil}]}}
-tokens-fit? {2 {:ret #{:boolean}}}
+tokens-fit? {2 {:ret :boolean}}
 tuple-map {2 {:ret {:type :map, :val {}, :open true}}}
 table-ize {2 {:args [#{:string :array :nil :set :ilookup :map} :seqable]}}
 pprint-defn {1 {:args [:seqable]}}
@@ -190,17 +195,17 @@ pvalid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 explain-data* {5 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {}, :value {}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 and-k-gen {1 {:args [:seqable]}}
 fn-sym {1 {:ret #{:symbol :nil}}}
-inst-in-range? {3 {:ret #{:nil :boolean}}}
+inst-in-range? {3 {:ret #{:false :boolean}}}
 accept? {1 {:ret :boolean}}
 and-spec-impl {3 {:args [:seqable :seqable]}}
 accept {1 {:ret {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :ret {}}}}}
-recur-limit? {4 {:ret #{:nil :boolean}, :args [#{:string :array :nil :set :ilookup :map}]}}
+recur-limit? {4 {:ret :boolean, :args [#{:string :array :nil :set :ilookup :map}]}}
 map-spec-impl {1 {:args [{:op :keys, :nilable true, :opt {:opt-keys :seqable, :req-specs :seqable, :req-keys :seqable, :opt-specs :seqable}}]}}
 or-spec-impl {4 {:args [:seqable :seqable :seqable]}}
 valid? {2 {:ret :boolean}, 3 {:ret :boolean}}
 gen {2 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 or-k-gen {1 {:args [:seqable]}, 2 {:args [nil :seqable]}}
-int-in-range? {3 {:ret #{:nil :boolean}}}
+int-in-range? {3 {:ret :boolean}}
 exercise {1 {:ret :seq}, 2 {:ret :seq}, 3 {:ret :seq, :args [nil nil #{:string :array :nil :set :ilookup :map}]}}
 explain-data {2 {:ret #{{:type :map, :val #:clojure.spec.alpha{:problems {:tag {:call {:filename clojure/spec/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.alpha, :name explain*, :arity 5}}}, :spec {}, :value {}}, :row 221, :col 7, :end-row 223, :end-col 18} :nil}}}
 tuple-impl {2 {:args [:seqable :seqable]}, 3 {:args [:seqable :seqable]}}
@@ -209,10 +214,11 @@ gensub {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 invalid? {1 {:ret :boolean}}
 amp-impl {4 {:ret {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p1 {}, :amp {}, :ps {}, :forms {}}}}}
 explain-str {2 {:ret :nilable/string}}
+noret? {2 {:ret #{:true :nil}}}
 rep-impl {2 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {:tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
 re-gen {5 {:args [nil #{:string :array :nil :set :ilookup :map}]}}
 filter-alt {4 {:ret #{:vector}}}
-call-valid? {3 {:ret #{:nil :boolean}}}
+call-valid? {3 {:ret #{:false :nil :boolean}}}
 rep* {5 {:ret #{{:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {:tag :coll}}, :row 1406, :col 9, :end-row 1406, :end-col 51} {:type :map, :val {:clojure.spec.alpha/op {:tag :keyword}, :p2 {}, :splice {}, :forms {}, :id {}, :p1 {}, :ret {}}, :row 1407, :col 9, :end-row 1407, :end-col 35} :nil}}}
 maybe-impl {2 {:ret :associative}}
 
@@ -251,16 +257,18 @@ union {0 {:ret :set}, 2 {:args [:seqable :seqable]}}
 join {2 {:args [:seqable]}, 3 {:args [:seqable :seqable]}}
 select {2 {:args [nil :seqable]}}
 intersection {2 {:args [:seqable :seqable]}}
-superset? {2 {:ret #{:nil :boolean}, :args [:seqable :seqable]}}
+superset? {2 {:ret :boolean, :args [:seqable :seqable]}}
 index {2 {:args [:seqable :seqable]}}
 bubble-max-key {2 {:args [nil :seqable]}}
-subset? {2 {:ret #{:nil :boolean}, :args [:seqable :seqable]}}
+subset? {2 {:ret :boolean, :args [:seqable :seqable]}}
 rename {2 {:ret :set, :args [:seqable #{:nil :map}]}}
 rename-keys {2 {:args [#{:associative :string :nil :set} :seqable]}}
 project {2 {:ret :set, :args [:seqable :seqable]}}
 difference {2 {:args [:seqable :seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.io.transit.json  ===
+encoding {1 {:ret :truthy}}
+buffer-size {1 {:ret :truthy}}
 append? {1 {:ret :boolean}}
 escaped-utf8-urlstring->str {1 {:args [:char-sequence]}}
 
@@ -285,7 +293,7 @@ collection-tag {1 {:ret #{:keyword}}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.instant.transit.json  ===
 validated {1 {:ret :fn}}
 zero-fill-right {2 {:args [#{:string :nil}]}}
-leap-year? {1 {:ret #{:nil :boolean}}}
+leap-year? {1 {:ret #{:false :truthy :nil :boolean}}}
 construct-date {10 {:args [nil :number nil nil nil nil :number :number]}}
 construct-calendar {10 {:args [nil :number nil nil nil nil :number :number]}}
 construct-timestamp {10 {:args [nil :number nil nil nil nil nil :number]}}
@@ -301,7 +309,7 @@ parse-timestamp {2 {:args [nil :string]}}
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.basis.transit.json  ===
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.reader.transit.json  ===
-unquote-splicing? {1 {:ret #{:nil :boolean}}}
+unquote-splicing? {1 {:ret :boolean}}
 read-symbolic-value {4 {:args [nil nil nil :seqable]}}
 read-tagged {4 {:args [nil nil nil :seqable]}}
 starting-line-col-info {1 {:ret #{:vector :nil}}}
@@ -314,7 +322,7 @@ read-suppress {4 {:args [:long nil nil :seqable]}}
 flatten-map {1 {:args [:seqable]}}
 read-set {4 {:args [nil nil nil :seqable]}}
 read-map {4 {:args [nil nil nil :seqable]}}
-unquote? {1 {:ret #{:nil :boolean}}}
+unquote? {1 {:ret :boolean}}
 match-feature {4 {:args [:long nil nil :seqable]}}
 read-syntax-quote {4 {:args [nil nil nil :seqable]}}
 read-list {4 {:args [nil nil nil :seqable]}}
@@ -329,6 +337,7 @@ ending-line-col-info {1 {:ret #{:vector :nil}}}
 read-discard {4 {:args [nil nil nil :seqable]}}
 garg {1 {:ret :symbol, :args (:long)}}
 read-vector {4 {:args [nil nil nil :seqable]}}
+register-gensym {1 {:ret #{:symbol :truthy}}}
 expand-list {1 {:args [:seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.parallel.transit.json  ===
@@ -346,12 +355,13 @@ init-opt {1 {:args [#{:string :nil}]}}
 legacy-script {1 {:args [:seqable]}}
 stack-element-str {1 {:ret :string}}
 legacy-repl {1 {:args [:seqable]}}
-core-class? {1 {:args [#{:string :nil}]}}
+core-class? {1 {:ret #{:false :truthy :boolean}, :args [#{:string :nil}]}}
 java-loc->source {2 {:ret #{:symbol}}}
 load-script {1 {:args [#{:string :nil}]}}
 skip-if-eol {1 {:ret #{:keyword}}}
 repl-opt {2 {:args [nil :seqable]}}
 file-name {1 {:args [#{:string :nil}]}}
+main-dispatch {1 {:ret #{:fn :truthy}}}
 file-path {1 {:args [#{:string :nil}]}}
 ex-triage {1 {:ret :associative}}
 
@@ -430,7 +440,7 @@ sigs {1 {:args [:seqable]}}
 newline {0 {:ret :nil}}
 deref-future {1 {:args [#{:future :nil}]}, 3 {:args [#{:future :nil}]}}
 fn? {1 {:ret :boolean}}
-dedupe {0 {:ret :fn}}
+dedupe {0 {:ret :fn}, 1 {:ret :truthy}}
 pr-on {2 {:ret :nil}}
 dissoc {:varargs {:min-arity 2, :args [#{:nil :map}]}}
 splitv-at {2 {:ret :vector, :args [:nat-int :seqable]}}
@@ -472,7 +482,7 @@ rand-nth {1 {:args [:seqable]}}
 comp {2 {:ret :fn}}
 future-done? {1 {:args [#{:future :nil}]}}
 dorun {1 {:args [:seqable]}, 2 {:args [nil :seqable]}}
-simple-symbol? {1 {:ret #{:nil :boolean}}}
+simple-symbol? {1 {:ret :boolean}}
 assert-valid-fdecl {1 {:args [:seqable]}}
 partitionv {2 {:ret :seq}, 3 {:ret :seq, :args [nil nil :seqable]}, 4 {:ret :seq, :args [nil nil nil :seqable]}}
 fnil {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}}
@@ -481,7 +491,7 @@ sequential? {1 {:ret :boolean}}
 build-positional-factory {3 {:args [nil nil :seqable]}}
 unchecked-float {1 {:args [#{:number :nil}]}}
 pmap {2 {:ret :seq, :args [nil :seqable]}, :varargs {:ret :seq, :min-arity 2}}
-float? {1 {:ret #{:boolean}}}
+float? {1 {:ret :boolean}}
 normalize-slurp-opts {1 {:args [:seqable]}}
 set? {1 {:ret :boolean}}
 cat {1 {:ret :fn}}
@@ -540,7 +550,7 @@ rand {1 {:ret :number, :args [:number]}}
 second {1 {:args [:seqable]}}
 > {1 {:ret :boolean}, :varargs {:min-arity 2, :args [:number :number]}}
 replace {1 {:ret :transducer, :args [#{:associative :nil}]}}
-int? {1 {:ret #{:boolean}}}
+int? {1 {:ret :boolean}}
 associative? {1 {:ret :boolean}}
 unchecked-int {1 {:args [#{:number :nil}]}}
 keyword? {1 {:ret :boolean}}
@@ -568,13 +578,13 @@ parse-double {1 {:ret :nilable/double, :args [#{:string :nil}]}}
 assoc-in {3 {:ret #{:associative}}}
 memoize {1 {:ret :fn}}
 future? {1 {:ret :boolean}}
-simple-keyword? {1 {:ret #{:nil :boolean}}}
+simple-keyword? {1 {:ret :boolean}}
 nnext {1 {:ret #{:nil :seq}, :args [:seqable]}}
 class? {1 {:ret :boolean}}
 some {2 {:args [nil :seqable]}}
 future-cancelled? {1 {:args [#{:future :nil}]}}
-neg-int? {1 {:ret #{:nil :boolean}}}
-drop {1 {:ret :fn}}
+neg-int? {1 {:ret :boolean}}
+drop {1 {:ret :fn}, 2 {:ret #{:truthy :seq}}}
 sorted? {1 {:ret :boolean}}
 split-at {2 {:ret :vector, :args [:nat-int :seqable]}}
 validate-generate-class-options {1 {:args [{:op :keys, :nilable true, :opt {:methods :seqable}}]}}
@@ -587,14 +597,15 @@ update-in {:varargs {:ret #{:associative}, :min-arity 3}}
 *' {0 {:ret :pos-int}, :varargs {:min-arity 2, :args [:number :number]}}
 instance? {2 {:args [#{:class :nil}]}}
 mix-collection-hash {2 {:ret :long, :args (:long :long)}}
-re-find {2 {:ret #{:string :vector}}}
+re-find {2 {:ret #{:string :vector :nil}}}
 run! {2 {:ret :nil, :args [nil :seqable]}}
 print-sequential {6 {:args [#{:string :nil} nil #{:string :nil} #{:string :nil}]}}
 filter-methods {2 {:args [#{:class :nil}]}}
 not {1 {:ret #{:boolean}}}
 record? {1 {:ret :boolean}}
+type {1 {:ret #{:nilable/class :truthy}}}
 file-seq {1 {:ret :seq}}
-ident? {1 {:ret #{:boolean}}}
+ident? {1 {:ret :boolean}}
 maybe-destructured {2 {:args [:seqable]}}
 maybe-min-hash {1 {:args [:seqable]}}
 qualified-ident? {1 {:ret :boolean}}
@@ -611,7 +622,7 @@ partition {2 {:ret :seq, :args [:int :seqable]}, 3 {:ret :seq, :args [nil nil :s
 data-reader-urls {0 {:ret :seq}}
 filter-key {3 {:args [nil nil :seqable]}}
 find-field {2 {:args [#{:class :nil}]}}
-integer? {1 {:ret #{:boolean}}}
+integer? {1 {:ret :boolean}}
 mapv {2 {:args [nil :seqable]}, 3 {:ret :vector, :args [:ifn :seqable]}, 4 {:ret :vector, :args [:ifn :seqable]}, :varargs {:ret :vector, :min-arity 4}}
 infinite? {1 {:args (:double)}}
 partition-all {1 {:ret :fn, :args (:long)}, 2 {:ret :seq, :args [:int :seqable]}, 3 {:ret :seq, :args [nil nil :seqable]}}
@@ -628,7 +639,7 @@ delay? {1 {:ret :boolean}}
 flatten {1 {:ret :seq}}
 halt-when {1 {:ret :fn}, 2 {:ret :fn}}
 ifn? {1 {:ret :boolean}}
-nat-int? {1 {:ret #{:nil :boolean}}}
+nat-int? {1 {:ret :boolean}}
 proxy-name {2 {:args [#{:class :nil}]}}
 subvec {2 {:ret :vector, :args [:vector :nat-int]}}
 partial {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}, :varargs {:ret :fn, :min-arity 4}}
@@ -638,8 +649,8 @@ unchecked-byte {1 {:args [#{:number :nil}]}}
 reduce1 {2 {:args [nil :seqable]}, 3 {:args [nil nil :seqable]}}
 every-pred {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
-libspec? {1 {:ret #{:nil :boolean}}}
-pos-int? {1 {:ret #{:nil :boolean}}}
+libspec? {1 {:ret #{:true :false :nil :boolean}}}
+pos-int? {1 {:ret :boolean}}
 prep-ints {2 {:ret #{:vector}}}
 extenders {1 {:ret :seq}}
 unchecked-short {1 {:args [#{:number :nil}]}}
@@ -661,7 +672,7 @@ Throwable->map {1 {:ret :nilable/map}}
 class {1 {:ret :nilable/class}}
 some-fn {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 list? {1 {:ret :boolean}}
-simple-ident? {1 {:ret #{:nil :boolean}}}
+simple-ident? {1 {:ret :boolean}}
 non-private-methods {1 {:args [#{:class :nil}]}}
 parse-uuid {1 {:args [#{:string :nil}]}}
 generate-interface {1 {:ret :vector, :args [{:op :keys, :nilable true, :opt {:extends :seqable, :methods :seqable}}]}}
@@ -678,13 +689,14 @@ destmap* {4 {:args [nil nil #{:nil :map}]}}
 interpose {1 {:ret :fn}, 2 {:ret :seq}}
 emit-impl {1 {:ret :vector}}
 parse-boolean {1 {:args [#{:string :nil}]}}
-rational? {1 {:ret #{:boolean}}}
+rational? {1 {:ret :boolean}}
 clojure-version {0 {:ret :string}}
 merge-hash-collisions {4 {:ret :vector}}
 comparator {1 {:ret :fn}}
 drop-while {1 {:ret :fn}, 2 {:ret :seq}}
 complement {1 {:ret :fn}}
 with-redefs-fn {2 {:args [:seqable]}}
+sequence {2 {:ret :truthy}, :varargs {:ret :truthy, :min-arity 2}}
 constantly {1 {:ret :fn}}
 make-array {2 {:args [#{:class :nil} #{:number :char}]}, :varargs {:min-arity 2, :args [#{:class :nil}]}}
 destvec* {4 {:args [nil #{:coll :nil} :seqable]}}
@@ -725,9 +737,10 @@ explain-check {4 {:ret :throwable}}
 interpret-stack-trace-element {1 {:ret :nilable/map}}
 summarize-results {1 {:args [:seqable]}, 2 {:args [:seqable]}}
 build-varargs-body {2 {:ret :list, :args [nil :seqable]}}
+stacktrace-relevant-to-instrument {1 {:ret :truthy}}
 spec-checking-fn {3 {:ret :fn}}
 has-kwargs? {1 {:args [:seqable]}}
-fn-spec-name? {1 {:ret #{:nil :boolean}}}
+fn-spec-name? {1 {:ret :boolean}}
 instrument-choose-spec {3 {:args [nil nil {:op :keys, :nilable true, :opt {:spec #{:string :array :nil :set :ilookup :map}}}]}}
 check-call {3 {:ret #{:throwable :boolean}}}
 kwargs->kvs {1 {:args [:seqable]}}

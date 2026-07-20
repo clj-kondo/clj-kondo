@@ -7,6 +7,9 @@ read -r -d '' config <<'EOF' || true
 {;; :analysis {:keywords true}
  :linters
   {:redundant-fn-wrapper {:level :warning}
+   ;; master still has the linter under its old key, enable both so
+   ;; that each side reports the same findings
+   :constant-condition {:level :warning}
    :condition-always-true {:level :warning}
    :not-a-function
     {:skip-args [clojure.pprint/defdirectives
@@ -23,7 +26,7 @@ export CLJ_KONDO_DEV=true
 
 echo "Linting and writing output to $out"
 rm -rf .clj-kondo/.cache
-clojure -M:clj-kondo/dev --lint "$cp" --cache --config "$config" --parallel > "$out"
+clojure -M -m clj-kondo.main --lint "$cp" --cache --config "$config" --parallel > "$out"
 
 cd /tmp
 rm -rf clj-kondo
@@ -38,6 +41,6 @@ fi
 out="/tmp/clj-kondo-diff/master.txt"
 
 echo "Linting and writing output to $out"
-clojure -M:clj-kondo/dev --lint "$cp" --cache --config "$config" --parallel > "$out"
+clojure -M -m clj-kondo.main --lint "$cp" --cache --config "$config" --parallel > "$out"
 
 diff /tmp/clj-kondo-diff/branch.txt /tmp/clj-kondo-diff/master.txt

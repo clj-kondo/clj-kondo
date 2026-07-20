@@ -229,7 +229,7 @@
            :message message
            :filename filename)))
 
-(defn- lint-unreachable-reader-conditional! [ctx k ts]
+(defn lint-unreachable-reader-conditional! [ctx k ts]
   (when (and (= :default (:k k))
              (seq ts)
              (not (linter-disabled? ctx :unreachable-code)))
@@ -636,6 +636,11 @@
   (if-let [last-dot (str/last-index-of fn ".")]
     (subs fn 0 last-dot)
     fn))
+
+(defn lint-condition?
+  "True when this expression or call sits in a condition that is linted."
+  [x]
+  (true? (:condition x)))
 
 (defn ctx-with-linter-disabled [ctx linter]
   (assoc-in ctx [:config :linters linter :level] :off))

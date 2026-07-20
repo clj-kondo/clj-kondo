@@ -81,7 +81,7 @@ reasons:
 ## Invoking clj-kondo from the command line
 
 ```
-$ clojure -M:clj-kondo/dev --lint - <<< "(defn foo [x] (if-let [x 1] x x x))"
+$ clojure -M:dev --lint - <<< "(defn foo [x] (if-let [x 1] x x x))"
 <stdin>:1:15: error: if-let body requires one or two forms
 linting took 73ms, errors: 1, warnings: 0
 ```

@@ -275,7 +275,6 @@ namespaces.
 - `:plus-one`: warn on usages of `+` that can be replaced with `inc`.
 - `:minus-one`: warn on usages of `-` that can be replaced with `dec`.
 - `:unused-alias`: warn on unused alias introduced in ns form.
-- `:condition-always-true`: warn on a condition that evaluates to an always truthy constant.
 - `:equals-expected-position`: warn on usage of `=` with the expected constant not in the expected position.
 - `:missing-protocol-method-arity`: warn when a protocol method is implemented but not all declared arities are covered.
 - `:destructured-or-always-evaluates`: warn when an `:or` default value in a destructuring contains an expression that always evaluates.

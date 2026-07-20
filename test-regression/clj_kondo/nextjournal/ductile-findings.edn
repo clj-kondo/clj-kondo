@@ -114,6 +114,128 @@
   :langs (),
   :message "#'io.pedestal.test/response-for is deprecated since 0.8.0",
   :row 12}
+ {:end-row 181,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/as400/mappers.clj",
+  :col 57,
+  :end-col 60,
+  :langs (),
+  :message "Condition always true",
+  :row 181}
+ {:end-row 269,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/as400/mappers.clj",
+  :col 57,
+  :end-col 60,
+  :langs (),
+  :message "Condition always true",
+  :row 269}
+ {:end-row 222,
+  :type :constant-condition,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/as400/metaschema.cljc",
+  :col 10,
+  :end-col 13,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Condition always true",
+  :row 222}
+ {:end-row 4895,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/billing.clj",
+  :col 9,
+  :end-col 25,
+  :langs (),
+  :message "Condition always true",
+  :row 4895}
+ {:end-row 5380,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/billing.clj",
+  :col 34,
+  :end-col 97,
+  :langs (),
+  :message "Condition always true",
+  :row 5380}
+ {:end-row 6367,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/billing.clj",
+  :col 34,
+  :end-col 126,
+  :langs (),
+  :message "Condition always true",
+  :row 6367}
+ {:end-row 782,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/carrier_billing.clj",
+  :col 15,
+  :end-col 31,
+  :langs (),
+  :message "Condition always true",
+  :row 782}
+ {:end-row 1692,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
+  :col 21,
+  :end-col 32,
+  :langs (),
+  :message "Condition always true",
+  :row 1692}
+ {:end-row 1696,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
+  :col 21,
+  :end-col 39,
+  :langs (),
+  :message "Condition always true",
+  :row 1696}
+ {:end-row 1852,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
+  :col 21,
+  :end-col 32,
+  :langs (),
+  :message "Condition always true",
+  :row 1852}
+ {:end-row 1907,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
+  :col 21,
+  :end-col 32,
+  :langs (),
+  :message "Condition always true",
+  :row 1907}
+ {:end-row 657,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/edi/kia.clj",
+  :col 30,
+  :end-col 91,
+  :langs (),
+  :message "Condition always true",
+  :row 657}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/elog/tx_import.clj",
   :row 1620,
@@ -140,6 +262,36 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 209,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/locations.clj",
+  :col 7,
+  :end-col 27,
+  :langs (),
+  :message "Condition always true",
+  :row 209}
+ {:end-row 261,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/components/table.cljs",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Condition always true",
+  :row 261}
+ {:end-row 361,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/fahrzeug.cljs",
+  :col 19,
+  :end-col 48,
+  :langs (),
+  :message "Condition always true",
+  :row 361}
  {:end-row 21,
   :type :redundant-ignore,
   :level :info,
@@ -153,6 +305,16 @@
   :langs (:clj),
   :message "Redundant ignore",
   :row 21}
+ {:end-row 487,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/service_list.cljs",
+  :col 19,
+  :end-col 54,
+  :langs (),
+  :message "Condition always true",
+  :row 487}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
   :row 1350,
@@ -186,6 +348,17 @@
   :message "Var completed-other? is referred but used via alias: dsl",
   :level :info,
   :langs ()}
+ {:end-row 124,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/billing.clj",
+  :col 3,
+  :end-col 60,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 123}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
   :row 755,
@@ -194,6 +367,16 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 43,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
+  :col 17,
+  :end-col 32,
+  :langs (),
+  :message "Condition always true",
+  :row 43}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
   :row 87,
@@ -202,6 +385,16 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 98,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message "Condition always true",
+  :row 98}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/engine.clj",
   :row 1010,
@@ -210,6 +403,26 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 309,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/integration/bmw_eurolog_test.clj",
+  :col 11,
+  :end-col 61,
+  :langs (),
+  :message "Condition always true",
+  :row 309}
+ {:end-row 324,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/integration/bmw_eurolog_test.clj",
+  :col 11,
+  :end-col 55,
+  :langs (),
+  :message "Condition always true",
+  :row 324}
  {:end-row 19,
   :type :is-message-not-string,
   :level :info,
@@ -220,6 +433,16 @@
   :langs (),
   :message "Test assertion message should be a string",
   :row 19}
+ {:end-row 23,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/integration/cron_test.clj",
+  :col 9,
+  :end-col 54,
+  :langs (),
+  :message "Condition always true",
+  :row 23}
  {:filename
   "test-regression/checkouts/ductile/test/integration/edi_test.clj",
   :row 94,
@@ -268,6 +491,86 @@
   :message "Var with-system is referred but used via alias: f",
   :level :info,
   :langs ()}
+ {:end-row 19,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/integration/vehicle_search_test.clj",
+  :col 9,
+  :end-col 13,
+  :langs (),
+  :message "Condition always true",
+  :row 19}
+ {:end-row 806,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/integration/workflow_test.clj",
+  :col 11,
+  :end-col 25,
+  :langs (),
+  :message "Condition always true",
+  :row 806}
+ {:end-row 50,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
+  :col 13,
+  :end-col 64,
+  :langs (),
+  :message "Condition always true",
+  :row 50}
+ {:end-row 52,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
+  :col 13,
+  :end-col 64,
+  :langs (),
+  :message "Condition always true",
+  :row 52}
+ {:end-row 58,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
+  :col 13,
+  :end-col 71,
+  :langs (),
+  :message "Condition always true",
+  :row 57}
+ {:end-row 59,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
+  :col 13,
+  :end-col 67,
+  :langs (),
+  :message "Condition always true",
+  :row 59}
+ {:end-row 124,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
+  :col 7,
+  :end-col 14,
+  :langs (),
+  :message "Condition always true",
+  :row 124}
+ {:end-row 125,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
+  :col 7,
+  :end-col 14,
+  :langs (),
+  :message "Condition always true",
+  :row 125}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
   :row 398,
@@ -309,6 +612,16 @@
   "Var *insert-chunk-size* is referred but used via alias: pipeline",
   :level :info,
   :langs ()}
+ {:end-row 143,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/transport_test.clj",
+  :col 11,
+  :end-col 14,
+  :langs (),
+  :message "Condition always true",
+  :row 143}
  {:end-row 38,
   :type :is-message-not-string,
   :level :info,
@@ -319,6 +632,36 @@
   :langs (),
   :message "Test assertion message should be a string",
   :row 38}
+ {:end-row 710,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
+  :col 9,
+  :end-col 29,
+  :langs (),
+  :message "Condition always true",
+  :row 710}
+ {:end-row 714,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
+  :col 9,
+  :end-col 24,
+  :langs (),
+  :message "Condition always true",
+  :row 714}
+ {:end-row 718,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
+  :col 9,
+  :end-col 43,
+  :langs (),
+  :message "Condition always true",
+  :row 718}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
   :row 142,
@@ -336,6 +679,16 @@
   :message "Var brc-dealer-code is referred but used via alias: dsl",
   :level :info,
   :langs ()}
+ {:end-row 2221,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :col 9,
+  :end-col 20,
+  :langs (),
+  :message "Condition always true",
+  :row 2221}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
   :row 4341,
@@ -363,6 +716,16 @@
   "Var open-service-codes-blocking-dispo is referred but used via alias: dsl",
   :level :info,
   :langs ()}
+ {:end-row 4729,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
+  :col 9,
+  :end-col 43,
+  :langs (),
+  :message "Condition always true",
+  :row 4729}
  {:filename
   "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
   :row 4860,

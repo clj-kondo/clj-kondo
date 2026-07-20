@@ -2353,6 +2353,16 @@
   :langs (),
   :message "Single argument to str already is a string",
   :row 158}
+ {:end-row 303,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename "cljs/cli.clj",
+  :col 3,
+  :end-col 54,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 299}
  {:end-row 315,
   :type :unused-binding,
   :level :warning,
@@ -3453,7 +3463,7 @@
   :message "unused binding env",
   :row 1171}
  {:end-row 1228,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :lang :clj,
   :filename "cljs/compiler.cljc",
@@ -13454,7 +13464,7 @@
   :message "unused binding opts",
   :row 185}
  {:end-row 194,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename "cljs/repl/browser.clj",
   :col 15,
@@ -15643,7 +15653,7 @@
   :message "unused binding reader",
   :row 57}
  {:end-row 63,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename "cljs/tools/reader/reader_types.cljs",
   :col 15,
@@ -17488,6 +17498,24 @@
   :langs (),
   :message "unused binding this",
   :row 31}
+ {:end-row 81,
+  :type :constant-condition,
+  :level :warning,
+  :filename "cljs/vendor/cognitect/transit.clj",
+  :col 33,
+  :end-col 43,
+  :langs (),
+  :message "Condition always true",
+  :row 81}
+ {:end-row 82,
+  :type :constant-condition,
+  :level :warning,
+  :filename "cljs/vendor/cognitect/transit.clj",
+  :col 39,
+  :end-col 57,
+  :langs (),
+  :message "Condition always true",
+  :row 82}
  {:end-row 229,
   :type :unused-binding,
   :level :warning,
@@ -24438,6 +24466,24 @@
   :langs (),
   :message "unused binding this",
   :row 31}
+ {:end-row 81,
+  :type :constant-condition,
+  :level :warning,
+  :filename "cognitect/transit.clj",
+  :col 33,
+  :end-col 43,
+  :langs (),
+  :message "Condition always true",
+  :row 81}
+ {:end-row 82,
+  :type :constant-condition,
+  :level :warning,
+  :filename "cognitect/transit.clj",
+  :col 39,
+  :end-col 57,
+  :langs (),
+  :message "Condition always true",
+  :row 82}
  {:end-row 229,
   :type :unused-binding,
   :level :warning,
@@ -26996,7 +27042,7 @@
   :message "unused binding reader",
   :row 55}
  {:end-row 61,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "inlined/clj_kondo/impl/toolsreader/v1v2v2/cljs/tools/reader/reader_types.cljs",

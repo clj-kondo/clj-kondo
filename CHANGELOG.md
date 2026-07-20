@@ -63,6 +63,11 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): new `:constant-condition` linter, on by default. Replaces `:condition-always-true` (**BREAKING**) and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
+- Type checker: infer `and` and `or` return types. E.g. `(when (or x :default) ...)` will warn.
+- Type checker: the return types of `re-matches` and `re-find` are nilable.
+- Type checker: the return type of `class` is nilable, `(class nil)` returns nil.
+- Type checker: an `if` without an else branch includes nil in its return type.
 - The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
 - Performance: use a record for bindings (~4%)
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
