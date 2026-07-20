@@ -9,8 +9,9 @@
   [t]
   (cond (keyword? t) (if (= "nilable" (namespace t))
                        ;; nil or the base type, so each half can be judged on
-                       ;; its own, e.g. by passed-on-part
-                       #{:nil (clojure.core/keyword (name t))}
+                       ;; its own, e.g. by passed-on-part. hash-set, since the
+                       ;; halves coincide for :nilable/nil
+                       (hash-set :nil (clojure.core/keyword (name t)))
                        t)
         (set? t) (let [ks (map truthiness-tag t)]
                    (when (every? some? ks)

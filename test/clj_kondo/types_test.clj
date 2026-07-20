@@ -581,6 +581,21 @@
             {:linters {:type-mismatch {:level :error
                                        :namespaces '{foo {need-nil {:arities {1 {:args [:nil]}}}}}}}}))))
 
+(deftest compact-falsy-test
+  (testing "a truthy value does not match a compact falsy spec"
+    (assert-submaps2
+     '({:row 1 :message #"received: truthy value"})
+     (lint! "(ns foo) (defn need-falsy [x] x) (defn f [x] (need-falsy (or x :fb)))"
+            {:linters {:type-mismatch {:level :error
+                                       :namespaces '{foo {need-falsy {:arities {1 {:args [:nilable/false]}}}}}}}})))
+  (testing "the degenerate :nilable/nil neither crashes nor loses its nilness"
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(ns foo) (defn g [] nil) (defn h [] (when (g) 1))"
+            {:linters {:type-mismatch {:level :error
+                                       :namespaces '{foo {g {:arities {0 {:ret :nilable/nil}}}}}}
+                       :constant-condition {:level :warning}}}))))
+
 (deftest or-test
   (testing "or stops at an argument that is always truthy"
     (assert-submaps2

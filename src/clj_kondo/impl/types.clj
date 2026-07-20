@@ -223,10 +223,10 @@
     (or (identical? actual expected)
         (identical? actual :any)
         ;; some truthy value of unknown type, see types.utils/truthy-part. It
-        ;; can inhabit any type except the falsy ones
+        ;; can inhabit any type except a falsy one, also in its compact
+        ;; :nilable/false spelling
         (and (identical? actual :truthy)
-             (not (identical? expected :nil))
-             (not (identical? expected :false)))
+             (not (type-utils/always-falsy? expected)))
         (identical? expected :any)
         (contains? (get is-a-relations actual) expected)
         (contains? (get could-be-relations actual) expected)
@@ -665,7 +665,8 @@
         (let [k (unnil s)]
           (if (identical? :any k)
             :any
-            #{:nil k}))
+            ;; hash-set, the halves coincide for :nilable/nil
+            (hash-set :nil k)))
         (and (set? s) (contains? s :any)) :any
         :else s))
 
