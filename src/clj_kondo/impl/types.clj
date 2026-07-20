@@ -407,7 +407,7 @@
           ;; :min-arity isn't present, the arities were specified by a user
           v))))
 
-(defn- non-nil-tag?
+(defn non-nil-tag?
   "True when a value of type `t` can never be nil."
   [t]
   (and (keyword? t)
@@ -416,7 +416,7 @@
                     (nilable? t)
                     (match? t :nil))))))
 
-(defn- truthy-tag?
+(defn truthy-tag?
   "True when a value of type `t` can never be nil or false."
   [t]
   (and (keyword? t)

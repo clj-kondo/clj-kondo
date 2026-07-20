@@ -373,7 +373,7 @@
 
 #_(require 'clojure.pprint)
 
-(defn- mask-var-usages
+(defn mask-var-usages
   "Replaces var usages in `t` with :any: a def tag misses set! and
   alter-var-root, so a var usage never decides a deferred verdict, see
   analyzer/analyze-condition."
