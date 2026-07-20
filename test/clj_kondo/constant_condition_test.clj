@@ -7,7 +7,7 @@
   {:linters {:type-mismatch {:level :error}
              :constant-condition {:level :warning}}})
 
-(deftest condition-always-true-test
+(deftest always-true-test
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "Condition always true"}
      {:file "<stdin>",

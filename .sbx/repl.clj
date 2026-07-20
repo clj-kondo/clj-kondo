@@ -80,12 +80,12 @@
 (defn- start! [nm root port aliases]
   (let [;; nrepl writes .nrepl-port itself but never cleans it up, so remove it
         ;; when the REPL exits, whether it was killed or died
-        cmd (format (str "cd %s && (setsid sh -c '"
+        cmd (format (str "cd \"%s\" && (setsid sh -c '"
                          "clojure -Sdeps \"{:deps {nrepl/nrepl {:mvn/version \\\"1.3.1\\\"}} "
                          ":aliases {:clear-main {:main-opts []}}}\" "
-                         "-M%s -m nrepl.cmdline "
-                         "--bind 0.0.0.0 --port %s; rm -f %s/.nrepl-port"
-                         "' > /tmp/nrepl-%s.log 2>&1 < /dev/null &)")
+                         "-M\"%s\" -m nrepl.cmdline "
+                         "--bind 0.0.0.0 --port %s; rm -f \"%s/.nrepl-port\""
+                         "' > \"/tmp/nrepl-%s.log\" 2>&1 < /dev/null &)")
                     root aliases port root (fs/file-name root))]
     (p/shell "sbx" "exec" nm "--" "sh" "-c" cmd)))
 

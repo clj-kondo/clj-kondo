@@ -408,20 +408,24 @@
   spec resolves while analyzing and states nilability more precisely than an
   inferred return type, so such a call is left to the analysis phase."
   [ctx called-fn call]
-  (when-let [t (let [called-ns (or (:ns called-fn) (:resolved-ns call))
-                     called-name (or (:name called-fn) (:name call))]
-                 (when-not (or (config/type-mismatch-config (:config ctx) called-ns called-name)
-                               (get-in built-in-specs [called-ns called-name]))
-                   (some-> (:arities called-fn)
-                           (called-arity (:arity call))
-                           :ret
-                           type-utils/strip-positions)))]
-    ;; a map spec such as {:type :map :val ..} describes the value, not a union
-    (let [t (if (and (map? t) (:type t)) (:type t) t)]
+  (when-let [ret (let [called-ns (or (:ns called-fn) (:resolved-ns call))
+                       called-name (or (:name called-fn) (:name call))]
+                   (when-not (or (config/type-mismatch-config (:config ctx) called-ns called-name)
+                                 (get-in built-in-specs [called-ns called-name]))
+                     (some-> (:arities called-fn)
+                             (called-arity (:arity call))
+                             :ret)))]
+    ;; a map spec such as {:type :map :val ..} describes the value, not a union.
+    ;; Take its :type before stripping positions, which walks every key
+    (let [t (if (and (map? ret) (:type ret))
+              (:type ret)
+              (type-utils/strip-positions ret))]
       (cond (identical? :nil t) :always-false
             (truthy-tag? t) :always-true
-            (set? t) (cond (every? #(identical? :nil %) t) :always-false
-                           (every? truthy-tag? t) :always-true)))))
+            ;; an empty union says nothing, every? would call it always false
+            (and (set? t) (seq t))
+            (cond (every? #(identical? :nil %) t) :always-false
+                  (every? truthy-tag? t) :always-true)))))
 
 (defn ret-tag-from-call
   [ctx call _expr]
