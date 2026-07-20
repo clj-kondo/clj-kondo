@@ -373,12 +373,23 @@
 
 #_(require 'clojure.pprint)
 
+(defn- mask-var-usages
+  "Replaces var usages in `t` with :any: a def tag misses set! and
+  alter-var-root, so a var usage never decides a deferred verdict, see
+  analyzer/analyze-condition."
+  [t]
+  (cond (set? t) (into #{} (map mask-var-usages) t)
+        (map? t) (cond (:usage t) :any
+                       (:tag t) (assoc t :tag (mask-var-usages (:tag t)))
+                       :else t)
+        :else t))
+
 (defn lint-deferred-conditions!
   "Judges conditions whose type contained unresolved calls while analyzing,
   see analyzer/analyze-condition."
   [ctx idacs]
   (doseq [{:keys [ctx condition tag nil-test?]} @(:deferred-conditions ctx)]
-    (case (types/constant-verdict (tu/resolve-arg-type idacs tag) nil-test?)
+    (case (types/constant-verdict (tu/resolve-arg-type idacs (mask-var-usages tag)) nil-test?)
       :always-false (findings/reg-finding!
                      ctx (node->line (:filename ctx) condition :constant-condition
                                      "Condition always false"))

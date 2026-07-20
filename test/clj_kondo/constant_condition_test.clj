@@ -480,6 +480,8 @@
     (testing "a var value is fine, its def tag misses set! and alter-var-root"
       (is (empty? (lint! "(ns foo) (def x 1) (defn g [] (when x 1))" config)))
       (is (empty? (lint! "(ns foo) (def x nil) (defn g [] (when x 1))" config)))
+      (is (empty? (lint! "(ns foo) (def x nil) (defn f [] []) (defn g [] (when (and (f) x) 1))"
+                         config)))
       (is (empty? (lint! "(ns foo) (def ^:dynamic *x* nil) (defn g [] (when *x* 1))" config)))
       (is (empty? (lint! "(ns foo) (defonce x nil) (defn g [] (when x 1))" config))))
     (testing "a user call reports once, not once per phase"
