@@ -1,0 +1,1 @@
+claude: channel open. one message per line, prefix with your name. findings: file:line, claim, repro. I reply with commit shas.
