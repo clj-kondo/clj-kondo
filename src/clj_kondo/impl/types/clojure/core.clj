@@ -293,13 +293,15 @@
                ;; ends it
                (if (empty? args)
                  :boolean
-                 (tu/fold-logic args tu/always-nil? tu/never-falsy?)))}
+                 (tu/fold-logic args tu/always-nil? tu/never-falsy?
+                               #(identical? :nil %))))}
    ;; 854 'or
    'or {:fn (fn [args]
               ;; or returns the first truthy arg or the last one
               (if (empty? args)
                 :nil
-                (tu/fold-logic args tu/never-falsy? tu/always-nil?)))}
+                (tu/fold-logic args tu/never-falsy? tu/always-nil?
+                              #(not (identical? :nil %)))))}
    ;; 867
    'zero? number->boolean
    ;; 874

@@ -344,6 +344,16 @@
     (assert-submaps2
      '({:row 1 :message "Condition always true"})
      (lint! "(defn h [x] (when (or (if x \"a\" \"b\") nil) 1))" config)))
+  (testing "an argument only contributes the half that can be returned"
+    (assert-submaps2
+     '({:row 1 :message "Condition always true"})
+     (lint! "(defn i [xs] (when (or (seq xs) :fallback) 1))" config))
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(defn j [xs] (when (and (seq xs) nil) 1))" config)))
+  (testing "an unknown argument cannot be split and stays"
+    (is (empty? (lint! "(defn k [x] (inc (or x :fallback)))"
+                       (assoc-in config [:linters :type-mismatch :level] :error)))))
   (testing "an argument that may be falsy keeps the ones after it"
     (is (empty? (lint! "(defn d [x] (when (and x \"b\") 1))" config)))
     (is (empty? (lint! "(defn e [x] (when (or x nil) 1))" config)))))

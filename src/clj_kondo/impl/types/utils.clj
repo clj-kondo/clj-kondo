@@ -61,17 +61,38 @@
      ;; (prn x '+ y '= ret)
      ret)))
 
+(defn- passed-on-part
+  "The members of `x` that a non final arg can still be returned as. `or` only
+  returns such an arg when it is truthy, `and` only when it is falsy, so the
+  other half never reaches the result. Returns `x` when it cannot be split."
+  [x keep?]
+  (let [t (truthiness-tag x)]
+    (if (set? t)
+      (let [ks (filter keep? t)]
+        (case (count ks)
+          0 ::nothing
+          1 (first ks)
+          (set ks)))
+      ;; an unknown type is not splittable and stays as it is, which is not the
+      ;; same as contributing nothing
+      x)))
+
 (defn fold-logic
   "The types `and` and `or` can return. An arg matching `stop?` short circuits
   and is the result, one matching `skip?` only passes control on and can never
-  be returned, the rest may or may not be. The last arg is always a candidate."
-  [args stop? skip?]
+  be returned. A non final arg in between contributes only the half of its type
+  that can still be the result, see `passed-on-part`. The last arg is always a
+  candidate."
+  [args stop? skip? returnable?]
   (loop [[a & more] args
          acc #{}]
     (cond (not (seq more)) (union-type acc a)
           (stop? a) (union-type acc a)
           (skip? a) (recur more acc)
-          :else (recur more (union-type acc a)))))
+          :else (recur more (let [part (passed-on-part a returnable?)]
+                              (if (identical? ::nothing part)
+                                acc
+                                (union-type acc part)))))))
 
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)
