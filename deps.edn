@@ -33,7 +33,6 @@
              clj-commons/conch {:mvn/version "0.9.2"}
              jonase/eastwood {:mvn/version "1.4.3"}
              borkdude/missing.test.assertions {:mvn/version "0.0.2"}
-             org.clojure/test.check {:mvn/version "1.1.1"}
              babashka/process {:mvn/version "0.5.22"}
              org.clojure/tools.deps {:mvn/version "0.24.1523"
                                      :neil/pinned true}
