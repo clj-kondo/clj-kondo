@@ -30,7 +30,7 @@
      arg-types simple? interop? resolved-core?
      unresolved? unresolved-ns unresolved-symbol-disabled?
      allow-forward-reference? clojure-excluded? private-access?
-     idx len derived-location in-def context
+     idx len derived-location in-def in-comment context
      defmethod dispatch-val-str refer id ret
      redundant-fn-wrapper-parent-loc])
 
@@ -523,6 +523,14 @@
                         ;; could be a macro
                         (get-in idacs [:clj :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+
+(defn prefer-comment-def
+  "Usages in comment forms resolve against a comment form redefinition."
+  [usage resolved]
+  (if-let [cd (and (:in-comment usage)
+                   (:comment-def resolved))]
+    cd
+    resolved))
 
 (defn stderr [& msgs]
   (binding [*out* *err*]

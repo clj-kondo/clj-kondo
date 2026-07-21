@@ -44,6 +44,20 @@
    [{:file "<stdin>", :row 1, :col 48, :level :warning, :message "inline def"}]
    (lint! "(require '[clojure.test :as t]) (t/deftest foo (t/deftest bar))")))
 
+(deftest comment-redef-test
+  (testing "usages in comment forms lint against comment form redefinitions"
+    (is (empty? (lint! "(ns foo) (defn h [x] x) (comment (defn h [x y] [x y]) (h 1 2))")))
+    (is (empty? (lint! "(ns foo) (defn ed [db] db) (comment (def ed (ed 1)) (count (rest (:rows (first ed)))))"
+                       '{:linters {:type-mismatch {:level :error}}}))))
+  (testing "usages outside comment forms lint against the real def"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 67, :level :error, :message "foo/h is called with 2 args but expects 1"})
+     (lint! "(ns foo) (defn h [x] x) (comment (defn h [x y] [x y])) (defn g [] (h 1 2))")))
+  (testing "usages in comment forms without redefinition lint against the real def"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 34, :level :error, :message "foo/h is called with 2 args but expects 1"})
+     (lint! "(ns foo) (defn h [x] x) (comment (h 1 2))"))))
+
 (deftest def-fn-test
   (let [config {:linters {:def-fn {:level :warning}}
                 :lint-as '{some.ns/my-fn clojure.core/fn

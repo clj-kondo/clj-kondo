@@ -2819,6 +2819,7 @@
                                          :alias resolved-alias
                                          :unresolved? unresolved?
                                          :allow-forward-reference? (:in-comment ctx)
+                                         :in-comment (:in-comment ctx)
                                          :unresolved-ns unresolved-ns
                                          :clojure-excluded? clojure-excluded?
                                          :arity arg-count
@@ -3288,6 +3289,7 @@
                                             (meta full-fn-name))
                                     :alias resolved-alias
                                     :unresolved? unresolved?
+                                    :in-comment (:in-comment ctx)
                                     :unresolved-ns unresolved-ns
                                     :clojure-excluded? clojure-excluded?
                                     :arity arg-count
@@ -3662,6 +3664,7 @@
                                         :alias resolved-alias
                                         :unresolved? unresolved?
                                         :allow-forward-reference? allow-forward-reference?
+                                        :in-comment (:in-comment ctx)
                                         :unresolved-ns unresolved-ns
                                         :clojure-excluded? clojure-excluded?
                                         :arity arg-count

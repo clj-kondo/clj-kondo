@@ -251,6 +251,7 @@
                                       :dispatch-val-str (:dispatch-val-str ctx)
                                       :unresolved? unresolved?
                                       :allow-forward-reference? (:in-comment ctx)
+                                      :in-comment (:in-comment ctx)
                                       :clojure-excluded? clojure-excluded?
                                       :row row
                                       :end-row end-row

@@ -220,7 +220,8 @@
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)]
                              (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-                               (let [arities (:arities called-fn)
+                               (let [called-fn (utils/prefer-comment-def call called-fn)
+                                     arities (:arities called-fn)
                                      tag (or (when-let [v (get arities arity)]
                                                (:ret v))
                                              (when-let [v (get arities :varargs)]
@@ -253,7 +254,8 @@
                                          (resolve-arg-type idacs resolved-tag seen-calls))))
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [usage (:usage arg-type)]
-                         (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))]
+                         (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))
+                               resolved (utils/prefer-comment-def usage resolved)]
                            (resolve-arg-type idacs resolved)))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)

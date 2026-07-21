@@ -615,15 +615,20 @@
   [a b]
   (merge-with merge a b))
 
+(def var-def-keys
+  [:row :col
+   :macro :private :deprecated
+   :fixed-arities :varargs-min-arity
+   :name :ns :top-ns :imported-ns :imported-var
+   :arities :type :class :methods
+   :method-arities])
+
 (defn format-vars [vars]
   (map-vals (fn [md]
-              (-> md
-                  (select-keys [:row :col
-                                :macro :private :deprecated
-                                :fixed-arities :varargs-min-arity
-                                :name :ns :top-ns :imported-ns :imported-var
-                                :arities :type :class :methods
-                                :method-arities])))
+              (let [v (select-keys md var-def-keys)]
+                (if-let [cd (:comment-def md)]
+                  (assoc v :comment-def (select-keys cd var-def-keys))
+                  v)))
             vars))
 
 (defn deprecated-val [deprecated]
