@@ -3143,35 +3143,36 @@
                                                "Prefer (next x) over (seq (rest x))")))))
   (analyze-children ctx children false))
 
-(defn analyze-known-ns-call
-  ;; split out of analyze-known-call to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
+(defn analyze-unknown-ns-call
+  ;; catch-all for calls no built-in analyzer handles; split out of
+  ;; analyze-known-ns-call to keep these fns under HotSpot's 8000-bytecode limit
+  [ctx children resolved-namespace resolved-name unresolved?]
+  (let [next-ctx (cond-> ctx
+                   (one-of [resolved-namespace resolved-name]
+                           [[clojure.core.async thread]
+                            [clojure.core dosync]
+                            [clojure.core future]
+                            [clojure.core lazy-seq]
+                            [clojure.core lazy-cat]])
+                   (-> (assoc-in [:recur-arity :fixed-arity] 0)
+                       (assoc :seen-recur? (volatile! nil))
+                       (dissoc :protocol-fn))
+                   ;; an unresolved call could be a macro,
+                   ;; treat its args as conditionally
+                   ;; evaluated, like a when body
+                   unresolved? (in-branch-ctx))]
+    (analyze-children next-ctx children false)))
+
+(defn analyze-test-ns-call
+  ;; clojure.test / cljs.test / test.check branches of analyze-known-ns-call
   [ctx expr children resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?]
   (case [resolved-as-namespace resolved-as-name]
-    [clj-kondo.lint-as def-catch-all]
-    (analyze-def-catch-all ctx expr)
-    [schema.core fn]
-    (analyze-schema ctx 'fn expr 'schema.core/fn defined-by->lint-as)
-    [schema.core def]
-    (analyze-schema ctx 'def expr 'schema.core/def defined-by->lint-as)
-    [schema.core defn]
-    (analyze-schema ctx 'defn expr 'schema.core/defn defined-by->lint-as)
-    [schema.core defmethod]
-    (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
-    [schema.core defrecord]
-    (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
-    [schema.core defprotocol]
-    (analyze-schema ctx 'defprotocol expr 'schema.core/defprotocol defined-by->lint-as)
     ([clojure.test deftest]
      [clojure.test deftest-]
      [cljs.test deftest])
     (do
       (lint-inline-def! ctx expr)
       (test/analyze-deftest ctx expr defined-by defined-by->lint-as))
-    ([clojure.core.match match] [cljs.core.match match])
-    (match/analyze-match ctx expr)
-    [clojure.string replace]
-    (analyze-clojure-string-replace ctx expr)
     [cljs.test async]
     (test/analyze-cljs-test-async ctx expr)
     ([clojure.test are] [cljs.test are])
@@ -3184,6 +3185,12 @@
     (do
       (lint-inline-def! ctx expr)
       (test/analyze-defspec ctx expr defined-by defined-by->lint-as))
+    (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
+
+(defn analyze-spec-ns-call
+  ;; spec.alpha / spec.gen.alpha branches of analyze-known-ns-call
+  [ctx expr children resolved-as-namespace resolved-as-name resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?]
+  (case [resolved-as-namespace resolved-as-name]
     [cljs.spec.alpha def]
     (spec/analyze-def ctx expr 'cljs.spec.alpha/def)
     [clojure.spec.alpha def]
@@ -3199,6 +3206,57 @@
      [cljs.spec.gen.alpha lazy-combinators]
      [cljs.spec.gen.alpha lazy-prims])
     (analyze-declare ctx expr defined-by defined-by->lint-as)
+    (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
+
+(defn analyze-re-frame-ns-call
+  ;; re-frame.core branches of analyze-known-ns-call
+  [ctx expr children resolved-as-namespace resolved-as-name resolved-namespace resolved-name unresolved?]
+  (case [resolved-as-namespace resolved-as-name]
+    ([re-frame.core reg-event-db]
+     [re-frame.core reg-event-ctx]
+     [re-frame.core reg-sub-raw]
+     [re-frame.core reg-fx]
+     [re-frame.core reg-cofx])
+    (re-frame/analyze-reg
+     ctx expr
+     (symbol (str resolved-namespace) (str resolved-name)))
+    ([re-frame.core subscribe])
+    (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
+    ([re-frame.core dispatch]
+     [re-frame.core dispatch-sync])
+    (re-frame/analyze-dispatch ctx expr (str resolved-namespace))
+    ([re-frame.core reg-sub])
+    (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace)
+                                               (str resolved-name)))
+    ([re-frame.core reg-event-fx])
+    (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace)
+                                                    (str resolved-name)))
+    ([re-frame.core inject-cofx])
+    (re-frame/analyze-inject-cofx ctx expr (str resolved-namespace))
+    (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
+
+(defn analyze-lib-ns-call
+  ;; remaining library-specific branches of analyze-known-ns-call
+  [ctx expr children resolved-as-namespace resolved-as-name resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?]
+  (case [resolved-as-namespace resolved-as-name]
+    [clj-kondo.lint-as def-catch-all]
+    (analyze-def-catch-all ctx expr)
+    [schema.core fn]
+    (analyze-schema ctx 'fn expr 'schema.core/fn defined-by->lint-as)
+    [schema.core def]
+    (analyze-schema ctx 'def expr 'schema.core/def defined-by->lint-as)
+    [schema.core defn]
+    (analyze-schema ctx 'defn expr 'schema.core/defn defined-by->lint-as)
+    [schema.core defmethod]
+    (analyze-schema ctx 'defmethod expr 'schema.core/defmethod defined-by->lint-as)
+    [schema.core defrecord]
+    (analyze-schema ctx 'defrecord expr 'schema.core/defrecord defined-by->lint-as)
+    [schema.core defprotocol]
+    (analyze-schema ctx 'defprotocol expr 'schema.core/defprotocol defined-by->lint-as)
+    ([clojure.core.match match] [cljs.core.match match])
+    (match/analyze-match ctx expr)
+    [clojure.string replace]
+    (analyze-clojure-string-replace ctx expr)
     [potemkin import-vars]
     (potemkin/analyze-import-vars ctx expr utils/ctx-with-linters-disabled
                                   'potemkin/import-vars
@@ -3262,43 +3320,27 @@
     (analyze-like-let ctx expr)
     [babashka.process $]
     (babashka/analyze-$ ctx expr)
-    ([re-frame.core reg-event-db]
-     [re-frame.core reg-event-ctx]
-     [re-frame.core reg-sub-raw]
-     [re-frame.core reg-fx]
-     [re-frame.core reg-cofx])
-    (re-frame/analyze-reg
-     ctx expr
-     (symbol (str resolved-namespace) (str resolved-name)))
-    ([re-frame.core subscribe])
-    (re-frame/analyze-subscribe ctx expr (str resolved-namespace))
-    ([re-frame.core dispatch]
-     [re-frame.core dispatch-sync])
-    (re-frame/analyze-dispatch ctx expr (str resolved-namespace))
-    ([re-frame.core reg-sub])
-    (re-frame/analyze-reg-sub ctx expr (symbol (str resolved-namespace)
-                                               (str resolved-name)))
-    ([re-frame.core reg-event-fx])
-    (re-frame/analyze-reg-event-fx ctx expr (symbol (str resolved-namespace)
-                                                    (str resolved-name)))
-    ([re-frame.core inject-cofx])
-    (re-frame/analyze-inject-cofx ctx expr (str resolved-namespace))
-    ;; catch-all
-    (let [next-ctx (cond-> ctx
-                     (one-of [resolved-namespace resolved-name]
-                             [[clojure.core.async thread]
-                              [clojure.core dosync]
-                              [clojure.core future]
-                              [clojure.core lazy-seq]
-                              [clojure.core lazy-cat]])
-                     (-> (assoc-in [:recur-arity :fixed-arity] 0)
-                         (assoc :seen-recur? (volatile! nil))
-                         (dissoc :protocol-fn))
-                     ;; an unresolved call could be a macro,
-                     ;; treat its args as conditionally
-                     ;; evaluated, like a when body
-                     unresolved? (in-branch-ctx))]
-      (analyze-children next-ctx children false))))
+    (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
+
+(defn analyze-known-ns-call
+  ;; dispatch on the namespace first, then per-family on [ns name]: one case per
+  ;; family keeps every method under HotSpot's 8000-bytecode limit
+  [ctx expr children resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?]
+  (case resolved-as-namespace
+    (clojure.test cljs.test clojure.test.check.properties clojure.test.check.clojure-test)
+    (analyze-test-ns-call ctx expr children resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?)
+    (clojure.spec.alpha cljs.spec.alpha clojure.spec.gen.alpha cljs.spec.gen.alpha)
+    (analyze-spec-ns-call ctx expr children resolved-as-namespace resolved-as-name resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?)
+    re-frame.core
+    (analyze-re-frame-ns-call ctx expr children resolved-as-namespace resolved-as-name resolved-namespace resolved-name unresolved?)
+    (clj-kondo.lint-as schema.core clojure.core.match cljs.core.match clojure.string
+     potemkin clojure.core.async cljs.core.async clojure.core.reducers clojure.template
+     clojure.core cljs.core datahike.api datascript.core datomic.api datomic.client.api
+     datalevin.core datomic-type-extensions.api compojure.core clojure.java.jdbc
+     next.jdbc clojure.tools.logging clojure.data.xml clojure.data.xml.impl
+     babashka.process)
+    (analyze-lib-ns-call ctx expr children resolved-as-namespace resolved-as-name resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?)
+    (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
 
 (defn analyze-known-call
   ;; split out of analyze-call to keep it under HotSpot's
