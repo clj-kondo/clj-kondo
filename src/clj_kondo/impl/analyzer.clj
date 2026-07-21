@@ -1419,7 +1419,7 @@
   (findings/reg-finding! ctx (node->line (:filename ctx)
                                          expr
                                          :constant-condition
-                                         "Condition always true")))
+                                         utils/condition-always-true-msg)))
 
 (defn analyze-condition
   "Analyzes an expression in condition position. `lint?` false skips the
