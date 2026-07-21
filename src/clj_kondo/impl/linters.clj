@@ -557,7 +557,11 @@
                        (lint-redundant-nested-call call))]]
       (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
                                                                                                                             :fixed-arities fixed-arities
-                                                                                                                            :arity arity} (:expr call))
+                                                                                                                            :arity arity} (:expr call)
+                                       ;; A fn passed to a higher-order fn is modeled as a
+                                       ;; :call for arity checking, but is a value position
+                                       ;; for the :position option of :discouraged-var.
+                                       (and call? (not (:hof-arg? call))))
       (when (and (utils/lint-condition? call)
                  (not (utils/linter-disabled? call :constant-condition))
                  (not call?)

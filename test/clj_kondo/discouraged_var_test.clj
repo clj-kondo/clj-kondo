@@ -158,3 +158,67 @@
        :level :warning,
        :message "I love juxt but don't use it in CLJS"}]
      (lint! "(juxt :foo) juxt #?(:clj juxt :cljs juxt)" config "--filename" "foo.cljc"))))
+
+(deftest position-test
+  (testing ":position #{:call} only warns on syntactic call position, not
+            when the var is a value (passed to a higher-order fn, bare
+            reference, etc.)"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "M"})
+     (lint! "(juxt :foo) (map juxt [1]) juxt"
+            '{:linters {:discouraged-var {clojure.core/juxt {:position #{:call}
+                                                             :message "M"}}}})))
+  (testing ":position #{:value} only warns on value position"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 18, :level :warning, :message "M"}
+       {:file "<stdin>", :row 1, :col 28, :level :warning, :message "M"})
+     (lint! "(juxt :foo) (map juxt [1]) juxt"
+            '{:linters {:discouraged-var {clojure.core/juxt {:position #{:value}
+                                                             :message "M"}}}})))
+  (testing "no :position (default) warns on both, preserving prior behavior"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "M"}
+       {:file "<stdin>", :row 1, :col 18, :level :warning, :message "M"}
+       {:file "<stdin>", :row 1, :col 28, :level :warning, :message "M"})
+     (lint! "(juxt :foo) (map juxt [1]) juxt"
+            '{:linters {:discouraged-var {clojure.core/juxt {:message "M"}}}})))
+  (testing "keyword shorthand :position :call behaves like #{:call}"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "M"})
+     (lint! "(juxt :foo) (map juxt [1]) juxt"
+            '{:linters {:discouraged-var {clojure.core/juxt {:position :call
+                                                             :message "M"}}}})))
+  (testing "a fn literal body is call position"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 2, :level :warning, :message "M"})
+     (lint! "#(juxt %)"
+            '{:linters {:discouraged-var {clojure.core/juxt {:position #{:call}
+                                                             :message "M"}}}})))
+  (testing ":arities and :position are combined: both must match"
+    (testing ":arities #{2} + :position #{:call} warns only on the 2-arity call"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "M"})
+       (lint! "(nth c 0) (nth c 0 :x) (map nth cs)"
+              '{:linters {:unresolved-symbol {:level :off}
+                          :invalid-arity {:level :off}
+                          :discouraged-var {clojure.core/nth {:arities #{2}
+                                                              :position #{:call}
+                                                              :message "M"}}}})))
+    (testing ":position gates the HOF arg even when its synthesized arity matches :arities"
+      (assert-submaps2
+       '()
+       (lint! "(nth c 0) (map nth cs)"
+              '{:linters {:unresolved-symbol {:level :off}
+                          :invalid-arity {:level :off}
+                          :discouraged-var {clojure.core/nth {:arities #{1}
+                                                              :position #{:call}
+                                                              :message "M"}}}})))
+    (testing ":arities #{1} + :position #{:value} warns on the HOF arg (synth arity 1)"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "M"})
+       (lint! "(nth c 0) (map nth cs)"
+              '{:linters {:unresolved-symbol {:level :off}
+                          :invalid-arity {:level :off}
+                          :discouraged-var {clojure.core/nth {:arities #{1}
+                                                              :position #{:value}
+                                                              :message "M"}}}})))))

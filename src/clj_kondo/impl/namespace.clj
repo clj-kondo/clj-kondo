@@ -711,7 +711,7 @@
                 (format "Namespace only aliased but wasn't loaded: %s"
                         ns-sym))))))))))
 
-(defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym arity-info expr]
+(defn lint-discouraged-var! [ctx call-config resolved-ns fn-name filename row end-row col end-col fn-sym arity-info expr call-position?]
   (when-let [discouraged-var-config
              (get-in call-config [:linters :discouraged-var])]
     (when-not (or (identical? :off (:level discouraged-var-config))
@@ -724,8 +724,13 @@
                   (when-not (or (identical? :off (:level cfg))
                                 (:clj-kondo.impl/generated expr))
                     (let [arities (:arities cfg)
-                          arity (:arity arity-info)]
-                      (when (and (or (not arity-info)
+                          arity (:arity arity-info)
+                          positions (let [p (:position cfg)]
+                                      (cond (nil? p) #{:call :value}
+                                            (keyword? p) #{p}
+                                            :else (set p)))]
+                      (when (and (contains? positions (if call-position? :call :value))
+                                 (or (not arity-info)
                                      (not arities)
                                      (not arity)
                                      (let [called-arity (or (when (contains? (:fixed-arities arity-info) arity)
@@ -840,7 +845,7 @@
                                                (:filename ctx)
                                                row end-row col end-col
                                                (symbol (str ns-sym) ns*)
-                                               nil expr)
+                                               nil expr true)
                         nil))
                     {:name (symbol (name name-sym))
                      :unresolved? true

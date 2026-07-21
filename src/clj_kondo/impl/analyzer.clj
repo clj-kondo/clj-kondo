@@ -2817,6 +2817,10 @@
               (namespace/reg-var-usage! ctx ns-name
                                         (utils/var-usage
                                          {:type (if arg-count :call :usage)
+                                         ;; The fn is passed as a value to a
+                                         ;; higher-order fn; distinguish hof
+                                         ;; usage from literal function call.
+                                         :hof-arg? true
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta
@@ -2945,7 +2949,7 @@
                 (swap! nss update-in [base-lang lang ns-name]
                        (fn [ns]
                          (-> ns
-                             (update :clojure-excluded (fnil conj #{}) 
+                             (update :clojure-excluded (fnil conj #{})
                                      (with-meta sym excluded-meta))
                              (update :vars dissoc sym)
                              (update :var-counts dissoc sym))))))))))
