@@ -5,7 +5,7 @@
 
 (def pod-spec (if (= "native" (System/getenv "CLJ_KONDO_TEST_ENV"))
                 ["./clj-kondo"]
-                ["clojure" "-M:clj-kondo/dev"]))
+                ["clojure" "-M:dev"]))
 
 (pods/load-pod pod-spec)
 (require '[clj-kondo.core :as clj-kondo])

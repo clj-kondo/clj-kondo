@@ -133,7 +133,8 @@
              :unused-value {:level :off}
              :uninitialized-var {:level :off}
              :redundant-str-call {:level :off}
-             :redundant-ignore {:level :off}}})
+             :redundant-ignore {:level :off}
+             :constant-condition {:level :off}}})
 
 (defn lint-jvm!
   ([input]

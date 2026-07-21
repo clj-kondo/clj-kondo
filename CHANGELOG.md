@@ -13,6 +13,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 - [#2894](https://github.com/clj-kondo/clj-kondo/issues/2894): explain why a `do` is redundant in `:redundant-do` findings ([@jramosg](https://github.com/jramosg))
+- Vars defined in `comment` forms no longer count for `:shadowed-var`, `:unused-private-var` and `:inline-def`. E.g. `(defn f [bar] bar)` after `(comment (def bar 1))` no longer warns. Defs in `comment` forms also no longer overwrite the arity and position of defs outside of them.
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): NEW linter: `:constant-condition`: warn on a condition whose truthiness is the same on every run. On by default. Replaces `:condition-always-true` (**BREAKING**) and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
 - [#1882](https://github.com/clj-kondo/clj-kondo/issues/1882): built-in support for `clojure.test.check.clojure-test/defspec`
 - [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 - [#2877](https://github.com/clj-kondo/clj-kondo/issues/2877): warn when `#_` before an unmatched reader conditional discards the next form. E.g. `[#_#?(:cljs 1) 2]` reads as `[]` in `:clj` and will warn.
@@ -63,6 +65,10 @@ And it narrows the type of a local after it flowed through a known predicate:
 
 ### Other
 
+- Type checker: infer `and` and `or` return types. E.g. `(when (or x :default) ...)` will warn.
+- Type checker: the return types of `re-matches` and `re-find` are nilable.
+- Type checker: the return type of `class` is nilable, `(class nil)` returns nil.
+- Type checker: an `if` without an else branch includes nil in its return type.
 - The minimum Clojure version to run clj-kondo on the JVM is now `1.11`.
 - Performance: use a record for bindings (~4%)
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.

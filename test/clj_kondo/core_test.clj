@@ -154,7 +154,8 @@
   (let [res (with-in-str "#(if 1 2)"
               (clj-kondo/run!
                {:lint ["-"]
-                :config {:linters {:missing-else-branch {:level :warning}}}
+                :config {:linters {:missing-else-branch {:level :warning}
+                                   :constant-condition {:level :off}}}
                 :repro true}))
         findings (:findings res)
         first-and-only-finding (first findings)]

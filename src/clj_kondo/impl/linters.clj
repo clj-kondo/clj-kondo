@@ -41,7 +41,7 @@
           (findings/reg-finding!
            ctx
            (node->line (:filename ctx) (first rest-conditions)
-                       :unreachable-code "unreachable code"))))
+                       :constant-condition "Unreachable code"))))
       (recur rest-conditions))))
 
 #_(defn lint-cond-as-case! [filename expr conditions]
@@ -268,7 +268,7 @@
                                  (assoc (utils/location call)
                                         :type :redundant-primitive-coercion
                                         :message (str "Redundant " (:name called-fn)
-                                                      " coercion - expression already has type "
+                                                      " coercion: expression already has type "
                                                       (name expected-type))))))
       (when (and
              (= '= (:name called-fn))
@@ -373,6 +373,31 @@
 
 #_(require 'clojure.pprint)
 
+(defn mask-var-usages
+  "Replaces var usages in `t` with :any: a def tag misses set! and
+  alter-var-root, so a var usage never decides a deferred verdict, see
+  analyzer/analyze-condition."
+  [t]
+  (cond (set? t) (into #{} (map mask-var-usages) t)
+        (map? t) (cond (:usage t) :any
+                       (:tag t) (assoc t :tag (mask-var-usages (:tag t)))
+                       :else t)
+        :else t))
+
+(defn lint-deferred-conditions!
+  "Judges conditions whose type contained unresolved calls while analyzing,
+  see analyzer/analyze-condition."
+  [ctx idacs]
+  (doseq [{:keys [ctx condition tag nil-test?]} @(:deferred-conditions ctx)]
+    (case (types/constant-verdict (tu/resolve-arg-type idacs (mask-var-usages tag)) nil-test?)
+      :always-false (findings/reg-finding!
+                     ctx (node->line (:filename ctx) condition :constant-condition
+                                     "Condition always false"))
+      :always-true (findings/reg-finding!
+                    ctx (node->line (:filename ctx) condition :constant-condition
+                                    "Condition always true"))
+      nil)))
+
 (defn lint-var-usage
   "Lints calls for arity errors, private calls errors. Also dispatches
   to call-specific linters."
@@ -387,7 +412,7 @@
             :let [;; _ (clojure.pprint/pprint (dissoc call :config))
                   call? (= :call (:type call))
                   unresolved? (:unresolved? call)
-                  allow-forward-reference? (:allow-forward-reference? call)
+                  in-comment (:in-comment call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
             :let [call-fn-name (:name call)
@@ -407,6 +432,7 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns call-fn-name unresolved? refer-alls)
+                  called-fn (utils/prefer-comment-def call called-fn)
                   #_#__ (when (not call?)
                           (clojure.pprint/pprint (dissoc call :config)))
                   name-meta (meta call-fn-name)
@@ -421,7 +447,7 @@
                              (contains? linted-namespaces resolved-ns)
                              (not (:resolved-core? call))
                              ;; the var could be :refer-all'ed, in this case unresolved? is true
-                             (not allow-forward-reference?)
+                             (not in-comment)
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
                      ctx caller-ns-sym resolved-ns call-fn-name
@@ -444,7 +470,7 @@
                                    (not= (:top-ns call) (:top-ns called-fn)))
                   row-called-fn (:row called-fn)
                   row-call (:row call)
-                  valid-call? (or (and allow-forward-reference?
+                  valid-call? (or (and in-comment
                                        called-fn)
                                   (not unresolved?)
                                   (when called-fn
@@ -532,14 +558,17 @@
       (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
                                                                                                                             :fixed-arities fixed-arities
                                                                                                                             :arity arity} (:expr call))
-      (when (and (not call?)
+      (when (and (utils/lint-condition? call)
+                 (not (utils/linter-disabled? call :constant-condition))
+                 (not call?)
                  (identical? :fn (:type called-fn)))
-        (when (:condition call)
-          (findings/reg-finding!
-           ctx (-> call
-                   utils/location
-                   (assoc :type :condition-always-true
-                          :message "Condition always true")))))
+        ;; the call's config knows namespace local levels, the phase ctx does not
+        (findings/reg-finding!
+         (assoc ctx :config (:config call))
+         (-> call
+             utils/location
+             (assoc :type :constant-condition
+                    :message "Condition always true"))))
       (when arity-error?
         (findings/reg-finding!
          ctx
@@ -917,6 +946,7 @@
             v vars
             :let [var-name (:name v)]
             :when (:private v)
+            :when (not (:in-comment v))
             :when (not (contains? used-vars var-name))
             :when (not (config/unused-private-var-excluded config ns-nm var-name))
             :when

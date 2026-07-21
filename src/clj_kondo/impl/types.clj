@@ -48,6 +48,9 @@
     :seq
     :sorted-map
     :boolean
+    :true
+    :false
+    :truthy
     :atom
     :future
     :regex
@@ -106,13 +109,16 @@
    :seq #{:seqable :sequential :coll}
    :sequential #{:coll :seqable}
    :sorted-map #{:map :seqable :associative :coll :ifn :ilookup}
+   :true #{:boolean}
+   :false #{:boolean}
    :atom #{:ideref}
    :future #{:ideref}
    :var #{:ideref :ifn}
    :array #{:seqable :ilookup}})
 
 (def could-be-relations
-  {:char-sequence #{:string}
+  {:boolean #{:true :false}
+   :char-sequence #{:string}
    ;; Subtypes and widening primitive conversions (int can widen to float/double)
    :int #{:neg-int :nat-int :pos-int :long :short :float :double :number}
    :long #{:int :neg-int :nat-int :pos-int :short :float :double :number}
@@ -180,6 +186,9 @@
    :regex "regular expression"
    :char "character"
    :boolean "boolean"
+   :true "boolean"
+   :false "boolean"
+   :truthy "truthy value"
    :atom "atom"
    :future "future"
    :ideref "deref"
@@ -213,6 +222,11 @@
     (keyword? actual)
     (or (identical? actual expected)
         (identical? actual :any)
+        ;; some truthy value of unknown type, see types.utils/truthy-part.
+        ;; It matches every type except a falsy one, also in its compact
+        ;; :nilable/false spelling
+        (and (identical? actual :truthy)
+             (not (type-utils/always-falsy? expected)))
         (identical? expected :any)
         (contains? (get is-a-relations actual) expected)
         (contains? (get could-be-relations actual) expected)
@@ -393,6 +407,44 @@
           ;; :min-arity isn't present, the arities were specified by a user
           v))))
 
+(defn non-nil-tag?
+  "True when a value of type `t` can never be nil."
+  [t]
+  (and (keyword? t)
+       (or (identical? :truthy t)
+           (not (or (identical? :any t)
+                    (nilable? t)
+                    (match? t :nil))))))
+
+(defn truthy-tag?
+  "True when a value of type `t` can never be nil or false."
+  [t]
+  (and (keyword? t)
+       (or (identical? :truthy t)
+           (identical? :true t)
+           (and (non-nil-tag? t)
+                (not (match? t :boolean))))))
+
+(defn constant-verdict
+  "Returns :always-true or :always-false when a value of type `t` decides the
+  same branch on every run, else nil. Used both while analyzing and afterwards,
+  so that a condition is judged the same either way. With `nil-test?` the
+  branch is decided by nilness rather than truthiness, as in if-some, where a
+  boolean always takes the then branch."
+  ([t] (constant-verdict t false))
+  ([t nil-test?]
+   (let [takes-then? (if nil-test? non-nil-tag? truthy-tag?)
+         ;; false takes the then branch of if-some, it is not nil
+         takes-else? (if nil-test?
+                       #(identical? :nil %)
+                       type-utils/falsy-keyword?)]
+     (when-let [t (type-utils/truthiness-tag t)]
+       (cond (takes-else? t) :always-false
+             (takes-then? t) :always-true
+             (and (set? t) (seq t))
+             (cond (every? takes-else? t) :always-false
+                   (every? takes-then? t) :always-true))))))
+
 (defn ret-tag-from-call
   [ctx call _expr]
   ;; Note, we need to return maps here because we are adding row and col later on.
@@ -429,9 +481,9 @@
         (when (and (keyword? nm)
                    (= 1 arg-count))
           (when-let [arg-type (first arg-types)]
-            ;; a local tagged with a deferred call, e.g. a binding of a user
-            ;; fn's return, carries the call under its :tag
-            (let [call* (or (:call arg-type) (:call (:tag arg-type)))]
+            ;; an entry carries a deferred call under its :tag, see
+            ;; add-arg-type-from-call
+            (let [call* (:call (:tag arg-type))]
               (if call*
                 {:call (assoc call*
                               ;; build chain of keyword calls
@@ -476,7 +528,8 @@
         {:tag :class}
 
         :else {:usage (or tag
-                          (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
+                          (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name
+                                              :in-comment]))}))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."
@@ -547,20 +600,23 @@
 (defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]
     (swap! arg-types conj (when-let [r (ret-tag-from-call ctx call expr)]
-                            (assoc r
-                                   :row (:row call)
-                                   :col (:col call)
-                                   :end-row (:end-row call)
-                                   :end-col (:end-col call))))))
+                            ;; an entry is {:tag .. :row ..}: a deferred
+                            ;; {:call ..} or {:usage ..} marker sits under
+                            ;; :tag, never at the top level
+                            {:tag (or (:tag r) r)
+                             :row (:row call)
+                             :col (:col call)
+                             :end-row (:end-row call)
+                             :end-col (:end-col call)}))))
 
 (defn add-arg-type-from-usage [ctx usage expr]
   (when-let [arg-types (:arg-types ctx)]
     (swap! arg-types conj (when-let [r (tag-from-usage ctx usage expr)]
-                            (assoc r
-                                   :row (:row usage)
-                                   :col (:col usage)
-                                   :end-row (:end-row usage)
-                                   :end-col (:end-col usage))))))
+                            {:tag (or (:tag r) r)
+                             :row (:row usage)
+                             :col (:col usage)
+                             :end-row (:end-row usage)
+                             :end-col (:end-col usage)}))))
 
 (defn args-spec-from-arities [arities arity]
   (when-let [ca (called-arity arities arity)]
@@ -598,7 +654,8 @@
         (let [k (unnil s)]
           (if (identical? :any k)
             :any
-            #{:nil k}))
+            ;; hash-set, the halves coincide for :nilable/nil
+            (hash-set :nil k)))
         (and (set? s) (contains? s :any)) :any
         :else s))
 

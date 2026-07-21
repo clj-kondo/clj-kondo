@@ -26,6 +26,17 @@
   :langs (),
   :message "Unresolved excluded var: set!",
   :row 8}
+ {:end-row 413,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/api/common.clj",
+  :col 3,
+  :end-col 40,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 410}
  {:end-row 998,
   :type :redundant-format,
   :level :info,
@@ -37,7 +48,7 @@
   :message "Format string contains no format specifiers",
   :row 998}
  {:end-row 43,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/app_db/update_h2.clj",
@@ -480,6 +491,28 @@
   :langs (),
   :message "Expected: symbol or string or keyword, received: nil.",
   :row 67}
+ {:end-row 236,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/h2.clj",
+  :col 5,
+  :end-col 33,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 212}
+ {:end-row 251,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/h2.clj",
+  :col 5,
+  :end-col 33,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 247}
  {:end-row 113,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -489,7 +522,7 @@
   :end-col 53,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 113}
  {:end-row 2,
   :type :unused-excluded-var,
@@ -619,6 +652,18 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
+ {:end-row 431,
+  :type :constant-condition,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/temporal_bucket.cljc",
+  :col 7,
+  :end-col 19,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Condition always true",
+  :row 431}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -632,7 +677,7 @@
   :message "Unused excluded var: number?",
   :row 3}
  {:end-row 708,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :lang :clj,
   :filename
@@ -672,7 +717,7 @@
   :end-col 75,
   :langs (),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 20}
  {:end-row 565,
   :type :redundant-let-binding,
@@ -684,6 +729,17 @@
   :langs (),
   :message "Redundant let binding: query",
   :row 565}
+ {:end-row 121,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/parameters/custom_values.clj",
+  :col 3,
+  :end-col 82,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 119}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -704,6 +760,16 @@
   :langs (),
   :message "Expected: number, received: nil.",
   :row 214}
+ {:end-row 219,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 24,
+  :end-col 43,
+  :langs (),
+  :message "Condition always false",
+  :row 219}
  {:end-row 220,
   :type :type-mismatch,
   :level :error,
@@ -775,7 +841,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 328}
  {:end-row 266,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/queries/api/card.clj",
@@ -931,6 +997,27 @@
   "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
+ {:end-row 1410,
+  :type :redundant-primitive-coercion,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/settings/models/setting.clj",
+  :col 5,
+  :end-col 75,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 1409}
+ {:end-row 253,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/upload/impl.clj",
+  :col 7,
+  :end-col 22,
+  :langs (),
+  :message "Condition always true",
+  :row 253}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
@@ -1004,7 +1091,7 @@
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 31}
  {:end-row 211,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/util/encryption.clj",
@@ -1111,7 +1198,7 @@
   :message "Redundant let binding: dir",
   :row 76}
  {:end-row 131,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/warehouse_schema/api/field.clj",
@@ -1121,7 +1208,7 @@
   :message "Condition always true",
   :row 131}
  {:end-row 46,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/src/metabase/warehouse_schema/models/field.clj",
@@ -1141,7 +1228,7 @@
   :message "Unused excluded var: defn",
   :row 2}
  {:end-row 7,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/mage/start_db_test.clj",
@@ -1211,7 +1298,7 @@
   :message "Unresolved symbol: partial=",
   :row 99}
  {:end-row 442,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1221,7 +1308,7 @@
   :message "Condition always true",
   :row 442}
  {:end-row 446,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1231,7 +1318,7 @@
   :message "Condition always true",
   :row 446}
  {:end-row 451,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1241,7 +1328,7 @@
   :message "Condition always true",
   :row 451}
  {:end-row 455,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1251,7 +1338,7 @@
   :message "Condition always true",
   :row 455}
  {:end-row 460,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
@@ -1291,7 +1378,7 @@
   :message "Unresolved symbol: partial=",
   :row 38}
  {:end-row 17,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/app_db/internal_user_test.clj",
@@ -1501,7 +1588,7 @@
   :message "Unresolved symbol: partial=",
   :row 82}
  {:end-row 93,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/driver/impl_test.clj",
@@ -1521,7 +1608,7 @@
   :message "Write expected value first",
   :row 99}
  {:end-row 132,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
@@ -1581,7 +1668,7 @@
   :message "Unresolved symbol: re=",
   :row 177}
  {:end-row 185,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/embedding/api/embed_test.clj",
@@ -1601,7 +1688,7 @@
   :message "Unresolved symbol: partial=",
   :row 45}
  {:end-row 59,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/events/recent_views_test.clj",
@@ -1633,10 +1720,10 @@
   :cljc true,
   :langs (:clj :cljs),
   :message
-  "Redundant boolean coercion - expression already has type boolean",
+  "Redundant boolean coercion: expression already has type boolean",
   :row 2032}
  {:end-row 96,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :lang :clj,
   :filename
@@ -1657,6 +1744,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 165}
+ {:end-row 93,
+  :type :constant-condition,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 29,
+  :end-col 44,
+  :langs (),
+  :message "Condition always true",
+  :row 93}
  {:end-row 72,
   :type :unresolved-symbol,
   :level :error,
@@ -2067,7 +2164,7 @@
   :message "Missing protocol method(s): to-job-data",
   :row 171}
  {:end-row 497,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/task_history/api_test.clj",
@@ -2117,7 +2214,7 @@
   :message "Unresolved symbol: re=",
   :row 54}
  {:end-row 41,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",
@@ -2137,7 +2234,7 @@
   :message "Test assertion message should be a string",
   :row 41}
  {:end-row 42,
-  :type :condition-always-true,
+  :type :constant-condition,
   :level :warning,
   :filename
   "test-regression/checkouts/metabase/test/metabase/util/string_test.clj",

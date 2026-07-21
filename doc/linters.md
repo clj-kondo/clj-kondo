@@ -18,7 +18,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conditional build-up](#conditional-build-up)
-    - [Condition always true](#condition-always-true)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
@@ -47,7 +46,6 @@ configuration. For general configurations options, go [here](config.md).
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
-    - [Quoted case test constant](#quoted-case-test-constant)
     - [Equals expected position](#equals-expected-position)
     - [Equals float](#equals-float)
     - [Equals false](#equals-false)
@@ -126,7 +124,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
-    - [Unreachable code](#unreachable-code)
+    - [Constant condition](#constant-condition)
     - [Unused import](#unused-import)
     - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
@@ -294,20 +292,6 @@ enabling this linter, you can prepend the `case` expression with
 *Example trigger:* `(cond (odd? (rand-int 10)) :foo :default :bar)`.
 
 *Example message:* `use :else as the catch-all test expression in cond`.
-
-### Condition always true
-
-*Keyword:* `:condition-always-true`.
-
-*Description:* warn on a condition that evaluates to an always truthy constant,
-like when passing a function instead of calling it. This linter intentionally
-doesn't check for literally `true` values of vars since this is often a dev/production setting.
-
-*Default level:* `:off` (will be `:warning` in a future release).
-
-*Example trigger:* `(if odd? :odd :even)`.
-
-*Example message:* `Condition always true`.
 
 ### Conditional build-up
 
@@ -886,18 +870,6 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(def *foo*)`
 
 *Example message:* `"Var has earmuffed name but is not declared dynamic: *foo*"`
-
-### Quoted case test constant
-
-*Keyword:* `:quoted-case-test-constant`.
-
-*Description:* warn when encountering quoted test case constants.
-
-*Default level:* `:warning`.
-
-*Example trigger:* `(case x 'a 1 :b 2)`
-
-*Example message:* `Case test is compile time constant and should not be quoted.`
 
 ### Equals expected position
 
@@ -1928,7 +1900,7 @@ primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, 
 (float (bar))
 ```
 
-*Example message:* `Redundant double coercion - expression already has type double`.
+*Example message:* `Redundant double coercion: expression already has type double`.
 
 *Note:* This linter relies on type information from the `:type-mismatch` linter.
 If `:type-mismatch` is disabled, type tracking will not be available and the linter
@@ -2352,17 +2324,46 @@ This will exclude all bindings starting with `_x`.
 
 *Config:* use `:exclude [:s]` to suppress the above warning.
 
+### Constant condition
+
+*Keyword:* `:constant-condition`.
+
+*Description:* warn on a condition whose truthiness is the same on every run.
+Also warns on unreachable code after a catch-all `cond` test.
+
+Literal `true` and `false` conditions are not checked, even when reached
+through a var or local. These are often dev/production toggles. The keyword
+`:always` is exempt as an intentional always-truthy condition.
+
+Replaces the `:condition-always-true` linter. The `cond` catch-all warning
+moved here from `:unreachable-code`.
+
+*Default level:* `:warning`.
+
+*Example triggers*:
+
+``` clojure
+;; a function passed instead of called:
+(if odd? :odd :even)      ;;=> Condition always true
+;; a lazy seq is truthy even when empty, use seq to test for emptiness:
+(when (filter odd? xs) 1) ;;=> Condition always true
+(when nil 1)              ;;=> Condition always false
+(is 42)                   ;;=> Condition always true
+(cond :else 1 (odd? 1) 2) ;;=> Unreachable code
+```
+
 ### Unreachable code
 
 *Keyword:* `:unreachable-code`.
 
-*Description:* warn on unreachable code.
+*Description:* warn on code that can never execute. Currently: branches after
+a `:default` reader conditional branch, which never match.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `(cond :else 1 (odd? 1) 2)`.
+*Example trigger:* `#?(:default 1 :clj 2)`.
 
-*Example message:* `unreachable code`.
+*Example message:* `Unreachable code: default reader conditional branch should go last`.
 
 ### Unused import
 

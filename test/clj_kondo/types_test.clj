@@ -573,11 +573,40 @@
    (lint! "(inc (when-let [_x 1] 'symbol))"
           {:linters {:type-mismatch {:level :error}}})))
 
+(deftest truthy-match-test
+  (testing "a truthy value matches no falsy type"
+    (assert-submaps2
+     '({:row 1 :message #"Expected: nil, received: truthy value"})
+     (lint! "(ns foo) (defn need-nil [x] x) (defn f [x] (need-nil (or x :fb)))"
+            {:linters {:type-mismatch {:level :error
+                                       :namespaces '{foo {need-nil {:arities {1 {:args [:nil]}}}}}}}}))))
+
+(deftest compact-falsy-test
+  (testing "a truthy value does not match a compact falsy spec"
+    (assert-submaps2
+     '({:row 1 :message #"received: truthy value"})
+     (lint! "(ns foo) (defn need-falsy [x] x) (defn f [x] (need-falsy (or x :fb)))"
+            {:linters {:type-mismatch {:level :error
+                                       :namespaces '{foo {need-falsy {:arities {1 {:args [:nilable/false]}}}}}}}})))
+  (testing "the degenerate :nilable/nil neither crashes nor loses its nilness"
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "(ns foo) (defn g [] nil) (defn h [] (when (g) 1))"
+            {:linters {:type-mismatch {:level :error
+                                       :namespaces '{foo {g {:arities {0 {:ret :nilable/nil}}}}}}
+                       :constant-condition {:level :warning}}}))))
+
 (deftest or-test
-  (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: symbol or keyword."})
-   (lint! "(inc (or :foo 'bar))"
-          {:linters {:type-mismatch {:level :error}}}))
+  (testing "or stops at an argument that is always truthy"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: keyword."})
+     (lint! "(inc (or :foo 'bar))"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "an argument that may be falsy keeps the ones after it"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Expected: number, received: boolean or symbol."})
+     (lint! "(inc (or (odd? 1) 'bar))"
+            {:linters {:type-mismatch {:level :error}}})))
   (assert-submaps2
    [{:file "<stdin>",
      :row 1,
@@ -597,10 +626,17 @@
           {:linters {:type-mismatch {:level :error}}})))
 
 (deftest and-test
-  (assert-submaps2
-   '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: keyword or nil or boolean."})
-   (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
-          {:linters {:type-mismatch {:level :error}}})))
+  (testing "and returns the falsy half of an arg, or the last one"
+    ;; the falsy half of a deferred call is nil or false, resolved types are
+    ;; more precise, see the parse-long case in constant-condition-test
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 44, :level :error, :message "Expected: number, received: boolean or keyword or nil."})
+     (lint! "(defn foo [_] true) (defn bar [_] :k) (inc (and (foo 1) (bar 2)))"
+            {:linters {:type-mismatch {:level :error}}}))
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 38, :level :error, :message "Expected: number, received: keyword or nil."})
+     (lint! "(defn foo [x] (and (seq x) :k)) (inc (foo []))"
+            {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest return-type-inference-test
   (testing "Function return types"
@@ -1456,8 +1492,10 @@
         :row 1
         :col 6
         :level :error
-        :message "Expected: number, received: class."})
-     (lint! "(inc (class 42))" config))))
+        :message "Expected: number, received: class or nil."})
+     (lint! "(inc (class 42))" config)))
+  (testing "class returns nil for nil"
+    (is (empty? (lint! "(defn f [x] (when (class x) 1))" config)))))
 
 (deftest instance-test
   (testing "instance? returns boolean"
@@ -2233,9 +2271,7 @@
         (is (empty? (lint! "(when-let [{:keys [x] :or {x (inc \"bad\")}} (:missing {})] x)"
                            config)))))
     (testing "when-first's condition is seq, not truthiness"
-      (is (empty? (lint! "(when-first [x []] x)"
-                         (assoc-in config [:linters :condition-always-true :level]
-                                   :warning)))))
+      (is (empty? (lint! "(when-first [x []] x)" config))))
     (testing "a call-shaped map value carries the call's return type"
       (assert-submaps2
        '({:row 1 :message "Expected: string, received: number."})

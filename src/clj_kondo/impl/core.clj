@@ -123,7 +123,7 @@
   last."
   [cfg-dir cfg]
   (if-let [config-paths (seq (:config-paths cfg))]
-    (if-let [paths (sanitize-paths cfg-dir config-paths)]
+    (if-let [paths (seq (sanitize-paths cfg-dir config-paths))]
       (let [configs (map process-cfg-dir paths)
             merged (reduce config/merge-config! nil configs)
             ;; cfg is merged last
@@ -615,15 +615,20 @@
   [a b]
   (merge-with merge a b))
 
+(def var-def-keys
+  [:row :col
+   :macro :private :deprecated
+   :fixed-arities :varargs-min-arity
+   :name :ns :top-ns :imported-ns :imported-var
+   :arities :type :class :methods
+   :method-arities])
+
 (defn format-vars [vars]
   (map-vals (fn [md]
-              (-> md
-                  (select-keys [:row :col
-                                :macro :private :deprecated
-                                :fixed-arities :varargs-min-arity
-                                :name :ns :top-ns :imported-ns :imported-var
-                                :arities :type :class :methods
-                                :method-arities])))
+              (let [v (select-keys md var-def-keys)]
+                (if-let [cd (:comment-def md)]
+                  (assoc v :comment-def (select-keys cd var-def-keys))
+                  v)))
             vars))
 
 (defn deprecated-val [deprecated]

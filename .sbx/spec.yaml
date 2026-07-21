@@ -23,19 +23,3 @@ commands:
           -o /tmp/linux-install.sh
         chmod +x /tmp/linux-install.sh
         /tmp/linux-install.sh
-
-  startup:
-    - command:
-        - sh
-        - -c
-        - |
-          cd /Users/borkdude/dev/clj-kondo
-          exec clojure -Sdeps \
-            '{:deps {nrepl/nrepl {:mvn/version "1.3.1"}}
-              :aliases {:clear-main {:main-opts []}}}' \
-            -M:clj-kondo/dev:test:clear-main -m nrepl.cmdline \
-            --bind 0.0.0.0 \
-            --port 7888 \
-            > /tmp/nrepl.log 2>&1
-      user: "1000"
-      background: true

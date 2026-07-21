@@ -45,3 +45,22 @@
    '({:file "<stdin>", :row 1, :col 17, :level :warning, :message "Shadowed var: user/x"})
    (lint! "(def x 1) (let [x 2] x)"
           '{:linters {:shadowed-var {:level :warning}}})))
+
+(deftest shadowed-var-comment-test
+  (testing "vars defined only in comment forms don't count"
+    (is (empty? (lint! "(ns foo) (comment (def bar 1)) (defn f [bar] bar)"
+                       '{:linters {:shadowed-var {:level :warning}}}))))
+  (testing "vars also defined outside comment forms still count"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 53, :level :warning, :message "Shadowed var: foo/bar"})
+     (lint! "(ns foo) (def bar 1) (comment (def bar 2)) (defn f [bar] bar)"
+            '{:linters {:shadowed-var {:level :warning}}}))
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 53, :level :warning, :message "Shadowed var: foo/bar"})
+     (lint! "(ns foo) (comment (def bar 2)) (def bar 1) (defn f [bar] bar)"
+            '{:linters {:shadowed-var {:level :warning}}})))
+  (testing "core vars redefined in comment forms still count as core shadows"
+    (assert-submaps
+     '({:file "<stdin>", :row 1, :col 44, :level :warning, :message "Shadowed var: clojure.core/update"})
+     (lint! "(ns foo) (comment (def update 1)) (defn f [update] update)"
+            '{:linters {:shadowed-var {:level :warning}}}))))

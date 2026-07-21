@@ -191,6 +191,7 @@
                  :sources (atom [])
                  :files files
                  :findings findings
+                 :deferred-conditions (atom [])
                  :namespaces (atom {})
                  :analysis analysis
                  :cache-dir cache-dir
@@ -250,6 +251,7 @@
                     (l/lint-var-usage ctx idacs))
                   (do
                     (l/lint-var-usage ctx idacs)
+                    (l/lint-deferred-conditions! ctx idacs)
                     (l/lint-unused-namespaces! ctx idacs)
                     (l/lint-unused-private-vars! ctx)
                     (l/lint-bindings! ctx)
