@@ -1382,13 +1382,14 @@
                    (second parent-call))
         ;; avoid warnings from hook code
         generated? (:clj-kondo.impl/generated expr)
+        body (next (:children expr))
+        zero-or-one-children? (nil? (next body))
         redundant?
         (and (not generated?)
              (not= 'fn* core-sym)
              (not= 'let* core-sym)
              (or
-              ;; zero or one children
-              (< (count (rest (:children expr))) 2)
+              zero-or-one-children?
               (and core?
                    (not (:condition expr))
                    (not (:clj-kondo.impl/generated (meta parent-call)))
@@ -1404,8 +1405,13 @@
     (when redundant?
       (findings/reg-finding!
        ctx
-       (node->line filename expr :redundant-do "redundant do"))))
-  (analyze-children ctx (next (:children expr)) false))
+       (node->line
+        filename expr :redundant-do
+        (if zero-or-one-children?
+          "Redundant do: fewer than two expressions"
+          (format "Redundant do: body of %s already provides sequencing"
+                  core-sym)))))
+    (analyze-children ctx body false)))
 
 (defn lint-two-forms-binding-vector! [ctx form-name expr]
   (let [num-children (count (:children expr))]

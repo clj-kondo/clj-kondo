@@ -12,11 +12,11 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## Unreleased
+- [#2894](https://github.com/clj-kondo/clj-kondo/issues/2894): explain why a `do` is redundant in `:redundant-do` findings ([@jramosg](https://github.com/jramosg))
 - Vars defined in `comment` forms no longer count for `:shadowed-var`, `:unused-private-var` and `:inline-def`. E.g. `(defn f [bar] bar)` after `(comment (def bar 1))` no longer warns. Defs in `comment` forms also no longer overwrite the arity and position of defs outside of them.
 - [#721](https://github.com/clj-kondo/clj-kondo/issues/721): NEW linter: `:constant-condition`: warn on a condition whose truthiness is the same on every run. On by default. Replaces `:condition-always-true` (**BREAKING**) and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
 - [#1882](https://github.com/clj-kondo/clj-kondo/issues/1882): built-in support for `clojure.test.check.clojure-test/defspec`
 - [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
-
 - [#2877](https://github.com/clj-kondo/clj-kondo/issues/2877): warn when `#_` before an unmatched reader conditional discards the next form. E.g. `[#_#?(:cljs 1) 2]` reads as `[]` in `:clj` and will warn.
 - [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
 - Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.

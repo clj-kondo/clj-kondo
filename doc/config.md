@@ -505,7 +505,7 @@ The custom pattern supports these template values:
 ``` shellsession
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"]}}'
 clojure/test.clj:496:6: warning: redundant let
-clojure/test/tap.clj:86:5: warning: redundant do
+clojure/test/tap.clj:86:5: warning: redundant do: fewer than two expressions
 linting took 3289ms, errors: 0, warnings: 2
 
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:include-files ["^clojure/test"] :exclude-files ["tap"]}}'
@@ -518,7 +518,7 @@ linting took 3226ms, errors: 0, warnings: 1
 ``` shellsession
 $ clj-kondo --lint "$(clj -Spath)" --config '{:output {:progress true}}'
 .................................................................................................................
-cljs/tools/reader.cljs:527:9: warning: redundant do
+cljs/tools/reader.cljs:527:9: warning: redundant do: fewer than two expressions
 (rest of the output omitted)
 ```
 

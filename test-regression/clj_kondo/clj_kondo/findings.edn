@@ -2510,7 +2510,7 @@
   :col 5,
   :end-col 24,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of let already provides sequencing",
   :row 364}
  {:end-row 378,
   :type :unused-binding,
@@ -3009,7 +3009,7 @@
   :col 9,
   :end-col 77,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of when already provides sequencing",
   :row 2167}
  {:end-row 2258,
   :type :unused-binding,
@@ -8933,7 +8933,7 @@
   :col 7,
   :end-col 38,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of fn already provides sequencing",
   :row 10678}
  {:end-row 10727,
   :type :unused-binding,
@@ -9869,7 +9869,7 @@
   :col 19,
   :end-col 37,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of when already provides sequencing",
   :row 12885}
  {:end-row 12892,
   :type :unused-binding,
@@ -12149,7 +12149,7 @@
   :col 5,
   :end-col 73,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 2206}
  {:end-row 2208,
   :type :unresolved-symbol,
@@ -14255,7 +14255,7 @@
   :end-col 61,
   :cljc true,
   :langs (:clj :cljs),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 306}
  {:end-row 324,
   :type :unused-private-var,
@@ -15128,7 +15128,7 @@
   :col 9,
   :end-col 106,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 522}
  {:end-row 563,
   :type :missing-else-branch,
@@ -17579,7 +17579,7 @@
   :col 5,
   :end-col 38,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 96}
  {:end-row 23,
   :type :unused-binding,
@@ -18828,7 +18828,7 @@
   :col 5,
   :end-col 48,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 7898}
  {:end-row 7992,
   :ns clojure.uuid,
@@ -19608,7 +19608,7 @@
   :col 7,
   :end-col 62,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of fn already provides sequencing",
   :row 233}
  {:end-row 519,
   :type :unused-binding,
@@ -20413,7 +20413,7 @@
   :col 11,
   :end-col 23,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of when already provides sequencing",
   :row 310}
  {:end-row 320,
   :type :missing-else-branch,
@@ -20431,7 +20431,7 @@
   :col 11,
   :end-col 23,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: body of when already provides sequencing",
   :row 342}
  {:end-row 357,
   :type :unused-binding,
@@ -21603,7 +21603,7 @@
   :col 4,
   :end-col 72,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 1373}
  {:end-row 1375,
   :type :unresolved-symbol,
@@ -23290,7 +23290,7 @@
   :col 5,
   :end-col 38,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 86}
  {:end-row 27,
   :type :unused-binding,
@@ -26414,7 +26414,7 @@
   :col 9,
   :end-col 106,
   :langs (),
-  :message "redundant do",
+  :message "Redundant do: fewer than two expressions",
   :row 526}
  {:end-row 567,
   :type :missing-else-branch,
