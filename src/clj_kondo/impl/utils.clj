@@ -29,7 +29,7 @@
      base-lang lang filename expr callstack condition config top-ns
      arg-types simple? interop? resolved-core?
      unresolved? unresolved-ns unresolved-symbol-disabled?
-     allow-forward-reference? clojure-excluded? private-access?
+     clojure-excluded? private-access?
      idx len derived-location in-def in-comment context
      defmethod dispatch-val-str refer id ret
      redundant-fn-wrapper-parent-loc])
