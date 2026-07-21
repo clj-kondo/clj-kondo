@@ -1946,6 +1946,18 @@
       (is (empty? (lint! "(defn f [x b] (and b (subs x 1))) (f 42 true)" config)))
       (is (empty? (lint! "(defn f [x k] (case k :a (subs x 1) x)) (f 42 :b)" config)))
       (is (empty? (lint! "(defn f [x m] (if-let [v (:k m)] (subs x v) x)) (f 42 {})" config))))
+    (testing "a usage in a try body with a catch does not constrain, the catch swallows the crash"
+      (is (empty? (lint! "(defn f [n] (try (subs n 1) (catch Exception _ nil))) (f 42)" config))))
+    (testing "a usage in a catch body does not constrain, it only runs on an exception"
+      (is (empty? (lint! "(defn f [n] (try (println n) (catch Exception _ (subs n 1)))) (f 42)" config))))
+    (testing "a try body without a catch still constrains, exceptions propagate"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [n] (try (subs n 1) (finally (println :x)))) (f 42)" config)))
+    (testing "a usage after a try still constrains"
+      (assert-submaps2
+       '({:row 1 :message "Expected: string, received: positive integer."})
+       (lint! "(defn f [n] (try (println n) (catch Exception _ nil)) (subs n 1)) (f 42)" config)))
     (testing "a usage on a narrowed binding does not constrain"
       (is (empty? (lint! "(defn f [x] (when (string? x) (subs x 1)) x) (f 42)" config))))
     (testing "a nested fn's usage does not constrain the outer param, the fn may run conditionally or never"

@@ -2134,7 +2134,8 @@
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         ;; catch params are not let-bound, & is allowed there
         binding (extract-bindings ctx binding-expr (last exprs) {:allow-amp true})]
-    (analyze-children (ctx-with-bindings ctx binding)
+    ;; a catch body only runs on an exception, so it is conditional code
+    (analyze-children (ctx-with-bindings (in-branch-ctx ctx) binding)
                       exprs)))
 
 (defn analyze-try [ctx expr]
@@ -2144,8 +2145,13 @@
                        (and (not= 'catch sc)
                             (not= 'finally sc))) children)
         cnt (count children-until-catch-or-finally)
-        children-after (drop cnt children)]
-    (analyze-children ctx children-until-catch-or-finally)
+        children-after (drop cnt children)
+        ;; a catch swallows the crash a param misuse in the body would cause,
+        ;; so body usages prove nothing about param types
+        body-ctx (if (some #(= 'catch (symbol-call %)) children-after)
+                   (in-branch-ctx ctx)
+                   ctx)]
+    (analyze-children body-ctx children-until-catch-or-finally)
     (loop [[fst-child & rst-children] children-after
            analyzed []
            ;; TODO: lint syntax
