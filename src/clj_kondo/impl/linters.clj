@@ -794,6 +794,86 @@
             :type :aliased-referred-var
             :message msg}))))))
 
+(defn lint-deprecated-namespaces!
+  ;; split out of lint-unused-namespaces! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx idacs ns required deprecated-namespace-excluded-config]
+  (doseq [required required]
+    (when-let [depr (:deprecated (utils/resolve-ns idacs (:base-lang ns) (:lang ns) required))]
+      (when-not (config/deprecated-namespace-excluded? deprecated-namespace-excluded-config required)
+        (let [filename (:filename (meta required))]
+          (findings/reg-finding!
+           ctx
+           (node->line filename required :deprecated-namespace
+                       (format "Namespace %s is deprecated%s."
+                               (str required)
+                               (if (string? depr)
+                                 (str " since " depr)
+                                 "")))))))))
+
+(defn reg-unused-namespaces!
+  ;; split out of lint-unused-namespaces! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx unused ns-excluded-config]
+  (doseq [ns-sym unused]
+    (let [ns-meta (meta ns-sym)]
+      (when-not (or (config/unused-namespace-excluded ctx ns-excluded-config ns-sym)
+                    (some-> ns-meta :alias meta :as-alias))
+        (let [m (meta ns-sym)
+              filename (:filename m)]
+          (findings/reg-finding!
+           ctx
+           (-> (node->line filename ns-sym :unused-namespace
+                           (format "namespace %s is required but never used" ns-sym))
+               (assoc :ns (export-ns-sym ns-sym)))))))))
+
+(defn reg-unused-referred-vars!
+  ;; split out of lint-unused-namespaces! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx referred-vars used-referred-vars refer-all-nss]
+  (doseq [[k v] referred-vars]
+    (let [var-ns (:ns v)
+          config (:config v)
+          ctx (assoc ctx :config config)]
+      (when-not
+       (or (contains? used-referred-vars k)
+           (config/unused-referred-var-excluded config var-ns k)
+           (contains? refer-all-nss var-ns)
+           (:cljs-macro-self-require (meta k)))
+        (let [filename (:filename v)
+              referred-ns (export-ns-sym var-ns)]
+          (findings/reg-finding!
+           ctx
+           (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
+               (assoc :ns referred-ns
+                      :referred-ns referred-ns
+                      :refer (:name v)))))))))
+
+(defn reg-refer-alls!
+  ;; split out of lint-unused-namespaces! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx refer-alls refer-all-excluded-config]
+  (doseq [[referred-all-ns {:keys [referred node] :as refer-all}] refer-alls
+          :when (not (config/refer-all-excluded? refer-all-excluded-config referred-all-ns))]
+    (let [{:keys [k value]} node
+          use? (or (= :use k)
+                   (= 'use value))
+          finding-type (if use? :use :refer-all)
+          referred (sort referred)
+          msg (str (format "use %salias or :refer"
+                           (if use?
+                             (str (when k ":") "require with ")
+                             ""))
+                   (when (seq referred)
+                     (format " [%s]"
+                             (str/join " " referred))))
+          filename (:filename refer-all)]
+      (findings/reg-finding!
+       ctx
+       (assoc (node->line filename node
+                          finding-type msg)
+              :refers (vec referred))))))
+
 (defn lint-unused-namespaces!
   [ctx idacs]
   (let [config (:config ctx)]
@@ -817,66 +897,10 @@
                   deprecated-namespace-excluded-config (config/deprecated-namespace-excluded-config config)
                   ctx (if ns-config (assoc ctx :config config) ctx)
                   ctx (assoc ctx :lang (:lang ns) :base-lang (:base-lang ns))]]
-      (doseq [required required]
-        (when-let [depr (:deprecated (utils/resolve-ns idacs (:base-lang ns) (:lang ns) required))]
-          (when-not (config/deprecated-namespace-excluded? deprecated-namespace-excluded-config required)
-            (let [filename (:filename (meta required))]
-              (findings/reg-finding!
-               ctx
-               (node->line filename required :deprecated-namespace
-                           (format "Namespace %s is deprecated%s."
-                                   (str required)
-                                   (if (string? depr)
-                                     (str " since " depr)
-                                     ""))))))))
-      (doseq [ns-sym unused]
-        (let [ns-meta (meta ns-sym)]
-          (when-not (or (config/unused-namespace-excluded ctx ns-excluded-config ns-sym)
-                        (some-> ns-meta :alias meta :as-alias))
-            (let [m (meta ns-sym)
-                  filename (:filename m)]
-              (findings/reg-finding!
-               ctx
-               (-> (node->line filename ns-sym :unused-namespace
-                               (format "namespace %s is required but never used" ns-sym))
-                   (assoc :ns (export-ns-sym ns-sym))))))))
-      (doseq [[k v] referred-vars]
-        (let [var-ns (:ns v)
-              config (:config v)
-              ctx (assoc ctx :config config)]
-          (when-not
-           (or (contains? used-referred-vars k)
-               (config/unused-referred-var-excluded config var-ns k)
-               (contains? refer-all-nss var-ns)
-               (:cljs-macro-self-require (meta k)))
-            (let [filename (:filename v)
-                  referred-ns (export-ns-sym var-ns)]
-              (findings/reg-finding!
-               ctx
-               (-> (node->line filename k :unused-referred-var (str "#'" var-ns "/" (:name v) " is referred but never used"))
-                   (assoc :ns referred-ns
-                          :referred-ns referred-ns
-                          :refer (:name v))))))))
-      (doseq [[referred-all-ns {:keys [referred node] :as refer-all}] refer-alls
-              :when (not (config/refer-all-excluded? refer-all-excluded-config referred-all-ns))]
-        (let [{:keys [k value]} node
-              use? (or (= :use k)
-                       (= 'use value))
-              finding-type (if use? :use :refer-all)
-              referred (sort referred)
-              msg (str (format "use %salias or :refer"
-                               (if use?
-                                 (str (when k ":") "require with ")
-                                 ""))
-                       (when (seq referred)
-                         (format " [%s]"
-                                 (str/join " " referred))))
-              filename (:filename refer-all)]
-          (findings/reg-finding!
-           ctx
-           (assoc (node->line filename node
-                              finding-type msg)
-                  :refers (vec referred)))))
+      (lint-deprecated-namespaces! ctx idacs ns required deprecated-namespace-excluded-config)
+      (reg-unused-namespaces! ctx unused ns-excluded-config)
+      (reg-unused-referred-vars! ctx referred-vars used-referred-vars refer-all-nss)
+      (reg-refer-alls! ctx refer-alls refer-all-excluded-config)
       (doseq [alias (keys aliases)]
         (when-not (contains? used-aliases alias)
           (findings/reg-finding!
@@ -929,6 +953,84 @@
            (cond-> level
              (assoc :level level)))))))
 
+(defn lint-used-underscored-bindings!
+  ;; split out of lint-bindings! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx ns used-underscored-binding-excluded-config]
+  (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
+    (doseq [binding (into #{}
+                          (comp
+                           (remove :clj-kondo/mark-used)
+                           (remove (comp :clj-kondo.impl/generated meta))
+                           (remove :clj-kondo.impl/generated)
+                           (filter #(str/starts-with? (str (:name %)) "_")))
+                          (:used-bindings ns))
+            :when (not (config/used-underscored-binding-excluded? ctx used-underscored-binding-excluded-config
+                                                                  (:name binding)))]
+      (findings/reg-finding!
+       ctx
+       {:type :used-underscored-binding
+        :filename (:filename binding)
+        :message (str "Used binding is marked as unused: " (:name binding))
+        :row (:row binding)
+        :col (:col binding)
+        :end-row (:end-row binding)
+        :end-col (:end-col binding)}))))
+
+(defn lint-unused-bindings!
+  ;; split out of lint-bindings! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx ns unused-binding-excluded-config]
+  (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
+    (let [bindings (:bindings ns)
+          used-bindings (:used-bindings ns)
+          diff (set/difference bindings used-bindings)
+          diff (remove :clj-kondo/mark-used diff)
+          defaults (:destructuring-defaults ns)]
+      (doseq [binding diff]
+        (let [nm (:name binding)]
+          (when-not (or (str/starts-with? (str nm) "_")
+                        (config/unused-binding-excluded? ctx unused-binding-excluded-config nm))
+            (findings/reg-finding!
+             ctx
+             {:type :unused-binding
+              :filename (:filename binding)
+              :message (str "unused binding " nm)
+              :row (:row binding)
+              :col (:col binding)
+              :end-row (:end-row binding)
+              :end-col (:end-col binding)}))))
+      (doseq [default defaults
+              :let [binding (:binding default)]
+              :when (not (contains? (:used-bindings ns) binding))]
+        (findings/reg-finding!
+         ctx
+         {:type :unused-binding
+          :filename (:filename binding)
+          :message (str "unused default for binding " (:name binding))
+          :row (:row default)
+          :col (:col default)
+          :end-row (:end-row default)
+          :end-col (:end-col default)})))))
+
+(defn lint-keyword-bindings!
+  ;; split out of lint-bindings! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx ns]
+  (when (not (identical? :off (-> ctx :config :linters :keyword-binding :level)))
+    (doseq [binding (filter :keyword (:bindings ns))]
+      (when-not (or (namespace (:keyword binding))
+                    (:auto-resolved binding))
+        (findings/reg-finding!
+         ctx
+         {:type :keyword-binding
+          :filename (:filename binding)
+          :message (str "Keyword binding should be a symbol: " (keyword (:name binding)))
+          :row (:row binding)
+          :col (:col binding)
+          :end-row (:end-row binding)
+          :end-col (:end-col binding)})))))
+
 (defn lint-bindings!
   [ctx]
   (doseq [ns (namespace/list-namespaces ctx)]
@@ -940,69 +1042,9 @@
           config (:config ctx)
           unused-binding-excluded-config (config/unused-binding-excluded-config config)
           used-underscored-binding-excluded-config (config/used-underscored-binding-excluded-config config)]
-      (when-not (identical? :off (-> ctx :config :linters :used-underscored-binding :level))
-        (doseq [binding (into #{}
-                              (comp
-                               (remove :clj-kondo/mark-used)
-                               (remove (comp :clj-kondo.impl/generated meta))
-                               (remove :clj-kondo.impl/generated)
-                               (filter #(str/starts-with? (str (:name %)) "_")))
-                              (:used-bindings ns))
-                :when (not (config/used-underscored-binding-excluded? ctx used-underscored-binding-excluded-config
-                                                                      (:name binding)))]
-          (findings/reg-finding!
-           ctx
-           {:type :used-underscored-binding
-            :filename (:filename binding)
-            :message (str "Used binding is marked as unused: " (:name binding))
-            :row (:row binding)
-            :col (:col binding)
-            :end-row (:end-row binding)
-            :end-col (:end-col binding)})))
-      (when-not (identical? :off (-> ctx :config :linters :unused-binding :level))
-        (let [bindings (:bindings ns)
-              used-bindings (:used-bindings ns)
-              diff (set/difference bindings used-bindings)
-              diff (remove :clj-kondo/mark-used diff)
-              defaults (:destructuring-defaults ns)]
-          (doseq [binding diff]
-            (let [nm (:name binding)]
-              (when-not (or (str/starts-with? (str nm) "_")
-                            (config/unused-binding-excluded? ctx unused-binding-excluded-config nm))
-                (findings/reg-finding!
-                 ctx
-                 {:type :unused-binding
-                  :filename (:filename binding)
-                  :message (str "unused binding " nm)
-                  :row (:row binding)
-                  :col (:col binding)
-                  :end-row (:end-row binding)
-                  :end-col (:end-col binding)}))))
-          (doseq [default defaults
-                  :let [binding (:binding default)]
-                  :when (not (contains? (:used-bindings ns) binding))]
-            (findings/reg-finding!
-             ctx
-             {:type :unused-binding
-              :filename (:filename binding)
-              :message (str "unused default for binding " (:name binding))
-              :row (:row default)
-              :col (:col default)
-              :end-row (:end-row default)
-              :end-col (:end-col default)}))))
-      (when (not (identical? :off (-> ctx :config :linters :keyword-binding :level)))
-        (doseq [binding (filter :keyword (:bindings ns))]
-          (when-not (or (namespace (:keyword binding))
-                        (:auto-resolved binding))
-            (findings/reg-finding!
-             ctx
-             {:type :keyword-binding
-              :filename (:filename binding)
-              :message (str "Keyword binding should be a symbol: " (keyword (:name binding)))
-              :row (:row binding)
-              :col (:col binding)
-              :end-row (:end-row binding)
-              :end-col (:end-col binding)})))))))
+      (lint-used-underscored-bindings! ctx ns used-underscored-binding-excluded-config)
+      (lint-unused-bindings! ctx ns unused-binding-excluded-config)
+      (lint-keyword-bindings! ctx ns))))
 
 (defn lint-unused-private-vars!
   [ctx]
@@ -1179,6 +1221,71 @@
                                                     :lang lang
                                                     :filename filename)))))))))))
 
+(defn reg-unresolved-protocol-methods!
+  ;; split out of lint-protocol-impls! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx ns methods protocol-methods]
+  (when-let [unresolved-protocol-methods (seq (remove (set methods) protocol-methods))]
+    (doseq [unresolved unresolved-protocol-methods]
+      (findings/reg-finding! ctx (-> unresolved
+                                     meta
+                                     (dissoc :impl-fixed-arities
+                                             :impl-varargs-min-arity)
+                                     (assoc
+                                      :type :unresolved-protocol-method
+                                      :filename (:filename ns)
+                                      :message (str "Unresolved protocol method: " unresolved)))))))
+
+(defn reg-protocol-arity-mismatches!
+  ;; split out of lint-protocol-impls! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx ns protocol-methods method-arities]
+  (doseq [impl-method protocol-methods
+          :let [{:keys [impl-fixed-arities] :as m} (meta impl-method)
+                allowed (get method-arities impl-method)]
+          :when (and allowed impl-fixed-arities
+                     (not (:impl-varargs-min-arity m)))
+          impl-arity impl-fixed-arities
+          :when (not (contains? allowed impl-arity))]
+    (findings/reg-finding!
+     ctx
+     (-> m
+         (dissoc :impl-fixed-arities :impl-varargs-min-arity)
+         (assoc :type :protocol-method-arity-mismatch
+                :filename (:filename ns)
+                :message (format protocol-method-arity-msg
+                                 impl-method impl-arity
+                                 (str/join ", " (sort allowed))))))))
+
+(defn lint-missing-protocol-arities!
+  ;; split out of lint-protocol-impls! to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx ns protocol-impl protocol-methods method-arities missing-arity-disabled?]
+  (when-not missing-arity-disabled?
+    (let [impl-arities-by-method
+          (reduce (fn [acc m]
+                    (let [mname (symbol (name m))
+                          {:keys [impl-fixed-arities impl-varargs-min-arity]} (meta m)]
+                      (if impl-varargs-min-arity
+                        (assoc acc mname :varargs)
+                        (update acc mname (fnil into #{}) impl-fixed-arities))))
+                  {} protocol-methods)]
+      (doseq [[method-name declared-arities] method-arities
+              :let [impl (get impl-arities-by-method method-name)
+                    missing (when (and impl (not= :varargs impl))
+                              (sort (set/difference declared-arities impl)))]
+              :when (seq missing)]
+        (findings/reg-finding!
+         ctx
+         (assoc protocol-impl
+                :type :missing-protocol-method-arity
+                :filename (:filename ns)
+                :message (if (= 1 (count missing))
+                           (format "Protocol method %s arity %d is not implemented"
+                                   method-name (first missing))
+                           (format "Protocol method %s arities %s are not implemented"
+                                   method-name (str/join ", " missing)))))))))
+
 (defn lint-protocol-impls!
   [ctx idacs]
   (doseq [ns (namespace/list-namespaces ctx)
@@ -1193,63 +1300,16 @@
                 protocol-name (:protocol-name protocol-impl)]]
     (when-let [resolved (utils/resolve-call* idacs ctx protocol-ns protocol-name)]
       (when-let [methods (:methods resolved)]
-        (when-let [unresolved-protocol-methods (seq (remove (set methods) protocol-methods))]
-          (doseq [unresolved unresolved-protocol-methods]
-            (findings/reg-finding! ctx (-> unresolved
-                                           meta
-                                           (dissoc :impl-fixed-arities
-                                                   :impl-varargs-min-arity)
-                                           (assoc
-                                            :type :unresolved-protocol-method
-                                            :filename (:filename ns)
-                                            :message (str "Unresolved protocol method: " unresolved))))))
+        (reg-unresolved-protocol-methods! ctx ns methods protocol-methods)
         (when-let [missing (seq (remove (set protocol-methods) methods))]
           (findings/reg-finding! ctx (assoc protocol-impl
                                             :type :missing-protocol-method
                                             :filename (:filename ns)
                                             :message (str "Missing protocol method(s): " (str/join ", " missing)))))
         (when-let [method-arities (:method-arities resolved)]
-          (doseq [impl-method protocol-methods
-                  :let [{:keys [impl-fixed-arities] :as m} (meta impl-method)
-                        allowed (get method-arities impl-method)]
-                  :when (and allowed impl-fixed-arities
-                             (not (:impl-varargs-min-arity m)))
-                  impl-arity impl-fixed-arities
-                  :when (not (contains? allowed impl-arity))]
-            (findings/reg-finding!
-             ctx
-             (-> m
-                 (dissoc :impl-fixed-arities :impl-varargs-min-arity)
-                 (assoc :type :protocol-method-arity-mismatch
-                        :filename (:filename ns)
-                        :message (format protocol-method-arity-msg
-                                         impl-method impl-arity
-                                         (str/join ", " (sort allowed)))))))
+          (reg-protocol-arity-mismatches! ctx ns protocol-methods method-arities)
           ;; missing arity: protocol declares an arity not implemented
-          (when-not missing-arity-disabled?
-            (let [impl-arities-by-method
-                  (reduce (fn [acc m]
-                            (let [mname (symbol (name m))
-                                  {:keys [impl-fixed-arities impl-varargs-min-arity]} (meta m)]
-                              (if impl-varargs-min-arity
-                                (assoc acc mname :varargs)
-                                (update acc mname (fnil into #{}) impl-fixed-arities))))
-                          {} protocol-methods)]
-              (doseq [[method-name declared-arities] method-arities
-                      :let [impl (get impl-arities-by-method method-name)
-                            missing (when (and impl (not= :varargs impl))
-                                      (sort (set/difference declared-arities impl)))]
-                      :when (seq missing)]
-                (findings/reg-finding!
-                 ctx
-                 (assoc protocol-impl
-                        :type :missing-protocol-method-arity
-                        :filename (:filename ns)
-                        :message (if (= 1 (count missing))
-                                   (format "Protocol method %s arity %d is not implemented"
-                                           method-name (first missing))
-                                   (format "Protocol method %s arities %s are not implemented"
-                                           method-name (str/join ", " missing)))))))))))))
+          (lint-missing-protocol-arities! ctx ns protocol-impl protocol-methods method-arities missing-arity-disabled?))))))
 
 ;;;; scratch
 
