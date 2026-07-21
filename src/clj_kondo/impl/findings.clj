@@ -6,13 +6,24 @@
 ;; ignore  row 1, col 21, end-row 1, end-col 31
 ;; finding row 1, col 26, end-row 1, end-col 30
 
-(defn ignore-match? [ignore tp]
+(defn legacy-always-true-type
+  "The removed :condition-always-true linter only warned on always-true
+  conditions, while :constant-condition also covers always-false ones and
+  unreachable code after a catch-all cond test. So the old key keeps working,
+  but only for the subset it used to cover."
+  [tp m]
+  (when (and (identical? :constant-condition tp)
+             (= utils/condition-always-true-msg (:message m)))
+    :condition-always-true))
+
+(defn ignore-match? [ignore tp legacy-tp]
   (or (identical? :all ignore)
-      (contains? ignore tp)))
+      (contains? ignore tp)
+      (and legacy-tp (contains? ignore legacy-tp))))
 
 (defn ignored?
   "Ignores are sorted in order of rows and cols. So if we are handling a node with a row before the "
-  [ctx m tp]
+  [ctx m tp legacy-tp]
   (let [!ignores (:ignores ctx)
         ignores @!ignores
         filename (:filename m)
@@ -51,7 +62,7 @@
                              (or (< row ignore-end-row)
                                  (and (= row ignore-end-row)
                                       (<= (:end-col m) (:end-col ignore)))))
-                      (if (ignore-match? (:ignore ignore) tp)
+                      (if (ignore-match? (:ignore ignore) tp legacy-tp)
                         ;; TODO: this might bea race condition, but not today
                         ;; since same file isn't analyzed by multiple threads
                         (do (swap! !ignores assoc-in [filename lang idx :used] true)
@@ -69,7 +80,11 @@
         skip-lint? (:skip-lint ctx)
         config (:config ctx)
         tp (:type m)
+        legacy-tp (legacy-always-true-type tp m)
         level (or (:level m)
+                  ;; :constant-condition always has a default level, so the
+                  ;; legacy key goes first: it is only set when a user set it
+                  (when legacy-tp (-> config :linters legacy-tp :level))
                   (-> config :linters tp :level))
         base-lang (:base-lang ctx)
         lang (:lang ctx)
@@ -78,7 +93,7 @@
             (assoc :cljc true :lang lang))]
     (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
       (when (or (identical? :redundant-ignore (:type m))
-                (not (ignored? ctx m tp)))
+                (not (ignored? ctx m tp legacy-tp)))
         (let [m (assoc m :level level)]
           (swap! findings conj m)
           m)))))

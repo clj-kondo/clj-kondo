@@ -2335,7 +2335,8 @@ through a var or local. These are often dev/production toggles. The keyword
 `:always` is exempt as an intentional always-truthy condition.
 
 Replaces the `:condition-always-true` linter. The `cond` catch-all warning
-moved here from `:unreachable-code`.
+moved here from `:unreachable-code`. Config and ignores using the
+`:condition-always-true` name still apply, but only to always-true conditions.
 
 *Default level:* `:warning`.
 

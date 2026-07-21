@@ -488,3 +488,39 @@
       (assert-submaps2
        '({:row 1 :message "Condition always true"})
        (lint! "(ns foo) (defn f [] (filter odd? [1])) (defn g [] (when (f) 1))" config)))))
+
+(deftest legacy-condition-always-true-config-test
+  (testing "the removed :condition-always-true key still sets the level"
+    (is (empty? (lint! "(defn f [] (if inc 1 2))"
+                       (assoc-in config [:linters :condition-always-true :level] :off))))
+    (assert-submaps2
+     '({:row 1 :col 16 :level :error :message "Condition always true"})
+     (lint! "(defn f [] (if inc 1 2))"
+            (assoc-in config [:linters :condition-always-true :level] :error))))
+  (testing "but only for always-true, the subset it used to cover"
+    (assert-submaps2
+     '({:row 1 :col 18 :message "Condition always false"})
+     (lint! "(defn f [] (when nil 1))"
+            (assoc-in config [:linters :condition-always-true :level] :off)))
+    (assert-submaps2
+     '({:row 1 :col 26 :message "Unreachable code"})
+     (lint! "(defn f [] (cond :else 1 (odd? 1) 2))"
+            (assoc-in config [:linters :condition-always-true :level] :off))))
+  (testing "the new key still wins when it disables the linter"
+    (is (empty? (lint! "(defn f [] (if inc 1 2))"
+                       (-> config
+                           (assoc-in [:linters :constant-condition :level] :off)
+                           (assoc-in [:linters :condition-always-true :level] :error))))))
+  (testing "scoped config, as libraries export it"
+    (is (empty? (lint! "(ns foo) (defmacro m [c b] c) (defn g [] (m inc 1))"
+                       (-> config
+                           (assoc :lint-as '{foo/m clojure.core/if})
+                           (assoc :config-in-call
+                                  '{foo/m {:linters {:condition-always-true {:level :off}}}}))))))
+  (testing "the removed name still works as an ignore"
+    (is (empty? (lint! "#_{:clj-kondo/ignore [:condition-always-true]} (defn f [] (if inc 1 2))"
+                       config)))
+    (assert-submaps2
+     '({:row 1 :message "Condition always false"})
+     (lint! "#_{:clj-kondo/ignore [:condition-always-true]} (defn f [] (when nil 1))"
+            (assoc-in config [:linters :redundant-ignore :level] :off)))))

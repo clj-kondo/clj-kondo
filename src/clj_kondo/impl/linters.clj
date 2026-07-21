@@ -395,7 +395,7 @@
                                      "Condition always false"))
       :always-true (findings/reg-finding!
                     ctx (node->line (:filename ctx) condition :constant-condition
-                                    "Condition always true"))
+                                    utils/condition-always-true-msg))
       nil)))
 
 (defn lint-var-usage
@@ -568,7 +568,7 @@
          (-> call
              utils/location
              (assoc :type :constant-condition
-                    :message "Condition always true"))))
+                    :message utils/condition-always-true-msg))))
       (when arity-error?
         (findings/reg-finding!
          ctx

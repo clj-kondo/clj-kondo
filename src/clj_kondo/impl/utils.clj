@@ -216,6 +216,12 @@
     `(-> ~m ~@(map #(if (keyword? %) % `(get ~%)) ks))
     `(clojure.core/get-in ~m ~ks)))
 
+(def condition-always-true-msg
+  "The only message the removed :condition-always-true linter ever emitted. Its
+  config and ignores still apply to the findings carrying it, so reword it here
+  rather than at the call sites, see findings/legacy-always-true-type."
+  "Condition always true")
+
 (defn linter-disabled? [ctx linter]
   (= :off (get-in ctx [:config :linters linter :level])))
 
