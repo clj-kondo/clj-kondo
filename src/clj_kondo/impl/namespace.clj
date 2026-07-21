@@ -180,6 +180,8 @@
                          :end-row expr-end-row
                          :end-col expr-end-col
                          :derived-location (:derived-location m))
+         metadata (cond-> metadata
+                    (:in-comment ctx) (assoc :in-comment true))
          path [base-lang lang ns-sym]
          temp? (:temp metadata)
          config (:config ctx)]
@@ -211,15 +213,28 @@
                                  classfile (var-classfile metadata)
                                  hard-def? (and (not temp?)
                                                 (not (:declared metadata))
-                                                (not (:in-comment ctx)))]
+                                                (not (:in-comment metadata)))]
                              (-> ns
                                  (update :vars assoc
                                          var-sym
-                                         (assoc
-                                           (merge metadata (select-keys
-                                                            prev-var
-                                                            [:row :col :end-row :end-col]))
-                                           :top-ns top-ns))
+                                         ;; a comment form def doesn't overwrite a real def
+                                         ;; but is kept under :comment-def for usages in comment forms
+                                         (if (and (:in-comment metadata)
+                                                  prev-var
+                                                  (not (:in-comment prev-var))
+                                                  (not (:temp prev-var)))
+                                           (assoc prev-var :comment-def metadata)
+                                           (let [new-var (assoc
+                                                          (merge metadata (select-keys
+                                                                           prev-var
+                                                                           [:row :col :end-row :end-col]))
+                                                          :top-ns top-ns)]
+                                             (cond (:in-comment metadata) new-var
+                                                   (:in-comment prev-var)
+                                                   (assoc new-var :comment-def (dissoc prev-var :comment-def))
+                                                   (:comment-def prev-var)
+                                                   (assoc new-var :comment-def (:comment-def prev-var))
+                                                   :else new-var))))
                                  (assoc :classfiles
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
@@ -235,7 +250,7 @@
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)
                  hard-def? (and (not (:declared metadata))
-                                (not (:in-comment ctx)))]
+                                (not (:in-comment metadata)))]
              (when (identical? :clj lang)
                (when-let [clashing-vars (->> (get classfiles classfile)
                                              (remove #{var-sym})
@@ -565,7 +580,8 @@
                    (if-let [v (get (:referred-vars ns)
                                    name-sym)]
                      v
-                     (if (contains? (:vars ns) name-sym)
+                     (if (when-let [v (get (:vars ns) name-sym)]
+                           (not (:in-comment v)))
                        {:ns (:name ns)
                         :name name-sym}
                        (let [clojure-excluded? (contains? (:clojure-excluded ns)
@@ -907,7 +923,6 @@
                         {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                          :name (or (::original-name ctx) name-sym)
                          :unresolved? true
-                         :allow-forward-reference? (:in-comment ctx)
                          :clojure-excluded? clojure-excluded?}))))))))))))
 
 #_

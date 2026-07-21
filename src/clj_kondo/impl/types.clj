@@ -528,7 +528,8 @@
         {:tag :class}
 
         :else {:usage (or tag
-                          (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name]))}))))
+                          (select-keys usage [:filename :type :lang :base-lang :resolved-ns :ns :name
+                                              :in-comment]))}))))
 
 (defn keyword
   "Converts tagged item into single keyword, if possible."

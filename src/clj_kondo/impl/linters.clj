@@ -412,7 +412,7 @@
             :let [;; _ (clojure.pprint/pprint (dissoc call :config))
                   call? (= :call (:type call))
                   unresolved? (:unresolved? call)
-                  allow-forward-reference? (:allow-forward-reference? call)
+                  in-comment (:in-comment call)
                   unresolved-ns (:unresolved-ns call)]
             :when (not unresolved-ns)
             :let [call-fn-name (:name call)
@@ -432,6 +432,7 @@
                   #_#__ (prn (keys (:defs (:clj idacs))))
                   called-fn (utils/resolve-call idacs call call-lang
                                                 resolved-ns call-fn-name unresolved? refer-alls)
+                  called-fn (utils/prefer-comment-def call called-fn)
                   #_#__ (when (not call?)
                           (clojure.pprint/pprint (dissoc call :config)))
                   name-meta (meta call-fn-name)
@@ -446,7 +447,7 @@
                              (contains? linted-namespaces resolved-ns)
                              (not (:resolved-core? call))
                              ;; the var could be :refer-all'ed, in this case unresolved? is true
-                             (not allow-forward-reference?)
+                             (not in-comment)
                              (not unresolved?))
                     (namespace/reg-unresolved-var!
                      ctx caller-ns-sym resolved-ns call-fn-name
@@ -469,7 +470,7 @@
                                    (not= (:top-ns call) (:top-ns called-fn)))
                   row-called-fn (:row called-fn)
                   row-call (:row call)
-                  valid-call? (or (and allow-forward-reference?
+                  valid-call? (or (and in-comment
                                        called-fn)
                                   (not unresolved?)
                                   (when called-fn
@@ -945,6 +946,7 @@
             v vars
             :let [var-name (:name v)]
             :when (:private v)
+            :when (not (:in-comment v))
             :when (not (contains? used-vars var-name))
             :when (not (config/unused-private-var-excluded config ns-nm var-name))
             :when

@@ -2087,11 +2087,12 @@
       {:ret ret})))
 
 (defn lint-inline-def! [ctx expr]
-  (when (or (:in-def ctx)
-            (and (not (:top-level? ctx))
-                 (let [[parent-ns parent-fn] (second (:callstack ctx))]
-                   (and (one-of parent-ns [clojure.core cljs.core])
-                        (one-of parent-fn [fn defmethod])))))
+  (when (and (not (:in-comment ctx))
+             (or (:in-def ctx)
+                 (and (not (:top-level? ctx))
+                      (let [[parent-ns parent-fn] (second (:callstack ctx))]
+                        (and (one-of parent-ns [clojure.core cljs.core])
+                             (one-of parent-fn [fn defmethod]))))))
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :inline-def "inline def"))))
@@ -2817,7 +2818,7 @@
                                                  (meta fsym))
                                          :alias resolved-alias
                                          :unresolved? unresolved?
-                                         :allow-forward-reference? (:in-comment ctx)
+                                         :in-comment (:in-comment ctx)
                                          :unresolved-ns unresolved-ns
                                          :clojure-excluded? clojure-excluded?
                                          :arity arg-count
@@ -3166,7 +3167,6 @@
              resolved-name :name
              resolved-alias :alias
              unresolved? :unresolved?
-             allow-forward-reference? :allow-forward-reference?
              unresolved-ns :unresolved-ns
              clojure-excluded? :clojure-excluded?
              interop? :interop?
@@ -3287,6 +3287,7 @@
                                             (meta full-fn-name))
                                     :alias resolved-alias
                                     :unresolved? unresolved?
+                                    :in-comment (:in-comment ctx)
                                     :unresolved-ns unresolved-ns
                                     :clojure-excluded? clojure-excluded?
                                     :arity arg-count
@@ -3660,7 +3661,7 @@
                                                 (meta full-fn-name))
                                         :alias resolved-alias
                                         :unresolved? unresolved?
-                                        :allow-forward-reference? allow-forward-reference?
+                                        :in-comment (:in-comment ctx)
                                         :unresolved-ns unresolved-ns
                                         :clojure-excluded? clojure-excluded?
                                         :arity arg-count

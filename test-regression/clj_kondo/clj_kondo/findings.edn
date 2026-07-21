@@ -2810,15 +2810,6 @@
   :langs (),
   :message "unused binding t",
   :row 1164}
- {:end-row 1177,
-  :type :unresolved-var,
-  :level :warning,
-  :filename "cljs/closure.clj",
-  :col 4,
-  :end-col 26,
-  :langs (),
-  :message "Unresolved var: comp/find-sources-root",
-  :row 1177}
  {:end-row 1178,
   :type :unresolved-symbol,
   :level :error,
@@ -29030,16 +29021,6 @@
   :langs (),
   :message "Unresolved var: node/string",
   :row 34}
- {:end-row 10,
-  :type :unused-private-var,
-  :level :warning,
-  :filename "parser/clj_kondo/impl/rewrite_clj/node/indent.clj",
-  :col 10,
-  :end-col 25,
-  :langs (),
-  :message
-  "Unused private var clj-kondo.impl.rewrite-clj.node.indent/unindent-string",
-  :row 10}
  {:end-row 27,
   :type :unresolved-var,
   :level :warning,
