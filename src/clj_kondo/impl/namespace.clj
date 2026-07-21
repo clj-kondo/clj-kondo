@@ -180,6 +180,8 @@
                          :end-row expr-end-row
                          :end-col expr-end-col
                          :derived-location (:derived-location m))
+         metadata (cond-> metadata
+                    (:in-comment ctx) (assoc :in-comment true))
          path [base-lang lang ns-sym]
          temp? (:temp metadata)
          config (:config ctx)]
@@ -211,15 +213,21 @@
                                  classfile (var-classfile metadata)
                                  hard-def? (and (not temp?)
                                                 (not (:declared metadata))
-                                                (not (:in-comment ctx)))]
+                                                (not (:in-comment metadata)))]
                              (-> ns
                                  (update :vars assoc
                                          var-sym
-                                         (assoc
-                                           (merge metadata (select-keys
-                                                            prev-var
-                                                            [:row :col :end-row :end-col]))
-                                           :top-ns top-ns))
+                                         ;; a comment form def doesn't overwrite a real def
+                                         (if (and (:in-comment metadata)
+                                                  prev-var
+                                                  (not (:in-comment prev-var))
+                                                  (not (:temp prev-var)))
+                                           prev-var
+                                           (assoc
+                                             (merge metadata (select-keys
+                                                              prev-var
+                                                              [:row :col :end-row :end-col]))
+                                             :top-ns top-ns)))
                                  (assoc :classfiles
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)
@@ -235,7 +243,7 @@
                  classfiles (:classfiles ns)
                  classfile (var-classfile metadata)
                  hard-def? (and (not (:declared metadata))
-                                (not (:in-comment ctx)))]
+                                (not (:in-comment metadata)))]
              (when (identical? :clj lang)
                (when-let [clashing-vars (->> (get classfiles classfile)
                                              (remove #{var-sym})
@@ -565,7 +573,8 @@
                    (if-let [v (get (:referred-vars ns)
                                    name-sym)]
                      v
-                     (if (contains? (:vars ns) name-sym)
+                     (if (when-let [v (get (:vars ns) name-sym)]
+                           (not (:in-comment v)))
                        {:ns (:name ns)
                         :name name-sym}
                        (let [clojure-excluded? (contains? (:clojure-excluded ns)

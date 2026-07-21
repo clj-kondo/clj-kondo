@@ -945,6 +945,7 @@
             v vars
             :let [var-name (:name v)]
             :when (:private v)
+            :when (not (:in-comment v))
             :when (not (contains? used-vars var-name))
             :when (not (config/unused-private-var-excluded config ns-nm var-name))
             :when

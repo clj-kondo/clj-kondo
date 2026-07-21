@@ -2087,11 +2087,12 @@
       {:ret ret})))
 
 (defn lint-inline-def! [ctx expr]
-  (when (or (:in-def ctx)
-            (and (not (:top-level? ctx))
-                 (let [[parent-ns parent-fn] (second (:callstack ctx))]
-                   (and (one-of parent-ns [clojure.core cljs.core])
-                        (one-of parent-fn [fn defmethod])))))
+  (when (and (not (:in-comment ctx))
+             (or (:in-def ctx)
+                 (and (not (:top-level? ctx))
+                      (let [[parent-ns parent-fn] (second (:callstack ctx))]
+                        (and (one-of parent-ns [clojure.core cljs.core])
+                             (one-of parent-fn [fn defmethod]))))))
     (findings/reg-finding!
      ctx
      (node->line (:filename ctx) expr :inline-def "inline def"))))

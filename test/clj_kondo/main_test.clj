@@ -39,6 +39,7 @@
   (doseq [lang [:clj :cljs]]
     (is (empty? (lint! "(defmacro foo [] `(def x 1))" "--lang" (name lang))))
     (is (empty? (lint! "(defn foo [] '(def x 3))" "--lang" (name lang)))))
+  (is (empty? (lint! "(defn foo [] (comment (def x 1)))")))
   (assert-submaps2
    [{:file "<stdin>", :row 1, :col 48, :level :warning, :message "inline def"}]
    (lint! "(require '[clojure.test :as t]) (t/deftest foo (t/deftest bar))")))
@@ -3255,7 +3256,14 @@ app.api/my-var"
 (deftype ^:private SessionStore2 [session-service])
 (definterface ^:private SessionStore3)")))
   (is (empty? (lint! "(def ^:private _dude 1)")))
-  (is (empty? (lint! "(defonce ^:private _dude 1)"))))
+  (is (empty? (lint! "(defonce ^:private _dude 1)")))
+  (is (empty? (lint! "(ns foo) (comment (defn- f []))")))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 40, :level :warning, :message "Unused private var foo/f"})
+   (lint! "(ns foo) (comment (defn- f [])) (defn- f [])"))
+  (assert-submaps
+   '({:file "<stdin>", :row 1, :col 17, :level :warning, :message "Unused private var foo/f"})
+   (lint! "(ns foo) (defn- f []) (comment (defn- f []))")))
 
 (deftest definterface-test
   (is (empty? (lint! "(definterface Foo (foo [x]) (bar [x]))"
