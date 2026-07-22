@@ -73,10 +73,10 @@
                                       (recur (inc a) acc))))))]
                   (recur (inc m) acc)))))))))
 
-;; Bytecode size does not depend on the platform, so running on Linux covers it.
-;; The subprocess compile step chokes on Windows path tokens (C:\...).
-(deftest ^:linux-only method-size-test
-  (when (str/starts-with? (System/getProperty "os.name") "Linux")
+;; The subprocess compile step chokes on Windows path tokens (C:\...). Bytecode
+;; size does not depend on the platform, so skipping Windows loses no coverage.
+(deftest method-size-test
+  (when-not (str/starts-with? (System/getProperty "os.name") "Windows")
     (fs/with-temp-dir [tmp {}]
       (let [java (str (fs/path (System/getProperty "java.home") "bin"
                                (if (str/starts-with? (System/getProperty "os.name") "Windows")
