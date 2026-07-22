@@ -346,7 +346,13 @@
   [k]
   (not (identical? ::unknown k)))
 
-(defn map->tag [ctx expr]
+(defn map->tag
+  "Tag for a map literal: {:type :map :val {k entry}}, entry a map with
+  optional :tag (a tag or deferred {:call ..}), positions and :value,
+  never a bare tag. Not to be confused with the {:op :keys :req/:opt}
+  spec format from doc/types.md, whose values are bare tags. A map with
+  any non-static key is :open."
+  [ctx expr]
   (let [children (:children expr)
         kexprs (take-nth 2 children)
         mvals (take-nth 2 (rest children))
