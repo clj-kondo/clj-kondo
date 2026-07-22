@@ -178,7 +178,8 @@
                             :cljs #{}
                             :cljc #{}})
 
-            ctx {:config-hash
+            ctx (utils/map->Ctx
+                 {:config-hash
                  ;; in delay to save time when linting only non-jar files
                  (delay (core-impl/config-hash config))
                  :dependencies (or dependencies no-warnings)
@@ -229,7 +230,7 @@
                  ;; matches on regex are cached
                  (let [re-pattern-memo (utils/memoize' re-pattern)]
                    (utils/memoize' (fn [pattern-str file-str]
-                                     (re-find (re-pattern-memo pattern-str) file-str))))}
+                                     (re-find (re-pattern-memo pattern-str) file-str))))})
             lang (or lang :clj)
             ;; primary file analysis and initial lint
             _ (core-impl/process-files (if parallel

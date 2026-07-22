@@ -93,6 +93,15 @@
                     binding-basis))
         ~msym))))
 
+;; The 20 fields are the keys assoc'd per node or per call during analysis, so
+;; those assocs copy fields instead of allocating hash-map nodes. Cold root keys
+;; live in the extmap, which every basis assoc shares by pointer. Do not dissoc
+;; basis fields from a ctx, that demotes it to a plain map: assoc nil instead.
+(defrecord Ctx
+    [config lang base-lang filename ns callstack bindings arg-types in-def
+     top-level? quoted syntax-quote-level recur-arity seen-recur? protocol-fn
+     mark-bindings-used? context idx fn-dupes data-readers])
+
 (let [not-found (Object.)]
   (defn select-keys
     "Like `clojure.core/select-keys`, but uses `reduce` to traverse the list of keys

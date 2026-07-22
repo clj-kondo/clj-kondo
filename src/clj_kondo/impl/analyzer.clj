@@ -1677,7 +1677,7 @@
 (defn analyze-loop [ctx expr]
   (let [seen-recur? (volatile! nil)
         ctx (-> (assoc ctx :seen-recur? seen-recur?)
-                (dissoc ctx :protocol-fn))
+                (assoc :protocol-fn nil))
         bv (-> expr :children second)]
     (when (and bv (= :vector (tag bv)))
       (let [arg-count (let [c (count (:children bv))]
@@ -1792,7 +1792,7 @@
                          name-exprs))
         ctx (ctx-with-bindings ctx bindings)
         protocol-fn (:protocol-fn ctx)
-        ctx* (dissoc ctx :protocol-fn)
+        ctx* (assoc ctx :protocol-fn nil)
         processed-fns (for [f fns
                             :let [children (:children f)
                                   fn-name (:value (first children))
@@ -2448,7 +2448,7 @@
 (defn analyze-defmethod [ctx expr]
   (when-let [children (next (:children expr))]
     (let [[method-name-node dispatch-val-node & fn-tail] children
-          ctx-without-idx (dissoc ctx :idx :len)
+          ctx-without-idx (assoc ctx :idx nil :len nil)
           _ (analyze-usages2 (assoc ctx-without-idx
                                     :defmethod true,
                                     :dispatch-val-str (pr-str (sexpr dispatch-val-node)))
@@ -3153,7 +3153,7 @@
                             [clojure.core lazy-cat]])
                    (-> (assoc-in [:recur-arity :fixed-arity] 0)
                        (assoc :seen-recur? (volatile! nil))
-                       (dissoc :protocol-fn))
+                       (assoc :protocol-fn nil))
                    ;; an unresolved call could be a macro,
                    ;; treat its args as conditionally
                    ;; evaluated, like a when body
@@ -4020,7 +4020,7 @@
   (when expr
     (let [expr (if (or (not= :edn lang)
                        (:quoted ctx))
-                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
+                 (meta/lift-meta-content2 (assoc ctx :arg-types nil) expr)
                  expr)
           t (tag expr)
           {:keys [row col]} (meta expr)
@@ -4114,7 +4114,7 @@
         :list
         (if-let [function (some->>
                            (first children)
-                           (meta/lift-meta-content2 (dissoc ctx :arg-types)))]
+                           (meta/lift-meta-content2 (assoc ctx :arg-types nil)))]
           (if (or (:quoted ctx) (= :edn lang))
             (do (types/add-arg-type-from-expr ctx expr)
                 (analyze-children (update ctx :callstack (fn [cs]
