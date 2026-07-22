@@ -392,8 +392,10 @@
                             ;; Clojure 1.13: binds a map with the keys named in this form
                             :select (if (plain-directive? k :select)
                                       (recur rest-kvs
-                                             (merge res (extract-bindings ctx v scoped-expr
-                                                                          (assoc opts :tag {:type :map :val sel}))))
+                                             (merge res (extract-bindings
+                                                         ctx v scoped-expr
+                                                         (assoc opts :tag {:type :map
+                                                                           :val (update-vals sel (fn [t] {:tag t}))}))))
                                       (recur rest-kvs res))
                             ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
                             :defaults (if (plain-directive? k :defaults)

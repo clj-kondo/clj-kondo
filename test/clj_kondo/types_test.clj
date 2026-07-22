@@ -1818,6 +1818,12 @@
 (defn g1 [{:person/keys [id] :select m}] [id (f1 m)])
 (defn f2 [{::keys! [x]}] x)
 (defn g2 [{::keys [x] :select m}] [x (f2 m)])"
+                         config))))
+    (testing "returning or extending the selected map"
+      (is (empty? (lint! "
+(defn f1 [{:keys [_c & :d] :select m}] m)
+(defn f2 [{:keys [_c & :d] :select m}] {:m m})
+(defn f3 [{:keys [c] :select m} k] [c (assoc m k 1)])"
                          config))))))
 
 (deftest flow-narrowing-test
