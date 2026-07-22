@@ -73,26 +73,29 @@
                                       (recur (inc a) acc))))))]
                   (recur (inc m) acc)))))))))
 
-(deftest method-size-test
-  (fs/with-temp-dir [tmp {}]
-    (let [java (str (fs/path (System/getProperty "java.home") "bin"
-                             (if (str/starts-with? (System/getProperty "os.name") "Windows")
-                               "java.exe" "java")))
-          ;; compile in a subprocess so this JVM's loaded namespaces stay untouched
-          {:keys [exit err]} (sh java "-cp" (System/getProperty "java.class.path")
-                                 "clojure.main" "-e"
-                                 (str "(binding [*compile-path* " (pr-str (str tmp)) "]"
-                                      "  (compile 'clj-kondo.impl.analyzer)"
-                                      "  (compile 'clj-kondo.impl.linters))"))
-          _ (is (zero? exit) err)
-          offenders (for [f (fs/glob tmp "clj_kondo/**.class")
-                          ;; __init classes run once at namespace load; their
-                          ;; size costs startup only, not lint throughput
-                          :when (not (str/ends-with? (fs/file-name f) "__init.class"))
-                          [method size] (method-code-sizes f)
-                          :when (> size huge-method-limit)]
-                      (str (fs/file-name f) "/" method ": " size " bytes"))]
-      (is (empty? offenders)
-          (str "Methods over HotSpot's " huge-method-limit "-bytecode limit run "
-               "interpreted, never JIT-compiled. Split them up:\n"
-               (str/join "\n" offenders))))))
+;; Bytecode size does not depend on the platform, so running on Linux covers it.
+;; The subprocess compile step chokes on Windows path tokens (C:\...).
+(deftest ^:linux-only method-size-test
+  (when (str/starts-with? (System/getProperty "os.name") "Linux")
+    (fs/with-temp-dir [tmp {}]
+      (let [java (str (fs/path (System/getProperty "java.home") "bin"
+                               (if (str/starts-with? (System/getProperty "os.name") "Windows")
+                                 "java.exe" "java")))
+            ;; compile in a subprocess so this JVM's loaded namespaces stay untouched
+            {:keys [exit err]} (sh java "-cp" (System/getProperty "java.class.path")
+                                   "clojure.main" "-e"
+                                   (str "(binding [*compile-path* " (pr-str (str tmp)) "]"
+                                        "  (compile 'clj-kondo.impl.analyzer)"
+                                        "  (compile 'clj-kondo.impl.linters))"))
+            _ (is (zero? exit) err)
+            offenders (for [f (fs/glob tmp "clj_kondo/**.class")
+                            ;; __init classes run once at namespace load; their
+                            ;; size costs startup only, not lint throughput
+                            :when (not (str/ends-with? (fs/file-name f) "__init.class"))
+                            [method size] (method-code-sizes f)
+                            :when (> size huge-method-limit)]
+                        (str (fs/file-name f) "/" method ": " size " bytes"))]
+        (is (empty? offenders)
+            (str "Methods over HotSpot's " huge-method-limit "-bytecode limit run "
+                 "interpreted, never JIT-compiled. Split them up:\n"
+                 (str/join "\n" offenders)))))))
