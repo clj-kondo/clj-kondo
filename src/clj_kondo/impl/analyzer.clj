@@ -262,8 +262,6 @@
 (declare extract-bindings)
 
 (defn extract-map-bindings
-  ;; split out of extract-bindings: keeping that fn under HotSpot's
-  ;; 8000-bytecode limit is what keeps it JIT-compiled
   [ctx expr scoped-expr opts]
   (let [;; in a namespaced map the reader qualifies :as, :or and :select,
         ;; which Clojure rejects as map directives
@@ -3144,8 +3142,7 @@
   (analyze-children ctx children false))
 
 (defn analyze-unknown-ns-call
-  ;; catch-all for calls no built-in analyzer handles; split out of
-  ;; analyze-known-ns-call to keep these fns under HotSpot's 8000-bytecode limit
+  ;; catch-all for calls no built-in analyzer handles
   [ctx children resolved-namespace resolved-name unresolved?]
   (let [next-ctx (cond-> ctx
                    (one-of [resolved-namespace resolved-name]
@@ -3323,8 +3320,7 @@
     (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
 
 (defn analyze-known-ns-call
-  ;; dispatch on the namespace first, then per-family on [ns name]: one case per
-  ;; family keeps every method under HotSpot's 8000-bytecode limit
+  ;; dispatch on the namespace first, then per-family on [ns name]
   [ctx expr children resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name defined-by defined-by->lint-as unresolved?]
   (case resolved-as-namespace
     (clojure.test cljs.test clojure.test.check.properties clojure.test.check.clojure-test)
@@ -3343,8 +3339,6 @@
     (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
 
 (defn analyze-known-call
-  ;; split out of analyze-call to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
   [ctx expr children config ns-name lang base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?]
   (case resolved-as-clojure-var-name
     (assoc assoc! sorted-map-by struct-map) (analyze-assoc ctx expr)
@@ -3957,8 +3951,6 @@
 #_(requiring-resolve 'clojure.set/union)
 
 (defn analyze-unquote
-  ;; split out of analyze-expression** to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
   [ctx expr t children]
   (let [level (:syntax-quote-level ctx)]
     (when-not (and level (pos? level))
@@ -3975,8 +3967,6 @@
       (analyze-children ctx children))))
 
 (defn analyze-reader-macro-expr
-  ;; split out of analyze-expression** to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
   [ctx expr]
   (when (and (not (identical? :cljc (:base-lang ctx)))
              (str/starts-with? (-> expr :children first str) "?"))
@@ -3988,8 +3978,6 @@
   (analyze-reader-macro ctx expr))
 
 (defn analyze-namespaced-map-expr
-  ;; split out of analyze-expression** to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
   [ctx expr t]
   (lint-unused-value ctx expr)
   (usages/analyze-namespaced-map
@@ -4000,8 +3988,6 @@
    expr))
 
 (defn analyze-map-expr
-  ;; split out of analyze-expression** to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
   [ctx expr t children]
   (lint-unused-value ctx expr)
   (key-linter/lint-map-keys ctx expr)
@@ -4414,8 +4400,6 @@
     @findings))
 
 (defn warn-on-reflection-opts
-  ;; split out of analyze-input to keep it under HotSpot's
-  ;; 8000-bytecode limit, past which it is never JIT-compiled
   [ctx config filename input lang]
   (when (identical? :clj lang)
     (let [cfg (-> config :linters :warn-on-reflection)]
