@@ -3902,6 +3902,77 @@
 
 #_(requiring-resolve 'clojure.set/union)
 
+(defn analyze-unquote
+  ;; split out of analyze-expression** to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx expr t children]
+  (let [level (:syntax-quote-level ctx)]
+    (when-not (and level (pos? level))
+      (when-not (some #(= '[leiningen.core.project defproject] %) (:callstack ctx))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) expr :unquote-not-syntax-quoted
+                     (if (= :unquote t)
+                       "Unquote (~) not syntax-quoted"
+                       "Unquote-splicing (~@) not syntax-quoted")))))
+    (let [new-level (if level (dec level) -1)
+          ctx (-> ctx
+                  (assoc :syntax-quote-level new-level))]
+      (analyze-children ctx children))))
+
+(defn analyze-reader-macro-expr
+  ;; split out of analyze-expression** to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx expr]
+  (when (and (not (identical? :cljc (:base-lang ctx)))
+             (str/starts-with? (-> expr :children first str) "?"))
+    (findings/reg-finding! ctx (assoc (meta expr)
+                                      :filename (:filename ctx)
+                                      :level :error
+                                      :type :syntax
+                                      :message "Reader conditionals are only allowed in .cljc files")))
+  (analyze-reader-macro ctx expr))
+
+(defn analyze-namespaced-map-expr
+  ;; split out of analyze-expression** to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx expr t]
+  (lint-unused-value ctx expr)
+  (usages/analyze-namespaced-map
+   (-> ctx
+       (assoc :analyze-expression**
+              analyze-expression**)
+       (update :callstack #(cons [nil t] %)))
+   expr))
+
+(defn analyze-map-expr
+  ;; split out of analyze-expression** to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx expr t children]
+  (lint-unused-value ctx expr)
+  (key-linter/lint-map-keys ctx expr)
+  (let [children (if (:data-readers ctx)
+                     (map (fn [child k]
+                            (assoc child :clj-kondo.internal/map-position k))
+                          children
+                          (cycle [:key :val]))
+                     children)
+          children (mapv #(assoc % :id (gensym)) children)
+          analyzed (analyze-children
+                    (-> ctx
+                        mark-non-tail-recur
+                        (update :callstack #(cons [nil t] %))) children)
+          expr (assoc expr
+                      :children children
+                      :analyzed analyzed)
+          tag* (types/expr->tag ctx expr)]
+      ;; a binding or fn body ending in this map reads its type
+      ;; here, like a call's return, see init-tag
+      (when-let [id (:id expr)]
+        (swap! (:calls-by-id ctx) assoc id {:ret tag*}))
+      (types/add-arg-type-from-expr ctx expr tag*)
+      analyzed))
+
 (defn analyze-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
@@ -3936,61 +4007,11 @@
         :var (do
                (lint-unused-value ctx expr)
                (analyze-var ctx expr (:children expr)))
-        :reader-macro (do
-                        (when (and (not (identical? :cljc (:base-lang ctx)))
-                                   (str/starts-with? (-> expr :children first str) "?"))
-                          (findings/reg-finding! ctx (assoc (meta expr)
-                                                            :filename (:filename ctx)
-                                                            :level :error
-                                                            :type :syntax
-                                                            :message "Reader conditionals are only allowed in .cljc files")))
-                        (analyze-reader-macro ctx expr))
+        :reader-macro (analyze-reader-macro-expr ctx expr)
         (:unquote :unquote-splicing)
-        (let [level (:syntax-quote-level ctx)]
-          (when-not (and level (pos? level))
-            (when-not (some #(= '[leiningen.core.project defproject] %) (:callstack ctx))
-              (findings/reg-finding!
-               ctx
-               (node->line (:filename ctx) expr :unquote-not-syntax-quoted
-                           (if (= :unquote t)
-                             "Unquote (~) not syntax-quoted"
-                             "Unquote-splicing (~@) not syntax-quoted")))))
-          (let [new-level (if level (dec level) -1)
-                ctx (-> ctx
-                        (assoc :syntax-quote-level new-level))]
-            (analyze-children ctx children)))
-        :namespaced-map (do
-                          (lint-unused-value ctx expr)
-                          (usages/analyze-namespaced-map
-                           (-> ctx
-                               (assoc :analyze-expression**
-                                      analyze-expression**)
-                               (update :callstack #(cons [nil t] %)))
-                           expr))
-        :map (do
-               (lint-unused-value ctx expr)
-               (key-linter/lint-map-keys ctx expr)
-               (let [children (if (:data-readers ctx)
-                                (map (fn [child k]
-                                       (assoc child :clj-kondo.internal/map-position k))
-                                     children
-                                     (cycle [:key :val]))
-                                children)
-                     children (mapv #(assoc % :id (gensym)) children)
-                     analyzed (analyze-children
-                               (-> ctx
-                                   mark-non-tail-recur
-                                   (update :callstack #(cons [nil t] %))) children)
-                     expr (assoc expr
-                                 :children children
-                                 :analyzed analyzed)
-                     tag* (types/expr->tag ctx expr)]
-                 ;; a binding or fn body ending in this map reads its type
-                 ;; here, like a call's return, see init-tag
-                 (when-let [id (:id expr)]
-                   (swap! (:calls-by-id ctx) assoc id {:ret tag*}))
-                 (types/add-arg-type-from-expr ctx expr tag*)
-                 analyzed))
+        (analyze-unquote ctx expr t children)
+        :namespaced-map (analyze-namespaced-map-expr ctx expr t)
+        :map (analyze-map-expr ctx expr t children)
         :set (do (lint-unused-value ctx expr)
                  (key-linter/lint-set ctx expr)
                  (analyze-children (-> ctx
@@ -4338,6 +4359,26 @@
                   (map-indexed vector (line-seq rdr)))))))
     @findings))
 
+(defn warn-on-reflection-opts
+  ;; split out of analyze-input to keep it under HotSpot's
+  ;; 8000-bytecode limit, past which it is never JIT-compiled
+  [ctx config filename input lang]
+  (when (identical? :clj lang)
+    (let [cfg (-> config :linters :warn-on-reflection)]
+      (when-not (identical? :off (:level cfg))
+        (let [has-setting? (str/includes? input "*warn-on-reflection*")
+              only-on-interop (when-not has-setting?
+                                (:warn-only-on-interop cfg))]
+          (when (and (not has-setting?)
+                     (not only-on-interop))
+            (findings/reg-finding!
+             ctx {:message "Var *warn-on-reflection* is not set in this namespace."
+                  :filename filename
+                  :type :warn-on-reflection
+                  :row 1 :col 1 :end-row 1 :end-col 1}))
+          [only-on-interop
+           (str/includes? input "*warn-on-reflection*")])))))
+
 (defn analyze-input
   "Analyzes input and returns analyzed defs, calls. Also invokes some
   linters and returns their findings."
@@ -4350,21 +4391,7 @@
               *reader-exceptions* reader-exceptions]
       (try
         (let [[only-warn-on-interop warn-on-reflect-enabled? :as reflect-opts]
-              (when (identical? :clj lang)
-                (let [cfg (-> config :linters :warn-on-reflection)]
-                  (when-not (identical? :off (:level cfg))
-                    (let [has-setting? (str/includes? input "*warn-on-reflection*")
-                          only-on-interop (when-not has-setting?
-                                            (:warn-only-on-interop cfg))]
-                      (when (and (not has-setting?)
-                                 (not only-on-interop))
-                        (findings/reg-finding!
-                         ctx {:message "Var *warn-on-reflection* is not set in this namespace."
-                              :filename filename
-                              :type :warn-on-reflection
-                              :row 1 :col 1 :end-row 1 :end-col 1}))
-                      [only-on-interop
-                       (str/includes? input "*warn-on-reflection*")]))))
+              (warn-on-reflection-opts ctx config filename input lang)
               ctx (if reflect-opts
                     (assoc ctx
                            :warn-on-reflect-enabled warn-on-reflect-enabled?
