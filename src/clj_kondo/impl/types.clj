@@ -346,21 +346,7 @@
   [k]
   (not (identical? ::unknown k)))
 
-(defn keys->map-tag
-  "Map tag for known keys mapped to bare value tags, e.g. from the
-  {:op :keys :req/:opt} spec format of doc/types.md. Wraps each tag into
-  the {:tag ..} entry format :val consumers expect, see map->tag."
-  [key->tag]
-  {:type :map
-   :val (update-vals key->tag (fn [t] {:tag t}))})
-
-(defn map->tag
-  "Tag for a map literal: {:type :map :val {k entry}}, entry a map with
-  optional :tag (a tag or deferred {:call ..}), positions and :value,
-  never a bare tag. Not to be confused with the {:op :keys :req/:opt}
-  spec format from doc/types.md, whose values are bare tags. A map with
-  any non-static key is :open."
-  [ctx expr]
+(defn map->tag [ctx expr]
   (let [children (:children expr)
         kexprs (take-nth 2 children)
         mvals (take-nth 2 (rest children))
