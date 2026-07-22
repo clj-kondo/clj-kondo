@@ -1677,7 +1677,7 @@
 (defn analyze-loop [ctx expr]
   (let [seen-recur? (volatile! nil)
         ctx (-> (assoc ctx :seen-recur? seen-recur?)
-                (dissoc ctx :protocol-fn))
+                (dissoc :protocol-fn))
         bv (-> expr :children second)]
     (when (and bv (= :vector (tag bv)))
       (let [arg-count (let [c (count (:children bv))]
