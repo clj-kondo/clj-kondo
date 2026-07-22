@@ -259,6 +259,174 @@
                        [k :any])))
             entries))))
 
+(declare extract-bindings)
+
+(defn extract-map-bindings
+  ;; split out of extract-bindings: keeping that fn under HotSpot's
+  ;; 8000-bytecode limit is what keeps it JIT-compiled
+  [ctx expr scoped-expr opts]
+  (let [;; in a namespaced map the reader qualifies :as, :or and :select,
+        ;; which Clojure rejects as map directives
+        plain-directive? (if (:namespaced-map opts)
+                           (fn [_ _] false)
+                           (fn [k kw] (and (= kw (:k k))
+                                           (not (:namespaced? k)))))
+        ;; inference is the only consumer of the key-bindings
+        ;; collection, other linters do read binding tags
+        types-off? (linter-disabled? ctx :type-mismatch)
+        ;; the init's tag types each destructured binding, see
+        ;; types/destructured-key-tag. :tag must not leak to children
+        ;; wholesale
+        form-tag (:tag opts)
+        opts (dissoc opts :allow-amp :namespaced-map :tag)
+        kvs (partition 2 (:children expr))
+        select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
+        or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
+        [req sel] (reduce (fn [[req sel] [k v]]
+                            (let [key-name (some-> (:k k) name keyword)]
+                              (cond (one-of key-name [:keys! :syms! :strs!])
+                                    (let [ks (destructuring-keys ctx k key-name (:children v))]
+                                      [(merge req ks) (merge sel ks)])
+                                    (not select?) [req sel]
+                                    (one-of key-name [:keys :syms :strs])
+                                    [req (merge sel (destructuring-keys ctx k key-name (:children v)))]
+                                    ;; k is a binding form, v its lookup key
+                                    (nil? key-name)
+                                    [req (let [mk (types/map-key ctx v)]
+                                           (if (types/known-map-key? mk)
+                                             (assoc sel mk :any)
+                                             sel))]
+                                    :else [req sel])))
+                          [{} {}]
+                          kvs)]
+    (key-linter/lint-map-keys ctx expr)
+    ;; [map-key binding defaulted] per destructured entry, for backward
+    ;; param-type inference, see inferable-params. A binding with an
+    ;; :or default never proves its key required
+    (let [key-bindings (volatile! [])
+          or-names (when (and or? (not types-off?))
+                     (into #{}
+                           (comp (filter (fn [[k _]] (plain-directive? k :or)))
+                                 (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
+                                 (keep :value))
+                           kvs))]
+    (loop [[k v & rest-kvs] (:children expr)
+           res {}]
+        (if k
+          (let [k (lift-meta-content* ctx k)]
+            (cond (:k k)
+                  (let [key-name (keyword (name (:k k)))
+                        ns-modifier? (one-of key-name [:keys :syms :strs
+                                                       :keys! :syms! :strs!
+                                                       ;; TODO: restrict this to language :cljd
+                                                       :flds])]
+                    (if ns-modifier?
+                      (do (usages/analyze-keyword ctx k (assoc opts :keys-destructuring-ns-modifier? true))
+                          (let [opts (assoc opts
+                                            :keys-destructuring? true
+                                            :destructuring-type key-name
+                                            :destructuring-expr k)
+                                modifier-ns (when-not types-off?
+                                              (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
+                                ;; before & are bindings, after & only literal keys
+                                res (loop [children (:children v) amp? false res res]
+                                      (if-let [child (first children)]
+                                        (cond
+                                          (= '& (:value child))
+                                          (do (when amp?
+                                                (findings/reg-finding!
+                                                 ctx (node->line (:filename ctx) child :syntax
+                                                                 "& can only appear once in map destructuring")))
+                                              (recur (next children) true res))
+                                          amp?
+                                          (do (cond
+                                                (symbol? (:value child))
+                                                (findings/reg-finding!
+                                                 ctx (node->line (:filename ctx) child :syntax
+                                                                 (str "Binding symbols can only appear before &, use keys after: " (:value child))))
+                                                (:k child)
+                                                (usages/analyze-keyword ctx child opts))
+                                              (recur (next children) true res))
+                                          :else
+                                          (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
+                                                     (destructuring-key ctx modifier-ns key-name child))
+                                                bname (or (some-> (:value child) name symbol)
+                                                          (some-> (:k child) name symbol))
+                                                child-opts (if-let [vt (when dk
+                                                                         (types/destructured-key-tag
+                                                                          form-tag dk (contains? or-names bname)))]
+                                                             (assoc opts :tag vt)
+                                                             opts)
+                                                bnds (extract-bindings ctx child scoped-expr child-opts)]
+                                            (when dk
+                                              (when-let [b (some-> bnds first val)]
+                                                (vswap! key-bindings conj
+                                                        [dk b (contains? or-names (:name b))])))
+                                            (recur (next children) false (merge res bnds))))
+                                        res))]
+                            (recur rest-kvs res)))
+                      (do (usages/analyze-keyword ctx k)
+                          (case key-name
+                            :or
+                            ;; or doesn't introduce new bindings, it only gives defaults
+                            (cond (not (plain-directive? k :or))
+                                  (recur rest-kvs res)
+                                  (empty? rest-kvs)
+                                  ;; or can refer to a binding introduced by what we extracted
+                                  (let [prev-ctx ctx
+                                        ctx (ctx-with-bindings ctx res)]
+                                    (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                                    (recur rest-kvs res))
+                                  :else
+                                  ;; analyze or after the rest
+                                  (let [;; prevent infinite loop with multiple :or
+                                        rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
+                                    (recur (concat rest-kvs [k v]) res)))
+                            ;; the :as binding is the whole init
+                            :as (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
+                                  (cond (not (plain-directive? k :as))
+                                        (recur rest-kvs res)
+                                        (-> ctx :config :linters :unused-binding
+                                            :exclude-destructured-as)
+                                        (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
+                                        :else
+                                        (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
+                            ;; Clojure 1.13: binds a map with the keys named in this form
+                            :select (if (plain-directive? k :select)
+                                      (recur rest-kvs
+                                             (merge res (extract-bindings ctx v scoped-expr
+                                                                          (assoc opts :tag {:type :map :val sel}))))
+                                      (recur rest-kvs res))
+                            ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
+                            :defaults (if (plain-directive? k :defaults)
+                                        (do (when-not or?
+                                              (findings/reg-finding!
+                                               ctx (node->line (:filename ctx) k :syntax
+                                                               "Can't specify :defaults without :or")))
+                                            (recur rest-kvs
+                                                   (merge res (extract-bindings ctx v scoped-expr opts))))
+                                        (recur rest-kvs res))
+                            (recur rest-kvs res)))))
+                  :else
+                  ;; k is a binding form, v its lookup key
+                  (let [mk (types/map-key ctx v)
+                        known-key? (types/known-map-key? mk)
+                        child-opts (if-let [vt (when known-key?
+                                                 (types/destructured-key-tag
+                                                  form-tag mk (contains? or-names (:value k))))]
+                                     (assoc opts :tag vt)
+                                     opts)
+                        bnds (extract-bindings ctx k scoped-expr child-opts)]
+                    (when (and known-key? (utils/symbol-token? k))
+                      (when-let [b (some-> bnds first val)]
+                        (vswap! key-bindings conj
+                                [mk b (contains? or-names (:name b))])))
+                    (recur rest-kvs (merge res bnds
+                                           {:analyzed (analyze-expression** ctx v)})))))
+          (cond-> res
+            (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
+            (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings)))))))
+
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
   ([ctx expr scoped-expr opts]
@@ -428,167 +596,7 @@
                                            (assoc opts :namespaced-map true))
          :map
          ;; first check even amount of keys + vals
-         (let [;; in a namespaced map the reader qualifies :as, :or and :select,
-               ;; which Clojure rejects as map directives
-               plain-directive? (if (:namespaced-map opts)
-                                  (fn [_ _] false)
-                                  (fn [k kw] (and (= kw (:k k))
-                                                  (not (:namespaced? k)))))
-               ;; inference is the only consumer of the key-bindings
-               ;; collection, other linters do read binding tags
-               types-off? (linter-disabled? ctx :type-mismatch)
-               ;; the init's tag types each destructured binding, see
-               ;; types/destructured-key-tag. :tag must not leak to children
-               ;; wholesale
-               form-tag (:tag opts)
-               opts (dissoc opts :allow-amp :namespaced-map :tag)
-               kvs (partition 2 (:children expr))
-               select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
-               or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
-               [req sel] (reduce (fn [[req sel] [k v]]
-                                   (let [key-name (some-> (:k k) name keyword)]
-                                     (cond (one-of key-name [:keys! :syms! :strs!])
-                                           (let [ks (destructuring-keys ctx k key-name (:children v))]
-                                             [(merge req ks) (merge sel ks)])
-                                           (not select?) [req sel]
-                                           (one-of key-name [:keys :syms :strs])
-                                           [req (merge sel (destructuring-keys ctx k key-name (:children v)))]
-                                           ;; k is a binding form, v its lookup key
-                                           (nil? key-name)
-                                           [req (let [mk (types/map-key ctx v)]
-                                                  (if (types/known-map-key? mk)
-                                                    (assoc sel mk :any)
-                                                    sel))]
-                                           :else [req sel])))
-                                 [{} {}]
-                                 kvs)]
-           (key-linter/lint-map-keys ctx expr)
-           ;; [map-key binding defaulted] per destructured entry, for backward
-           ;; param-type inference, see inferable-params. A binding with an
-           ;; :or default never proves its key required
-           (let [key-bindings (volatile! [])
-                 or-names (when (and or? (not types-off?))
-                            (into #{}
-                                  (comp (filter (fn [[k _]] (plain-directive? k :or)))
-                                        (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
-                                        (keep :value))
-                                  kvs))]
-           (loop [[k v & rest-kvs] (:children expr)
-                  res {}]
-               (if k
-                 (let [k (lift-meta-content* ctx k)]
-                   (cond (:k k)
-                         (let [key-name (keyword (name (:k k)))
-                               ns-modifier? (one-of key-name [:keys :syms :strs
-                                                              :keys! :syms! :strs!
-                                                              ;; TODO: restrict this to language :cljd
-                                                              :flds])]
-                           (if ns-modifier?
-                             (do (usages/analyze-keyword ctx k (assoc opts :keys-destructuring-ns-modifier? true))
-                                 (let [opts (assoc opts
-                                                   :keys-destructuring? true
-                                                   :destructuring-type key-name
-                                                   :destructuring-expr k)
-                                       modifier-ns (when-not types-off?
-                                                     (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
-                                       ;; before & are bindings, after & only literal keys
-                                       res (loop [children (:children v) amp? false res res]
-                                             (if-let [child (first children)]
-                                               (cond
-                                                 (= '& (:value child))
-                                                 (do (when amp?
-                                                       (findings/reg-finding!
-                                                        ctx (node->line (:filename ctx) child :syntax
-                                                                        "& can only appear once in map destructuring")))
-                                                     (recur (next children) true res))
-                                                 amp?
-                                                 (do (cond
-                                                       (symbol? (:value child))
-                                                       (findings/reg-finding!
-                                                        ctx (node->line (:filename ctx) child :syntax
-                                                                        (str "Binding symbols can only appear before &, use keys after: " (:value child))))
-                                                       (:k child)
-                                                       (usages/analyze-keyword ctx child opts))
-                                                     (recur (next children) true res))
-                                                 :else
-                                                 (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
-                                                            (destructuring-key ctx modifier-ns key-name child))
-                                                       bname (or (some-> (:value child) name symbol)
-                                                                 (some-> (:k child) name symbol))
-                                                       child-opts (if-let [vt (when dk
-                                                                                (types/destructured-key-tag
-                                                                                 form-tag dk (contains? or-names bname)))]
-                                                                    (assoc opts :tag vt)
-                                                                    opts)
-                                                       bnds (extract-bindings ctx child scoped-expr child-opts)]
-                                                   (when dk
-                                                     (when-let [b (some-> bnds first val)]
-                                                       (vswap! key-bindings conj
-                                                               [dk b (contains? or-names (:name b))])))
-                                                   (recur (next children) false (merge res bnds))))
-                                               res))]
-                                   (recur rest-kvs res)))
-                             (do (usages/analyze-keyword ctx k)
-                                 (case key-name
-                                   :or
-                                   ;; or doesn't introduce new bindings, it only gives defaults
-                                   (cond (not (plain-directive? k :or))
-                                         (recur rest-kvs res)
-                                         (empty? rest-kvs)
-                                         ;; or can refer to a binding introduced by what we extracted
-                                         (let [prev-ctx ctx
-                                               ctx (ctx-with-bindings ctx res)]
-                                           (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
-                                           (recur rest-kvs res))
-                                         :else
-                                         ;; analyze or after the rest
-                                         (let [;; prevent infinite loop with multiple :or
-                                               rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
-                                           (recur (concat rest-kvs [k v]) res)))
-                                   ;; the :as binding is the whole init
-                                   :as (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
-                                         (cond (not (plain-directive? k :as))
-                                               (recur rest-kvs res)
-                                               (-> ctx :config :linters :unused-binding
-                                                   :exclude-destructured-as)
-                                               (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
-                                               :else
-                                               (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
-                                   ;; Clojure 1.13: binds a map with the keys named in this form
-                                   :select (if (plain-directive? k :select)
-                                             (recur rest-kvs
-                                                    (merge res (extract-bindings ctx v scoped-expr
-                                                                                 (assoc opts :tag {:type :map :val sel}))))
-                                             (recur rest-kvs res))
-                                   ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
-                                   :defaults (if (plain-directive? k :defaults)
-                                               (do (when-not or?
-                                                     (findings/reg-finding!
-                                                      ctx (node->line (:filename ctx) k :syntax
-                                                                      "Can't specify :defaults without :or")))
-                                                   (recur rest-kvs
-                                                          (merge res (extract-bindings ctx v scoped-expr opts))))
-                                               (recur rest-kvs res))
-                                   (recur rest-kvs res)))))
-                         :else
-                         ;; k is a binding form, v its lookup key
-                         (let [mk (types/map-key ctx v)
-                               known-key? (types/known-map-key? mk)
-                               child-opts (if-let [vt (when known-key?
-                                                        (types/destructured-key-tag
-                                                         form-tag mk (contains? or-names (:value k))))]
-                                            (assoc opts :tag vt)
-                                            opts)
-                               bnds (extract-bindings ctx k scoped-expr child-opts)]
-                           (when (and known-key? (utils/symbol-token? k))
-                             (when-let [b (some-> bnds first val)]
-                               (vswap! key-bindings conj
-                                       [mk b (contains? or-names (:name b))])))
-                           (recur rest-kvs (merge res bnds
-                                                  {:analyzed (analyze-expression** ctx v)})))))
-                 (cond-> res
-                   (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
-                   (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings))))))
+         (extract-map-bindings ctx expr scoped-expr opts)
          (findings/reg-finding!
           ctx
           (node->line (:filename ctx)
@@ -2945,7 +2953,7 @@
                 (swap! nss update-in [base-lang lang ns-name]
                        (fn [ns]
                          (-> ns
-                             (update :clojure-excluded (fnil conj #{}) 
+                             (update :clojure-excluded (fnil conj #{})
                                      (with-meta sym excluded-meta))
                              (update :vars dissoc sym)
                              (update :var-counts dissoc sym))))))))))
