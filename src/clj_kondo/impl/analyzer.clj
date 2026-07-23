@@ -490,6 +490,9 @@
                          v (cond-> v
                              (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
                              (assoc :required true)
+                             ;; see analyzer/nil-literal-condition?
+                             (:nil-literal opts)
+                             (vary-meta assoc :nil-literal true)
                              (:analyze-locals? ctx)
                              (-> (assoc :id (swap! (:id-gen ctx) inc)
                                         :str (str expr))
@@ -1276,7 +1279,11 @@
                                    (analyze-expression** ctx** (assoc value :id value-id)))
                   tag (when (and let? binding (one-of (tag binding) [:token :map]))
                         (init-tag ctx* value-id value))
-                  new-bindings (when binding (extract-bindings ctx* binding scoped-expr {:tag tag}))
+                  new-bindings (when binding
+                                 (extract-bindings ctx* binding scoped-expr
+                                                   (cond-> {:tag tag}
+                                                     (and value (utils/nil-token? value))
+                                                     (assoc :nil-literal true))))
                   analyzed-binding (:analyzed new-bindings)
                   new-bindings (dissoc new-bindings :analyzed)
                   m (meta analyzed-value)
@@ -1422,6 +1429,15 @@
        ctx
        (node->line (:filename ctx) expr :syntax (format "%s binding vector requires exactly 2 forms" form-name))))))
 
+(defn nil-literal-condition?
+  "True for a literal nil, or a local bound to one. An intentional way to
+  disable a branch, like a false literal, which is typed :boolean and gets no
+  verdict either."
+  [ctx expr]
+  (or (utils/nil-token? expr)
+      (when-let [sym (utils/symbol-from-token expr)]
+        (:nil-literal (meta (get (:bindings ctx) sym))))))
+
 (defn constant-condition-linter
   [ctx expr]
   (findings/reg-finding! ctx (node->line (:filename ctx)
@@ -1451,10 +1467,11 @@
                (not (:clj-kondo.impl/generated condition)))
       (let [tag (some-> @arg-types (nth pos) :tag)]
         (case (types/constant-verdict tag nil-test?)
-          :always-false (findings/reg-finding! ctx (node->line (:filename ctx)
-                                                               condition
-                                                               :constant-condition
-                                                               "Condition always false"))
+          :always-false (when-not (nil-literal-condition? ctx condition)
+                          (findings/reg-finding! ctx (node->line (:filename ctx)
+                                                                 condition
+                                                                 :constant-condition
+                                                                 "Condition always false")))
           :always-true (constant-condition-linter ctx condition)
           ;; a tag with unresolved calls in it gets a second chance once every
           ;; namespace is analyzed, see linters/lint-deferred-conditions!. A

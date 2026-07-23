@@ -377,6 +377,16 @@
 (defn boolean-token? [node]
   (boolean? (:value node)))
 
+(defn nil-token?
+  "True for a literal nil."
+  [node]
+  (and (nil? (:value node))
+       ;; a keyword and a single-line string node share the :token tag and have
+       ;; a nil :value too, so rule them out by their own fields
+       (nil? (:k node))
+       (nil? (:lines node))
+       (identical? :token (tag node))))
+
 (defn char-token? [node]
   (char? (:value node)))
 

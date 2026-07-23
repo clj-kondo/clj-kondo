@@ -13,6 +13,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:constant-condition`: a literal `nil` condition is exempt, like `true` and `false`, also through a local. E.g. `(when nil 1)` no longer warns. A provably nil key lookup such as `(when (:k {}) 1)` still warns.
+
 ### Highlights
 
 The type checker now infers much more.
