@@ -64,7 +64,10 @@
                 (with-meta start-expr (assoc (meta start-expr) :clj-kondo.impl/generated true)))
             steps (map (fn [[t step]]
                          (list-node [(token-node 'if)
-                                     t
+                                     ;; see analyzer/analyze-condition: a
+                                     ;; keyword test here is an intentional
+                                     ;; always-truthy marker
+                                     (assoc t :cond-arrow-test true)
                                      (list-node
                                       [(token-node thread-sym)
                                        g

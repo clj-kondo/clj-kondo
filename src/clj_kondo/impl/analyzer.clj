@@ -1463,7 +1463,9 @@
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
                (not (linter-disabled? ctx :constant-condition))
-               (not= :always (:k condition))
+               ;; a keyword test in cond->/cond->> marks a step that always
+               ;; runs, e.g. :always
+               (not (and (:k condition) (:cond-arrow-test condition)))
                (not (:clj-kondo.impl/generated condition)))
       (let [tag (some-> @arg-types (nth pos) :tag)]
         (case (types/constant-verdict tag nil-test?)

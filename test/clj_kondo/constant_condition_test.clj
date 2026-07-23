@@ -143,18 +143,22 @@
    []
    (lint! "(cond-> {} true (assoc :hello :goodbye))"
           config))
-  (assert-submaps2
-   []
-   (lint! "(cond-> {} :always (assoc :hello :goodbye))"
-          config))
-  (assert-submaps2
-   [{:file "<stdin>"
-     :row 1
-     :col 12
-     :level :warning
-     :message "Condition always true"}]
-   (lint! "(cond-> {} :true (assoc :hello :goodbye))"
-          config)))
+  (testing "any keyword marks a step that always runs"
+    (doseq [kw [":always" ":else" ":default" ":hack" ":true"]]
+      (is (empty? (lint! (format "(cond-> {} %s (assoc :hello :goodbye))" kw)
+                         config))
+          kw))
+    (is (empty? (lint! "(cond->> [] :always (map inc))" config))))
+  (testing "but only a keyword, and only in cond->"
+    (assert-submaps2
+     '({:row 1 :col 12 :message "Condition always true"})
+     (lint! "(cond-> {} inc (assoc :hello :goodbye))" config))
+    (assert-submaps2
+     '({:row 1 :col 12 :message "Condition always true"})
+     (lint! "(cond-> {} \"s\" (assoc :hello :goodbye))" config))
+    (assert-submaps2
+     '({:row 1 :col 7 :message "Condition always true"})
+     (lint! "(when :always 1)" config))))
 
 (deftest lazy-seqs-test
   (testing "unrealized"

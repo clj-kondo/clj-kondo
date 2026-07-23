@@ -2337,8 +2337,9 @@ This will exclude all bindings starting with `_x`.
 Also warns on unreachable code after a catch-all `cond` test.
 
 Literal `true`, `false` and `nil` conditions are not checked, even when reached
-through a var or local. These are often dev/production toggles. The keyword
-`:always` is exempt as an intentional always-truthy condition.
+through a var or local. These are often dev/production toggles. A keyword test
+in `cond->` or `cond->>` is exempt as well, it marks a step that always runs,
+as in `(cond-> m :always (assoc :a 1))`.
 
 Replaces the `:condition-always-true` linter. The `cond` catch-all warning
 moved here from `:unreachable-code`. Config and ignores using the
