@@ -728,6 +728,33 @@ my-ns/special-map \"
               "--config-dir" (str cfg-dir))))
     (cleanup!)))
 
+(deftest macro-from-source-resolve-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-resolve" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "repl.clj")
+        src-dir (fs/file "corpus" "macro-from-source-resolve" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    ;; first run extracts the markers; hook isn't loaded yet.
+    (lint! src-dir
+           {:linters {:unresolved-symbol {:level :error}}}
+           "--config-dir" (str cfg-dir))
+    (testing "marked declares are extracted and the gen ns self-aliases the source ns"
+      (let [gen (slurp (fs/file gen-file))]
+        (is (str/includes? gen "(declare catch-all)"))
+        (is (str/includes? gen "(alias 'repl 'clj-kondo.gen-macros.repl)"))))
+    (testing "expand-time `resolve` of a source-ns-qualified symbol finds the
+    extracted var, so a macro that recognizes marker forms by var identity
+    (compared against a syntax-quoted symbol) expands like at runtime"
+      (assert-submaps2
+       []
+       (lint! src-dir
+              {:linters {:unresolved-symbol {:level :error}}}
+              "--config-dir" (str cfg-dir))))
+    (cleanup!)))
+
 (deftest macro-from-source-recursive-test
   (let [cfg-dir (fs/file "corpus" "macro-from-source-recursive" ".clj-kondo")
         src-dir (fs/file "corpus" "macro-from-source-recursive" "src")

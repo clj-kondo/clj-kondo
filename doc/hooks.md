@@ -370,9 +370,9 @@ next clj-kondo run.
 
 ### Helper functions and vars
 
-The same marker can be put on `defn`/`defn-`/`def` forms for macro helper
-functions or vars. Helpers get extracted alongside the marker macros into the
-same generated namespace, but do not themselves register a macroexpand hook. Use
+The same marker can be put on `defn`/`defn-`/`def`/`declare` forms for macro
+helper functions or vars. Helpers get extracted alongside the marker macros into
+the same generated namespace, but do not themselves register a macroexpand hook. Use
 this when a marker macro needs to call a helper at _expand time_:
 
 ``` clojure
@@ -422,6 +422,29 @@ namespace (which may not be SCI-loadable).
   `(let ~bindings ~@body))
 ```
 
+### Resolving vars at expand time
+
+The generated namespace aliases itself under the original source namespace
+name and macroexpansion runs with `*ns*` bound to the generated namespace.
+Expand-time `resolve` of a symbol qualified with the source namespace finds
+the extracted var, as it does at runtime. This lets a macro recognize
+sub-forms by var identity:
+
+``` clojure
+(ns my.app)
+
+(declare ^:clj-kondo/macroexpand-hook catch-all)
+
+(defn ^:clj-kondo/macroexpand-hook catch-all-form? [form]
+  (and (seq? form)
+       (symbol? (first form))
+       (when-let [v (resolve (first form))]
+         (= (symbol v) `catch-all))))
+```
+
+Both `(resolve 'my.app/catch-all)` and `` `catch-all `` resolve to the same
+var in the generated namespace, so the comparison behaves as at runtime.
+
 ### Branching on "are we inside clj-kondo?"
 
 When the real macro body does I/O, reads resources, or calls JVM-only code that
@@ -470,8 +493,9 @@ expanded call sites lint correctly.
   (including some Java interop and limited support for `deftype`/`defrecord`), but not
   everything. If extraction breaks for a particular form, fall back to a
   hand-written `:macroexpand` hook.
-- The marker only attaches to a `defmacro`/`defn`/`defn-`/`def` form.
-  Other shapes are not auto-extracted.
+- The marker only attaches to a `defmacro`/`defn`/`defn-`/`def`/`declare`
+  form. Other shapes are not auto-extracted. On `declare`, put the marker on
+  the declared name: `(declare ^:clj-kondo/macroexpand-hook foo)`.
 - Files without an `(ns ...)` declaration (linted as `user`) are
   not supported. Add an `(ns ...)` form to the
   source file if you need extraction.
