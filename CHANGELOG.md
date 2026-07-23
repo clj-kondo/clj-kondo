@@ -12,6 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## Unreleased
+- Macros from source: expand-time `resolve` of a symbol qualified with the source namespace finds the extracted var, and the `:clj-kondo/macroexpand-hook` marker now works on `declare`.
 - Param type inference skips `try` bodies with a `catch` clause and `catch` bodies. E.g. `(defn f [n] (try (parse-double n) (catch Exception _ nil))) (f nil)` no longer warns.
 - Vars defined in `comment` forms no longer count for `:shadowed-var`, `:unused-private-var` and `:inline-def`. E.g. `(defn f [bar] bar)` after `(comment (def bar 1))` no longer warns. Defs in `comment` forms also no longer overwrite the arity and position of defs outside of them.
 - [#721](https://github.com/clj-kondo/clj-kondo/issues/721): NEW linter: `:constant-condition`: warn on a condition whose truthiness is the same on every run. On by default. Replaces `:condition-always-true`, whose config and ignores still apply to always-true conditions, and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
