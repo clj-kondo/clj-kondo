@@ -159,9 +159,17 @@
                                  acc
                                  (union-type acc part))))))))
 
+(defn enum-type? [x]
+  (and (map? x) (identical? :enum (:type x))))
+
+(defn sequential-type? [x]
+  (and (map? x) (identical? :sequential (:type x))))
+
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)
       (and (set? arg-type) (every? resolved-type? arg-type))
+      (enum-type? arg-type)
+      (sequential-type? arg-type)
       (and (map? arg-type) (when-let [t (:type arg-type)]
                              (and (not (:kw-calls arg-type))
                                   (identical? t :map))))))

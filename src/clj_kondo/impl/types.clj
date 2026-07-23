@@ -8,6 +8,7 @@
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
    [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
    [clj-kondo.impl.types.clojure.test :refer [clojure-test]]
+   [clj-kondo.impl.types.schema.core :refer [schema-core]]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils :refer
     [tag sexpr select-keys get-in]]
@@ -63,14 +64,16 @@
     :ilookup
     :array
     :inst
-    :class})
+    :class
+    :enum})
 
 (def built-in-specs
   {'clojure.core clojure-core
    'cljs.core cljs-core
    'clojure.set clojure-set
    'clojure.string clojure-string
-   'clojure.test clojure-test})
+   'clojure.test clojure-test
+   'schema.core schema-core})
 
 (def predicate->tag
   "Core type predicates mapped to the type each proves about its argument."
@@ -103,6 +106,7 @@
    :fn #{:ifn}
    :keyword #{:ifn}
    :symbol #{:ifn}
+   :enum #{:keyword :ifn}
    :associative #{:seqable :coll :ifn :ilookup}
    :transducer #{:ifn :fn}
    :list #{:seq :sequential :seqable :coll :stack}
@@ -138,8 +142,9 @@
    :associative #{:map :vector :sequential :stack :sorted-map}
    :ifn #{:fn :transducer :symbol :keyword :map :set :sorted-set :vector
           :associative :seqable :coll :sequential :stack :sorted-map :var
-          :ideref :ilookup}
+          :ideref :ilookup :enum}
    :fn #{:transducer}
+   :keyword #{:enum}
    :seq #{:list :stack}
    :stack #{:list :vector :seq :sequential :seqable :coll :ifn :associative :ilookup}
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
@@ -196,6 +201,7 @@
    :ifn "function"
    :keyword "keyword"
    :symbol "symbol"
+   :enum "enum"
    :transducer "transducer"
    :seqable-or-transducer "seqable or transducer"
    :set "set"
@@ -249,39 +255,41 @@
 ;; is not a third party String type
 (defn tag-from-meta
   [meta-tag]
-  (case meta-tag
-    void :nil
-    (boolean) :boolean
-    (Boolean java.lang.Boolean) :nilable/boolean
-    (byte) :byte
-    (Byte java.lang.Byte) :nilable/byte
-    (Number java.lang.Number) :nilable/number
-    (int) :int
-    (Integer java.lang.Integer) :nilable/int
-    (long) :long
-    (Long java.lang.Long) :nilable/long
-    (short) :short
-    (Short java.lang.Short) :nilable/short
-    (double) :double
-    (float) :float
-    (Double java.lang.Double) :nilable/double
-    (Float java.lang.Float) :nilable/float
-    (ratio?) :ratio
-    (CharSequence java.lang.CharSequence) :nilable/char-sequence
-    (String java.lang.String) :nilable/string ;; as this is now way to
-    ;; express non-nilable,
-    ;; we'll go for the most
-    ;; relaxed type
-    (char) :char
-    (Character java.lang.Character) :nilable/char
-    (Seqable clojure.lang.Seqable) :seqable
-    (java.util.List) :nilable/list
-    (class) :class
-    (Class java.lang.Class) :nilable/class
-    (Date java.util.Date) :nilable/inst
-    (Future java.util.concurrent.Future) :nilable/future
-    (future) :future
-    nil))
+  (if (or (keyword? meta-tag) (map? meta-tag) (set? meta-tag))
+    meta-tag
+    (case meta-tag
+      void :nil
+      (boolean) :boolean
+      (Boolean java.lang.Boolean) :nilable/boolean
+      (byte) :byte
+      (Byte java.lang.Byte) :nilable/byte
+      (Number java.lang.Number) :nilable/number
+      (int) :int
+      (Integer java.lang.Integer) :nilable/int
+      (long) :long
+      (Long java.lang.Long) :nilable/long
+      (short) :short
+      (Short java.lang.Short) :nilable/short
+      (double) :double
+      (float) :float
+      (Double java.lang.Double) :nilable/double
+      (Float java.lang.Float) :nilable/float
+      (ratio?) :ratio
+      (CharSequence java.lang.CharSequence) :nilable/char-sequence
+      (String java.lang.String) :nilable/string ;; as this is now way to
+      ;; express non-nilable,
+      ;; we'll go for the most
+      ;; relaxed type
+      (char) :char
+      (Character java.lang.Character) :nilable/char
+      (Seqable clojure.lang.Seqable) :seqable
+      (java.util.List) :nilable/list
+      (class) :class
+      (Class java.lang.Class) :nilable/class
+      (Date java.util.Date) :nilable/inst
+      (Future java.util.concurrent.Future) :nilable/future
+      (future) :future
+      nil)))
 
 (defn number->tag [v]
   (cond (int? v)
@@ -588,14 +596,22 @@
                (case arg-tag
                  :keyword (when-not (:namespaced? expr) (:k expr))
                  :string (utils/string-from-token expr)
-                 nil))]
+                 nil))
+           elements (when (identical? :vector (tag expr))
+                      (mapv (fn [c]
+                              (let [ct (expr->tag ctx c)
+                                    cm (meta c)]
+                                (cond-> (select-keys cm [:row :col :end-row :end-col])
+                                  ct (assoc :tag ct))))
+                            (:children expr)))]
        (swap! arg-types conj (when arg-tag
                                (cond-> {:tag arg-tag
                                         :row (:row m)
                                         :col (:col m)
                                         :end-row (:end-row m)
                                         :end-col (:end-col m)}
-                                 (some? v) (assoc :value v))))))))
+                                 (some? v) (assoc :value v)
+                                 (some? elements) (assoc :elements elements))))))))
 
 (defn add-arg-type-from-call [ctx call expr]
   (when-let [arg-types (:arg-types ctx)]
@@ -937,7 +953,13 @@
 (defn tag->label [x]
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
-                (set? x) (str/join " or " (map label-fn x))
+                (set? x) (str/join " or " (map tag->label x))
+                (type-utils/enum-type? x)
+                (str "one of " (str/join ", " (map pr-str (sort (:vals x)))))
+                (type-utils/sequential-type? x)
+                (str "sequential of " (tag->label (:elem x)))
+                (and (map? x) (identical? :literal (:type x)))
+                (pr-str (:value x))
                 ;; TODO:
                 (map? x) "map")]
     l))
@@ -1025,6 +1047,22 @@
           (lint-map-types! ctx a mval s :req (not (:open t)))
           (lint-map-types! ctx a mval s :opt false))))
 
+(defn lint-sequential! [ctx s a t]
+  (let [elem (:elem s)]
+    (cond
+      (contains? a :elements)
+      (doseq [e (:elements a)]
+        (when-let [et (:tag e)]
+          (when-not (tag-matches? et elem)
+            (emit-non-match! ctx elem (if (:row e) e a) et))))
+      (type-utils/sequential-type? t)
+      (when-let [actual-elem (:elem t)]
+        (when-not (tag-matches? actual-elem elem)
+          (emit-non-match! ctx s a t)))
+      :else
+      (when-not (match? t :sequential)
+        (emit-non-match! ctx :sequential a t)))))
+
 (defn lint-arg-types
   [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
@@ -1074,9 +1112,41 @@
                                      ;; the last arg
                                      (recur check-ctx [(some check-ctx [:last :rest])] all-args all-tags)))
                     (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
-                    (set? s) (do (when-not (some #(match? t %) s)
-                                   (emit-non-match! ctx s a t))
-                                 (recur check-ctx rest-args-spec rest-args rest-tags))
+                    (set? s)
+                    (do (let [enum-part (some #(when (type-utils/enum-type? %) %) s)
+                              seq-part (some #(when (type-utils/sequential-type? %) %) s)
+                              non-special (cond-> s
+                                            enum-part (disj enum-part)
+                                            seq-part (disj seq-part))
+                              v (:value a)]
+                          (when-not (or (some #(match? t %) non-special)
+                                        (when enum-part
+                                          (if (some? v)
+                                            (contains? (:vals enum-part) v)
+                                            true))
+                                        (when seq-part
+                                          (when (or (contains? a :elements)
+                                                    (match? t :sequential)
+                                                    (type-utils/sequential-type? t))
+                                            (lint-sequential! ctx seq-part a t)
+                                            true)))
+                            (emit-non-match! ctx s a
+                                             (if (and enum-part (some? v))
+                                               {:type :literal :value v}
+                                               t))))
+                        (recur check-ctx rest-args-spec rest-args rest-tags))
+                    (type-utils/enum-type? s)
+                    (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
+                          :else
+                          (do (let [v (:value a)]
+                                (when (and (some? v) (not (contains? (:vals s) v)))
+                                  (emit-non-match! ctx s a {:type :literal :value v})))
+                              (recur check-ctx rest-args-spec rest-args rest-tags)))
+                    (type-utils/sequential-type? s)
+                    (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
+                          :else
+                          (do (lint-sequential! ctx s a t)
+                              (recur check-ctx rest-args-spec rest-args rest-tags)))
                     (keyword? s)
                     (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
                           :else

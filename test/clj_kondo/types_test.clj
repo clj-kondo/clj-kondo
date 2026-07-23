@@ -1092,6 +1092,169 @@
          '({:file "<stdin>", :row 1, :col 23, :level :error, :message "Expected: number, received: keyword."})
          lints)))))
 
+(deftest schema-type-mismatch-test
+  (let [config '{:linters
+                 {:type-mismatch
+                  {:level :error}}}]
+    (testing "primitive schema on a param"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 70, :level :error, :message "Expected: string, received: positive integer."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- s/Str] x) (f 1)"
+              config)))
+    (testing "s/enum literal"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 91, :level :error, :message "Expected: one of :blue, :green, :red, received: :purple."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/enum :red :green :blue)] x) (f :purple)"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/enum :red :green :blue)] x) (f :red)"
+                  config))))
+    (testing "s/enum through a same-file defschema"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 117, :level :error, :message "Expected: one of :blue, :green, :red, received: :purple."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defschema Color (s/enum :red :green :blue)) (s/defn f [x :- Color] x) (f :purple)"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defschema Color (s/enum :red :green :blue)) (s/defn f [x :- Color] x) (f :red)"
+                  config))))
+    (testing "s/enum with non-keyword values is not checked"
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/enum :red \"green\")] x) (f :purple)"
+                  config))))
+    (testing "schemas defined in another namespace are not resolved"
+      (is (empty?
+           (lint! "(ns bar (:require [schema.core :as s])) (s/defschema Color (s/enum :red :green :blue))
+                   (ns foo (:require [bar] [schema.core :as s])) (s/defn f [x :- bar/Color] x) (f :purple)"
+                  config))))
+    (testing "return schema"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 73, :level :error, :message "Expected: number, received: string."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- s/Str [] \"x\") (inc (f))"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- s/Int [] 1) (inc (f))"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 88, :level :error, :message "Expected: number, received: string."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- s/Str ([_] \"x\") ([_ _] \"y\")) (inc (f 1))"
+              config))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 95, :level :error, :message "Expected: number, received: one of :blue, :green, :red."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- (s/enum :red :green :blue) [] :red) (inc (f))"
+              config)))
+    (testing "s/maybe"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 80, :level :error, :message "Expected: string or nil, received: positive integer."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/maybe s/Str)] x) (f 1)"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/maybe s/Str)] x) (f nil) (f \"x\")"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 83, :level :error, :message "Expected: number, received: string or nil."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- (s/maybe s/Str) [] \"x\") (inc (f))"
+              config))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 101, :level :error,
+          :message #"Expected: (nil or one of :blue, :green, :red|one of :blue, :green, :red or nil), received: :purple\."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/maybe (s/enum :red :green :blue))] x) (f :purple)"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/maybe (s/enum :red :green :blue))] x) (f nil) (f :red)"
+                  config)))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defschema Name (s/maybe s/Str)) (s/defn f [x :- Name] x) (f nil)"
+                  config))))
+    (testing "map schema"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 75, :level :error, :message "Missing required key: :a"})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int}] m) (f {})"
+              config))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 79, :level :error, :message "Expected: integer, received: string."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int}] m) (f {:a \"x\"})"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int}] m) (f {:a 1}) (f {:a 1 :b \"extra\"})"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 75, :level :error, :message "Expected: map, received: positive integer."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int}] m) (f 1)"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- (s/maybe {:a s/Int})] m) (f nil) (f {:a 1})"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 102, :level :error, :message "Missing required key: :b"})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defschema M {:a s/Int :b s/Str}) (s/defn f [m :- M] m) (f {:a 1})"
+              config)))
+    (testing "s/optional-key"
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {(s/optional-key :a) s/Int}] m) (f {}) (f {:a 1})"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 96, :level :error, :message "Expected: integer, received: string."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {(s/optional-key :a) s/Int}] m) (f {:a \"x\"})"
+              config))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 101, :level :error, :message "Missing required key: :a"})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int (s/optional-key :b) s/Str}] m) (f {})"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int (s/optional-key :b) s/Str}] m) (f {:a 1}) (f {:a 1 :b \"x\"})"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 110, :level :error, :message "Expected: string, received: positive integer."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [m :- {:a s/Int (s/optional-key :b) s/Str}] m) (f {:a 1 :b 2})"
+              config)))
+    (testing "sequential schema"
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 74, :level :error, :message "Expected: sequential collection, received: positive integer."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [xs :- [s/Str]] xs) (f 1)"
+              config))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 75, :level :error, :message "Expected: string, received: positive integer."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [xs :- [s/Str]] xs) (f [1])"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [xs :- [s/Str]] xs) (f []) (f [\"a\" \"b\"])"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 77, :level :error, :message "Expected: number, received: sequential of string."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- [s/Str] [] [\"a\"]) (inc (f))"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defschema Names [s/Str]) (s/defn f [xs :- Names] xs) (f [\"a\"])"
+                  config)))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [xs :- (s/maybe [s/Int])] xs) (f nil) (f [1 2])"
+                  config))))
+    (testing "s/either"
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/either s/Str s/Int)] x) (f \"a\") (f 1)"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 87, :level :error,
+          :message #"Expected: (integer or string|string or integer), received: keyword\."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/either s/Str s/Int)] x) (f :a)"
+              config))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 91, :level :error,
+          :message #"Expected: map or nil, received: (integer or string|string or integer)\."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f :- (s/either s/Str s/Int) [] 1) (dissoc (f) :x)"
+              config))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defschema Id (s/either s/Str s/Int)) (s/defn f [x :- Id] x) (f \"a\")"
+                  config)))
+      (is (empty?
+           (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/either s/Str (s/enum :a :b))] x) (f \"a\") (f :a)"
+                  config)))
+      (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 96, :level :error,
+          :message #"Expected: (one of :a, :b or string|string or one of :a, :b), received: :c\."})
+       (lint! "(ns foo (:require [schema.core :as s])) (s/defn f [x :- (s/either s/Str (s/enum :a :b))] x) (f :c)"
+              config)))))
+
 (deftest issue-1978-varargs-false-positive-test
   (is (empty? (lint! "(defn foo
   ([x] x)
