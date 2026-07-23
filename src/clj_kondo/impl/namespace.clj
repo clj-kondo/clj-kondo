@@ -725,10 +725,9 @@
                                 (:clj-kondo.impl/generated expr))
                     (let [arities (:arities cfg)
                           arity (:arity arity-info)
-                          positions (let [p (:position cfg)]
-                                      (cond (nil? p) #{:call :value}
-                                            (keyword? p) #{p}
-                                            :else (set p)))]
+                          positions (if-let [p (:positions cfg)]
+                                      (set p)
+                                      #{:call :value})]
                       (when (and (contains? positions (if call-position? :call :value))
                                  (or (not arity-info)
                                      (not arities)

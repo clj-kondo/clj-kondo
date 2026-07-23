@@ -697,12 +697,11 @@ to certain arities of a var call.
 An addition `:langs #{:clj}` option is allowed to limit the warning to a
 selection of languages. Valid set elements are `:clj` and `:cljs`.
 
-A `:position` option limits the warning to the position in which the var
-appears. Valid values are `:call` (the var is in call/operator position,
-e.g. `(read-string ...)`), `:value` (the var is used as a value,
-e.g. passed to a higher-order function or a bare reference), or a set
-combining both, e.g. `#{:call :value}`. When omitted, both positions are
-warned on..
+A `:positions` option limits the warning to the positions in which the var
+appears. The value is a set or vector containing `:call` (the var is in
+call/operator position, e.g. `(read-string ...)`) and/or `:value` (the var
+is used as a value, e.g. passed to a higher-order function or a bare
+reference). When omitted, both positions are warned on.
 
 *Example trigger:*
 

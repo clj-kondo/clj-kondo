@@ -2820,7 +2820,7 @@
                                          ;; The fn is passed as a value to a
                                          ;; higher-order fn; distinguish hof
                                          ;; usage from literal function call.
-                                         :hof-arg? true
+                                         :hof-arg true
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta

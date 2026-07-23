@@ -560,8 +560,8 @@
                                                                                                                             :arity arity} (:expr call)
                                        ;; A fn passed to a higher-order fn is modeled as a
                                        ;; :call for arity checking, but is a value position
-                                       ;; for the :position option of :discouraged-var.
-                                       (and call? (not (:hof-arg? call))))
+                                       ;; for the :positions option of :discouraged-var.
+                                       (and call? (not (:hof-arg call))))
       (when (and (utils/lint-condition? call)
                  (not (utils/linter-disabled? call :constant-condition))
                  (not call?)
