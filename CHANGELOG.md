@@ -12,18 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
 ## Unreleased
-- Macros from source: expand-time `resolve` of a symbol qualified with the source namespace finds the extracted var, and the `:clj-kondo/macroexpand-hook` marker now works on `declare`.
-- Param type inference skips `try` bodies with a `catch` clause and `catch` bodies. E.g. `(defn f [n] (try (parse-double n) (catch Exception _ nil))) (f nil)` no longer warns.
-- Vars defined in `comment` forms no longer count for `:shadowed-var`, `:unused-private-var` and `:inline-def`. E.g. `(defn f [bar] bar)` after `(comment (def bar 1))` no longer warns. Defs in `comment` forms also no longer overwrite the arity and position of defs outside of them.
-- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): NEW linter: `:constant-condition`: warn on a condition whose truthiness is the same on every run. On by default. Replaces `:condition-always-true`, whose config and ignores still apply to always-true conditions, and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
-- [#2900](https://github.com/clj-kondo/clj-kondo/issues/2900): `:discouraged-var`: new per-var `:positions` option (a set or vector of `:call` and/or `:value`) to limit the warning to call position or value position. A var passed to a higher-order function such as `map` counts as `:value`.
-- [#1882](https://github.com/clj-kondo/clj-kondo/issues/1882): built-in support for `clojure.test.check.clojure-test/defspec`
-- [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
 
-- [#2877](https://github.com/clj-kondo/clj-kondo/issues/2877): warn when `#_` before an unmatched reader conditional discards the next form. E.g. `[#_#?(:cljs 1) 2]` reads as `[]` in `:clj` and will warn.
-- [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
-- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 190 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
-- [#2869](https://github.com/clj-kondo/clj-kondo/issues/2869) Replace type-mismatch arities instead of merging
 ### Highlights
 
 The type checker now infers much more.
@@ -66,8 +55,38 @@ And it narrows the type of a local after it flowed through a known predicate:
                                  ^ Expected: number, received: string.
 ```
 
+NEW linter `:constant-condition`, on by default, warns on a condition whose truthiness is the same on every run:
+
+``` clojure
+(when inc :hello)
+      ^ Condition always true
+```
+
+It replaces `:condition-always-true`, which was off by default.
+
+Clojure 1.13: built-in analysis is bumped to 1.13.0-alpha4 and the new map destructuring features are supported: required keys via `:keys!`, `:syms!` and `:strs!`, `:select` and `:defaults`. Required keys are checked at call sites:
+
+``` clojure
+(defn f [{:keys! [x]}] x)
+(f {})
+   ^ Missing required key: :x
+```
+
+Performance: linting is faster and allocates less. Var usages and bindings are now records, several rewrite-clj internals were optimized ([@alexander-yakushev](https://github.com/alexander-yakushev)) and hot analyzer functions were split so they stay JIT-compiled.
+
 ### Other
 
+- Macros from source: expand-time `resolve` of a symbol qualified with the source namespace finds the extracted var, and the `:clj-kondo/macroexpand-hook` marker now works on `declare`.
+- Param type inference skips `try` bodies with a `catch` clause and `catch` bodies. E.g. `(defn f [n] (try (parse-double n) (catch Exception _ nil))) (f nil)` no longer warns.
+- Performance: split hot analyzer and linter functions so they stay under the JIT compilation size limit ([#2907](https://github.com/clj-kondo/clj-kondo/issues/2907), [#2908](https://github.com/clj-kondo/clj-kondo/issues/2908), [#2909](https://github.com/clj-kondo/clj-kondo/issues/2909), [#2910](https://github.com/clj-kondo/clj-kondo/issues/2910), [#2911](https://github.com/clj-kondo/clj-kondo/issues/2911))
+- Vars defined in `comment` forms no longer count for `:shadowed-var`, `:unused-private-var` and `:inline-def`. E.g. `(defn f [bar] bar)` after `(comment (def bar 1))` no longer warns. Defs in `comment` forms also no longer overwrite the arity and position of defs outside of them.
+- [#721](https://github.com/clj-kondo/clj-kondo/issues/721): NEW linter: `:constant-condition`: warn on a condition whose truthiness is the same on every run. On by default. Replaces `:condition-always-true`, whose config and ignores still apply to always-true conditions, and takes over the `cond` catch-all warning from `:unreachable-code`, which now only covers reader conditional branch order. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#constant-condition).
+- [#2900](https://github.com/clj-kondo/clj-kondo/issues/2900): `:discouraged-var`: new per-var `:positions` option (a set or vector of `:call` and/or `:value`) to limit the warning to call position or value position. A var passed to a higher-order function such as `map` counts as `:value`.
+- [#1882](https://github.com/clj-kondo/clj-kondo/issues/1882): built-in support for `clojure.test.check.clojure-test/defspec`
+- [#2851](https://github.com/clj-kondo/clj-kondo/issues/2851): NEW linter: `:seq-rest`: suggest using `(next x)` over `(seq (rest x))`. Defaults to `:off` ([@tomdl89](https://github.com/tomdl89))
+- [#2877](https://github.com/clj-kondo/clj-kondo/issues/2877): warn when `#_` before an unmatched reader conditional discards the next form. E.g. `[#_#?(:cljs 1) 2]` reads as `[]` in `:clj` and will warn.
+- [#2888](https://github.com/clj-kondo/clj-kondo/issues/2888): fix false positive `:redundant-fn-wrapper` for keyword functions in specs ([@jramosg](https://github.com/jramosg))
+- [#2869](https://github.com/clj-kondo/clj-kondo/issues/2869) Replace type-mismatch arities instead of merging
 - Type checker: infer `and` and `or` return types. E.g. `(when (or x :default) ...)` will warn.
 - Type checker: the return types of `re-matches` and `re-find` are nilable.
 - Type checker: the return type of `class` is nilable, `(class nil)` returns nil.
@@ -92,7 +111,7 @@ And it narrows the type of a local after it flowed through a known predicate:
 - [#2849](https://github.com/clj-kondo/clj-kondo/issues/2849): `:conflicting-alias` now catches conflicts with the current namespace name, not just other aliases ([@tomdl89](https://github.com/tomdl89))
 - [#2848](https://github.com/clj-kondo/clj-kondo/pull/2848): allow calling sets and vectors with 2 arguments in ClojureScript, where the second argument is the not-found value ([@p-himik](https://github.com/p-himik))
 - [#2854](https://github.com/clj-kondo/clj-kondo/issues/2854): fix false positive `:invalid-arity` when an inner binding or fn param shadows a local function name ([@yuhan0](https://github.com/yuhan0))
-- Performance optimizations: [#2853](https://github.com/clj-kondo/clj-kondo/issues/2853), [#2857](https://github.com/clj-kondo/clj-kondo/issues/2857), [#2858](https://github.com/clj-kondo/clj-kondo/issues/2858), [#2859](https://github.com/clj-kondo/clj-kondo/issues/2859), [#2866](https://github.com/clj-kondo/clj-kondo/issues/2866) ([@alexander-yakushev](https://github.com/alexander-yakushev))
+- Performance optimizations: [#2853](https://github.com/clj-kondo/clj-kondo/issues/2853), [#2857](https://github.com/clj-kondo/clj-kondo/issues/2857), [#2858](https://github.com/clj-kondo/clj-kondo/issues/2858), [#2859](https://github.com/clj-kondo/clj-kondo/issues/2859), [#2862](https://github.com/clj-kondo/clj-kondo/issues/2862), [#2866](https://github.com/clj-kondo/clj-kondo/issues/2866) ([@alexander-yakushev](https://github.com/alexander-yakushev))
 - [#2864](https://github.com/clj-kondo/clj-kondo/issues/2864): `--copy-configs` no longer rewrites and reports unchanged config files on every run ([@nikbad](https://github.com/nikbad))
 - Performance: use a record for var usages: -13.5% allocation, ~5-10% faster linting
 - Bump SCI to `0.15.56`
