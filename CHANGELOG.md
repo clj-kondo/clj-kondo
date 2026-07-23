@@ -76,6 +76,7 @@ Performance: linting is faster and allocates less. Var usages and bindings are n
 
 ### Other
 
+- Type checker: `schema.core` value schemas (primitives, `s/enum`, `s/maybe`, `s/either`, map and sequential schemas, and `s/defschema` names referring to them) are checked at `s/defn` param and return positions. E.g. `(s/defn f [x :- s/Str] x) (f 1)` will warn.
 - Macros from source: expand-time `resolve` of a symbol qualified with the source namespace finds the extracted var, and the `:clj-kondo/macroexpand-hook` marker now works on `declare`.
 - Param type inference skips `try` bodies with a `catch` clause and `catch` bodies. E.g. `(defn f [n] (try (parse-double n) (catch Exception _ nil))) (f nil)` no longer warns.
 - Performance: split hot analyzer and linter functions so they stay under the JIT compilation size limit ([#2907](https://github.com/clj-kondo/clj-kondo/issues/2907), [#2908](https://github.com/clj-kondo/clj-kondo/issues/2908), [#2909](https://github.com/clj-kondo/clj-kondo/issues/2909), [#2910](https://github.com/clj-kondo/clj-kondo/issues/2910), [#2911](https://github.com/clj-kondo/clj-kondo/issues/2911))

@@ -1217,6 +1217,16 @@
   :langs (),
   :message "Condition always true",
   :row 46}
+ {:end-row 44,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/xrays/domain_entities/core.clj",
+  :col 57,
+  :end-col 76,
+  :langs (),
+  :message "Expected: char sequence or nil, received: keyword.",
+  :row 44}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
