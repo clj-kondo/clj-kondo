@@ -2833,7 +2833,9 @@
             (when (:analyze-var-usages? ctx)
               (namespace/reg-var-usage! ctx ns-name
                                         (utils/var-usage
-                                         {:type (if arg-count :call :usage)
+                                         ;; :hof-call: arity-checked like a call,
+                                         ;; but not a syntactic call
+                                         {:type (if arg-count :hof-call :usage)
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta
