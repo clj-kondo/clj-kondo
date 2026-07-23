@@ -576,7 +576,8 @@
 
 (defn lint-valid-call!
   [ctx idacs config call called-fn resolved-ns refer-alls]
-  (let [call? (= :call (:type call))
+  (let [type (:type call)
+        call? (or (identical? :call type) (identical? :hof-call type))
         call-lang (:lang call)
         caller-ns-sym (:ns call)
         call-fn-name (:name call)
@@ -633,10 +634,9 @@
     (namespace/lint-discouraged-var! ctx (:config call) resolved-ns call-fn-name filename row end-row col end-col fn-sym {:varargs-min-arity varargs-min-arity
                                                                                                                           :fixed-arities fixed-arities
                                                                                                                           :arity arity} (:expr call)
-                                     ;; A fn passed to a higher-order fn is modeled as a
-                                     ;; :call for arity checking, but is a value position
-                                     ;; for the :positions option of :discouraged-var.
-                                     (and call? (not (:hof-arg call))))
+                                     ;; :hof-call is arity-checked like a call but is
+                                     ;; value position for :discouraged-var :positions
+                                     (identical? :call (:type call)))
     (reg-constant-condition! ctx call call? called-fn)
     (when arity-error?
       (findings/reg-finding!
@@ -743,7 +743,8 @@
             :let [base-lang (:base-lang ns)]
             call (:used-vars ns)
             :let [;; _ (clojure.pprint/pprint (dissoc call :config))
-                  call? (= :call (:type call))
+                  call? (let [type (:type call)]
+                          (or (identical? :call type) (identical? :hof-call type)))
                   unresolved? (:unresolved? call)
                   in-comment (:in-comment call)
                   unresolved-ns (:unresolved-ns call)]

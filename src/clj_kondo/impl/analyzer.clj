@@ -2833,11 +2833,9 @@
             (when (:analyze-var-usages? ctx)
               (namespace/reg-var-usage! ctx ns-name
                                         (utils/var-usage
-                                         {:type (if arg-count :call :usage)
-                                         ;; The fn is passed as a value to a
-                                         ;; higher-order fn; distinguish hof
-                                         ;; usage from literal function call.
-                                         :hof-arg true
+                                         ;; :hof-call: arity-checked like a call,
+                                         ;; but not a syntactic call
+                                         {:type (if arg-count :hof-call :usage)
                                          :resolved-ns resolved-namespace
                                          :ns ns-name
                                          :name (with-meta

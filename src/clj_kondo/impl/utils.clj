@@ -32,7 +32,7 @@
      clojure-excluded? private-access?
      idx len derived-location in-def in-comment context
      defmethod dispatch-val-str refer id ret
-     redundant-fn-wrapper-parent-loc hof-arg])
+     redundant-fn-wrapper-parent-loc])
 
 (def ^:private var-usage-basis
   (map keyword (VarUsage/getBasis)))
