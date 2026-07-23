@@ -3368,7 +3368,10 @@
     declare (analyze-declare ctx expr defined-by defined-by->lint-as)
     (def defonce defmulti goog-define)
     (do (lint-inline-def! ctx expr)
-        (analyze-def ctx expr defined-by defined-by->lint-as))
+        (let [result (analyze-def ctx expr defined-by defined-by->lint-as)]
+          (when (= 'schema.core/defschema defined-by)
+            (schema/reg-defschema-type! ctx expr))
+          result))
     (defn defn- defmacro definline)
     (do (lint-inline-def! ctx expr)
         (analyze-defn ctx expr defined-by defined-by->lint-as))
