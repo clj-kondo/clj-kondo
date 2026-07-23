@@ -81,19 +81,27 @@
    existing
    new))
 
-(defn- ns-form-string [gen-ns aliases]
-  (if (empty? aliases)
-    (str "(ns " gen-ns ")\n\n")
-    (let [requires (->> aliases
-                        (sort-by key)
-                        (map (fn [[a {:keys [ns kind]}]]
-                               (str "[" ns " " kind " " a "]"))))]
-      (str "(ns " gen-ns "\n  (:require " (str/join "\n            " requires) "))\n\n"))))
+(defn- ns-form-string [gen-ns orig-ns aliases]
+  (let [ns-form (if (empty? aliases)
+                  (str "(ns " gen-ns ")\n\n")
+                  (let [requires (->> aliases
+                                      (sort-by key)
+                                      (map (fn [[a {:keys [ns kind]}]]
+                                             (str "[" ns " " kind " " a "]"))))]
+                    (str "(ns " gen-ns "\n  (:require " (str/join "\n            " requires) "))\n\n")))
+        ;; Self-alias the gen ns under the original source ns name so
+        ;; expand-time `resolve` of symbols qualified with the source ns
+        ;; (e.g. `my.app/foo`) finds the extracted var, like at runtime.
+        ;; Skipped when the source ns aliases another ns under its own
+        ;; name - that alias wins, matching source resolution.
+        self-alias (when-not (contains? aliases orig-ns)
+                     (str "(alias '" orig-ns " '" gen-ns ")\n\n"))]
+    (str ns-form self-alias)))
 
-(defn- write-file! [^File f gen-ns aliases top-forms]
+(defn- write-file! [^File f gen-ns orig-ns aliases top-forms]
   (if (seq top-forms)
     (do (io/make-parents f)
-        (spit f (str (ns-form-string gen-ns aliases)
+        (spit f (str (ns-form-string gen-ns orig-ns aliases)
                      (str/join "\n\n" (map str top-forms))
                      "\n")))
     (when (fs/exists? f)
@@ -149,7 +157,7 @@
           (binding [keyword-node/*autoresolve-ns* orig-ns]
             (let [forms (mapv :form entries)
                   aliases (reduce merge-alias-maps {} (map :aliases entries))]
-              (write-file! f gen-ns aliases forms))))))))
+              (write-file! f gen-ns orig-ns aliases forms))))))))
 
 (defn delete-for-file!
   "Delete the gen file owned by this source file. Called when the source

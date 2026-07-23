@@ -2108,12 +2108,21 @@
 (defn analyze-declare [ctx expr defined-by defined-by->lint-as]
   (let [ns-name (-> ctx :ns :name)
         var-name-nodes (next (:children expr))
+        ;; lift once and keep the lifted nodes: their meta carries user
+        ;; metadata like :clj-kondo/macroexpand-hook next to the positions
         var-names (keep (fn [var-name-node]
-                          (let [var-sym (->> var-name-node (meta/lift-meta-content2 ctx) :value)]
-                            (current-namespace-var-name ctx var-name-node var-sym)))
+                          (let [lifted (meta/lift-meta-content2 ctx var-name-node)]
+                            (current-namespace-var-name ctx lifted (:value lifted))))
                         var-name-nodes)
         vars-ns-path [(:base-lang ctx) (:lang ctx) ns-name :vars]
         vars (get-in @(:namespaces ctx) vars-ns-path)]
+    (when (and ns-name
+               (some #(:clj-kondo/macroexpand-hook (meta %)) var-names)
+               (not (gen-macros/reserved-ns? ns-name)))
+      (gen-macros/record! ctx {:orig-ns ns-name
+                               :expr expr
+                               :alias-usages []
+                               :source-aliases (:aliases (:ns ctx))}))
     (doseq [var-name var-names
             :let [var-name-meta (meta var-name)]]
       (when-not (linter-disabled? ctx :redundant-declare)

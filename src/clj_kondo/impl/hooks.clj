@@ -275,9 +275,20 @@
                   (binding [*out* *err*]
                     (println (str "WARNING: macroexpand hook " x " is not a macro"))))
                 (when-let [macro (if (var? the-var) @the-var the-var)]
-                  (fn [{:keys [node]}]
-                    {:node (macroexpand macro node
-                                        (:bindings utils/*ctx*))}))))))))))
+                  ;; Bind SCI's *ns* to the macro's own ns during expansion
+                  ;; so `resolve` inside the macro body sees that ns's
+                  ;; aliases (e.g. the gen-macros self-alias), instead of
+                  ;; resolving in `user`.
+                  ;; NB: `var?` is false for sci.lang.Var, so read :ns
+                  ;; from the meta directly (nil for string hooks).
+                  (let [macro-ns (:ns (meta the-var))]
+                    (fn [{:keys [node]}]
+                      {:node (if macro-ns
+                               (sci/binding [sci/ns macro-ns]
+                                 (macroexpand macro node
+                                              (:bindings utils/*ctx*)))
+                               (macroexpand macro node
+                                            (:bindings utils/*ctx*)))})))))))))))
 
 (def ^:private hook-not-found (Object.))
 
