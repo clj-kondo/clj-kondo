@@ -442,8 +442,8 @@ sub-forms by var identity:
          (= (symbol v) `catch-all))))
 ```
 
-Both `(resolve 'my.app/catch-all)` and `` `catch-all `` resolve to the same
-var in the generated namespace, so the comparison behaves as at runtime.
+Both `(symbol (resolve 'my.app/catch-all))` and `` `catch-all `` produce the
+same qualified symbol in the generated namespace.
 
 ### Branching on "are we inside clj-kondo?"
 

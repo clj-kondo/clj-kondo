@@ -350,7 +350,7 @@ tracking covers keyword and string tokens only.
 - Map literals the user wrote are closed: a missing key is provably nil, in
   direct keyword access, chains, destructuring and fn return maps, and
   keyword access on provable nil is nil. Only literals produce `:val` map
-  types, so completeness is exact; maps built via merge or branching get no
+  types, so completeness is exact. Maps built via merge or branching get no
   `:val` and stay open, and assoc is modeled precisely, see below. A generated literal, e.g. a hook's
   placeholder `{}` that metabase's defendpoint binds params against, is
   marked `:open` in `map->tag` and proves nothing by absence, detected by

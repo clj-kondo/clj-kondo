@@ -1,5 +1,5 @@
 ;; invoke with: clj -M:bench benchmarks/bench.clj <path> [iterations]
-;; In-process timing of kondo/run! with warmup; reports all runs + min/median.
+;; In-process timing of kondo/run! with warmup. Reports all runs + min/median.
 (require '[clj-kondo.core :as kondo])
 
 (def path (or (first *command-line-args*) "src"))

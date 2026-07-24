@@ -7,7 +7,7 @@
 
 (set! *warn-on-reflection* true)
 
-;; Next two functions are extract to avoid allocating fn objects in refsites.
+;; The next two functions are extracted to avoid allocating fn objects at reference sites.
 
 (defn- not-boundary? [c] (not (r/whitespace-or-boundary? c)))
 

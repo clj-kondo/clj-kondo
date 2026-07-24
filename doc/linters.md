@@ -18,6 +18,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Clj-kondo config](#clj-kondo-config)
     - [Cond-else](#cond-else)
     - [Conditional build-up](#conditional-build-up)
+    - [Constant condition](#constant-condition)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
@@ -124,7 +125,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Used underscored bindings](#used-underscored-bindings)
     - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
-    - [Constant condition](#constant-condition)
+    - [Unreachable code](#unreachable-code)
     - [Unused import](#unused-import)
     - [Unused excluded var](#unused-excluded-var)
     - [Unresolved namespace](#unresolved-namespace)
@@ -2338,8 +2339,8 @@ Also warns on unreachable code after a catch-all `cond` test.
 
 Literal `true`, `false` and `nil` conditions are not checked, even when reached
 through a var or local. These are often dev/production toggles. A keyword test
-in `cond->` or `cond->>` is exempt as well, it marks a step that always runs,
-as in `(cond-> m :always (assoc :a 1))`.
+in `cond->` or `cond->>` is also exempt because it marks a step that always
+runs, as in `(cond-> m :always (assoc :a 1))`.
 
 Replaces the `:condition-always-true` linter. The `cond` catch-all warning
 moved here from `:unreachable-code`. Config and ignores using the

@@ -89,7 +89,7 @@
                                         "  (compile 'clj-kondo.impl.linters))"))
             _ (is (zero? exit) err)
             offenders (for [f (fs/glob tmp "clj_kondo/**.class")
-                            ;; __init classes run once at namespace load; their
+                            ;; __init classes run once at namespace load. Their
                             ;; size costs startup only, not lint throughput
                             :when (not (str/ends-with? (fs/file-name f) "__init.class"))
                             [method size] (method-code-sizes f)

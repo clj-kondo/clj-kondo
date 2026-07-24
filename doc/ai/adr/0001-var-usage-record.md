@@ -30,15 +30,15 @@ Details that mattered:
 - `assoc` on a 39-field record copies all fields, so per-usage assocs were
   removed: `reg-var-usage!` no longer re-assocs `:config` (all construction
   sites already set it from the same ctx) and only assocs
-  `:unresolved-symbol-disabled?` when it flips to true; `analyze-call` folds
+  `:unresolved-symbol-disabled?` when it flips to true. `analyze-call` folds
   `:id`/`:in-def` into the construction and keeps only the conditional
   `:ret` assoc.
 - The `:use`-refer site in analyzer/namespace.clj still produces a plain map
-  (it assocs onto node meta); consumers only do keyword access, so mixing
+  (it assocs onto node meta). Consumers only do keyword access, so mixing
   records and maps in `:used-vars` is fine.
 - `:used-vars` never reaches the transit cache (only `:vars` defs do), so no
   serialization concerns.
-- Keys outside the field list keep working via the record's extmap; unknown
+- Keys outside the field list keep working via the record's extmap. Unknown
   keys in a `var-usage` literal fail at compile time.
 
 ## Measurement
@@ -51,18 +51,18 @@ metabase src, JVM, in-process, min of 7 runs, master and branch interleaved
 | master | 4397ms | 4828MB |
 | this change | 4026-4420ms | 4170MB |
 
--13.5% allocation (per-thread allocated bytes, deterministic to ±0.1MB).
-Wall clock is noisy on this machine; the branch won the interleaved pairings
+-13.5% allocation (per-thread allocated bytes, deterministic to +/-0.1MB).
+Wall clock is noisy on this machine. The branch won the interleaved pairings
 by roughly 5-10%. Findings on metabase byte-identical (12177,
 benchmarks/dump-findings.clj diff).
 
 ## Caveats
 
 - Record `=` differs from map `=` (type-sensitive). No consumer compares
-  usages for equality; keyword access, destructuring and assoc of declared
+  usages for equality. Keyword access, destructuring and assoc of declared
   fields all behave as before.
-- `dissoc` of a declared field would degrade the record to a plain map;
+- `dissoc` of a declared field would degrade the record to a plain map.
   nothing does that today.
 - If `:used-vars` ever gets cached, transit has no write handler for the
-  record and will throw — a loud failure, but the cache write path would
+  record and will throw. The cache write path would
   need a handler or a plain-map conversion at that point.

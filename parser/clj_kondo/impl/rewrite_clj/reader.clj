@@ -174,10 +174,8 @@
       vs)))
 
 (defn- parse-symbol
-  "Parses a string into a Symbol object, either unqualified or namespaced.
-
-  Cribbed from clojure/cljs.tools.reader.impl.commons/parse-symbol merging clj and cljs fns into single implementation
-  Added in equivalent of TRDR-73 patch to allow array class symbols (e.g. foobar/3)."
+  "Parses a string into an unqualified or namespaced symbol.
+  Supports array class symbols such as `foobar/3`."
   [^String token]
   (when-not (or (= token "")
                 (str/ends-with? token ":")
@@ -197,9 +195,7 @@
       (symbol token))))
 
 (defn read-symbol
-  "Return symbol parsed from `token`.
-
-  Cribbed from clojure/cljs.tools.reader.edn/read-symbol and - adapted to work on string"
+  "Returns the symbol parsed from `token`."
   [^String token]
   (case token
     ;; special symbols
@@ -209,10 +205,7 @@
     "/" '/
 
     (or (parse-symbol token)
-        ;; Throw in same way that tools.reader would when reading a string
-        ;; for exeption compatibility. Some users, like clojure-lsp, currently rely
-        ;; on parsing exception strings. A user having to resort
-        ;; to parsing exception messages is not great, but a separate issue.
+        ;; Match tools.reader exceptions because clojure-lsp parses their messages.
         (err/throw-invalid nil :symbol token))))
 
 ;; ## Reader Types

@@ -643,7 +643,7 @@ my-ns/special-map \"
                        (fs/delete-tree (fs/file cfg-dir "inline-configs"))
                        (fs/delete-tree (fs/file cfg-dir ".cache")))]
         (cleanup!)
-        ;; first run extracts; hook isn't auto-loaded yet, no error.
+        ;; The first run extracts the hook without loading it.
         (clj-kondo/run! {:lint [(str src-dir)] :config-dir (str cfg-dir)})
         (let [err (java.io.StringWriter.)
               findings (binding [*err* err]
@@ -715,7 +715,7 @@ my-ns/special-map \"
                    (fs/delete-tree (fs/file cfg-dir "inline-configs"))
                    (fs/delete-tree (fs/file cfg-dir ".cache")))]
     (cleanup!)
-    ;; first run extracts the markers; hook isn't loaded yet.
+    ;; The first run extracts the markers before the hook is loaded.
     (lint! src-dir
            {:linters {:unresolved-symbol {:level :error}}}
            "--config-dir" (str cfg-dir))
@@ -737,7 +737,7 @@ my-ns/special-map \"
                    (fs/delete-tree (fs/file cfg-dir "inline-configs"))
                    (fs/delete-tree (fs/file cfg-dir ".cache")))]
     (cleanup!)
-    ;; first run extracts the markers; hook isn't loaded yet.
+    ;; The first run extracts the markers before the hook is loaded.
     (lint! src-dir
            {:linters {:unresolved-symbol {:level :error}}}
            "--config-dir" (str cfg-dir))

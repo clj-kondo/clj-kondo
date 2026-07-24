@@ -48,7 +48,7 @@ It flags keys that are provably nil:
      ^ Expected: number, received: nil.
 ```
 
-And it narrows the type of a local after it flowed through a known predicate:
+It narrows a local's type when guarded by a known predicate:
 
 ``` clojure
 (defn f [x] (if (string? x) (inc x) x))
@@ -96,7 +96,7 @@ Performance: linting is faster and allocates less. Var usages and bindings are n
 - Type checker: infer the value type of a destructured map key from how it is used in the body. E.g. `(defn f [{:keys [x]}] (inc x)) (f {:x "foo"})` will warn. A key whose use rejects nil and that has no `:or` default is required. E.g. `(f {})` will warn with missing required key.
 - Type checker: a destructured binding gets the value type of its key when the map's type is known, including through function return maps. E.g. `(defn cfg [] {:port "8080"}) (let [{:keys [port]} (cfg)] (inc port))` will warn.
 - Type checker: a key missing from a map literal is provably nil, also through destructuring, keyword access chains and function return maps. E.g. `(inc (:y {}))` will warn. A key with an `:or` default, generated maps in macro expansions, maps with dynamic keys, and maps that went through `into` or an `assoc` with a dynamic key are exempt.
-- Bump built-in analysis to clojure 1.13.0-alpha4; param-type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 150 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
+- Built-in analysis now uses Clojure 1.13.0-alpha4. Param type inference over the core sources grows the arg type coverage of `clojure.core` from 23 to 150 vars. E.g. `(interleave 1 [2])` and `(mod "a" 2)` will warn.
 - Type checker: `contains?` accepts nil as its collection argument
 - Type checker: infer the type of a function param from how it is used in the body. E.g. `(defn f [s] (subs s 1)) (f 42)` will warn, since the evidence `(subs s 1)` tells us that `s` should be a string.
 - Add types for `parse-long`, `parse-double`, `parse-uuid` and `parse-boolean`
@@ -106,7 +106,7 @@ Performance: linting is faster and allocates less. Var usages and bindings are n
 - Clojure 1.13 CLJ-2954: `&` is now invalid as a binding name in all binding positions
 - Clojure 1.13 CLJ-2961: error for `:or` default on `:keys!` required binding, matches 1.13 compile error
 - Clojure 1.13 CLJ-2961: infer required keys from `:keys!`, `:syms!` and `:strs!` and report them at call sites
-- [#2874](https://github.com/clj-kondo/clj-kondo/issues/2874): Clojure 1.13 CLJ-2964: support `:select` in map destructuring; the bound map's keys are known to the type checker
+- [#2874](https://github.com/clj-kondo/clj-kondo/issues/2874): Clojure 1.13 CLJ-2964: support `:select` in map destructuring. The bound map's keys are known to the type checker
 - Clojure 1.13 CLJ-2966: support `:defaults` in map destructuring, error when used without `:or`
 - [#2849](https://github.com/clj-kondo/clj-kondo/issues/2849): `:conflicting-alias` now catches conflicts with the current namespace name, not just other aliases ([@tomdl89](https://github.com/tomdl89))
 - [#2848](https://github.com/clj-kondo/clj-kondo/pull/2848): allow calling sets and vectors with 2 arguments in ClojureScript, where the second argument is the not-found value ([@p-himik](https://github.com/p-himik))

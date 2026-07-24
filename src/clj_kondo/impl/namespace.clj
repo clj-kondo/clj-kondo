@@ -334,7 +334,7 @@
   (when-not dependencies
     (when-not (:interop? usage)
       (let [path [base-lang lang ns-sym]
-            ;; Construction sites already set :config from the same ctx; only
+            ;; Construction sites already set :config from the same ctx. Only
             ;; add it when missing, to avoid copying the VarUsage record.
             usage (if (:config usage)
                     usage

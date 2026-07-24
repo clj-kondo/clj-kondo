@@ -51,7 +51,7 @@ author writing `nil` on purpose, not for a value that inference proved nil.
     (cond-> m "s"     (assoc :a 1))   ;; still warns, only keywords
     (when :always 1)                  ;; still warns, cond-> only
 
-`cond->` has no canonical marker the way `cond` has `:else`; `:always` is a
+`cond->` has no canonical marker the way `cond` has `:else`. `:always` is a
 habit, not a rule. There is nothing to nudge authors toward, so any keyword is
 treated as the intentional marker. Rarity of the other keywords argues for
 exemption, not against: every rare keyword found was deliberate, so narrowing to
@@ -70,7 +70,7 @@ so no other form needs the marker.
   warning because only `:always` was blessed. `:true` and `true` are identical
   in test position, so this is consistent.
 - `(when :always 1)` now warns. `:always` only means "always run" inside
-  `cond->`; elsewhere it is an arbitrary truthy keyword.
+  `cond->`. Elsewhere it is an arbitrary truthy keyword.
 - Symbols are never exempt. An always-true symbol such as `(if odd? :a :b)` is
   the linter's primary target, and a `def` toggle is already safe because its
   tag misses `set!` and `alter-var-root`, see `mask-var-usages`.

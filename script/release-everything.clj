@@ -7,9 +7,9 @@
 ;; parent dir as clj-kondo: homebrew-brew, pod-registry, clj-kondo-bb,
 ;; lein-clj-kondo.
 ;;
-;; Each step waits for input:  [Enter]=run · s=skip · q=quit
+;; Each step waits for input:  [Enter]=run, s=skip, q=quit
 ;; The released version is read from resources/CLJ_KONDO_VERSION (must NOT yet
-;; be a -SNAPSHOT; the post-release step below flips it to the next SNAPSHOT).
+;; be a -SNAPSHOT. The post-release step below flips it to the next SNAPSHOT).
 
 (require '[babashka.fs :as fs]
          '[babashka.http-client :as http]
@@ -135,8 +135,8 @@
                       (str "[clj-kondo/clj-kondo \"" V "\"]"))
     (sh d "git" "add" "project.clj")
     (commit! d "Bump versions")
-    (sh d "bb" "tag" V)                                  ; CHANGELOG + tag + push; CI deploys
-    (ok "lein-clj-kondo tagged; CI deploying to Clojars")
+    (sh d "bb" "tag" V)                                  ; CHANGELOG + tag + push, CI deploys
+    (ok "lein-clj-kondo tagged. CI deploying to Clojars")
     (loop [n 12]
       (let [latest (clojars-latest "com.github.clj-kondo/lein-clj-kondo")]
         (cond
