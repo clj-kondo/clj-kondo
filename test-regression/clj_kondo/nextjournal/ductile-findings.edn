@@ -114,38 +114,6 @@
   :langs (),
   :message "#'io.pedestal.test/response-for is deprecated since 0.8.0",
   :row 12}
- {:end-row 181,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/as400/mappers.clj",
-  :col 57,
-  :end-col 60,
-  :langs (),
-  :message "Condition always true",
-  :row 181}
- {:end-row 269,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/as400/mappers.clj",
-  :col 57,
-  :end-col 60,
-  :langs (),
-  :message "Condition always true",
-  :row 269}
- {:end-row 222,
-  :type :constant-condition,
-  :level :warning,
-  :lang :clj,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/as400/metaschema.cljc",
-  :col 10,
-  :end-col 13,
-  :cljc true,
-  :langs (:clj :cljs),
-  :message "Condition always true",
-  :row 222}
  {:end-row 4895,
   :type :constant-condition,
   :level :warning,

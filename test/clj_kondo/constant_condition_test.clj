@@ -109,11 +109,16 @@
      :col 16
      :level :warning
      :message "Condition always false"}]
-   (lint! "(let [a 4 b nil]
+   (lint! "(let [a 4 b (:k {})]
              (cond-> {}
                a (assoc :a a)
                b (assoc :b b)))"
-          config)))
+          config))
+  (testing "a nil literal is exempt, also as a cond-> test"
+    (is (empty? (lint! "(let [b nil]
+                          (cond-> {}
+                            b (assoc :b b)))"
+                       config)))))
 
 (deftest cond-test
   (assert-submaps2
@@ -138,18 +143,22 @@
    []
    (lint! "(cond-> {} true (assoc :hello :goodbye))"
           config))
-  (assert-submaps2
-   []
-   (lint! "(cond-> {} :always (assoc :hello :goodbye))"
-          config))
-  (assert-submaps2
-   [{:file "<stdin>"
-     :row 1
-     :col 12
-     :level :warning
-     :message "Condition always true"}]
-   (lint! "(cond-> {} :true (assoc :hello :goodbye))"
-          config)))
+  (testing "any keyword marks a step that always runs"
+    (doseq [kw [":always" ":else" ":default" ":hack" ":true"]]
+      (is (empty? (lint! (format "(cond-> {} %s (assoc :hello :goodbye))" kw)
+                         config))
+          kw))
+    (is (empty? (lint! "(cond->> [] :always (map inc))" config))))
+  (testing "but only a keyword, and only in cond->"
+    (assert-submaps2
+     '({:row 1 :col 12 :message "Condition always true"})
+     (lint! "(cond-> {} inc (assoc :hello :goodbye))" config))
+    (assert-submaps2
+     '({:row 1 :col 12 :message "Condition always true"})
+     (lint! "(cond-> {} \"s\" (assoc :hello :goodbye))" config))
+    (assert-submaps2
+     '({:row 1 :col 7 :message "Condition always true"})
+     (lint! "(when :always 1)" config))))
 
 (deftest lazy-seqs-test
   (testing "unrealized"
@@ -388,21 +397,11 @@
     (is (empty? (lint! "(defn e [x] (when (or x nil) 1))" config)))))
 
 (deftest condition-always-false-test
-  (testing "nil literal in condition position"
-    (assert-submaps2
-     [{:file "<stdin>"
-       :row 1
-       :col 7
-       :level :warning
-       :message "Condition always false"}]
-     (lint! "(when nil 1)" config))
-    (assert-submaps2
-     [{:file "<stdin>"
-       :row 1
-       :col 5
-       :level :warning
-       :message "Condition always false"}]
-     (lint! "(if nil 1 2)" config)))
+  (testing "nil is exempt, an intentional dev toggle"
+    (is (empty? (lint! "(when nil 1)" config)))
+    (is (empty? (lint! "(if nil 1 2)" config)))
+    (is (empty? (lint! "(let [flag nil] (when flag 1))" config)))
+    (is (empty? (lint! "(when-some [x nil] x)" config))))
   (testing "a key lookup that is provably nil"
     (assert-submaps2
      [{:file "<stdin>"
@@ -500,7 +499,7 @@
   (testing "but only for always-true, the subset it used to cover"
     (assert-submaps2
      '({:row 1 :col 18 :message "Condition always false"})
-     (lint! "(defn f [] (when nil 1))"
+     (lint! "(defn f [] (when (:k {}) 1))"
             (assoc-in config [:linters :condition-always-true :level] :off)))
     (assert-submaps2
      '({:row 1 :col 26 :message "Unreachable code"})
@@ -522,5 +521,5 @@
                        config)))
     (assert-submaps2
      '({:row 1 :message "Condition always false"})
-     (lint! "#_{:clj-kondo/ignore [:condition-always-true]} (defn f [] (when nil 1))"
+     (lint! "#_{:clj-kondo/ignore [:condition-always-true]} (defn f [] (when (:k {}) 1))"
             (assoc-in config [:linters :redundant-ignore :level] :off)))))

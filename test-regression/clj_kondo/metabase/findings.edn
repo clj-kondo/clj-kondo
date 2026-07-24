@@ -1607,16 +1607,6 @@
   :langs (),
   :message "Write expected value first",
   :row 99}
- {:end-row 132,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/connection_test.clj",
-  :col 17,
-  :end-col 22,
-  :langs (),
-  :message "Condition always true",
-  :row 132}
  {:end-row 153,
   :type :equals-expected-position,
   :level :warning,

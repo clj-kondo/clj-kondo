@@ -2336,9 +2336,10 @@ This will exclude all bindings starting with `_x`.
 *Description:* warn on a condition whose truthiness is the same on every run.
 Also warns on unreachable code after a catch-all `cond` test.
 
-Literal `true` and `false` conditions are not checked, even when reached
-through a var or local. These are often dev/production toggles. The keyword
-`:always` is exempt as an intentional always-truthy condition.
+Literal `true`, `false` and `nil` conditions are not checked, even when reached
+through a var or local. These are often dev/production toggles. A keyword test
+in `cond->` or `cond->>` is exempt as well, it marks a step that always runs,
+as in `(cond-> m :always (assoc :a 1))`.
 
 Replaces the `:condition-always-true` linter. The `cond` catch-all warning
 moved here from `:unreachable-code`. Config and ignores using the
@@ -2353,7 +2354,7 @@ moved here from `:unreachable-code`. Config and ignores using the
 (if odd? :odd :even)      ;;=> Condition always true
 ;; a lazy seq is truthy even when empty, use seq to test for emptiness:
 (when (filter odd? xs) 1) ;;=> Condition always true
-(when nil 1)              ;;=> Condition always false
+(when (:k {}) 1)          ;;=> Condition always false
 (is 42)                   ;;=> Condition always true
 (cond :else 1 (odd? 1) 2) ;;=> Unreachable code
 ```
