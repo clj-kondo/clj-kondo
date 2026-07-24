@@ -378,11 +378,12 @@
   (boolean? (:value node)))
 
 (defn nil-token?
-  "True for a literal nil. The token tag rules out collections and reader
-  macros, the source text rules out :nil, \"nil\" and foo/nil, which share it."
+  "True for a literal nil. A token node's value is nil only for the nil literal.
+  Keyword and string nodes are their own types, so instance? excludes them,
+  unlike the :token tag which they share."
   [node]
-  (and (identical? :token (tag node))
-       (= "nil" (node/string node))))
+  (and (instance? clj_kondo.impl.rewrite_clj.node.token.TokenNode node)
+       (nil? (:value node))))
 
 (defn char-token? [node]
   (char? (:value node)))
