@@ -378,14 +378,11 @@
   (boolean? (:value node)))
 
 (defn nil-token?
-  "True for a literal nil."
+  "True for a literal nil. The token tag rules out collections and reader
+  macros, the source text rules out :nil, \"nil\" and foo/nil, which share it."
   [node]
-  (and (nil? (:value node))
-       ;; a keyword and a single-line string node share the :token tag and have
-       ;; a nil :value too, so rule them out by their own fields
-       (nil? (:k node))
-       (nil? (:lines node))
-       (identical? :token (tag node))))
+  (and (identical? :token (tag node))
+       (= "nil" (node/string node))))
 
 (defn char-token? [node]
   (char? (:value node)))
