@@ -6,7 +6,7 @@
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.metadata :as meta]
-   [clj-kondo.impl.utils :as utils :refer [select-keys]]
+   [clj-kondo.impl.utils :as utils :refer [select-keys some']]
    [clojure.java.io :as io]
    [clojure.pprint]
    [clojure.string :as str]
@@ -230,10 +230,10 @@
         filename (:filename ctx)]
     (when hook-cfg
       (if-let [x (or (get-in hook-cfg [:analyze-call sym])
-                      (some (fn [group-sym]
-                              (get-in hook-cfg [:analyze-call (symbol (str group-sym)
-                                                                      (str var-sym))]))
-                            (config/ns-groups-eduction ctx config ns-sym filename)))]
+                      (some' (fn [group-sym]
+                               (get-in hook-cfg [:analyze-call (symbol (str group-sym)
+                                                                       (str var-sym))]))
+                             (config/ns-groups-eduction ctx config ns-sym filename)))]
         (sci/binding [sci/out *out*
                       sci/err *err*]
           (binding [utils/*ctx* ctx]
@@ -251,10 +251,10 @@
                                    x)))]
               (sci/eval-string* (store/get-ctx) code))))
         (when-let [x (or (get-in hook-cfg [:macroexpand sym])
-                          (some (fn [group-sym]
-                                  (get-in hook-cfg [:macroexpand (symbol (str group-sym)
-                                                                         (str var-sym))]))
-                                (config/ns-groups-eduction ctx config ns-sym filename)))]
+                          (some' (fn [group-sym]
+                                   (get-in hook-cfg [:macroexpand (symbol (str group-sym)
+                                                                          (str var-sym))]))
+                                 (config/ns-groups-eduction ctx config ns-sym filename)))]
           (sci/binding [sci/out *out*
                         sci/err *err*]
             (binding [utils/*ctx* ctx]

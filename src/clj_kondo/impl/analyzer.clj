@@ -42,7 +42,7 @@
    [clj-kondo.impl.utils :as utils :refer
     [assoc-some ctx-with-bindings linter-disabled? node->line
      one-of parse-string select-lang sexpr string-from-token symbol-call
-     tag]]
+     tag assoc-new some']]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
@@ -67,15 +67,15 @@
      (when-not (and (:in-comment ctx)
                     (:skip-comments config))
        (let [len (count children)
-             ctx (assoc ctx
-                        :top-level? top-level?
-                        :arg-types (if add-new-arg-types?
-                                     (let [[k v] (first callstack)]
-                                       (when (and (symbol? k)
-                                                  (symbol? v))
-                                         (atom [])))
-                                     (:arg-types ctx))
-                        :len len)]
+             ctx (-> ctx
+                     (assoc-new :top-level? top-level?)
+                     (assoc-new :arg-types (if add-new-arg-types?
+                                             (let [[k v] (first callstack)]
+                                               (when (and (symbol? k)
+                                                          (symbol? v))
+                                                 (atom [])))
+                                             (:arg-types ctx)))
+                     (assoc-new :len len))]
          (into []
                (comp (map-indexed (fn [i e]
                                     (analyze-expression** (assoc ctx :idx i) e)))
@@ -174,9 +174,12 @@
 (defn analyze-binding-vector [ctx children]
   (let [as-kw? (fn [n] (and (= :as (:k n))
                             (not (:namespaced? n))))
-        rest-param+ (into [] (drop-while #(not= '&  (:value %))) children)
-        varargs     (into [] (take-while (complement as-kw?)) rest-param+)
-        as-args     (into [] (drop-while (complement as-kw?)) children)]
+        rest-param+ (when (some' #(= (:value %) '&) children)
+                      (into [] (drop-while #(not= '& (:value %))) children))
+        varargs     (when rest-param+
+                      (into [] (take-while (complement as-kw?)) rest-param+))
+        as-args     (when (some' as-kw? children)
+                      (into [] (drop-while (complement as-kw?)) children))]
     (cond (and (< 1 (count varargs))
                (= '& (:value (second varargs))))
           (findings/reg-finding!
@@ -4368,11 +4371,7 @@
                         :global-config config)]
     (swap! (:used-namespaces ctx)
            update base-lang into (:used-namespaces init-ns))
-    (loop [ctx init-ctx
-           [expression & rest-expressions] expressions]
-      (when expression
-        (let [ctx (analyze-expression* ctx expression)]
-          (recur ctx rest-expressions))))))
+    (reduce analyze-expression* init-ctx expressions)))
 
 ;;;; processing of string input
 

@@ -9,7 +9,7 @@
    [clj-kondo.impl.namespace :as namespace]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :as utils :refer [tag one-of symbol-from-token kw->sym assoc-some
-                                           symbol-token?]]
+                                           symbol-token? assoc-new]]
    [clojure.string :as str])
   (:import [clj_kondo.impl.rewrite_clj.node.seq NamespacedMapNode]))
 
@@ -126,7 +126,7 @@
         (f ctx m)))))
 
 (defn analyze-usages2
-  ([ctx expr] (analyze-usages2 ctx expr {}))
+  ([ctx expr] (analyze-usages2 ctx expr {:quote? false, :syntax-quote? false}))
   ([ctx expr {:keys [quote? syntax-quote?] :as opts}]
    (let [ns (:ns ctx)
          dependencies (:dependencies ctx)
@@ -141,23 +141,21 @@
          new-syntax-quote-level (if syntax-quote-tag? (inc syntax-quote-level)
                                     syntax-quote-level)
          syntax-quote? (or syntax-quote? syntax-quote-tag?)
-         ctx (assoc ctx :syntax-quote-level new-syntax-quote-level)
+         ctx (assoc-new ctx :syntax-quote-level new-syntax-quote-level)
          ctx (if syntax-quote-tag?
                (update ctx :callstack #(cons [:syntax-quote] %))
                ctx)
-         new-syntax-quote-level-pos? (pos? new-syntax-quote-level)]
+         new-syntax-quote-level-pos? (pos? new-syntax-quote-level)
+         opts' (-> opts
+                   (assoc-new :quote? quote?)
+                   (assoc-new :syntax-quote? syntax-quote?))]
      (if (and new-syntax-quote-level-pos? unquote-tag?)
        (common/analyze-expression** ctx expr)
        (if quote?
          (do
            (when (:k expr)
              (analyze-keyword ctx expr opts))
-           (doall (mapcat
-                   #(analyze-usages2 ctx %
-                                     (assoc opts
-                                            :quote? quote?
-                                            :syntax-quote? syntax-quote?))
-                   (:children expr))))
+           (into [] (mapcat #(analyze-usages2 ctx % opts')) (:children expr)))
          (do
            (meta/lift-meta-content2 ctx expr true)
            (case t
@@ -339,13 +337,6 @@
                  (when (:k expr)
                    (analyze-keyword ctx expr opts))))
              :reader-macro
-             (doall (mapcat
-                     #(analyze-usages2 ctx %
-                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
-                     (rest (:children expr))))
+             (into [] (mapcat #(analyze-usages2 ctx % opts')) (rest (:children expr)))
              ;; catch-call
-             (doall (mapcat
-                     #(analyze-usages2 ctx %
-                                       (assoc opts :quote? quote? :syntax-quote? syntax-quote?))
-                     (:children expr))))))))))
-
+             (into [] (mapcat #(analyze-usages2 ctx % opts')) (:children expr)))))))))
