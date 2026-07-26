@@ -174,7 +174,7 @@
 (defn analyze-binding-vector [ctx children]
   (let [as-kw? (fn [n] (and (= :as (:k n))
                             (not (:namespaced? n))))
-        rest-param+ (when (some' #(= (:value %) '&) children)
+        rest-param+ (when (some' #(= '& (:value %)) children)
                       (into [] (drop-while #(not= '& (:value %))) children))
         varargs     (when rest-param+
                       (into [] (take-while (complement as-kw?)) rest-param+))
