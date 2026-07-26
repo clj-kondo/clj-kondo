@@ -442,6 +442,15 @@
            (assoc-some m k v)
            (partition 2 kvs))))
 
+(defn assoc-new
+  "Associates a key with a value in a map if the previous value is missing or
+  different from new value. Treats missing value and `nil` as same."
+  [m k v]
+  (let [old-value (get m k nil)]
+    (if (= old-value v)
+      m
+      (assoc m k v))))
+
 (defn select-some
   "Like select-keys, but only selects when value is not nil."
   ([m ks]
