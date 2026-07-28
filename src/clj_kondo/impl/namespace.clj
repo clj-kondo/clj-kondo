@@ -327,6 +327,21 @@
                                     "Main function without gen-class."))))))))
            nil))))))
 
+(defn reg-spec-def!
+  "Records a spec registration (`s/def` or `s/fdef`) in namespace `ns-sym` for
+  the :redefined-spec linter. `entry` is a map describing the registration,
+  containing at least :type (:def or :fdef), the resolved :ns and :name and the
+  location (:filename :row :col :end-row :end-col) of the registered name.
+
+  Registrations are stored in a map keyed by their location string so that (1)
+  the same physical form analyzed once per dialect of a `.cljc` file collapses
+  to a single entry when the indexed defs of both dialects are merged for the
+  cache, and (2) transit can serialize the keys."
+  [{:keys [base-lang lang namespaces]} ns-sym entry]
+  (let [k (str (:filename entry) ":" (:row entry) ":" (:col entry))]
+    (swap! namespaces update-in [base-lang lang ns-sym :spec-defs]
+           (fnil assoc {}) k entry)))
+
 (defn reg-var-usage!
   [{:keys [base-lang lang namespaces dependencies] :as ctx}
    ns-sym usage]

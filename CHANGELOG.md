@@ -13,6 +13,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+### New
+
+- [#2878](https://github.com/clj-kondo/clj-kondo/issues/2878): new `:redefined-spec` linter that reports duplicate `clojure.spec.alpha`/`cljs.spec.alpha` `s/def` and `s/fdef` registrations. Registrations are compared by their fully resolved identity, so `::foo` in two namespaces are distinct while an alias and the equivalent fully-qualified keyword are the same. Detection is project-wide, both within a run and across runs via a global spec index in the cache that mirrors spec's own global registry.
+
+### Fixed
+
 - Bump graal-build-time to 1.0.6 to fix startup crash in binaries built with GraalVM 25.1+.
 
 ## 2026.08.04

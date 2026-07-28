@@ -214,6 +214,58 @@
         (sync-cache* idacs config-dir cache-dir)))
     (sync-cache* idacs config-dir cache-dir)))
 
+;;;; Global spec index
+;;
+;; A single project-wide index of spec registrations (`s/def`/`s/fdef`),
+;; mirroring spec's own global registry. It maps each source file to the
+;; registrations it contributes, so re-linting a file replaces exactly its
+;; entries. Used by the :redefined-spec linter to detect redefinitions across
+;; separate runs, independent of the require graph.
+
+(defn spec-index-file ^java.io.File [cache-dir]
+  (io/file cache-dir "spec-index.transit.json"))
+
+(defn read-spec-index [cache-dir]
+  (let [f (spec-index-file cache-dir)]
+    (when (.exists f)
+      (try (with-open [is (io/input-stream f)]
+             (transit/read (transit/reader is :json)))
+           (catch Exception _ nil)))))
+
+(defn write-spec-index! [cache-dir index]
+  (let [f (spec-index-file cache-dir)]
+    (io/make-parents f)
+    (with-open [os (no-flush-output-stream (io/output-stream f))]
+      (let [writer (transit/writer os :json)]
+        (transit/write writer index)))))
+
+(defn sync-spec-index!
+  "Refreshes the global spec index for the files linted in this run and returns
+  the registrations contributed by *other* files (as `first defined at`
+  originals for cross-run detection).
+
+  `current-contributions` is a map of filename -> vector of registration maps.
+  `current-filenames` is the set of files linted this run; their entries are
+  cleared first, so removing an `s/def` also removes it from the index. Runs
+  under the cache lock so concurrent clj-kondo processes don't clobber it."
+  [cache-dir current-contributions current-filenames]
+  (when cache-dir
+    (with-thread-lock
+      (with-cache cache-dir 6
+        (let [index (or (read-spec-index cache-dir) {})
+              index (apply dissoc index current-filenames)
+              index (reduce-kv (fn [m f entries]
+                                 (if (seq entries)
+                                   (assoc m f entries)
+                                   m))
+                               index
+                               current-contributions)]
+          (write-spec-index! cache-dir index)
+          (vec (for [[f entries] index
+                     :when (not (contains? current-filenames f))
+                     e entries]
+                 (assoc e :filename f :reportable? false))))))))
+
 ;;;; Scratch
 
 (comment
