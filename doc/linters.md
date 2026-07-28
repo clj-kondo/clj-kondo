@@ -1673,21 +1673,6 @@ message is: `inc already refers to #'clojure.core/inc`
 
 *Description:* warn when a `clojure.spec.alpha`/`cljs.spec.alpha` `s/def` or
 `s/fdef` redefines a spec that was already registered elsewhere in the project.
-Registrations are compared by their fully resolved identity, so `::foo` in two
-different namespaces are distinct, while `:some-alias/foo` and the equivalent
-fully qualified keyword refer to the same spec. `s/def` and `s/fdef` share one
-identity space: an `s/fdef` and an `s/def` that resolve to the same name are
-considered redefinitions of each other. Because a spec's identity is
-runtime-specific, a spec registered in a `.clj` file and one in a `.cljs` file
-with the same name do not clash, while a `.cljc` registration is checked against
-both.
-
-Detection is project-wide, both when linting the whole project in a single run
-and across separate runs (e.g. editor integration linting a single file). Across
-runs it uses a global spec index stored in the cache that mirrors spec's own
-global registry: every registration from every previously linted file is
-considered, independent of the require graph. Re-linting a file refreshes its
-entries, so removing an `s/def` also removes it from the index.
 
 *Default level:* `:warning`.
 
