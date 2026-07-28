@@ -11,6 +11,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+### New
+
+- [#2878](https://github.com/clj-kondo/clj-kondo/issues/2878): new `:redefined-spec` linter that reports duplicate `clojure.spec.alpha`/`cljs.spec.alpha` `s/def` and `s/fdef` registrations. Registrations are compared by their fully resolved identity, so `::foo` in two namespaces are distinct while an alias and the equivalent fully-qualified keyword are the same. Detection is project-wide, both within a run and across runs via a global spec index in the cache that mirrors spec's own global registry.
+
 ## 2026.07.24
 
 ### Highlights

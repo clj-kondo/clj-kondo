@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [get-in])
   (:require
    [clj-kondo.impl.analysis :as analysis]
+   [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.namespace :as namespace]
@@ -883,6 +884,92 @@
            (node->line (:filename (meta alias)) alias
                        :unused-alias (str "Unused alias: " alias)))))
       (lint-aliased-referred-var! ctx ns))))
+
+(defn- spec-def-display [{:keys [type ns name]}]
+  ;; s/def registers under a keyword, s/fdef under a symbol
+  (if (identical? :def type)
+    (str ":" ns "/" name)
+    (str ns "/" name)))
+
+(defn- redefined-spec-current-occurrences
+  "Reportable registrations from the current run, taken from the live namespace
+  state so we have the exact language and namespace-local config for each. A
+  `.cljc` file yields two namespace entries (one per dialect), so its
+  registrations naturally appear once for :clj and once for :cljs."
+  [ctx]
+  (for [ns (namespace/list-namespaces ctx)
+        entry (vals (:spec-defs ns))]
+    (assoc entry
+           :lang (:lang ns)
+           :base-lang (:base-lang ns)
+           :config (:config ns)
+           :reportable? true)))
+
+(defn- redefined-spec-contributions
+  "Turns the current run's occurrences into the minimal per-file entries stored
+  in the global spec index, plus the set of files linted this run (so their old
+  entries are refreshed even when they no longer register any spec)."
+  [ctx current-occs]
+  (let [current-filenames (into #{}
+                                (keep :filename)
+                                (namespace/list-namespaces ctx))
+        contributions (reduce (fn [m occ]
+                                (update m (:filename occ) (fnil conj [])
+                                        (select-keys occ [:ns :name :lang
+                                                          :row :col])))
+                              {}
+                              current-occs)]
+    [contributions current-filenames]))
+
+(defn lint-redefined-specs!
+  "Reports `s/def` and `s/fdef` registrations that redefine an already
+  registered spec. Registrations are grouped by their fully resolved identity so
+  that, e.g., `::foo` in two namespaces are distinct while `:some-alias/foo` and
+  the equivalent fully-qualified keyword are the same. `s/def` and `s/fdef`
+  share one identity space: an fdef and a def resolving to the same name collide.
+
+  Detection is project-wide within a run. Across runs, a global spec index in the
+  cache (mirroring spec's own global registry) makes detection complete: every
+  registration from every previously linted file is considered, independent of
+  the require graph."
+  [ctx]
+  (when-not (utils/linter-disabled? ctx :redefined-spec)
+    (let [current-occs (redefined-spec-current-occurrences ctx)
+          [contributions current-filenames]
+          (redefined-spec-contributions ctx current-occs)
+          ;; refresh the on-disk index and get the registrations from all other
+          ;; files as potential `first defined at` originals
+          external-occs (cache/sync-spec-index! (:cache-dir ctx)
+                                                contributions
+                                                current-filenames)
+          groups (group-by (juxt :ns :name :lang)
+                           (concat current-occs external-occs))]
+      (doseq [[_k occs] groups
+              :let [;; collapse physically identical registrations
+                    occs (vals (into {} (map (juxt (juxt :filename :row :col)
+                                                   identity))
+                                     occs))
+                    occs (sort-by (juxt :filename :row :col) occs)]
+              :when (> (count occs) 1)
+              :let [original (first occs)
+                    orig-loc (str (:filename original) ":"
+                                  (:row original) ":" (:col original))]
+              occ (rest occs)
+              ;; only report registrations from files linted in this run
+              :when (:reportable? occ)]
+        (findings/reg-finding!
+         (assoc ctx
+                :lang (:lang occ)
+                :base-lang (:base-lang occ)
+                :config (or (:config occ) (:config ctx)))
+         {:filename (:filename occ)
+          :row (:row occ)
+          :col (:col occ)
+          :end-row (:end-row occ)
+          :end-col (:end-col occ)
+          :type :redefined-spec
+          :message (str "redefined spec " (spec-def-display occ)
+                        ", first defined at " orig-loc)})))))
 
 (defn lint-unused-excluded-vars! [ctx]
   (when-not (utils/linter-disabled? ctx :unused-excluded-var)

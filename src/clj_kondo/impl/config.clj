@@ -40,6 +40,7 @@
               :duplicate-key-args {:level :warning}
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
+              :redefined-spec {:level :warning}
               :redundant-declare {:level :warning}
               :var-same-name-except-case {:level :warning}
               :constant-condition {:level :warning}
