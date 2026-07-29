@@ -89,6 +89,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Private call](#private-call)
     - [Protocol method varargs](#protocol-method-varargs)
     - [Redefined var](#redefined-var)
+    - [Redefined spec](#redefined-spec)
     - [Var same name except case](#var-same-name-except-case)
     - [Alias same as ns name](#alias-same-ns-name)
     - [Redundant do](#redundant-do)
@@ -1665,6 +1666,19 @@ To suppress the above message, refer to `foo/f` using the var `#'foo/f` or write
 
 When redefining a var from another namespace that was referred, e.g. `inc`, the
 message is: `inc already refers to #'clojure.core/inc`
+
+### Redefined spec
+
+*Keyword:* `:redefined-spec`.
+
+*Description:* warn when a `clojure.spec.alpha`/`cljs.spec.alpha` `s/def` or
+`s/fdef` redefines a spec that was already registered elsewhere in the project.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(s/def ::foo string?) (s/def ::foo int?)`
+
+*Example message:* `redefined spec :user/foo, first defined at src/user.clj:1:8`.
 
 ### Var same name except case
 
