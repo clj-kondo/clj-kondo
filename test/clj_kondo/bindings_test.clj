@@ -272,6 +272,7 @@
 
 (deftest unused-destructuring-default-test
   (doseq [input ["(let [{:keys [:i] :or {i 2}} {}])"
+                 "(let [{:keys [:i] :or {:i 2}} {}])"
                  "(let [{:or {i 2} :keys [:i]} {}])"
                  "(let [{:keys [:i :j] :or {i 2 j 3}} {}] j)"]]
     (assert-submaps '({:file "<stdin>"
@@ -543,6 +544,28 @@
     (is (empty? (lint! "(try nil (catch Exception & nil))")))))
 
 (deftest defaults-destructuring-test
+  (testing "Clojure 1.13 alpha4: :or accepts literal keys"
+    (is (empty?
+         (lint! "(let [{:keys [& :rebilling :repeat]
+                        referralamount :amount
+                        :or {referralamount 0
+                             :rebilling false
+                             :repeat false}}
+                       {:amount 13}]
+                   [referralamount])"
+                '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "literal key defaults can refer to bound keys"
+    (is (empty? (lint! "(let [{:keys [x] :or {:x 1}} {}] x)"
+                       '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "literal keys after & do not bind locals"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Unresolved symbol: rebilling"})
+     (lint! "(let [{:keys [& :rebilling]
+                    :or {:rebilling false}}
+                   {}]
+               rebilling)"
+            '{:linters {:unresolved-symbol {:level :error}}})))
   (testing "CLJ-2966: :defaults binds a map of the applied :or defaults"
     (is (empty? (lint! "(let [{:keys [a] :or {a 1} :defaults ds} {}] [a ds])"
                        '{:linters {:unresolved-symbol {:level :error}}})))
@@ -559,6 +582,7 @@
 (deftest required-binding-default-test
   (testing ":or default for required binding is a compile error in Clojure 1.13"
     (doseq [snippet ["(let [{:keys! [x] :or {x 1}} {}] x)"
+                     "(let [{:keys! [x] :or {:x 1}} {}] x)"
                      "(let [{:syms! [x] :or {x 1}} {}] x)"
                      "(let [{:strs! [x] :or {x 1}} {}] x)"
                      "(let [{:keys! [:x] :or {x 1}} {}] x)"

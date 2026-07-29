@@ -11,6 +11,12 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- [#2925](https://github.com/clj-kondo/clj-kondo/issues/2925):
+  support Clojure 1.13 alpha4 literal keys in map destructuring `:or`
+  ([@jramosg](https://github.com/jramosg))
+
 ## 2026.07.24
 
 ### Highlights
