@@ -82,9 +82,24 @@
                      cat)
                children))))))
 
+(defn- destructuring-default-binding [ctx m key-bindings k]
+  (let [binding-name (:value k)
+        symbol? (and (identical? :token (tag k))
+                     (symbol? binding-name))]
+    (if symbol?
+      (get m binding-name)
+      (when (types/static-map-key? ctx k)
+        (let [map-key (types/map-key ctx k)]
+          (when (types/known-map-key? map-key)
+            (some (fn [[binding-key binding _defaulted?]]
+                    (when (= map-key binding-key)
+                      binding))
+                  key-bindings)))))))
+
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   #_(prn :anathefuck)
-  (let [mark-used? (or (:skip-reg-binding? ctx)
+  (let [key-bindings (:key-bindings opts)
+        mark-used? (or (:skip-reg-binding? ctx)
                        (:mark-bindings-used? ctx)
                        (when (:fn-args? opts)
                          (-> ctx :config :linters :unused-binding
@@ -92,61 +107,60 @@
     (when-not mark-used?
       (doseq [[k _v] (partition 2 (:children defaults))
               :let [sym (:value k)
-                    mta (meta k)]
-              :when sym]
-        (if-let [binding (get m sym)]
+                    simple? (and (identical? :token (tag k))
+                                 (simple-symbol? sym))
+                    binding (destructuring-default-binding
+                             ctx m key-bindings k)
+                    mta (meta k)]]
+        (if binding
           (namespace/reg-destructuring-default! ctx mta binding)
-          (findings/reg-finding!
-           ctx
-           {:message (str sym " is not bound in this destructuring form") :level :warning
-            :row (:row mta)
-            :col (:col mta)
-            :end-row (:end-row mta)
-            :end-col (:end-col mta)
-            :filename (:filename ctx)
-            :type :unbound-destructuring-default})))))
-  (let [undefined-locals (set (keys m))]
+          (when simple?
+            (findings/reg-finding!
+             ctx
+             {:message (str sym " is not bound in this destructuring form") :level :warning
+              :row (:row mta)
+              :col (:col mta)
+              :end-row (:end-row mta)
+              :end-col (:end-col mta)
+              :filename (:filename ctx)
+              :type :unbound-destructuring-default}))))))
+  (let [undefined-locals (set (keys m))
+        key-bindings (:key-bindings opts)]
     (doseq [[k v] (partition 2 (:children defaults))]
-      (let [binding (:value k)
+      (let [binding-name (:value k)
             simple? (and (identical? :token (tag k))
-                         (simple-symbol? binding))]
-        (when (:required (get m binding))
+                         (simple-symbol? binding-name))
+            binding (destructuring-default-binding
+                     ctx m key-bindings k)]
+        (when (:required binding)
           (let [mta (meta k)]
             (findings/reg-finding!
              ctx
-             {:message (str "Can't supply default value for required binding: " binding)
+             {:message (str "Can't supply default value for required binding: "
+                            (:name binding))
               :row (:row mta)
               :col (:col mta)
               :end-row (:end-row mta)
               :end-col (:end-col mta)
               :filename (:filename ctx)
               :type :syntax})))
-        (when-not simple?
-          (let [m (meta k)]
-            (findings/reg-finding!
-             ctx
-             {:message "Keys in :or should be simple symbols."
-              :row (:row m)
-              :col (:col m)
-              :end-row (:end-row m)
-              :end-col (:end-col m)
-              :filename (:filename ctx)
-              :type :syntax})))
         (if (= k v)
           ;; see #915
           (analyze-expression** prev-ctx v)
           (do
-            (when (and (:analyze-locals? ctx) (not (:clj-kondo/mark-used k)))
+            (when (and simple?
+                       (:analyze-locals? ctx)
+                       (not (:clj-kondo/mark-used k)))
               (let [expr-meta (meta k)
                     expr-meta (assoc-some expr-meta
                                           :name-row (:row expr-meta)
                                           :name-col (:col expr-meta)
                                           :name-end-row (:end-row expr-meta)
                                           :name-end-col (:end-col expr-meta)
-                                          :name binding
+                                          :name binding-name
                                           :filename (:filename ctx)
                                           :str (:string-value k))]
-                (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
+                (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding-name) expr-meta)))
             (let [ctx (assoc ctx
                              :undefined-locals undefined-locals
                              :in-or-default? true)]
@@ -348,12 +362,32 @@
           ;; keys of the whole form
           all-node (volatile! nil)
           nested-keys (volatile! [])
-          or-names (when (and or? (not types-off?))
+          or-key-nodes (when (and or? (not types-off?))
+                         (into []
+                               (comp
+                                (filter
+                                 (fn [[k _]] (plain-directive? k :or)))
+                                (mapcat
+                                 (fn [[_ v]]
+                                   (take-nth 2 (:children v)))))
+                               kvs))
+          or-names (when-not types-off?
                      (into #{}
-                           (comp (filter (fn [[k _]] (plain-directive? k :or)))
-                                 (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
-                                 (keep :value))
-                           kvs))]
+                           (keep (fn [k]
+                                   (let [v (:value k)]
+                                     (when (simple-symbol? v) v))))
+                           or-key-nodes))
+          or-keys (when-not types-off?
+                    (into #{}
+                          (keep (fn [k]
+                                  (when (types/static-map-key? ctx k)
+                                    (let [mk (types/map-key ctx k)]
+                                      (when (types/known-map-key? mk)
+                                        mk)))))
+                          or-key-nodes))
+          defaulted? (fn [binding-name map-key]
+                       (or (contains? or-names binding-name)
+                           (contains? or-keys map-key)))]
     (loop [[k v & rest-kvs] (:children expr)
            res {}]
         (if k
@@ -370,7 +404,7 @@
                                             :keys-destructuring? true
                                             :destructuring-type key-name
                                             :destructuring-expr k)
-                                modifier-ns (when-not types-off?
+                                modifier-ns (when (or or? (not types-off?))
                                               (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
                                 ;; before & are bindings, after & only literal keys
                                 res (loop [children (:children v) amp? false res res]
@@ -398,14 +432,14 @@
                                                           (some-> (:k child) name symbol))
                                                 child-opts (if-let [vt (when dk
                                                                          (types/destructured-key-tag
-                                                                          form-tag dk (contains? or-names bname)))]
+                                                                          form-tag dk (defaulted? bname dk)))]
                                                              (assoc opts :tag vt)
                                                              opts)
                                                 bnds (extract-bindings ctx child scoped-expr child-opts)]
                                             (when dk
                                               (when-let [b (some-> bnds first val)]
                                                 (vswap! key-bindings conj
-                                                        [dk b (contains? or-names (:name b))])))
+                                                        [dk b (defaulted? (:name b) dk)])))
                                             (recur (next children) false (merge res bnds))))
                                         res))]
                             (recur rest-kvs res)))
@@ -419,7 +453,10 @@
                                   ;; or can refer to a binding introduced by what we extracted
                                   (let [prev-ctx ctx
                                         ctx (ctx-with-bindings ctx res)]
-                                    (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                                    (analyze-keys-destructuring-defaults
+                                     ctx prev-ctx res v
+                                     (assoc opts
+                                            :key-bindings @key-bindings))
                                     (recur rest-kvs res))
                                   :else
                                   ;; analyze or after the rest
@@ -464,7 +501,7 @@
                         known-key? (types/known-map-key? mk)
                         child-opts (if-let [vt (when known-key?
                                                  (types/destructured-key-tag
-                                                  form-tag mk (contains? or-names (:value k))))]
+                                                  form-tag mk (defaulted? (:value k) mk)))]
                                      (assoc opts :tag vt)
                                      opts)
                         bnds (extract-bindings ctx k scoped-expr child-opts)]
@@ -475,7 +512,7 @@
                     (when (and known-key? (utils/symbol-token? k))
                       (when-let [b (some-> bnds first val)]
                         (vswap! key-bindings conj
-                                [mk b (contains? or-names (:name b))])))
+                                [mk b (defaulted? (:name b) mk)])))
                     (recur rest-kvs (merge res bnds
                                            {:analyzed (analyze-expression** ctx v)})))))
           (let [res (if-let [all-expr @all-node]
