@@ -2173,6 +2173,17 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
+ {:end-row 138,
+  :type :redefined-spec,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/generate.clj",
+  :col 8,
+  :end-col 13,
+  :langs (),
+  :message
+  "redefined spec :metabase.test.generate/col, first defined at test-regression/checkouts/metabase/test/metabase/test/generate.clj:137:8",
+  :row 138}
  {:end-row 497,
   :type :is-message-not-string,
   :level :info,
