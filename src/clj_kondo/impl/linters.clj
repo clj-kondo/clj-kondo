@@ -885,9 +885,9 @@
                        :unused-alias (str "Unused alias: " alias)))))
       (lint-aliased-referred-var! ctx ns))))
 
-(defn- spec-def-display [{:keys [type ns name]}]
-  ;; s/def registers under a keyword, s/fdef under a symbol
-  (if (identical? :def type)
+(defn- spec-def-display [{:keys [kind ns name]}]
+  ;; keyword-keyed registrations print as a keyword, symbol-keyed as a symbol
+  (if (identical? :keyword kind)
     (str ":" ns "/" name)
     (str ns "/" name)))
 
@@ -915,7 +915,7 @@
                                 (namespace/list-namespaces ctx))
         contributions (reduce (fn [m occ]
                                 (update m (:filename occ) (fnil conj [])
-                                        (select-keys occ [:ns :name :lang
+                                        (select-keys occ [:kind :ns :name :lang
                                                           :row :col])))
                               {}
                               current-occs)]
@@ -925,8 +925,9 @@
   "Reports `s/def` and `s/fdef` registrations that redefine an already
   registered spec. Registrations are grouped by their fully resolved identity so
   that, e.g., `::foo` in two namespaces are distinct while `:some-alias/foo` and
-  the equivalent fully-qualified keyword are the same. `s/def` and `s/fdef`
-  share one identity space: an fdef and a def resolving to the same name collide.
+  the equivalent fully-qualified keyword are the same. Keyword-keyed `s/def` and
+  symbol-keyed `s/def`/`s/fdef` occupy the two disjoint key spaces of spec's
+  registry, so `::foo` and an `s/fdef foo` do not clash.
 
   Detection is project-wide within a run. Across runs, a global spec index in the
   cache (mirroring spec's own global registry) makes detection complete: every
@@ -942,7 +943,7 @@
           external-occs (cache/sync-spec-index! (:cache-dir ctx)
                                                 contributions
                                                 current-filenames)
-          groups (group-by (juxt :ns :name :lang)
+          groups (group-by (juxt :kind :ns :name :lang)
                            (concat current-occs external-occs))]
       (doseq [[_k occs] groups
               :let [;; collapse physically identical registrations

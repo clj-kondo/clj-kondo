@@ -25,14 +25,12 @@
                  "(defn f [x] x)\n"
                  "(s/fdef f :args (s/cat :x int?))\n"
                  "(s/fdef f :args (s/cat :y int?))"))))
-  (testing "s/def and s/fdef share one identity space"
-    (assert-submaps2
-     '({:row 4 :col 8 :level :warning
-        :message #"redefined spec :foo/f"})
-     (lint! (str "(ns foo (:require " spec-require "))\n"
-                 "(defn f [x] x)\n"
-                 "(s/fdef f :args (s/cat :x int?))\n"
-                 "(s/def ::f int?)")))))
+  (testing "a keyword s/def and a symbol s/fdef of the same name do not clash:
+            they occupy spec's two disjoint key spaces"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(defn f [x] x)\n"
+                            "(s/fdef f :args (s/cat :x int?))\n"
+                            "(s/def ::f int?)"))))))
 
 (deftest edge-cases-test
   (testing "auto-resolved keywords in different namespaces are distinct"

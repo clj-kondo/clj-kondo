@@ -16,15 +16,17 @@
   (not (identical? :off (get-in ctx [:global-config :linters :redefined-spec :level]))))
 
 (defn reg-spec-def!
-  "Records a spec registration for the :redefined-spec linter. `tp` is :def or
-  :fdef, `name-node` is the registered name node and `resolved-ns`/`resolved-name`
-  its fully-resolved identity."
-  [ctx tp name-node resolved-ns resolved-name]
+  "Records a spec registration for the :redefined-spec linter. `kind` is
+  :keyword (a keyword-keyed `s/def`) or :symbol (a symbol-keyed `s/def` or an
+  `s/fdef`), matching the two disjoint key spaces of spec's registry.
+  `name-node` is the registered name node and `resolved-ns`/`resolved-name` its
+  fully-resolved identity."
+  [ctx kind name-node resolved-ns resolved-name]
   (when (and resolved-ns resolved-name (redefined-spec-enabled? ctx))
     (namespace/reg-spec-def! ctx (-> ctx :ns :name)
                              (assoc (utils/location (meta name-node))
                                     :filename (:filename ctx)
-                                    :type tp
+                                    :kind kind
                                     :ns resolved-ns
                                     :name resolved-name))))
 
@@ -48,8 +50,8 @@
             ;; regardless of whether its var has been analyzed yet, so key it
             ;; there for consistent cross-file detection
             (if (and unresolved? (not (namespace sym)))
-              (reg-spec-def! ctx :fdef sym-expr ns-nm resolved-name)
-              (reg-spec-def! ctx :fdef sym-expr resolved-ns resolved-name))
+              (reg-spec-def! ctx :symbol sym-expr ns-nm resolved-name)
+              (reg-spec-def! ctx :symbol sym-expr resolved-ns resolved-name))
             ;; revisit this when needed
             #_(findings/reg-finding! ctx
                                      (utils/node->line (:filename ctx)
@@ -65,7 +67,7 @@
                   name-expr)]
     (when (and (:k name-expr) (redefined-spec-enabled? ctx))
       (let [{:keys [ns name]} (usages/resolve-keyword ctx name-expr (-> ctx :ns :name))]
-        (reg-spec-def! ctx :def name-expr ns name)))
+        (reg-spec-def! ctx :keyword name-expr ns name)))
     (common/analyze-expression** (utils/ctx-with-linter-disabled ctx :unresolved-symbol) reg-val)
     (common/analyze-children ctx body)))
 
