@@ -421,6 +421,22 @@
     (is (empty? (lint! "(let [{{:keys [amount] :or {amount 0} :all child} :child :all data} {}] [amount child data])"
                        '{:linters {:unused-binding {:level :warning}
                                    :unresolved-symbol {:level :error}}}))))
+  (testing ":all includes the :or defaults, also from nested maps"
+    (is (empty? (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:amount data))])"
+                       '{:linters {:type-mismatch {:level :error}
+                                   :unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(let [{{:keys [x] :or {x 1} :all child} :child :all data} {:child {}}] [x child (inc (:x (:child data)))])"
+                       '{:linters {:type-mismatch {:level :error}
+                                   :unused-binding {:level :warning}}}))))
+  (testing "without :or defaults :all keeps the input's key facts"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :col 45
+                        :level :error
+                        :message "Expected: number, received: nil."})
+                     (lint! "(let [{:keys [a] :all data} {:a 1}] [a (inc (:b data))])"
+                            '{:linters {:type-mismatch {:level :error}
+                                        :unused-binding {:level :warning}}})))
   (testing "unused :all binding"
     (assert-submaps2 '({:file "<stdin>"
                         :row 1

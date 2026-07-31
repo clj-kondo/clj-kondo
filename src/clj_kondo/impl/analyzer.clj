@@ -264,6 +264,14 @@
 
 (declare extract-bindings)
 
+(defn node-contains-or?
+  "Whether a destructuring form has an :or directive at any depth.
+  Over-matches :or in other positions, which callers accept."
+  [node]
+  (or (and (= :or (:k node))
+           (not (:namespaced? node)))
+      (some node-contains-or? (:children node))))
+
 (defn extract-map-bindings
   [ctx expr scoped-expr opts]
   (let [;; in a namespaced map the reader qualifies :as, :or and :select,
@@ -384,9 +392,16 @@
                                         rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
                                     (recur (concat rest-kvs [k v]) res)))
                             ;; the :as binding is the whole init, :all (Clojure
-                            ;; 1.13) is the init with the :or defaults applied
+                            ;; 1.13) is the init with the :or defaults applied,
+                            ;; also in nested maps, so the input's key facts do
+                            ;; not hold for it
                             (:as :all)
-                            (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
+                            (let [form-tag (if (and (identical? :all key-name)
+                                                    (map? form-tag)
+                                                    (node-contains-or? expr))
+                                             :map
+                                             form-tag)
+                                  as-opts (if form-tag (assoc opts :tag form-tag) opts)]
                               (cond (not (plain-directive? k key-name))
                                     (recur rest-kvs res)
                                     (-> ctx :config :linters :unused-binding
