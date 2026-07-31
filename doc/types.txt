@@ -310,33 +310,20 @@ parse-timestamp {2 {:args [nil :string]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.tools.reader.transit.json  ===
 unquote-splicing? {1 {:ret :boolean}}
-read-symbolic-value {4 {:args [nil nil nil :seqable]}}
-read-tagged {4 {:args [nil nil nil :seqable]}}
 starting-line-col-info {1 {:ret #{:vector :nil}}}
 wrapping-reader {1 {:ret :fn}}
 read+string {0 {:ret :vector}, 1 {:ret :vector}, 3 {:ret :vector}, 2 {:ret :vector}}
-read-meta {4 {:args [nil nil nil :seqable]}}
 read-unicode-char {4 {:args [#{:string :nil} :long :long :long]}, 5 {:args [nil #{:number :char} :number :number]}}
-read-fn {4 {:args [nil nil nil :seqable]}}
-read-suppress {4 {:args [:long nil nil :seqable]}}
+read-suppress {4 {:args [:long]}}
 flatten-map {1 {:args [:seqable]}}
-read-set {4 {:args [nil nil nil :seqable]}}
-read-map {4 {:args [nil nil nil :seqable]}}
 unquote? {1 {:ret :boolean}}
-match-feature {4 {:args [:long nil nil :seqable]}}
-read-syntax-quote {4 {:args [nil nil nil :seqable]}}
-read-list {4 {:args [nil nil nil :seqable]}}
-read* {5 {:args [nil nil nil nil :seqable]}, 6 {:args [nil nil nil nil nil :seqable]}}
+match-feature {4 {:args [:long]}}
 syntax-quote-coll {2 {:ret #{:list}, :args [nil :seqable]}}
-read-eval {4 {:args [nil nil nil :seqable]}}
-read-delimited {5 {:args [nil nil nil nil :seqable]}}
 check-eof-error {3 {:args [nil nil :long]}}
 check-invalid-read-cond {3 {:args [nil nil :long]}}
 map-func {1 {:ret #{:symbol}, :args [:seqable]}}
 ending-line-col-info {1 {:ret #{:vector :nil}}}
-read-discard {4 {:args [nil nil nil :seqable]}}
 garg {1 {:ret :symbol, :args (:long)}}
-read-vector {4 {:args [nil nil nil :seqable]}}
 register-gensym {1 {:ret #{:symbol :truthy}}}
 expand-list {1 {:args [:seqable]}}
 
@@ -591,7 +578,7 @@ validate-generate-class-options {1 {:args [{:op :keys, :nilable true, :opt {:met
 random-sample {1 {:ret :transducer, :args [:number]}, 2 {:ret :seq, :args [:number :seqable]}}
 select-keys {2 {:args [nil :seqable]}}
 update {3 {:ret :associative, :args [#{:associative :nil}]}, 4 {:ret :associative, :args [#{:associative :nil}]}, 5 {:ret :associative, :args [#{:associative :nil}]}, 6 {:ret :associative, :args [#{:associative :nil}]}, :varargs {:ret :associative, :min-arity 6, :args [#{:associative :nil} nil :ifn]}}
-group-by-sig {1 {:ret :seq}}
+group-by-sig {1 {:ret #{:nil :seq}}}
 list* {1 {:ret #{:nil :seq}, :args [:seqable]}, 2 {:args [nil :seqable]}, 3 {:args [nil nil :seqable]}, 4 {:args [nil nil nil :seqable]}}
 update-in {:varargs {:ret #{:associative}, :min-arity 3}}
 *' {0 {:ret :pos-int}, :varargs {:min-arity 2, :args [:number :number]}}
@@ -652,7 +639,7 @@ distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
 libspec? {1 {:ret #{:true :false :nil :boolean}}}
 pos-int? {1 {:ret :boolean}}
 prep-ints {2 {:ret #{:vector}}}
-extenders {1 {:ret :seq}}
+extenders {1 {:ret #{:nil :seq}}}
 unchecked-short {1 {:args [#{:number :nil}]}}
 odd? {1 {:ret :boolean, :args [:number]}}
 validate-fields {2 {:args [:seqable]}}
@@ -748,7 +735,7 @@ no-fspec {2 {:ret :throwable}}
 make-check-result {3 {:ret :nilable/map}}
 find-varargs-decl {1 {:args [:seqable]}}
 enumerate-namespace {1 {:ret :set}}
-sym->check-map {1 {:ret {:type :map, :val {:s {}, :v {:tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:tag #{{:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}, :row 462, :col 20, :end-row 462, :end-col 34} :nil}}}, :row 460, :col 5, :end-row 462, :end-col 36}}}
+sym->check-map {1 {:ret {:type :map, :val {:s {}, :v {:tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.core, :ns clojure.spec.test.alpha, :name resolve, :arity 1}}}, :spec {:tag #{:nil {:tag {:call {:filename clojure/spec/test/alpha.clj, :type :call, :lang :clj, :base-lang :clj, :resolved-ns clojure.spec.alpha, :ns clojure.spec.test.alpha, :name get-spec, :arity 1}}, :row 462, :col 20, :end-row 462, :end-col 34}}}}, :row 460, :col 5, :end-row 462, :end-col 36}}}
 thunk-frame? {1 {:ret :boolean, :args [:char-sequence]}}
 throwable? {1 {:ret :boolean}}
 build-kwargs-body {2 {:ret :list, :args [nil :seqable]}}
