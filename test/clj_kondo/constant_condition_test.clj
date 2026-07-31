@@ -448,7 +448,10 @@
       (is (empty? (lint! "(ns foo) (defn dt? [s] (re-matches #\"x\" s)) (defn g [s] (if (dt? s) 1 2))"
                          config)))
       (is (empty? (lint! "(ns foo) (defn f [s] (re-find #\"x\" s)) (defn g [s] (when (f s) 1))"
-                         config))))
+                         config)))
+      ;; keys/vals return nil on empty collections, issue #2928
+      (is (empty? (lint! "(defn g [m] (if-let [ks (keys m)] ks :empty-map))" config)))
+      (is (empty? (lint! "(defn g [m] (if-let [vs (vals m)] vs :empty-map))" config))))
     (testing "a var with a built-in spec is left to the analysis phase"
       (is (empty? (lint! "(when (re-matches #\"x\" \"y\") 1)" config))))
     (testing "a lint-as'ed conditional does not check its condition"
