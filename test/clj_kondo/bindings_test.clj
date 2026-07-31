@@ -634,6 +634,8 @@
     (is (empty? (lint! "(let [{:keys [x] :or {:x 1}} {}] x)"
                        '{:linters {:unresolved-symbol {:level :error}}}))))
   (testing "literal keys after & do not bind locals"
+    (is (empty? (lint! "(let [{:keys [& :rebilling] :or {:rebilling false}} {}] 1)"
+                       '{:linters {:unresolved-symbol {:level :error}}})))
     (assert-submaps2
      '({:file "<stdin>", :level :error,
         :message "Unresolved symbol: rebilling"})
@@ -642,6 +644,37 @@
                    {}]
                rebilling)"
             '{:linters {:unresolved-symbol {:level :error}}})))
+  (testing "every key spelling defaults its binding"
+    (doseq [snippet ["(let [{:strs [c] :or {\"c\" 1}} {}] 1)"
+                     "(let [{:strs [c] :or {c 1}} {}] 1)"
+                     "(let [{:syms [c] :or {'c 1}} {}] 1)"
+                     "(let [{:syms [c] :or {c 1}} {}] 1)"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :warning, :message "unused binding c"}
+         {:file "<stdin>", :level :warning, :message "unused default for binding c"})
+       (lint! snippet '{:linters {:unused-binding {:level :warning}}})))
+    (doseq [snippet ["(let [{:foo/keys [x] :or {:foo/x 1}} {}] 1)"
+                     "(let [{:foo/keys [x] :or {x 1}} {}] 1)"]]
+      (assert-submaps2
+       '({:file "<stdin>", :level :warning, :message "unused binding x"}
+         {:file "<stdin>", :level :warning, :message "unused default for binding x"})
+       (lint! snippet '{:linters {:unused-binding {:level :warning}}})))
+    (assert-submaps2
+     '({:file "<stdin>", :level :warning, :message "unused binding y"}
+       {:file "<stdin>", :level :warning, :message "unused default for binding y"})
+     (lint! "(let [{y :x :or {:x 1}} {}] 1)"
+            '{:linters {:unused-binding {:level :warning}}})))
+  (testing ":or key matching no destructured key"
+    (doseq [[snippet k] [["(let [{:keys [x] :or {:y 1}} {}] x)" ":y"]
+                         ["(let [{:keys [c] :or {\"c\" 10}} {}] c)" "\"c\""]
+                         ["(let [{:syms [x] :or {:x 1}} {}] x)" ":x"]
+                         ["(let [{:strs [x] :or {:x 1}} {}] x)" ":x"]
+                         ["(let [{:foo/keys [x] :or {:x 1}} {}] x)" ":x"]
+                         ["(let [{:keys [x] :or {foo/x 1}} {}] x)" "foo/x"]]]
+      (assert-submaps2
+       [{:file "<stdin>", :level :warning,
+         :message (str k " is not bound in this destructuring form")}]
+       (lint! snippet '{:linters {:unused-binding {:level :warning}}}))))
   (testing "CLJ-2966: :defaults binds a map of the applied :or defaults"
     (is (empty? (lint! "(let [{:keys [a] :or {a 1} :defaults ds} {}] [a ds])"
                        '{:linters {:unresolved-symbol {:level :error}}})))
@@ -669,3 +702,17 @@
   (testing ":or default allowed for non-required bindings"
     (is (empty? (lint! "(let [{:keys [x] :or {x 1}} {}] x)")))
     (is (empty? (lint! "(let [{x :x :keys! [y] :or {x 1}} {:y 1}] [x y])")))))
+
+(deftest multiple-or-defaults-test
+  (testing "one key defaulted under both spellings is a compile error in Clojure 1.13"
+    (doseq [[snippet k] [["(let [{:keys [x] :or {x 1 :x 2}} {}] x)" ":x"]
+                         ["(let [{:keys [x] :or {:x 2 x 1}} {}] x)" "x"]
+                         ["(let [{:keys [x] :or {:x 1 :x 2}} {}] x)" ":x"]
+                         ["(let [{:strs [c] :or {c 1 \"c\" 2}} {}] c)" "\"c\""]
+                         ["(let [{:syms [c] :or {c 1 'c 2}} {}] c)" "'c"]]]
+      (assert-submaps2
+       [{:file "<stdin>", :level :error,
+         :message (str "Multiple :or defaults for same key: " k)}]
+       (lint! snippet))))
+  (testing "defaults for different keys"
+    (is (empty? (lint! "(let [{:keys [x y] :or {x 1 :y 2}} {}] [x y])")))))
