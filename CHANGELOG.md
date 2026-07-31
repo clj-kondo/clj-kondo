@@ -11,6 +11,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- [#2928](https://github.com/clj-kondo/clj-kondo/issues/2928): Type checker: the return types of `keys` and `vals` are nilable. E.g. `(when (keys m) ...)` no longer warns with `Condition always true`.
+
 ## 2026.07.24
 
 ### Highlights

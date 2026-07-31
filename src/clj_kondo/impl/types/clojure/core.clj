@@ -452,11 +452,10 @@
                               :ret :map}}}
    ;; 1555
    ;; NOTE: keys and vals can be called on seqs of MapEntry's, hence not :associative.
-   'keys {:arities {1 {:args [:seqable]
-                       :ret :seq}}}
+   ;; NOTE: keys and vals return nil on an empty collection.
+   'keys seqable->nilable-seq
    ;; 1561
-   'vals {:arities {1 {:args [:seqable]
-                       :ret :seq}}}
+   'vals seqable->nilable-seq
    ;; 1567 'key
    ;; 1574 'val
    ;; 1581
