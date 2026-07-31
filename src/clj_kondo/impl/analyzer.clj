@@ -383,15 +383,17 @@
                                   (let [;; prevent infinite loop with multiple :or
                                         rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
                                     (recur (concat rest-kvs [k v]) res)))
-                            ;; the :as binding is the whole init
-                            :as (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
-                                  (cond (not (plain-directive? k :as))
-                                        (recur rest-kvs res)
-                                        (-> ctx :config :linters :unused-binding
-                                            :exclude-destructured-as)
-                                        (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
-                                        :else
-                                        (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
+                            ;; the :as binding is the whole init, :all (Clojure
+                            ;; 1.13) is the init with the :or defaults applied
+                            (:as :all)
+                            (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
+                              (cond (not (plain-directive? k key-name))
+                                    (recur rest-kvs res)
+                                    (-> ctx :config :linters :unused-binding
+                                        :exclude-destructured-as)
+                                    (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
+                                    :else
+                                    (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
                             ;; Clojure 1.13: binds a map with the keys named in this form
                             :select (if (plain-directive? k :select)
                                       (recur rest-kvs

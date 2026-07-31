@@ -412,6 +412,46 @@
                          '{:linters {:unresolved-symbol {:level :error}
                                      :unused-binding {:level :warning}}}))))))
 
+(deftest all-destructuring-test
+  (testing ":all binds a name (Clojure 1.13)"
+    (is (empty? (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount data])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing "nested :all"
+    (is (empty? (lint! "(let [{{:keys [amount] :or {amount 0} :all child} :child :all data} {}] [amount child data])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing "unused :all binding"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :col 23
+                        :level :warning
+                        :message "unused binding data"})
+                     (lint! "(let [{:keys [a] :all data} {}] a)"
+                            '{:linters {:unused-binding {:level :warning}}})))
+  (testing ":exclude-destructured-as also covers :all"
+    (is (empty? (lint! "(defn f [{:keys [a] :all data}] a)"
+                       '{:linters {:unused-binding
+                                   {:level :warning
+                                    :exclude-destructured-as true}}}))))
+  (testing "only the exact :all keyword is a directive"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :level :error
+                        :message "Unresolved symbol: m1"}
+                       {:file "<stdin>"
+                        :row 2
+                        :level :error
+                        :message "Unresolved symbol: m2"}
+                       {:file "<stdin>"
+                        :row 3
+                        :level :error
+                        :message "Unresolved symbol: m3"})
+                     (lint! "(let [{:person/all m1} {}] m1)
+(let [{::all m2} {}] m2)
+(let [#:person{:keys [id] :all m3} {}] [id m3])"
+                            '{:linters {:unresolved-symbol {:level :error}}}))))
+
 (deftest used-underscored-binding-test
   (assert-submaps2
    '({:file "<stdin>",
