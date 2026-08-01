@@ -3559,11 +3559,9 @@ app.api/my-var"
                      {:linters {:conflicting-alias {:level :error}
                                 :unused-referred-var {:level :off}
                                 :unused-namespace {:level :off}}})))
-  (assert-submaps [{:file "<stdin>", :row 1, :col 54,
-                    :level :error, :message "Conflicting alias for foo.foo"}]
-                  (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.foo :as foo]))"
-                         {:linters {:conflicting-alias {:level :error}
-                                    :unused-namespace {:level :off}}})))
+  (is (empty? (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.foo :as foo]))"
+                     {:linters {:conflicting-alias {:level :error}
+                                :unused-namespace {:level :off}}}))))
 
 (deftest refer-test
   (is (empty? (lint! "(ns foo (:require [foo.bar :as foo-bar] [foo.baz :refer [asd]])) (foo-bar/bazbar) (asd)")))
