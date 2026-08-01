@@ -412,6 +412,10 @@
                          '{:linters {:unresolved-symbol {:level :error}
                                      :unused-binding {:level :warning}}}))))))
 
+(def type-config
+  '{:linters {:type-mismatch {:level :error}
+              :unused-binding {:level :warning}}})
+
 (deftest all-destructuring-test
   (testing ":all binds a name (Clojure 1.13)"
     (is (empty? (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount data])"
@@ -423,20 +427,36 @@
                                    :unresolved-symbol {:level :error}}}))))
   (testing ":all includes the :or defaults, also from nested maps"
     (is (empty? (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:amount data))])"
-                       '{:linters {:type-mismatch {:level :error}
-                                   :unused-binding {:level :warning}}})))
+                       type-config)))
     (is (empty? (lint! "(let [{{:keys [x] :or {x 1} :all child} :child :all data} {:child {}}] [x child (inc (:x (:child data)))])"
-                       '{:linters {:type-mismatch {:level :error}
-                                   :unused-binding {:level :warning}}}))))
-  (testing "without :or defaults :all keeps the input's key facts"
-    (assert-submaps2 '({:file "<stdin>"
-                        :row 1
-                        :col 45
-                        :level :error
+                       type-config))))
+  (testing "a key that :all adds has the type of its default"
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: string, received: natural integer."})
+                     (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (subs (:amount data) 1)])"
+                            type-config))
+    (testing "a nested :all keeps the defaults of its own form"
+      (assert-submaps2 '({:row 1 :level :error
+                          :message "Expected: string, received: positive integer."})
+                       (lint! "(let [{{:keys [x] :or {x 1} :all child} :child} {:child {}}] [x (subs (:x child) 1)])"
+                              type-config))))
+  (testing ":all keeps the keys of the init, a default does not add the rest"
+    (assert-submaps2 '({:row 1 :level :error
                         :message "Expected: number, received: nil."})
                      (lint! "(let [{:keys [a] :all data} {:a 1}] [a (inc (:b data))])"
-                            '{:linters {:type-mismatch {:level :error}
-                                        :unused-binding {:level :warning}}})))
+                            type-config))
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: number, received: nil."})
+                     (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:b data))])"
+                            type-config))
+    (testing "a nil default leaves its key out"
+      (assert-submaps2 '({:row 1 :level :error
+                          :message "Expected: number, received: nil."})
+                       (lint! "(let [{:keys [amount] :or {amount nil} :all data} {}] [amount (inc (:amount data))])"
+                              type-config))))
+  (testing "an init whose keys are not known does not warn"
+    (is (empty? (lint! "(ns foo) (defn f [] {:x 1}) (defn g [] (let [{:keys [amount] :or {amount 0} :all data} (f)] [amount (inc (:amount data))]))"
+                       type-config))))
   (testing "unused :all binding"
     (assert-submaps2 '({:file "<stdin>"
                         :row 1

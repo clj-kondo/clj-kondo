@@ -272,6 +272,29 @@
            (not (:namespaced? node)))
       (some node-contains-or? (:children node))))
 
+(defn all-tag
+  "Tag for an :all binding: the init's map type, with the keys that only an :or
+  default provides and the nested forms that apply their own defaults added.
+  Plain :map when the init's type can't be augmented, nil when it says nothing."
+  [ctx form-tag key-bindings or-defaults nested-keys]
+  (let [defaulted (into {}
+                        (comp (filter (fn [[dk _ defaulted]]
+                                        ;; the init's own key wins over the default
+                                        (and defaulted (not (contains? (:val form-tag) dk)))))
+                              (keep (fn [[dk b _]]
+                                      (let [t (some->> (:name b)
+                                                       (get or-defaults)
+                                                       (types/expr->tag ctx))]
+                                        ;; a nil default leaves the key out, see some-vals
+                                        (when-not (identical? :nil t)
+                                          [dk (if t {:tag t} {})])))))
+                        key-bindings)
+        ;; a nested form applies its own defaults, so only its mapness holds
+        additions (into defaulted (map (fn [k] [k {:tag :map}])) nested-keys)]
+    (cond (empty? additions) form-tag
+          (identical? :map (:type form-tag)) (update form-tag :val merge additions)
+          form-tag :map)))
+
 (defn extract-map-bindings
   [ctx expr scoped-expr opts]
   (let [;; in a namespaced map the reader qualifies :as, :or and :select,
@@ -291,6 +314,14 @@
         kvs (partition 2 (:children expr))
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
+        all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
+        ;; the default per binding name, to type the keys :all adds
+        or-defaults (when (and all? or?)
+                      (into {}
+                            (comp (filter (fn [[k _]] (plain-directive? k :or)))
+                                  (mapcat (fn [[_ v]] (partition 2 (:children v))))
+                                  (keep (fn [[k v]] (when-let [s (:value k)] [s v]))))
+                            kvs))
         [req sel] (reduce (fn [[req sel] [k v]]
                             (let [key-name (some-> (:k k) name keyword)]
                               (cond (one-of key-name [:keys! :syms! :strs!])
@@ -313,6 +344,10 @@
     ;; param-type inference, see inferable-params. A binding with an
     ;; :or default never proves its key required
     (let [key-bindings (volatile! [])
+          ;; the :all binding is extracted after the loop, its type needs the
+          ;; keys of the whole form
+          all-node (volatile! nil)
+          nested-keys (volatile! [])
           or-names (when (and or? (not types-off?))
                      (into #{}
                            (comp (filter (fn [[k _]] (plain-directive? k :or)))
@@ -391,24 +426,20 @@
                                   (let [;; prevent infinite loop with multiple :or
                                         rest-kvs (remove #(plain-directive? % :or) rest-kvs)]
                                     (recur (concat rest-kvs [k v]) res)))
-                            ;; the :as binding is the whole init, :all (Clojure
-                            ;; 1.13) is the init with the :or defaults applied,
-                            ;; also in nested maps, so the input's key facts do
-                            ;; not hold for it
-                            (:as :all)
-                            (let [form-tag (if (and (identical? :all key-name)
-                                                    (map? form-tag)
-                                                    (node-contains-or? expr))
-                                             :map
-                                             form-tag)
-                                  as-opts (if form-tag (assoc opts :tag form-tag) opts)]
-                              (cond (not (plain-directive? k key-name))
-                                    (recur rest-kvs res)
-                                    (-> ctx :config :linters :unused-binding
-                                        :exclude-destructured-as)
-                                    (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
-                                    :else
-                                    (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
+                            ;; the :as binding is the whole init
+                            :as (let [as-opts (if form-tag (assoc opts :tag form-tag) opts)]
+                                  (cond (not (plain-directive? k :as))
+                                        (recur rest-kvs res)
+                                        (-> ctx :config :linters :unused-binding
+                                            :exclude-destructured-as)
+                                        (recur rest-kvs (merge res (extract-bindings (assoc ctx :mark-bindings-used? true) v scoped-expr as-opts)))
+                                        :else
+                                        (recur rest-kvs (merge res (extract-bindings ctx v scoped-expr as-opts)))))
+                            ;; Clojure 1.13: :all is the init with the :or
+                            ;; defaults applied, also those of nested forms
+                            :all (do (when (plain-directive? k :all)
+                                       (vreset! all-node v))
+                                     (recur rest-kvs res))
                             ;; Clojure 1.13: binds a map with the keys named in this form
                             :select (if (plain-directive? k :select)
                                       (recur rest-kvs
@@ -437,15 +468,29 @@
                                      (assoc opts :tag vt)
                                      opts)
                         bnds (extract-bindings ctx k scoped-expr child-opts)]
+                    (when (and all? known-key?
+                               (identical? :map (tag k))
+                               (node-contains-or? k))
+                      (vswap! nested-keys conj mk))
                     (when (and known-key? (utils/symbol-token? k))
                       (when-let [b (some-> bnds first val)]
                         (vswap! key-bindings conj
                                 [mk b (contains? or-names (:name b))])))
                     (recur rest-kvs (merge res bnds
                                            {:analyzed (analyze-expression** ctx v)})))))
-          (cond-> res
-            (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
-            (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings)))))))
+          (let [res (if-let [all-expr @all-node]
+                      (let [t (when-not types-off?
+                                (all-tag ctx form-tag @key-bindings or-defaults @nested-keys))
+                            all-opts (if t (assoc opts :tag t) opts)
+                            ctx (cond-> ctx
+                                  (-> ctx :config :linters :unused-binding
+                                      :exclude-destructured-as)
+                                  (assoc :mark-bindings-used? true))]
+                        (merge res (extract-bindings ctx all-expr scoped-expr all-opts)))
+                      res)]
+            (cond-> res
+              (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
+              (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings))))))))
 
 (defn extract-bindings
   ([ctx expr] (extract-bindings ctx expr expr {}))
