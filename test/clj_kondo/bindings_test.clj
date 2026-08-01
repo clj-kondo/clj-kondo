@@ -412,6 +412,82 @@
                          '{:linters {:unresolved-symbol {:level :error}
                                      :unused-binding {:level :warning}}}))))))
 
+(def type-config
+  '{:linters {:type-mismatch {:level :error}
+              :unused-binding {:level :warning}}})
+
+(deftest all-destructuring-test
+  (testing ":all binds a name (Clojure 1.13)"
+    (is (empty? (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount data])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing "nested :all"
+    (is (empty? (lint! "(let [{{:keys [amount] :or {amount 0} :all child} :child :all data} {}] [amount child data])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing ":all includes the :or defaults, also from nested maps"
+    (is (empty? (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:amount data))])"
+                       type-config)))
+    (is (empty? (lint! "(let [{{:keys [x] :or {x 1} :all child} :child :all data} {:child {}}] [x child (inc (:x (:child data)))])"
+                       type-config))))
+  (testing "a key that :all adds has the type of its default"
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: string, received: natural integer."})
+                     (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (subs (:amount data) 1)])"
+                            type-config))
+    (testing "a nested :all keeps the defaults of its own form"
+      (assert-submaps2 '({:row 1 :level :error
+                          :message "Expected: string, received: positive integer."})
+                       (lint! "(let [{{:keys [x] :or {x 1} :all child} :child} {:child {}}] [x (subs (:x child) 1)])"
+                              type-config))))
+  (testing ":all keeps the keys of the init, a default does not add the rest"
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: number, received: nil."})
+                     (lint! "(let [{:keys [a] :all data} {:a 1}] [a (inc (:b data))])"
+                            type-config))
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: number, received: nil."})
+                     (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:b data))])"
+                            type-config))
+    (testing "a nil default leaves its key out"
+      (assert-submaps2 '({:row 1 :level :error
+                          :message "Expected: number, received: nil."})
+                       (lint! "(let [{:keys [amount] :or {amount nil} :all data} {}] [amount (inc (:amount data))])"
+                              type-config))))
+  (testing "an init whose keys are not known does not warn"
+    (is (empty? (lint! "(ns foo) (defn f [] {:x 1}) (defn g [] (let [{:keys [amount] :or {amount 0} :all data} (f)] [amount (inc (:amount data))]))"
+                       type-config))))
+  (testing "unused :all binding"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :col 23
+                        :level :warning
+                        :message "unused binding data"})
+                     (lint! "(let [{:keys [a] :all data} {}] a)"
+                            '{:linters {:unused-binding {:level :warning}}})))
+  (testing ":exclude-destructured-as also covers :all"
+    (is (empty? (lint! "(defn f [{:keys [a] :all data}] a)"
+                       '{:linters {:unused-binding
+                                   {:level :warning
+                                    :exclude-destructured-as true}}}))))
+  (testing "only the exact :all keyword is a directive"
+    (assert-submaps2 '({:file "<stdin>"
+                        :row 1
+                        :level :error
+                        :message "Unresolved symbol: m1"}
+                       {:file "<stdin>"
+                        :row 2
+                        :level :error
+                        :message "Unresolved symbol: m2"}
+                       {:file "<stdin>"
+                        :row 3
+                        :level :error
+                        :message "Unresolved symbol: m3"})
+                     (lint! "(let [{:person/all m1} {}] m1)
+(let [{::all m2} {}] m2)
+(let [#:person{:keys [id] :all m3} {}] [id m3])"
+                            '{:linters {:unresolved-symbol {:level :error}}}))))
+
 (deftest used-underscored-binding-test
   (assert-submaps2
    '({:file "<stdin>",

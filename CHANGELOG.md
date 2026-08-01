@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2924](https://github.com/clj-kondo/clj-kondo/issues/2924): Clojure 1.13: support the `:all` directive in map destructuring. E.g. `(let [{:keys [a] :all m} {}] m)` no longer warns with `Unresolved symbol: m`.
 - [#2928](https://github.com/clj-kondo/clj-kondo/issues/2928): Type checker: the return types of `keys` and `vals` are nilable. E.g. `(when (keys m) ...)` no longer warns with `Condition always true`.
 
 ## 2026.07.24
