@@ -26,7 +26,8 @@ sbx exec clj-kondo-repl -- pkill -f nrepl.cmdline
 bb .sbx/repl.clj --root /path/to/worktree
 ```
 
-The REPL runs Clojure 1.12 via an injected `:repl-clojure` alias, so
+The REPL runs Clojure 1.13.0-alpha6 via an injected `:repl-clojure` alias, so
+it matches the destructuring implementation under test and
 `clojure.repl.deps/add-libs` works for adding deps on the fly.
 
 The REPL runs inside the container: it only sees files under the mounted

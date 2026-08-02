@@ -82,15 +82,18 @@
 (defn- start! [nm root port aliases]
   (let [;; nrepl writes .nrepl-port itself but never cleans it up, so remove it
         ;; when the REPL exits, whether it was killed or died
-        cmd (format (str "cd \"%s\" && (setsid sh -c '"
-                         "clojure -Sdeps \"{:deps {nrepl/nrepl {:mvn/version \\\"1.3.1\\\"}} "
+        cmd (format (str "cd \"%s\" && "
+                         "clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version \"1.3.1\"}} "
                          ":aliases {:clear-main {:main-opts []} "
-                         ":repl-clojure {:extra-deps {org.clojure/clojure {:mvn/version \\\"1.12.1\\\"}}}}}\" "
+                         ":repl-clojure {:extra-deps {org.clojure/clojure {:mvn/version \"1.13.0-alpha6\"}}}}}' "
                          "-M\"%s\" -m nrepl.cmdline "
-                         "--bind 0.0.0.0 --port %s; rm -f \"%s/.nrepl-port\""
-                         "' > \"/tmp/nrepl-%s.log\" 2>&1 < /dev/null &)")
-                    root aliases port root (fs/file-name root))]
-    (p/shell "sbx" "exec" nm "--" "sh" "-c" cmd)))
+                         "--bind 0.0.0.0 --port %s; rm -f \"%s/.nrepl-port\"")
+                    root aliases port root)
+        log (fs/file (fs/temp-dir) (str "nrepl-" (fs/file-name root) ".log"))]
+    ;; the exec client stays up as long as the REPL and holds a sandbox
+    ;; session, without one the sandbox auto-stops and kills the REPL
+    (p/process {:out :write :out-file log :err :out}
+               "sbx" "exec" nm "--" "sh" "-c" cmd)))
 
 (defn -main [& args]
   (let [{:keys [root port aliases]} (cli/parse-opts args {:spec cli-spec})
@@ -120,8 +123,9 @@
           ;; the port file must be there too, else a rerun starts a second repl
           (cond (= port (running-port nm root))
                 (do (println "ready") (println port))
-                (> n 120) (do (println "repl did not come up, see /tmp/nrepl-"
-                                       (fs/file-name root) ".log in the sandbox")
+                (> n 120) (do (println "repl did not come up, see"
+                                       (str (fs/file (fs/temp-dir)
+                                                     (str "nrepl-" (fs/file-name root) ".log"))))
                               (System/exit 1))
                 :else (do (Thread/sleep 1000) (recur (inc n)))))))))
 
