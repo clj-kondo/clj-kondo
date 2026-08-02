@@ -310,7 +310,12 @@
                                 ;; the init's own key wins over the default
                                 (when-not (contains? (:val form-tag) dk)
                                   (let [t (types/expr->tag ctx node)]
-                                    ;; a nil default leaves the key out, see some-vals
+                                    ;; A nil default leaves the key out: :all and :select
+                                    ;; merge the defaults through some-vals, which drops nil
+                                    ;; values. :defaults keeps them, so 1.13.0-alpha6 gives
+                                    ;; {} for :all and {:x nil} for :defaults on the same
+                                    ;; form. Asked upstream whether that is intended, this
+                                    ;; follows the implementation until it is answered
                                     (when-not (identical? :nil t)
                                       [dk (if t {:tag t} {})])))))
                         defaults)
