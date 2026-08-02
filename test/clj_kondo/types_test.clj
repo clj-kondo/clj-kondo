@@ -1777,6 +1777,9 @@
 
 (deftest select-destructuring-types-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a key after & enters :select as written, issue #2935"
+      (is (empty? (lint! "(let [{:strs [& :foo] :select s} {:foo \"ok\"}] (subs (:foo s) 0))"
+                         config))))
     (testing ":select map misses a required key"
       (assert-submaps2
        '({:file "<stdin>", :row 3, :level :error, :message "Missing required key: :x"})
