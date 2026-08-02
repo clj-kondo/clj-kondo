@@ -711,7 +711,30 @@
        (lint! snippet))))
   (testing ":or default allowed for non-required bindings"
     (is (empty? (lint! "(let [{:keys [x] :or {x 1}} {}] x)")))
-    (is (empty? (lint! "(let [{x :x :keys! [y] :or {x 1}} {:y 1}] [x y])")))))
+    (is (empty? (lint! "(let [{x :x :keys! [y] :or {x 1}} {:y 1}] [x y])"))))
+  (testing "a second binding for the key does not hide the required one"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Can't supply default value for required binding: a"})
+     (lint! "(let [{:keys! [a] x :a :or {:a 1}} {}] [a x])")))
+  (testing "a required key after & takes no default either"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Can't supply default value for required key: :x"})
+     (lint! "(let [{:keys! [& :x] :or {:x 1}} {}] :ok)"))
+    (is (empty? (lint! "(let [{:keys [& :x] :or {:x 1}} {}] :ok)")))))
+
+(deftest or-key-shapes-test
+  (testing "nil and false are map keys like any other"
+    (is (empty? (lint! "(let [{x nil :or {nil 2}} {}] x)")))
+    (is (empty? (lint! "(let [{x false :or {false 2}} {}] x)"))))
+  (testing "after & the entry is the key itself, no :keys/:strs/:syms reading"
+    (is (empty? (lint! "(let [{:keys [& \"foo\"] :or {\"foo\" 1} :all d} {}] d)")))
+    (is (empty? (lint! "(let [{:strs [& :foo] :or {:foo 1} :all d} {}] d)"))))
+  (testing "a nested binding form reads its key"
+    (is (empty? (lint! "(let [{[x] :foo :or {:foo [1]}} {}] x)")))
+    (is (empty? (lint! "(let [{{:keys [y]} :foo :or {:foo {}}} {}] y)"
+                       '{:linters {:unused-binding {:level :off}}})))))
 
 (deftest multiple-or-defaults-test
   (testing "one key defaulted under both spellings is a compile error in Clojure 1.13"
