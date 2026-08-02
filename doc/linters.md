@@ -2144,11 +2144,11 @@ You can add or override type annotations. See
 
 *Keyword:* `:unbound-destructuring-default`.
 
-*Description:* warn on binding in `:or` which does not occur in destructuring.
+*Description:* warn when `:or` gives a default for a name or a key that the destructuring form does not read.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `(let [{:keys [i] :or {i 2 j 3}} {}] i)`
+*Example triggers:* `(let [{:keys [i] :or {i 2 j 3}} {}] i)`, `(let [{:keys [i] :or {:j 3}} {}] i)`
 
 *Example message:* `j is not bound in this destructuring form`.
 

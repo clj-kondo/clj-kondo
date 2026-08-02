@@ -15,12 +15,16 @@
           _ (fs/create-dirs test-regression-checkouts)
           dir (fs/file test-regression-checkouts "ductile")
           config-dir (fs/file dir ".clj-kondo")
-          sha "d38de13d75dde8c4182b2b234cc2c52caec4d296"]
-      (when-not (fs/exists? dir)
+          sha "d38de13d75dde8c4182b2b234cc2c52caec4d296"
+          url (str "https://x-access-token:"
+                   (System/getenv "GITHUB_DUCTILE_PAT")
+                   "@github.com/nextjournal/ductile")]
+      (if (fs/exists? dir)
+        ;; a checkout restored from the CI cache holds the token it was cloned
+        ;; with, which expires
+        (p/shell {:dir dir} "git" "remote" "set-url" "origin" url)
         (p/shell {:dir test-regression-checkouts}
-                 (str/replace "git clone --no-checkout --depth 1 https://x-access-token:$GITHUB_DUCTILE_PAT@github.com/nextjournal/ductile"
-                              "$GITHUB_DUCTILE_PAT"
-                              (System/getenv "GITHUB_DUCTILE_PAT"))))
+                 "git" "clone" "--no-checkout" "--depth" "1" url))
 
       (p/shell {:dir dir} "git fetch --depth 1 origin" sha)
       (p/shell {:dir dir} "git fetch  --depth 1 origin" sha)

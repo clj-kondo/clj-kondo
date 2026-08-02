@@ -3805,12 +3805,23 @@ foo/"))
 #(inc #(inc %))")))
 
 (deftest destructuring-syntax-test
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
-   (lint! "(defn baz [a & {:keys [c] :or {:c 10}}] (* a c))"))
-  (assert-submaps
-   '({:file "<stdin>", :row 1, :col 32, :level :error, :message "Keys in :or should be simple symbols."})
-   (lint! "(defn baz [a & {:keys [c] :or {\"c\" 10}}] (* a c))"))
+  (testing "Clojure 1.13 alpha4: :or accepts literal keys"
+    (is (empty?
+         (lint! "(defn baz [a & {:keys [c] :or {:c 10}}] (* a c))")))
+    (is (empty?
+         (lint! "(defn baz [a & {:strs [c] :or {\"c\" 10}}] (* a c))"))))
+  (testing "the :or map is data, a key is never evaluated"
+    (is (empty? (lint! "(defn baz [a & {:keys [c] :or {[c] 10}}] (* a c))"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (is (empty? (lint! "(defn baz [a & {:keys [c] :or {(foo) 10}}] (* a c))"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}}))))
+  (testing ":or key that is a qualified symbol"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 32, :level :warning,
+        :message "foo/c is not bound in this destructuring form"})
+     (lint! "(defn baz [a & {:keys [c] :or {foo/c 10}}] (* a c))"
+            '{:linters {:unused-binding {:level :warning}}})))
   (testing "TODO: restrict :flds to ClojureDart only"
     (is (empty?
          (lint! "(defn baz [a & {:flds [c]}] (* a c))")))))
