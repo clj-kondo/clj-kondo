@@ -565,6 +565,15 @@
                        '{:linters {:unresolved-symbol {:level :error}}})))
     (is (empty? (lint! "(let [{:keys! [:x :y/z person/name]} {}] [x z name])"
                        '{:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "a key after & is required as written, issue #2935"
+    (is (empty? (lint! "(defn f [{:strs! [& :foo]}] :ran) (f {:foo 1})"
+                       '{:linters {:type-mismatch {:level :error}}})))
+    (assert-submaps2
+     '({:file "<stdin>", :level :error, :message "Missing required key: :foo"})
+     (lint! "(defn f [{:strs! [& :foo]}] :ran) (f {})"
+            '{:linters {:type-mismatch {:level :error}}}))
+    (is (empty? (lint! "(defn h [{:keys! [& \"raw\"]}] :ran) (h {\"raw\" 1})"
+                       '{:linters {:type-mismatch {:level :error}}}))))
   (testing "unused :keys! binding"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "unused binding x"})

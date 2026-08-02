@@ -284,11 +284,19 @@
   [ctx modifier-node modifier-type entries]
   (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
     (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
-      (into {}
-            (keep #(when-not (= '& (:value %))
-                     (when-let [k (destructuring-key ctx modifier-ns modifier-type %)]
-                       [k :any])))
-            entries))))
+      (first
+       (reduce (fn [[m amp?] entry]
+                 (cond (= '& (:value entry)) [m true]
+                       ;; after & the entry is the key as written, the
+                       ;; :keys/:strs/:syms reading does not apply
+                       amp? (let [k (types/map-key ctx entry)]
+                              [(cond-> m (types/known-map-key? k) (assoc k :any)) amp?])
+                       :else
+                       (if-let [k (destructuring-key ctx modifier-ns modifier-type entry)]
+                         [(assoc m k :any) amp?]
+                         [m amp?])))
+               [{} false]
+               entries)))))
 
 (declare extract-bindings)
 
