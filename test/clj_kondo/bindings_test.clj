@@ -446,6 +446,9 @@
                           :message "Expected: number, received: boolean."})
                        (lint! "(let [{:keys [& :rebilling] :or {:rebilling false} :all data} {}] (inc (:rebilling data)))"
                               type-config)))
+    (testing "a binding name and a symbol key are different keys"
+      (is (empty? (lint! "(let [{:keys [x] y 'x :or {x 1 'x \"s\"} :all m} {}] [x y (inc (:x m))])"
+                         type-config))))
     (testing "a nested :all keeps the defaults of its own form"
       (assert-submaps2 '({:row 1 :level :error
                           :message "Expected: string, received: positive integer."})
@@ -722,7 +725,12 @@
      '({:file "<stdin>", :level :error,
         :message "Can't supply default value for required key: :x"})
      (lint! "(let [{:keys! [& :x] :or {:x 1}} {}] :ok)"))
-    (is (empty? (lint! "(let [{:keys [& :x] :or {:x 1}} {}] :ok)")))))
+    (is (empty? (lint! "(let [{:keys [& :x] :or {:x 1}} {}] :ok)")))
+    (testing "a later optional occurrence does not undo the required one"
+      (assert-submaps2
+       '({:file "<stdin>", :level :error,
+          :message "Can't supply default value for required key: :x"})
+       (lint! "(let [{:keys! [& :x] :keys [& :x] :or {:x 1}} {}] :ok)")))))
 
 (deftest or-key-shapes-test
   (testing "nil and false are map keys like any other"
@@ -734,7 +742,14 @@
   (testing "a nested binding form reads its key"
     (is (empty? (lint! "(let [{[x] :foo :or {:foo [1]}} {}] x)")))
     (is (empty? (lint! "(let [{{:keys [y]} :foo :or {:foo {}}} {}] y)"
-                       '{:linters {:unused-binding {:level :off}}})))))
+                       '{:linters {:unused-binding {:level :off}}}))))
+  (testing "bindings whose key we can't read are told apart by name"
+    (is (empty? (lint! "(let [{a [:a] b [:b] :or {a 1 b 2}} {}] [a b])"))))
+  (testing "one default for a key read by more than one binding"
+    (assert-submaps2
+     '({:file "<stdin>", :level :warning, :message "unused binding y"})
+     (lint! "(let [{x :a y :a :or {:a 1}} {}] x)"
+            '{:linters {:unused-binding {:level :warning}}}))))
 
 (deftest multiple-or-defaults-test
   (testing "one key defaulted under both spellings is a compile error in Clojure 1.13"

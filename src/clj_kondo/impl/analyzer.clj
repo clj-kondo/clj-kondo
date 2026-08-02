@@ -128,15 +128,18 @@
             required (or (some :required bindings)
                          (when other-key (val other-key)))
             ;; which key this entry defaults, however it is spelled. Tagged
-            ;; because nil and false are keys and a name is not a key
+            ;; because nil and false are keys and a name is not a key. A binding
+            ;; whose key we can't read, e.g. {a [:a]}, is known by its name
             default-id (cond key? [:key map-key]
-                             (and sym? (seq bindings))
-                             [:key (get binding->key (first bindings))]
-                             sym? [:sym sym])
+                             sym? (if-let [e (some->> bindings first (find binding->key))]
+                                    [:key (val e)]
+                                    [:sym sym]))
             mta (meta k)]
         (when-not mark-used?
           (cond (seq bindings)
-                (run! #(namespace/reg-destructuring-default! ctx mta %) bindings)
+                ;; one default, however many bindings read the key
+                (when (= 1 (count bindings))
+                  (namespace/reg-destructuring-default! ctx mta (first bindings)))
                 ;; a key read without binding a name still takes a default
                 other-key nil
                 default-id
@@ -350,14 +353,18 @@
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
         all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
-        ;; the default per binding name or literal key, to type what :all adds
+        ;; the default per binding name or literal key, to type what :all adds.
+        ;; Tagged like default-id, a name and a symbol key are not the same key
         or-defaults (when (and all? or?)
                       (into {}
                             (comp (filter (fn [[k _]] (plain-directive? k :or)))
                                   (mapcat (fn [[_ v]] (partition 2 (:children v))))
                                   (keep (fn [[k v]]
                                           (when-let [e (or-entry-key ctx k)]
-                                            [(if (contains? e :sym) (:sym e) (:key e)) v]))))
+                                            [(if (contains? e :sym)
+                                               [:sym (:sym e)]
+                                               [:key (:key e)])
+                                             v]))))
                             kvs))
         [req sel] (reduce (fn [[req sel] [k v]]
                             (let [key-name (some-> (:k k) name keyword)]
@@ -388,6 +395,9 @@
           ;; keys after & in :keys bind nothing, but do take an :or default
           ;; keys the form reads without binding a name, {key required}
           other-keys (when or? (volatile! {}))
+          ;; the same key can be read more than once, requiredness wins
+          note-other-key! (fn [mk required]
+                            (some-> other-keys (vswap! update mk #(or % required))))
           or-key-nodes (when (and or? (not types-off?))
                          (into []
                                (comp
@@ -452,10 +462,9 @@
                                                       (usages/analyze-keyword ctx child opts))
                                                     ;; after & the entry is the key itself, the
                                                     ;; :keys/:strs/:syms reading does not apply
-                                                    (when other-keys
-                                                      (let [mk (types/map-key ctx child)]
-                                                        (when (types/known-map-key? mk)
-                                                          (vswap! other-keys assoc mk required-keys?))))))
+                                                    (let [mk (types/map-key ctx child)]
+                                                      (when (types/known-map-key? mk)
+                                                        (note-other-key! mk required-keys?)))))
                                               (recur (next children) true res))
                                           :else
                                           (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
@@ -548,7 +557,7 @@
                         (vswap! key-bindings conj
                                 [mk b (defaulted? (:name b) mk)])
                         ;; a nested form reads the key without binding a name
-                        (some-> other-keys (vswap! assoc mk nil))))
+                        (note-other-key! mk nil)))
                     (recur rest-kvs (merge res bnds
                                            {:analyzed (analyze-expression** ctx v)})))))
           (let [res (if-let [all-expr @all-node]
@@ -557,12 +566,12 @@
                             defaults (when or-defaults
                                        (into (into {}
                                                    (keep (fn [[k _]]
-                                                           (when-let [d (get or-defaults k)]
+                                                           (when-let [d (get or-defaults [:key k])]
                                                              [k d])))
                                                    (some-> other-keys deref))
                                              (keep (fn [[mk b _]]
-                                                     (when-let [d (or (get or-defaults (:name b))
-                                                                      (get or-defaults mk))]
+                                                     (when-let [d (or (get or-defaults [:sym (:name b)])
+                                                                      (get or-defaults [:key mk]))]
                                                        [mk d])))
                                              @key-bindings))
                             t (when-not types-off?
