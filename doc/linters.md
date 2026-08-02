@@ -1886,7 +1886,7 @@ is passed to a `str` that is already a string, which makes the `str` unnecessary
 *Keyword*: `:redundant-primitive-coercion`
 
 *Description:* warn on redundant primitive coercion calls. The warning arises when a
-primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, `char`,
+primitive coercion function (`double`, `long`, `short`, `byte`, `char`,
 `boolean`) is applied to an expression that already returns that primitive type.
 
 *Default level:* `:info`.
@@ -1900,10 +1900,6 @@ primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, 
 ;; Function already returns double
 (defn foo ^double [] 1.0)
 (double (foo))
-
-;; Function already returns float
-(defn bar ^float [] 1.0)
-(float (bar))
 ```
 
 *Example message:* `Redundant double coercion: expression already has type double`.
@@ -1917,6 +1913,8 @@ will not detect redundant coercions.
 - Java interop method return types are not tracked. Calls like `(double (.doubleValue x))`
   will not be detected as redundant because clj-kondo does not infer return types from
   Java method calls.
+- `int` and `float` are not checked. An integer-typed expression can still be a `Long`,
+  so `(int x)` is not redundant, and `float?` is also true for doubles.
 
 ### Refer
 
