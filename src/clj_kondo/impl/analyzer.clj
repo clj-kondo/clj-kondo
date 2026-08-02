@@ -340,8 +340,10 @@
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
         all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
-        ;; :all, :select and :defaults all bind the applied :or defaults
-        defaults-read? (or all? select?
+        ;; :all, :select and :defaults all bind the applied :or defaults. :all
+        ;; and :select reach through nested forms too, :defaults does not
+        defaults-read-deep? (or all? select? (:defaults-read-deep opts))
+        defaults-read? (or defaults-read-deep?
                            (some (fn [[k _]] (plain-directive? k :defaults)) kvs))
         ;; the default per binding name or literal key, to type what :all adds.
         ;; Tagged like default-id, a name and a symbol key are not the same key
@@ -541,11 +543,14 @@
                   ;; k is a binding form, v its lookup key
                   (let [mk (types/map-key ctx v)
                         known-key? (types/known-map-key? mk)
+                        child-opts (cond-> opts
+                                     defaults-read-deep?
+                                     (assoc :defaults-read-deep true))
                         child-opts (if-let [vt (when known-key?
                                                  (types/destructured-key-tag
                                                   form-tag mk (defaulted? (:value k) mk)))]
-                                     (assoc opts :tag vt)
-                                     opts)
+                                     (assoc child-opts :tag vt)
+                                     child-opts)
                         bnds (extract-bindings ctx k scoped-expr child-opts)]
                     (when (and all? known-key?
                                (identical? :map (tag k))

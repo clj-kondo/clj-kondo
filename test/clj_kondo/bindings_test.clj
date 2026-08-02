@@ -745,6 +745,16 @@
                        '{:linters {:unused-binding {:level :off}}}))))
   (testing "bindings whose key we can't read are told apart by name"
     (is (empty? (lint! "(let [{a [:a] b [:b] :or {a 1 b 2}} {}] [a b])"))))
+  (testing ":all and :select read the defaults of nested forms, :defaults does not"
+    (is (empty? (lint! "(let [{{:keys [x] :or {x 1}} :sub :all m} {:sub {}}] m)"
+                       '{:linters {:unused-binding {:level :off}}})))
+    (is (empty? (lint! "(let [{{:keys [x] :or {x 1}} :sub :select s} {:sub {}}] s)"
+                       '{:linters {:unused-binding {:level :off}}})))
+    (assert-submaps2
+     '({:file "<stdin>", :level :warning, :message "unused binding x"}
+       {:file "<stdin>", :level :warning, :message "unused default for binding x"})
+     (lint! "(let [{{:keys [x] :or {x 1}} :sub :or {:sub {}} :defaults ds} {}] ds)"
+            '{:linters {:unused-binding {:level :warning}}})))
   (testing "a key we can't read is left alone"
     (is (empty? (lint! "(let [{c [:x] :or {[:x] 2}} {}] c)"
                        '{:linters {:unused-binding {:level :warning}}}))))
