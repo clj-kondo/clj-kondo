@@ -3811,12 +3811,11 @@ foo/"))
     (is (empty?
          (lint! "(defn baz [a & {:strs [c] :or {\"c\" 10}}] (* a c))"))))
   (testing "the :or map is data, a key is never evaluated"
-    (is (empty? (lint! "(defn baz [a & {:keys [c] :or {[c] 10}}] (* a c))")))
+    (is (empty? (lint! "(defn baz [a & {:keys [c] :or {[c] 10}}] (* a c))"
+                       '{:linters {:unused-binding {:level :warning}}})))
     (is (empty? (lint! "(defn baz [a & {:keys [c] :or {(foo) 10}}] (* a c))"
-                       '{:linters {:unresolved-symbol {:level :error}}})))
-    (testing "a collection key defaults the binding that reads it"
-      (is (empty? (lint! "(let [{c [:x] :or {[:x] 10}} {}] c)"
-                         '{:linters {:unresolved-symbol {:level :error}}})))))
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}}))))
   (testing ":or key that is a qualified symbol"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 32, :level :warning,

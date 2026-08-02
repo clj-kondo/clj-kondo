@@ -85,15 +85,10 @@
 (defn or-entry-key
   "How the key of an :or entry reads: {:sym s} for a binding name, {:key k} for a
   literal map key (Clojure 1.13). The :or map is data, so nil and false are keys
-  like any other. Nil when the key is a form we can't read, e.g. [:x]."
+  like any other. Nil for a key we can't read, e.g. [:x]."
   [ctx k]
-  (if (identical? :token (tag k))
-    (let [s (:value k)]
-      (if (symbol? s)
-        {:sym s}
-        (let [mk (types/map-key ctx k)]
-          (when (types/known-map-key? mk)
-            {:key mk}))))
+  (if (and (identical? :token (tag k)) (symbol? (:value k)))
+    {:sym (:value k)}
     (let [mk (types/map-key ctx k)]
       (when (types/known-map-key? mk)
         {:key mk}))))
@@ -138,8 +133,7 @@
         (when-not mark-used?
           (cond (seq bindings)
                 ;; one default, however many bindings read the key
-                (when (= 1 (count bindings))
-                  (namespace/reg-destructuring-default! ctx mta (first bindings)))
+                (namespace/reg-destructuring-default! ctx mta bindings)
                 ;; a key read without binding a name still takes a default
                 other-key nil
                 default-id

@@ -396,10 +396,12 @@
   nil)
 
 (defn reg-destructuring-default!
-  [{:keys [base-lang lang namespaces ns]} default binding]
+  "Registers one default for every binding that reads its key: the default is
+  unused only when none of them is used."
+  [{:keys [base-lang lang namespaces ns]} default bindings]
   (swap! namespaces
          update-in [base-lang lang (:name ns) :destructuring-defaults]
-         conj (assoc default :binding binding))
+         conj (assoc default :bindings (vec bindings)))
   nil)
 
 (defn reg-used-binding!

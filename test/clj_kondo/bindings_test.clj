@@ -745,11 +745,21 @@
                        '{:linters {:unused-binding {:level :off}}}))))
   (testing "bindings whose key we can't read are told apart by name"
     (is (empty? (lint! "(let [{a [:a] b [:b] :or {a 1 b 2}} {}] [a b])"))))
+  (testing "a key we can't read is left alone"
+    (is (empty? (lint! "(let [{c [:x] :or {[:x] 2}} {}] c)"
+                       '{:linters {:unused-binding {:level :warning}}}))))
   (testing "one default for a key read by more than one binding"
     (assert-submaps2
      '({:file "<stdin>", :level :warning, :message "unused binding y"})
      (lint! "(let [{x :a y :a :or {:a 1}} {}] x)"
-            '{:linters {:unused-binding {:level :warning}}}))))
+            '{:linters {:unused-binding {:level :warning}}}))
+    (testing "reported once when no binding uses it"
+      (assert-submaps2
+       '({:file "<stdin>", :level :warning, :message "unused binding x"}
+         {:file "<stdin>", :level :warning, :message "unused binding y"}
+         {:file "<stdin>", :level :warning, :message "unused default for binding x"})
+       (lint! "(let [{x :a y :a :or {:a 1}} {}] 1)"
+              '{:linters {:unused-binding {:level :warning}}})))))
 
 (deftest multiple-or-defaults-test
   (testing "one key defaulted under both spellings is a compile error in Clojure 1.13"

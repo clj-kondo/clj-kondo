@@ -972,8 +972,10 @@
               :end-row (:end-row binding)
               :end-col (:end-col binding)}))))
       (doseq [default defaults
-              :let [binding (:binding default)]
-              :when (not (contains? (:used-bindings ns) binding))]
+              :let [bindings (:bindings default)
+                    binding (first bindings)]
+              :when (and binding
+                         (not-any? #(contains? (:used-bindings ns) %) bindings))]
         (findings/reg-finding!
          ctx
          {:type :unused-binding
