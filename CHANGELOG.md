@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2932](https://github.com/clj-kondo/clj-kondo/issues/2932): Type checker: the type of a map value does not apply to bindings that destructure it further. E.g. `(let [{[x0 x1] :x} {:x [1 2]}] (+ x0 x1))` no longer warns.
 - [#2929](https://github.com/clj-kondo/clj-kondo/issues/2929): `:conflicting-alias` no longer warns when an alias is equal to the name of the current namespace ([@subotac](https://github.com/subotac)). This reverts [#2849](https://github.com/clj-kondo/clj-kondo/issues/2849).
 - [#2923](https://github.com/clj-kondo/clj-kondo/issues/2923): `:redundant-primitive-coercion` no longer checks `int` and `float`. An integer-typed value can be a `Long`, so `(int x)` still converts, and `float?` is also true for doubles.
 - [#2924](https://github.com/clj-kondo/clj-kondo/issues/2924): Clojure 1.13: support the `:all` directive in map destructuring. E.g. `(let [{:keys [a] :all m} {}] m)` no longer warns with `Unresolved symbol: m`.

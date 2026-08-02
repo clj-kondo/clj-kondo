@@ -2129,6 +2129,10 @@
 
 (deftest destructured-map-value-types-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "the value's tag does not leak to sequentially destructured elements, issue #2932"
+      (is (empty? (lint! "(let [{[x0 x1] :x} {:x [1 2]}] (+ x0 x1))" config)))
+      (is (empty? (lint! "(defn f [] {:x [1 2]}) (defn g [] (let [{[x0 x1] :x} (f)] (+ x0 x1)))"
+                         config))))
     (testing "a known map init types its destructured keys"
       (assert-submaps2
        '({:row 1 :message "Expected: number, received: string."})

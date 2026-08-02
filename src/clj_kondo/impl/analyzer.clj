@@ -719,7 +719,9 @@
                                   (when (and (identical? :as (:k as))
                                              (not (:namespaced? as)))
                                     as-sym)))
-                       child-opts (assoc opts :allow-amp true)
+                       ;; the value's tag describes the whole sequence, not its
+                       ;; elements, see the same guard in extract-map-bindings
+                       child-opts (assoc (dissoc opts :tag) :allow-amp true)
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
                              (map #(extract-bindings ctx % scoped-expr child-opts) children)
