@@ -124,9 +124,9 @@
           (cond (and (seq bindings) (not defaults-read?))
                 ;; one default, however many bindings read the key
                 (namespace/reg-destructuring-default! ctx mta bindings)
-                target nil
-                ;; the binding exists, only the key it reads is unreadable
-                (and sym (contains? m sym)) nil
+                ;; the entry is fine: the key is read, or the binding exists and
+                ;; only the key it reads is unreadable
+                (or target (and sym (contains? m sym))) nil
                 ;; a key we can't read claims nothing, in either direction
                 entry
                 (findings/reg-finding!
@@ -141,7 +141,7 @@
         (when required
           (findings/reg-finding!
            ctx
-           {:message (if-let [b (some #(when (:required %) %) bindings)]
+           {:message (if-let [b (first (filter :required bindings))]
                        (str "Can't supply default value for required binding: " (:name b))
                        (str "Can't supply default value for required key: " (pr-str (key target))))
             :row (:row mta)
@@ -558,8 +558,8 @@
                                (node-contains-or? k))
                       (vswap! nested-keys conj mk))
                     (when known-key?
-                      (let [b (and (utils/symbol-token? k)
-                                   (some-> bnds first val))]
+                      (let [b (when (utils/symbol-token? k)
+                                (some-> bnds first val))]
                         (when b
                           (vswap! key-bindings conj
                                   [mk b (defaulted? (:name b) mk)]))
