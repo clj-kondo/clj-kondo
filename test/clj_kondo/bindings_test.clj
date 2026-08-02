@@ -463,9 +463,7 @@
                         :message "Expected: number, received: nil."})
                      (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:b data))])"
                             type-config))
-    (testing "a nil default leaves its key out, as 1.13.0-alpha6 does"
-      ;; :all merges the defaults through some-vals, :defaults does not. Asked
-      ;; upstream whether that difference is intended, see all-tag
+    (testing "a nil default adds no key, :or works on key presence"
       (assert-submaps2 '({:row 1 :level :error
                           :message "Expected: number, received: nil."})
                        (lint! "(let [{:keys [amount] :or {amount nil} :all data} {}] [amount (inc (:amount data))])"
