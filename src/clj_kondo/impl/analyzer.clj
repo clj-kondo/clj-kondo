@@ -82,71 +82,99 @@
                      cat)
                children))))))
 
+(defn or-entry-key
+  "How the key of an :or entry reads: {:sym s} for a binding name, {:key k} for a
+  literal map key (Clojure 1.13). The :or map is data, so nil and false are keys
+  like any other. Nil for a key we can't read, e.g. [:x]."
+  [ctx k]
+  (if (and (identical? :token (tag k)) (symbol? (:value k)))
+    {:sym (:value k)}
+    (let [mk (types/map-key ctx k)]
+      (when (types/known-map-key? mk)
+        {:key mk}))))
+
+(defn or-entry-target
+  "The entry of `form-keys` an :or entry addresses, nil when it addresses
+  nothing we know. A symbol names a binding, anything else is a key."
+  [{:keys [sym key]} form-keys]
+  (if sym
+    (when-let [e (find (:names form-keys) sym)]
+      (find (:keys form-keys) (val e)))
+    (find (:keys form-keys) key)))
+
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
-  #_(prn :anathefuck)
-  (let [mark-used? (or (:skip-reg-binding? ctx)
+  (let [;; every key the form reads, see form-keys
+        form-keys (:form-keys opts)
+        ;; :all, :select and :defaults all bind the applied defaults
+        defaults-read? (:defaults-read opts)
+        mark-used? (or (:skip-reg-binding? ctx)
                        (:mark-bindings-used? ctx)
                        (when (:fn-args? opts)
                          (-> ctx :config :linters :unused-binding
-                             :exclude-destructured-keys-in-fn-args)))]
-    (when-not mark-used?
-      (doseq [[k _v] (partition 2 (:children defaults))
-              :let [sym (:value k)
-                    mta (meta k)]
-              :when sym]
-        (if-let [binding (get m sym)]
-          (namespace/reg-destructuring-default! ctx mta binding)
+                             :exclude-destructured-keys-in-fn-args)))
+        undefined-locals (set (keys m))
+        seen (volatile! #{})]
+    (doseq [[k v] (partition 2 (:children defaults))]
+      (let [entry (or-entry-key ctx k)
+            sym (:sym entry)
+            target (when entry (or-entry-target entry form-keys))
+            {:keys [bindings required]} (some-> target val)
+            mta (meta k)]
+        (when-not mark-used?
+          (cond (and (seq bindings) (not defaults-read?))
+                ;; one default, however many bindings read the key
+                (namespace/reg-destructuring-default! ctx mta bindings)
+                ;; the entry is fine: the key is read, or the binding exists and
+                ;; only the key it reads is unreadable
+                (or target (and sym (contains? m sym))) nil
+                ;; a key we can't read claims nothing, in either direction
+                entry
+                (findings/reg-finding!
+                 ctx
+                 {:message (str k " is not bound in this destructuring form") :level :warning
+                  :row (:row mta)
+                  :col (:col mta)
+                  :end-row (:end-row mta)
+                  :end-col (:end-col mta)
+                  :filename (:filename ctx)
+                  :type :unbound-destructuring-default})))
+        (when required
           (findings/reg-finding!
            ctx
-           {:message (str sym " is not bound in this destructuring form") :level :warning
+           {:message (if-let [b (first (filter :required bindings))]
+                       (str "Can't supply default value for required binding: " (:name b))
+                       (str "Can't supply default value for required key: " (pr-str (key target))))
             :row (:row mta)
             :col (:col mta)
             :end-row (:end-row mta)
             :end-col (:end-col mta)
             :filename (:filename ctx)
-            :type :unbound-destructuring-default})))))
-  (let [undefined-locals (set (keys m))]
-    (doseq [[k v] (partition 2 (:children defaults))]
-      (let [binding (:value k)
-            simple? (and (identical? :token (tag k))
-                         (simple-symbol? binding))]
-        (when (:required (get m binding))
-          (let [mta (meta k)]
+            :type :syntax}))
+        ;; a name and a literal key for one key are two defaults. An entry that
+        ;; addresses nothing is already reported, it needs no identity
+        (when target
+          (if (contains? @seen (key target))
             (findings/reg-finding!
-             ctx
-             {:message (str "Can't supply default value for required binding: " binding)
-              :row (:row mta)
-              :col (:col mta)
-              :end-row (:end-row mta)
-              :end-col (:end-col mta)
-              :filename (:filename ctx)
-              :type :syntax})))
-        (when-not simple?
-          (let [m (meta k)]
-            (findings/reg-finding!
-             ctx
-             {:message "Keys in :or should be simple symbols."
-              :row (:row m)
-              :col (:col m)
-              :end-row (:end-row m)
-              :end-col (:end-col m)
-              :filename (:filename ctx)
-              :type :syntax})))
+             ctx (node->line (:filename ctx) k :duplicate-map-key
+                             (str "Multiple :or defaults for same key: " k)))
+            (vswap! seen conj (key target))))
         (if (= k v)
           ;; see #915
           (analyze-expression** prev-ctx v)
           (do
-            (when (and (:analyze-locals? ctx) (not (:clj-kondo/mark-used k)))
+            (when (and (simple-symbol? sym)
+                       (:analyze-locals? ctx)
+                       (not (:clj-kondo/mark-used k)))
               (let [expr-meta (meta k)
                     expr-meta (assoc-some expr-meta
                                           :name-row (:row expr-meta)
                                           :name-col (:col expr-meta)
                                           :name-end-row (:end-row expr-meta)
                                           :name-end-col (:end-col expr-meta)
-                                          :name binding
+                                          :name sym
                                           :filename (:filename ctx)
                                           :str (:string-value k))]
-                (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) binding) expr-meta)))
+                (analysis/reg-local-usage! ctx (:filename ctx) (get (:bindings ctx) sym) expr-meta)))
             (let [ctx (assoc ctx
                              :undefined-locals undefined-locals
                              :in-or-default? true)]
@@ -276,19 +304,20 @@
   "Tag for an :all binding: the init's map type, with the keys that only an :or
   default provides and the nested forms that apply their own defaults added.
   Plain :map when the init's type can't be augmented, nil when it says nothing."
-  [ctx form-tag key-bindings or-defaults nested-keys]
+  [ctx form-tag defaults nested-keys]
   (let [defaulted (into {}
-                        (comp (filter (fn [[dk _ defaulted]]
-                                        ;; the init's own key wins over the default
-                                        (and defaulted (not (contains? (:val form-tag) dk)))))
-                              (keep (fn [[dk b _]]
-                                      (let [t (some->> (:name b)
-                                                       (get or-defaults)
-                                                       (types/expr->tag ctx))]
-                                        ;; a nil default leaves the key out, see some-vals
-                                        (when-not (identical? :nil t)
-                                          [dk (if t {:tag t} {})])))))
-                        key-bindings)
+                        (keep (fn [[dk node]]
+                                ;; the init's own key wins over the default
+                                (when-not (contains? (:val form-tag) dk)
+                                  (let [t (types/expr->tag ctx node)]
+                                    ;; A nil default adds no key. :or works on the presence
+                                    ;; of a key, not its value, and a key mapped to nil is
+                                    ;; not a missing key, so :all and :select merge the
+                                    ;; defaults through some-vals, which drops them.
+                                    ;; Confirmed upstream
+                                    (when-not (identical? :nil t)
+                                      [dk (if t {:tag t} {})])))))
+                        defaults)
         ;; a nested form applies its own defaults, so only its mapness holds
         additions (into defaulted (map (fn [k] [k {:tag :map}])) nested-keys)]
     (cond (empty? additions) form-tag
@@ -315,12 +344,23 @@
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
         all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
-        ;; the default per binding name, to type the keys :all adds
+        ;; :all, :select and :defaults all bind the applied :or defaults. :all
+        ;; and :select reach through nested forms too, :defaults does not
+        defaults-read-deep? (or all? select? (:defaults-read-deep opts))
+        defaults-read? (or defaults-read-deep?
+                           (some (fn [[k _]] (plain-directive? k :defaults)) kvs))
+        ;; the default per binding name or literal key, to type what :all adds.
+        ;; Tagged like default-id, a name and a symbol key are not the same key
         or-defaults (when (and all? or?)
                       (into {}
                             (comp (filter (fn [[k _]] (plain-directive? k :or)))
                                   (mapcat (fn [[_ v]] (partition 2 (:children v))))
-                                  (keep (fn [[k v]] (when-let [s (:value k)] [s v]))))
+                                  (keep (fn [[k v]]
+                                          (when-let [e (or-entry-key ctx k)]
+                                            [(if (contains? e :sym)
+                                               [:sym (:sym e)]
+                                               [:key (:key e)])
+                                             v]))))
                             kvs))
         [req sel] (reduce (fn [[req sel] [k v]]
                             (let [key-name (some-> (:k k) name keyword)]
@@ -348,12 +388,41 @@
           ;; keys of the whole form
           all-node (volatile! nil)
           nested-keys (volatile! [])
-          or-names (when (and or? (not types-off?))
-                     (into #{}
-                           (comp (filter (fn [[k _]] (plain-directive? k :or)))
-                                 (mapcat (fn [[_ v]] (take-nth 2 (:children v))))
-                                 (keep :value))
-                           kvs))]
+          ;; Every key the form reads, the one thing :or is checked against:
+          ;; {:keys {key {:bindings [b ..] :required bool}} :names {name key}}.
+          ;; :bindings is empty for a key after & and for a nested form. A key
+          ;; we can't read never enters, so nothing is claimed about it
+          form-keys (when or? (volatile! {:keys {} :names {}}))
+          note-key! (fn [mk b required]
+                      (some-> form-keys
+                              (vswap! (fn [fk]
+                                        (cond-> (update-in fk [:keys mk :required] #(or % required))
+                                          b (update-in [:keys mk :bindings] (fnil conj []) b)
+                                          b (assoc-in [:names (:name b)] mk))))))
+          or-key-nodes (when (and or? (not types-off?))
+                         (into []
+                               (comp
+                                (filter
+                                 (fn [[k _]] (plain-directive? k :or)))
+                                (mapcat
+                                 (fn [[_ v]]
+                                   (take-nth 2 (:children v)))))
+                               kvs))
+          or-names (into #{}
+                         (keep (fn [k]
+                                 (let [v (:value k)]
+                                   (when (simple-symbol? v) v))))
+                         or-key-nodes)
+          or-keys (into #{}
+                        (keep (fn [k]
+                                (when (types/static-map-key? ctx k)
+                                  (let [mk (types/map-key ctx k)]
+                                    (when (types/known-map-key? mk)
+                                      mk)))))
+                        or-key-nodes)
+          defaulted? (fn [binding-name map-key]
+                       (or (contains? or-names binding-name)
+                           (contains? or-keys map-key)))]
     (loop [[k v & rest-kvs] (:children expr)
            res {}]
         (if k
@@ -370,8 +439,9 @@
                                             :keys-destructuring? true
                                             :destructuring-type key-name
                                             :destructuring-expr k)
-                                modifier-ns (when-not types-off?
+                                modifier-ns (when (or or? (not types-off?))
                                               (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
+                                required-keys? (one-of key-name [:keys! :syms! :strs!])
                                 ;; before & are bindings, after & only literal keys
                                 res (loop [children (:children v) amp? false res res]
                                       (if-let [child (first children)]
@@ -388,8 +458,14 @@
                                                 (findings/reg-finding!
                                                  ctx (node->line (:filename ctx) child :syntax
                                                                  (str "Binding symbols can only appear before &, use keys after: " (:value child))))
-                                                (:k child)
-                                                (usages/analyze-keyword ctx child opts))
+                                                :else
+                                                (do (when (:k child)
+                                                      (usages/analyze-keyword ctx child opts))
+                                                    ;; after & the entry is the key itself, the
+                                                    ;; :keys/:strs/:syms reading does not apply
+                                                    (let [mk (types/map-key ctx child)]
+                                                      (when (types/known-map-key? mk)
+                                                        (note-key! mk nil required-keys?)))))
                                               (recur (next children) true res))
                                           :else
                                           (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
@@ -398,14 +474,15 @@
                                                           (some-> (:k child) name symbol))
                                                 child-opts (if-let [vt (when dk
                                                                          (types/destructured-key-tag
-                                                                          form-tag dk (contains? or-names bname)))]
+                                                                          form-tag dk (defaulted? bname dk)))]
                                                              (assoc opts :tag vt)
                                                              opts)
                                                 bnds (extract-bindings ctx child scoped-expr child-opts)]
                                             (when dk
                                               (when-let [b (some-> bnds first val)]
                                                 (vswap! key-bindings conj
-                                                        [dk b (contains? or-names (:name b))])))
+                                                        [dk b (defaulted? (:name b) dk)])
+                                                (note-key! dk b required-keys?)))
                                             (recur (next children) false (merge res bnds))))
                                         res))]
                             (recur rest-kvs res)))
@@ -419,7 +496,11 @@
                                   ;; or can refer to a binding introduced by what we extracted
                                   (let [prev-ctx ctx
                                         ctx (ctx-with-bindings ctx res)]
-                                    (analyze-keys-destructuring-defaults ctx prev-ctx res v opts)
+                                    (analyze-keys-destructuring-defaults
+                                     ctx prev-ctx res v
+                                     (assoc opts
+                                            :form-keys (some-> form-keys deref)
+                                            :defaults-read defaults-read?))
                                     (recur rest-kvs res))
                                   :else
                                   ;; analyze or after the rest
@@ -462,25 +543,42 @@
                   ;; k is a binding form, v its lookup key
                   (let [mk (types/map-key ctx v)
                         known-key? (types/known-map-key? mk)
+                        child-opts (cond-> opts
+                                     defaults-read-deep?
+                                     (assoc :defaults-read-deep true))
                         child-opts (if-let [vt (when known-key?
                                                  (types/destructured-key-tag
-                                                  form-tag mk (contains? or-names (:value k))))]
-                                     (assoc opts :tag vt)
-                                     opts)
+                                                  form-tag mk (defaulted? (:value k) mk)))]
+                                     (assoc child-opts :tag vt)
+                                     child-opts)
                         bnds (extract-bindings ctx k scoped-expr child-opts)]
                     (when (and all? known-key?
                                (identical? :map (tag k))
                                (node-contains-or? k))
                       (vswap! nested-keys conj mk))
-                    (when (and known-key? (utils/symbol-token? k))
-                      (when-let [b (some-> bnds first val)]
-                        (vswap! key-bindings conj
-                                [mk b (contains? or-names (:name b))])))
+                    (when known-key?
+                      (let [b (when (utils/symbol-token? k)
+                                (some-> bnds first val))]
+                        (when b
+                          (vswap! key-bindings conj
+                                  [mk b (defaulted? (:name b) mk)]))
+                        ;; a nested form reads the key without binding a name
+                        (note-key! mk b nil)))
                     (recur rest-kvs (merge res bnds
                                            {:analyzed (analyze-expression** ctx v)})))))
           (let [res (if-let [all-expr @all-node]
-                      (let [t (when-not types-off?
-                                (all-tag ctx form-tag @key-bindings or-defaults @nested-keys))
+                      (let [;; a default reaches its key by name or by the key
+                            ;; itself, both lead to the same entry
+                            defaults (when or-defaults
+                                       (into {}
+                                             (keep (fn [[mk {:keys [bindings]}]]
+                                                     (when-let [d (or (some #(get or-defaults [:sym (:name %)])
+                                                                            bindings)
+                                                                      (get or-defaults [:key mk]))]
+                                                       [mk d])))
+                                             (some-> form-keys deref :keys)))
+                            t (when-not types-off?
+                                (all-tag ctx form-tag defaults @nested-keys))
                             all-opts (if t (assoc opts :tag t) opts)
                             ctx (cond-> ctx
                                   (-> ctx :config :linters :unused-binding

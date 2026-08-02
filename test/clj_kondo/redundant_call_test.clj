@@ -83,11 +83,6 @@
          [{:level :warning
            :message "Redundant double coercion: expression already has type double"}]
          (lint! "(defn foo ^double [] 1.0) (double (foo))" cfg)))
-      (testing "warns on float coercion of float-returning fn"
-        (assert-submaps
-         [{:level :warning
-           :message "Redundant float coercion: expression already has type float"}]
-         (lint! "(defn foo ^float [] 1.0) (float (foo))" cfg)))
       (testing "warns on long coercion of long-returning fn"
         (assert-submaps
          [{:level :warning
@@ -98,16 +93,6 @@
          [{:level :warning
            :message "Redundant double coercion: expression already has type double"}]
          (lint! "(double (double 1))" cfg)))
-      (testing "warns on nested float coercions"
-        (assert-submaps
-         [{:level :warning
-           :message "Redundant float coercion: expression already has type float"}]
-         (lint! "(float (float 1))" cfg)))
-      (testing "warns on int coercion of int-returning fn"
-        (assert-submaps
-         [{:level :warning
-           :message "Redundant int coercion: expression already has type int"}]
-         (lint! "(int (int 1))" cfg)))
       (testing "warns on long coercion of long-returning fn"
         (assert-submaps
          [{:level :warning
@@ -144,6 +129,13 @@
         ;; Cross-type integer coercions should not warn
         (is (empty? (lint! "(int (long 1))" cfg)))
         (is (empty? (lint! "(long (int 1))" cfg)))
+        (testing "int does not warn, an :int tag can be a Long, issue #2923"
+          (is (empty? (lint! "(fn [x] (when (integer? x) (int x)))" cfg)))
+          (is (empty? (lint! "(fn [x] (when (int? x) (int x)))" cfg)))
+          (is (empty? (lint! "(int (int 1))" cfg))))
+        (testing "float does not warn, float? is also true for doubles"
+          (is (empty? (lint! "(fn [x] (when (float? x) (float x)))" cfg)))
+          (is (empty? (lint! "(float (float 1))" cfg))))
         (is (empty? (lint! "(short (int 1))" cfg)))
         (is (empty? (lint! "(int (short 1))" cfg)))
         (is (empty? (lint! "(long (short 1))" cfg)))

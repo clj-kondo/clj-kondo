@@ -1886,7 +1886,7 @@ is passed to a `str` that is already a string, which makes the `str` unnecessary
 *Keyword*: `:redundant-primitive-coercion`
 
 *Description:* warn on redundant primitive coercion calls. The warning arises when a
-primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, `char`,
+primitive coercion function (`double`, `long`, `short`, `byte`, `char`,
 `boolean`) is applied to an expression that already returns that primitive type.
 
 *Default level:* `:info`.
@@ -1900,10 +1900,6 @@ primitive coercion function (`double`, `float`, `long`, `int`, `short`, `byte`, 
 ;; Function already returns double
 (defn foo ^double [] 1.0)
 (double (foo))
-
-;; Function already returns float
-(defn bar ^float [] 1.0)
-(float (bar))
 ```
 
 *Example message:* `Redundant double coercion: expression already has type double`.
@@ -1917,6 +1913,8 @@ will not detect redundant coercions.
 - Java interop method return types are not tracked. Calls like `(double (.doubleValue x))`
   will not be detected as redundant because clj-kondo does not infer return types from
   Java method calls.
+- `int` and `float` are not checked. An integer-typed expression can still be a `Long`,
+  so `(int x)` is not redundant, and `float?` is also true for doubles.
 
 ### Refer
 
@@ -2144,11 +2142,11 @@ You can add or override type annotations. See
 
 *Keyword:* `:unbound-destructuring-default`.
 
-*Description:* warn on binding in `:or` which does not occur in destructuring.
+*Description:* warn when `:or` gives a default for a name or a key that the destructuring form does not read.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `(let [{:keys [i] :or {i 2 j 3}} {}] i)`
+*Example triggers:* `(let [{:keys [i] :or {i 2 j 3}} {}] i)`, `(let [{:keys [i] :or {:j 3}} {}] i)`
 
 *Example message:* `j is not bound in this destructuring form`.
 

@@ -255,7 +255,9 @@
                                       :type :redundant-str-call
                                       :message "Single argument to str already is a string")))
       (lint-is-message-not-string! ctx call called-fn tags)
-      (when-let [expected-type ('{double :double, float :float, long :long, int :int
+      ;; No int and float: an :int tag does not pin the boxed class, so (int x)
+      ;; still converts, and float? is also true for doubles.
+      (when-let [expected-type ('{double :double, long :long,
                                   short :short, byte :byte, char :char, boolean :boolean}
                                 (:name called-fn))]
         (when (and
@@ -972,8 +974,10 @@
               :end-row (:end-row binding)
               :end-col (:end-col binding)}))))
       (doseq [default defaults
-              :let [binding (:binding default)]
-              :when (not (contains? (:used-bindings ns) binding))]
+              :let [bindings (:bindings default)
+                    binding (first bindings)]
+              :when (and binding
+                         (not-any? #(contains? (:used-bindings ns) %) bindings))]
         (findings/reg-finding!
          ctx
          {:type :unused-binding
