@@ -714,22 +714,27 @@
                        all-tokens? (every? #(identical? :token %) (map :tag children))
                        exclude-as? (-> ctx :config :linters :unused-binding
                                        :exclude-destructured-as)
-                       as-sym (when exclude-as?
-                                (let [[as as-sym] (take-last 2 children)]
-                                  (when (and (identical? :as (:k as))
-                                             (not (:namespaced? as)))
-                                    as-sym)))
+                       as-node (let [[as as-node] (take-last 2 children)]
+                                 (when (and (identical? :as (:k as))
+                                            (not (:namespaced? as)))
+                                   as-node))
+                       as-sym (when exclude-as? as-node)
                        ;; the value's tag describes the whole sequence, not its
-                       ;; elements, see the same guard in extract-map-bindings
+                       ;; elements, see the same guard in extract-map-bindings.
+                       ;; Only :as names the whole value
                        child-opts (assoc (dissoc opts :tag) :allow-amp true)
+                       opts-for (fn [child]
+                                  (if (and (identical? child as-node) (:tag opts))
+                                    (assoc child-opts :tag (:tag opts))
+                                    child-opts))
                        v (let [ctx (update ctx :callstack conj [nil :vector])]
                            (if all-tokens?
-                             (map #(extract-bindings ctx % scoped-expr child-opts) children)
+                             (map #(extract-bindings ctx % scoped-expr (opts-for %)) children)
                              (-> (reduce (fn [[ctx acc] expr]
                                            (let [ctx (if (and as-sym (= expr as-sym))
                                                        (assoc ctx :mark-bindings-used? true)
                                                        ctx)
-                                                 bnds (extract-bindings ctx expr scoped-expr child-opts)]
+                                                 bnds (extract-bindings ctx expr scoped-expr (opts-for expr))]
                                              [(ctx-with-bindings ctx bnds) (conj! acc bnds)]))
                                          [ctx
                                           (transient [])]
