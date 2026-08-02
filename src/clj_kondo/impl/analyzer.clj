@@ -397,12 +397,8 @@
           note-key! (fn [mk b required]
                       (some-> form-keys
                               (vswap! (fn [fk]
-                                        (cond-> (update-in fk [:keys mk]
-                                                           (fn [e]
-                                                             (-> e
-                                                                 (update :bindings (fnil conj []) b)
-                                                                 (update :required #(or % required))
-                                                                 (update :bindings #(filterv some? %)))))
+                                        (cond-> (update-in fk [:keys mk :required] #(or % required))
+                                          b (update-in [:keys mk :bindings] (fnil conj []) b)
                                           b (assoc-in [:names (:name b)] mk))))))
           or-key-nodes (when (and or? (not types-off?))
                          (into []
