@@ -82,24 +82,24 @@
                      cat)
                children))))))
 
-(defn destructuring-default-binding
-  "The [binding map-key] an :or entry supplies a default for. sym is the entry
-  key spelled as a binding name, map-key as a literal key (Clojure 1.13)."
-  [m key-bindings sym map-key map-key?]
-  (if sym
-    (when-let [binding (get m sym)]
-      [binding (some (fn [[binding-key b _defaulted]]
-                       (when (= b binding) binding-key))
-                     key-bindings)])
-    (when map-key?
-      (some (fn [[binding-key b _defaulted]]
-              (when (= map-key binding-key)
-                [b binding-key]))
-            key-bindings))))
+(defn or-entry-key
+  "How the key of an :or entry reads: {:sym s} for a binding name, {:map-key mk}
+  for a literal map key (Clojure 1.13), nil for anything else."
+  [ctx k]
+  (let [s (when (identical? :token (tag k)) (:value k))]
+    (cond (symbol? s) {:sym s}
+          (types/static-map-key? ctx k)
+          (let [mk (types/map-key ctx k)]
+            (when (types/known-map-key? mk)
+              {:map-key mk})))))
 
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [key-bindings (:key-bindings opts)
         amp-keys (:amp-keys opts)
+        ;; an :or entry addresses its binding by name or by map key, both
+        ;; spellings default the same key
+        key->binding (into {} (map (fn [[mk b _]] [mk b])) key-bindings)
+        binding->key (into {} (map (fn [[mk b _]] [b mk])) key-bindings)
         mark-used? (or (:skip-reg-binding? ctx)
                        (:mark-bindings-used? ctx)
                        (when (:fn-args? opts)
@@ -108,23 +108,17 @@
         undefined-locals (set (keys m))
         seen (volatile! #{})]
     (doseq [[k v] (partition 2 (:children defaults))]
-      (let [sym (:value k)
-            token? (identical? :token (tag k))
-            symbol-key? (and token? (symbol? sym))
-            simple? (and token? (simple-symbol? sym))
-            static? (and (not symbol-key?) (types/static-map-key? ctx k))
-            mk (when static? (types/map-key ctx k))
-            map-key? (and static? (types/known-map-key? mk))
-            valid? (or symbol-key? map-key?)
-            [binding binding-key] (destructuring-default-binding
-                                   m key-bindings (when simple? sym) mk map-key?)
+      (let [{:keys [sym map-key]} (or-entry-key ctx k)
+            binding (if sym (get m sym) (get key->binding map-key))
+            ;; the key this entry defaults, whichever way it is spelled
+            default-key (or map-key (get binding->key binding) sym)
             mta (meta k)]
         (when-not mark-used?
           (cond binding
                 (namespace/reg-destructuring-default! ctx mta binding)
                 ;; a key listed after & in :keys binds nothing, but takes a default
-                (and map-key? (contains? amp-keys mk)) nil
-                valid?
+                (contains? amp-keys map-key) nil
+                default-key
                 (findings/reg-finding!
                  ctx
                  {:message (str k " is not bound in this destructuring form") :level :warning
@@ -145,14 +139,12 @@
             :end-col (:end-col mta)
             :filename (:filename ctx)
             :type :syntax}))
-        (when-not valid?
+        (when-not default-key
           (findings/reg-finding!
            ctx (node->line (:filename ctx) k :syntax
                            "Keys in :or should be symbols or map keys.")))
         ;; a binding name and a literal key for the same key are two defaults
-        (when-let [default-key (cond map-key? [:key mk]
-                                     binding-key [:key binding-key]
-                                     symbol-key? [:binding sym])]
+        (when default-key
           (if (contains? @seen default-key)
             (findings/reg-finding!
              ctx (node->line (:filename ctx) k :duplicate-map-key
@@ -162,9 +154,9 @@
           ;; see #915
           (analyze-expression** prev-ctx v)
           (do
-            (when-not valid?
+            (when-not default-key
               (analyze-expression** ctx k))
-            (when (and simple?
+            (when (and (simple-symbol? sym)
                        (:analyze-locals? ctx)
                        (not (:clj-kondo/mark-used k)))
               (let [expr-meta (meta k)
