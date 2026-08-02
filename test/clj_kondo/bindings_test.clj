@@ -436,6 +436,16 @@
                         :message "Expected: string, received: natural integer."})
                      (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (subs (:amount data) 1)])"
                             type-config))
+    (testing "a default given as a literal key types its key too"
+      (assert-submaps2 '({:row 1 :level :error
+                          :message "Expected: string, received: natural integer."})
+                       (lint! "(let [{:keys [amount] :or {:amount 0} :all data} {}] [amount (subs (:amount data) 1)])"
+                              type-config)))
+    (testing "a key after & takes a default without binding a name"
+      (assert-submaps2 '({:row 1 :level :error
+                          :message "Expected: number, received: boolean."})
+                       (lint! "(let [{:keys [& :rebilling] :or {:rebilling false} :all data} {}] (inc (:rebilling data)))"
+                              type-config)))
     (testing "a nested :all keeps the defaults of its own form"
       (assert-submaps2 '({:row 1 :level :error
                           :message "Expected: string, received: positive integer."})

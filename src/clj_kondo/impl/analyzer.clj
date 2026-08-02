@@ -298,19 +298,16 @@
   "Tag for an :all binding: the init's map type, with the keys that only an :or
   default provides and the nested forms that apply their own defaults added.
   Plain :map when the init's type can't be augmented, nil when it says nothing."
-  [ctx form-tag key-bindings or-defaults nested-keys]
+  [ctx form-tag defaults nested-keys]
   (let [defaulted (into {}
-                        (comp (filter (fn [[dk _ defaulted]]
-                                        ;; the init's own key wins over the default
-                                        (and defaulted (not (contains? (:val form-tag) dk)))))
-                              (keep (fn [[dk b _]]
-                                      (let [t (some->> (:name b)
-                                                       (get or-defaults)
-                                                       (types/expr->tag ctx))]
-                                        ;; a nil default leaves the key out, see some-vals
-                                        (when-not (identical? :nil t)
-                                          [dk (if t {:tag t} {})])))))
-                        key-bindings)
+                        (keep (fn [[dk node]]
+                                ;; the init's own key wins over the default
+                                (when-not (contains? (:val form-tag) dk)
+                                  (let [t (types/expr->tag ctx node)]
+                                    ;; a nil default leaves the key out, see some-vals
+                                    (when-not (identical? :nil t)
+                                      [dk (if t {:tag t} {})])))))
+                        defaults)
         ;; a nested form applies its own defaults, so only its mapness holds
         additions (into defaulted (map (fn [k] [k {:tag :map}])) nested-keys)]
     (cond (empty? additions) form-tag
@@ -337,12 +334,15 @@
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
         all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
-        ;; the default per binding name, to type the keys :all adds
+        ;; the default per binding name or literal key, to type what :all adds
         or-defaults (when (and all? or?)
                       (into {}
                             (comp (filter (fn [[k _]] (plain-directive? k :or)))
                                   (mapcat (fn [[_ v]] (partition 2 (:children v))))
-                                  (keep (fn [[k v]] (when-let [s (:value k)] [s v]))))
+                                  (keep (fn [[k v]]
+                                          (let [{:keys [sym map-key]} (or-entry-key ctx k)]
+                                            (when-let [dk (or sym map-key)]
+                                              [dk v])))))
                             kvs))
         [req sel] (reduce (fn [[req sel] [k v]]
                             (let [key-name (some-> (:k k) name keyword)]
@@ -529,8 +529,21 @@
                     (recur rest-kvs (merge res bnds
                                            {:analyzed (analyze-expression** ctx v)})))))
           (let [res (if-let [all-expr @all-node]
-                      (let [t (when-not types-off?
-                                (all-tag ctx form-tag @key-bindings or-defaults @nested-keys))
+                      (let [;; a default reaches its key by binding name or by
+                            ;; the key itself, a key after & binds nothing
+                            defaults (when or-defaults
+                                       (into (into {}
+                                                   (keep (fn [k]
+                                                           (when-let [d (get or-defaults k)]
+                                                             [k d])))
+                                                   (some-> amp-keys deref))
+                                             (keep (fn [[mk b _]]
+                                                     (when-let [d (or (get or-defaults (:name b))
+                                                                      (get or-defaults mk))]
+                                                       [mk d])))
+                                             @key-bindings))
+                            t (when-not types-off?
+                                (all-tag ctx form-tag defaults @nested-keys))
                             all-opts (if t (assoc opts :tag t) opts)
                             ctx (cond-> ctx
                                   (-> ctx :config :linters :unused-binding
