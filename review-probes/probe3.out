@@ -1,0 +1,13 @@
+500 files x 20 specs = 10000 registrations
+full project lint     :    693,2 ms (findings 0)
+spec index on disk    : 715774 bytes
+single-file re-lint 0 :     39,8 ms  (linter on)
+single-file re-lint 1 :     30,1 ms  (linter on)
+single-file re-lint 2 :     25,1 ms  (linter on)
+single-file re-lint 0 :      3,8 ms  (linter off)
+single-file re-lint 1 :      3,1 ms  (linter off)
+single-file re-lint 2 :      2,6 ms  (linter off)
+full project re-lint 0:    285,8 ms  (linter on)
+full project re-lint 1:    266,2 ms  (linter on)
+full project re-lint 0:    194,5 ms  (linter off)
+full project re-lint 1:    176,3 ms  (linter off)

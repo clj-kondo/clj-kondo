@@ -1,0 +1,10 @@
+WARNING: Use of :paths external to the project has been deprecated, please remove: /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad
+files: 1637 bytes: 15203047
+read-ns-decl only    run 0:     31,2 ms (ns forms found: 1633)
+topo-sort-sources    run 0:     55,1 ms (out: 1637)
+read-ns-decl only    run 1:     28,4 ms (ns forms found: 1633)
+topo-sort-sources    run 1:     54,0 ms (out: 1637)
+read-ns-decl only    run 2:     28,0 ms (ns forms found: 1633)
+topo-sort-sources    run 2:     52,3 ms (out: 1637)
+full clj-kondo run!  run 0:   6986,2 ms (findings: 17334, files: 1638)
+full clj-kondo run!  run 1:   4909,7 ms (findings: 17334, files: 1638)

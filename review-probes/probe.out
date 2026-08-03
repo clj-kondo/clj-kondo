@@ -1,0 +1,28 @@
+WARNING: Use of :paths external to the project has been deprecated, please remove: /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad
+
+===== 1. file renamed on disk -> stale index entry?
+lint a.clj: []
+after rename a.clj->b.clj, lint b.clj: [{:filename /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/b36006b9-979a-46df-b980-5677a603acfc2274797680501029451/b.clj, :row 2, :col 8, :message redefined spec :a/x, first defined at /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/b36006b9-979a-46df-b980-5677a603acfc2274797680501029451/a.clj:2:8}]
+
+===== 2. same file, two path spellings (relative vs absolute)
+abs path run : []
+'./' path run: []
+
+===== 3. file deleted on disk -> index entry survives?
+lint a.clj: []
+after deleting a.clj, lint b.clj: [{:filename /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/b3d26566-ee39-4186-be23-5c51345740e216005082557767711518/b.clj, :row 2, :col 8, :message redefined spec :shared/x, first defined at /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/b3d26566-ee39-4186-be23-5c51345740e216005082557767711518/a.clj:2:8}]
+
+===== 4. symbol-keyed s/def (docstring claims it is covered)
+duplicate symbol-keyed s/def: []
+s/fdef g + symbol s/def c/g (same registry key): []
+
+===== 5. project with zero specs: is the index still written?
+spec-index written: false size: nil content: nil
+
+===== 6. does :spec-defs leak into the per-namespace cache files?
+spec-index.transit.json | 271 bytes | spec-defs present: false
+lock | 0 bytes | spec-defs present: false
+
+===== 7. can a cross-run finding be suppressed at the original site?
+b.clj alone (a from cache): [{:filename /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/27d9b37d-1061-4edc-9512-e8ead2b1ca503337120231758857244/b.clj, :row 2, :col 8, :message redefined spec :shared/x, first defined at /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/27d9b37d-1061-4edc-9512-e8ead2b1ca503337120231758857244/a.clj:2:8}]
+whole dir in one run     : [{:filename /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/27d9b37d-1061-4edc-9512-e8ead2b1ca503337120231758857244/b.clj, :row 2, :col 8, :message redefined spec :shared/x, first defined at /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/27d9b37d-1061-4edc-9512-e8ead2b1ca503337120231758857244/a.clj:2:8}]

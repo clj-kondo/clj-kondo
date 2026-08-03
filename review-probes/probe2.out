@@ -1,0 +1,21 @@
+
+===== path spelling: same file, different path strings
+run 1, path = /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/a.clj
+  -> []
+run 2, path = /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/../47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/a.clj
+  -> []
+run 3, canonical-paths true, path = /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/../47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/a.clj
+  -> [redefined spec :a/x, first defined at /private/tmp/claude-501/-Users-borkdude-dev-clj-kondo/829dbf72-c158-4c84-84fa-416b1270636b/scratchpad/tmp/47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/../47cc902c-0bdb-4d37-966a-053966a19f9815068397718553690842/a.clj:2:8]
+
+===== cost on metabase (src + enterprise/backend)
+linter :off      run 0:   4704,9 ms (findings 17334)
+linter :warning  run 0:   4498,0 ms (findings 17334, redefined-spec 0)
+linter :off      run 1:   4405,0 ms (findings 17334)
+linter :warning  run 1:   4291,3 ms (findings 17334, redefined-spec 0)
+spec index size: nil bytes
+single-file re-lint run 0:      4,0 ms
+single-file re-lint run 1:      2,6 ms
+single-file re-lint run 2:      2,7 ms
+single-file, linter off  0:      2,0 ms
+single-file, linter off  1:      1,9 ms
+single-file, linter off  2:      2,1 ms
