@@ -11,7 +11,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
-## Unreleased
+## 2026.08.03
 
 - [#2935](https://github.com/clj-kondo/clj-kondo/issues/2935): a key after `&` in `:keys`/`:strs`/`:syms` counts as written for `:select` and for required keys. E.g. `(defn f [{:strs! [& :foo]}] :ran) (f {:foo 1})` no longer warns.
 - [#2932](https://github.com/clj-kondo/clj-kondo/issues/2932): Type checker: the type of a map value does not apply to bindings that destructure it further. E.g. `(let [{[x0 x1] :x} {:x [1 2]}] (+ x0 x1))` no longer warns.
