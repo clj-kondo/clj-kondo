@@ -196,11 +196,6 @@ Now clj-kondo fully understands the `my-lib/with-bound` macro and you will no
 longer get false positives when using it. Moreover, it will report unused
 bindings and will give warnings customized to this macro.
 
-If a hook returns a new node, clj-kondo lints the original call for arity only.
-The arguments of this call never go to the original function, so clj-kondo does
-not compare them with the parameter types. The type checker examines the new
-node instead.
-
 <p align="center">
   <img src="../screenshots/hooks-with-bound.png"/>
 </p>

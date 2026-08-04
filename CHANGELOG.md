@@ -13,7 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2943](https://github.com/clj-kondo/clj-kondo/issues/2943): Type checker: a call rewritten by an `:analyze-call` hook is only checked for arity. Its arguments never reach the original function, so the types of the parameters do not apply to them. E.g. a hook that rewrites `(dispatch :event {:a 1})` into `(vector :event {:a 1})` no longer warns with `Expected: string or array or nil or set or ILookup or map, received: .`.
+- [#2943](https://github.com/clj-kondo/clj-kondo/issues/2943): Type checker: if an `:analyze-call` hook rewrites a call, clj-kondo lints the call for arity only. The arguments of this call never go to the original function, so clj-kondo does not compare them with the parameter types. E.g. a hook that rewrites `(dispatch :event {:a 1})` into `(vector :event {:a 1})` no longer warns with `Expected: string or array or nil or set or ILookup or map, received: .`.
 
 ## 2026.08.03
 
