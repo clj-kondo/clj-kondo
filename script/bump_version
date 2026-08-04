@@ -15,11 +15,22 @@ if [ "$1" = "release" ]; then
     echo -e "$version" > resources/CLJ_KONDO_VERSION
     script/update-templates.clj
 elif [ "$1" = "post-release" ]; then
+    # Guard against a second post-release: CLJ_KONDO_VERSION is copied into
+    # CLJ_KONDO_RELEASED_VERSION below, so running this twice would record a
+    # -SNAPSHOT as the released version.
+    current_version=$(cat resources/CLJ_KONDO_VERSION)
+    case "$current_version" in
+        *-SNAPSHOT)
+            echo "CLJ_KONDO_VERSION is $current_version - post-release already ran. Nothing to do." >&2
+            exit 1
+            ;;
+    esac
     cat resources/CLJ_KONDO_VERSION > resources/CLJ_KONDO_RELEASED_VERSION
     tomorrow=$($date_cmd $date_pattern --date='next day')
     snapshot_version="$tomorrow-SNAPSHOT"
     echo "$snapshot_version" > resources/CLJ_KONDO_VERSION
     script/update-templates.clj
 else
-    echo "Usage: script/bump-version ( release | post-release )"
+    echo "Usage: script/bump-version ( release | post-release )" >&2
+    exit 1
 fi
