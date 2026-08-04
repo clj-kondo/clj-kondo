@@ -11,6 +11,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- [#2943](https://github.com/clj-kondo/clj-kondo/issues/2943): Type checker: a call rewritten by an `:analyze-call` hook is only checked for arity. Its arguments never reach the original function, so the types of the parameters do not apply to them. E.g. a hook that rewrites `(dispatch :event {:a 1})` into `(vector :event {:a 1})` no longer warns with `Expected: string or array or nil or set or ILookup or map, received: .`.
+
 ## 2026.08.03
 
 - [#2935](https://github.com/clj-kondo/clj-kondo/issues/2935): the `:keys`/`:strs`/`:syms` conversion does not apply to a key after `&`. `:select` and the required-keys check use the key exactly as it is typed. E.g. `(defn f [{:strs! [& :foo]}] :ran) (f {:foo 1})` no longer warns with `Missing required key: "foo"`.

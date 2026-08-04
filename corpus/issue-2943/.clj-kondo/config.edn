@@ -1,0 +1,4 @@
+{:hooks {:analyze-call {repro.core/dispatch hooks/dispatch}}
+ :linters {:type-mismatch {:level :error}
+           :invalid-arity {:level :error}
+           :unused-binding {:level :off}}}

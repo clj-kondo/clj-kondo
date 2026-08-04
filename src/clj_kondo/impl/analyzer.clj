@@ -3830,7 +3830,9 @@
                                            new-arg-count))
                         expanded (assoc expanded :visited [resolved-namespace resolved-name])]
                     ;;;; This registers the original call when the new node does not
-                    ;;;; refer to the same call, so we still get arity linting
+                    ;;;; refer to the same call, so we still get arity linting.
+                    ;;;; Only arity: the original arguments are never analyzed in
+                    ;;;; this position, so there are no arg types to check against.
                     (when (and (:analyze-var-usages? ctx)
                                (not same-call?))
                       (namespace/reg-var-usage!
@@ -3861,7 +3863,6 @@
                                     :condition (:condition expr)
                                     :config (:config ctx)
                                     :top-ns (:top-ns ctx)
-                                    :arg-types arg-types
                                     :interop? interop?
                                     :resolved-core? resolved-core?
                                     :idx (:idx ctx)

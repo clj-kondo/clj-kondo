@@ -785,3 +785,17 @@ my-ns/special-map \"
       (is (seq errors))
       (is (every? #(= "corpus/stackoverflow_hook/foo.clj" (normalize-filename (:file %))) errors))
       (is (some #(str/includes? (:message %) "StackOverflowError") errors)))))
+
+(deftest issue-2943-rewritten-call-keeps-arity-linting-only-test
+  (testing "a hook that rewrites the call registers the original only for arity:
+  its arguments are never analyzed in that position, so checking them against
+  the callee's inferred param types would report a mismatch on nothing"
+    (assert-submaps2
+     '({:filename "corpus/issue-2943/src/repro/core.clj", :row 10, :col 3, :level :error,
+        :message "repro.core/dispatch is called with 1 arg but expects 2"})
+     ;; run! rather than lint!: the bogus finding had no row or col, which the
+     ;; output parser drops
+     (:findings
+      (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2943" "src")]
+                       :config (edn/read-string (slurp (fs/file "corpus" "issue-2943" ".clj-kondo" "config.edn")))
+                       :config-dir (fs/file "corpus" "issue-2943" ".clj-kondo")})))))
