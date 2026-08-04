@@ -786,6 +786,23 @@ my-ns/special-map \"
       (is (every? #(= "corpus/stackoverflow_hook/foo.clj" (normalize-filename (:file %))) errors))
       (is (some #(str/includes? (:message %) "StackOverflowError") errors)))))
 
+(deftest hook-ns-clash-test
+  (testing "two config dirs that define a hook ns of the same name each get
+  their own: hook namespaces share one SCI context, so the second one loaded
+  needs a reload to replace the first"
+    (let [lint-dir (fn [dir]
+                     (map :message
+                          (:findings
+                           (clj-kondo/run!
+                            {:lint [(fs/file "corpus" "hook-ns-clash" dir "src")]
+                             :config (edn/read-string
+                                      (slurp (fs/file "corpus" "hook-ns-clash" dir ".clj-kondo" "config.edn")))
+                             :config-dir (fs/file "corpus" "hook-ns-clash" dir ".clj-kondo")}))))]
+      (is (= ["clojure.core/inc is called with 2 args but expects 1"] (lint-dir "a")))
+      (is (= ["clojure.core/dec is called with 3 args but expects 1"] (lint-dir "b")))
+      (testing "and switching back reloads the first one again"
+        (is (= ["clojure.core/inc is called with 2 args but expects 1"] (lint-dir "a")))))))
+
 (deftest issue-2943-rewritten-call-keeps-arity-linting-only-test
   (testing "a hook that rewrites the call registers the original only for arity:
   its arguments are never analyzed in that position, so checking them against

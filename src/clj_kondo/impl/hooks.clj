@@ -118,34 +118,39 @@
     (let [base-path (-> ns-str namespace-munge (str/replace "." "/"))]
       (find-file-on-classpath base-path))))
 
-(defn- file-changed?
-  "Detect whether the on-disk content of `f` has changed since the last
-  observation cached under `:file-stamps` in `hook-resolve-cache`. First
-  observation in this JVM: record content hash, return false (a fresh
-  `require` is itself a load - no reload needed). Subsequent observations:
-  rehash and compare to detect changes. mtime alone is unreliable because
-  generated hook files can be rewritten within the same filesystem mtime
-  tick (millisecond on ext4)."
-  [^java.io.File f]
+(defn- ns-stale?
+  "Detect whether hook namespace `ns-str` differs from the one loaded into the
+  SCI context, cached under `:ns-stamps` in `hook-resolve-cache`. First
+  observation in this JVM: record the file and its content hash, return false
+  (a fresh `require` is itself a load - no reload needed). Subsequent
+  observations: reload when the content changed, or when the namespace now
+  resolves to another file. The second case happens when two config dirs
+  define a hook namespace of the same name: hook namespaces share one SCI
+  context, so without a reload the `require` is a no-op and the first
+  namespace stays. mtime alone is unreliable for the content case, because
+  generated hook files can be rewritten within the same filesystem mtime tick
+  (millisecond on ext4)."
+  [ns-str ^java.io.File f]
   (when (and f (.exists f))
     (let [path (.getAbsolutePath f)
-          prev-hash (get-in @hook-resolve-cache [:file-stamps path :hash])
+          prev (get-in @hook-resolve-cache [:ns-stamps ns-str])
           h (file-sha256 f)]
       (cond
-        (nil? prev-hash)
-        (do (vswap! hook-resolve-cache assoc-in [:file-stamps path]
-                    {:hash h})
+        (nil? prev)
+        (do (vswap! hook-resolve-cache assoc-in [:ns-stamps ns-str]
+                    {:path path :hash h})
             false)
-        (= h prev-hash)
+        (and (= path (:path prev))
+             (= h (:hash prev)))
         false
         :else
-        (do (vswap! hook-resolve-cache assoc-in [:file-stamps path]
-                    {:hash h})
+        (do (vswap! hook-resolve-cache assoc-in [:ns-stamps ns-str]
+                    {:path path :hash h})
             true)))))
 
 (defn- hook-needs-reload? [ns-str]
   (or api/*reload*
-      (file-changed? (hook-file-for-ns ns-str))))
+      (ns-stale? ns-str (hook-file-for-ns ns-str))))
 
 (defn walk
   [inner outer form]
@@ -299,13 +304,13 @@
    (try
      (let [hooks-cfg (:hooks config)
            ;; invalidate hook lookups when hooks config changes, but keep the
-           ;; per-file stamps so we don't re-hash on every config reload
+           ;; per-namespace stamps so we don't re-hash on every config reload
            _ (vswap! hook-resolve-cache
                      (fn [cv]
                        (if (identical? hooks-cfg (:hooks-cfg cv))
                          cv
                          {:hooks-cfg hooks-cfg
-                          :file-stamps (:file-stamps cv)})))
+                          :ns-stamps (:ns-stamps cv)})))
            k [ns-sym var-sym]
            v (get @hook-resolve-cache k hook-not-found)]
        (if (identical? v hook-not-found)

@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Hooks: if two config dirs define a hook namespace of the same name, each config dir now gets its own. Hook namespaces share one context, so clj-kondo reloads the namespace when it resolves to another file. Before this fix, the namespace that loaded first stayed, and the hooks of the second config dir failed with `Unable to resolve symbol`.
 - [#2943](https://github.com/clj-kondo/clj-kondo/issues/2943): Type checker: if an `:analyze-call` hook rewrites a call, clj-kondo lints the call for arity only. The arguments of this call never go to the original function, so clj-kondo does not compare them with the parameter types. E.g. a hook that rewrites `(dispatch :event {:a 1})` into `(vector :event {:a 1})` no longer warns with `Expected: string or array or nil or set or ILookup or map, received: .`.
 
 ## 2026.08.03
