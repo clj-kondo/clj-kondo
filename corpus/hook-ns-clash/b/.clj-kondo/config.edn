@@ -1,0 +1,2 @@
+{:hooks {:analyze-call {b.core/bar hooks/b-hook}}
+ :linters {:invalid-arity {:level :error}}}

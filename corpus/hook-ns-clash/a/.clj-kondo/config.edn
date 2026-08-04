@@ -1,0 +1,2 @@
+{:hooks {:analyze-call {a.core/foo hooks/a-hook}}
+ :linters {:invalid-arity {:level :error}}}
