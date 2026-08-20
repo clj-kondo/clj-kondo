@@ -17,12 +17,16 @@ jobs:
           - os: macos-15-intel
             name: macos
             static: false
+            # graalvm-pin: 25.0.1 is the last GraalVM with macos-x64 builds
+            graalvm_version: '25.0.4'
          #- os: ubuntu-latest
          #  name: linux
          #  static: false
+         #  graalvm_version: '25.0.4'
          #- os: ubuntu-latest
          #  name: linux
          #  static: true
+         #  graalvm_version: '25.0.4'
     runs-on: ${{ matrix.os }}
     env:
       LEIN_ROOT: "true"
@@ -53,7 +57,7 @@ jobs:
         if: "matrix.static == false"
         uses: graalvm/setup-graalvm@v1.5.2
         with:
-          java-version: '25'
+          java-version: ${{ matrix.graalvm_version }}
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,7 +65,7 @@ jobs:
         if: "matrix.static == true"
         uses: graalvm/setup-graalvm@v1.5.2
         with:
-          java-version: '25'
+          java-version: ${{ matrix.graalvm_version }}
           distribution: 'graalvm'
           native-image-musl: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
