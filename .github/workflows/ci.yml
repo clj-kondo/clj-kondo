@@ -17,8 +17,8 @@ jobs:
           - os: macos-15-intel
             name: macos
             static: false
-            # graalvm-pin: 25.0.1 is the last GraalVM with macos-x64 builds
-            graalvm_version: '25.0.4'
+            # 25.0.1 is the last GraalVM with macos-x64 builds
+            graalvm_version: '25.0.1' # graalvm-pin
          #- os: ubuntu-latest
          #  name: linux
          #  static: false
