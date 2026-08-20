@@ -5,8 +5,6 @@
 To build the `clj-kondo` binary from source:
 
 * Download [GraalVM](https://www.graalvm.org/downloads) Oracle GraalVM 25.0.4.
-  Currently `clj-kondo` can only be built with java11 based graal VMs, so using JDK 8 builds will
-  not work.
 
 * Set the `GRAALVM_HOME` variable. E.g.:
 
