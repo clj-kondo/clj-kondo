@@ -43,8 +43,11 @@
          "(graalvm-)"                   ;; install dir
          "(Oracle GraalVM )"]))         ;; prose
 
-(defn pinned? [line]
-  (str/includes? line "graalvm-pin"))
+(defn pinned?
+  "A graalvm-pin marker protects its own line and the line after it."
+  [line prev-line]
+  (or (str/includes? line "graalvm-pin")
+      (str/includes? prev-line "graalvm-pin")))
 
 (defn bump-line [line new-version]
   (reduce (fn [line pattern]
@@ -54,11 +57,14 @@
 
 (defn bump-file [file new-version]
   (let [lines (str/split-lines (slurp file))
-        bumped (map (fn [line]
-                      (let [line' (if (pinned? line) line (bump-line line new-version))]
+        bumped (map (fn [prev-line line]
+                      (let [line' (if (pinned? line prev-line)
+                                    line
+                                    (bump-line line new-version))]
                         (when-not (= line line')
                           (println (str "  " file ": " (str/trim line'))))
                         line'))
+                    (cons "" lines)
                     lines)]
     (spit file (str (str/join \newline bumped) \newline))))
 
