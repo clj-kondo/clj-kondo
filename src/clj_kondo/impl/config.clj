@@ -44,7 +44,7 @@
               :var-same-name-except-case {:level :warning}
               :constant-condition {:level :warning}
               :unreachable-code {:level :warning}
-              :datalog-syntax {:level :error}
+              :datalog-syntax {:level :error :implicit-rules :auto}
               :unbound-destructuring-default {:level :warning}
               :used-underscored-binding {:level :off}
               :unknown-require-option {:level :warning}

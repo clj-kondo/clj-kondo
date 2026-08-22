@@ -51,3 +51,38 @@
          (lint! (str "(ns user (:require [" lib " :refer [q]]))
                (q '[:find ?a :where [?b :foo _]] 42)")
                 {:linters {:datalog-syntax {:level :error}}})))))
+
+(deftest datalog-engine-specific-clauses
+  (testing "clauses beyond the Datomic dialect are not syntax errors"
+    (is (empty? (lint! "(ns user (:require [datalevin.core :refer [q]]))
+                        (q '[:find ?e ?score
+                             :where [?e :item/score ?score]
+                             :order-by [?score :desc]
+                             :limit 5] 42)"
+                       {:linters {:datalog-syntax {:level :error}}})))
+    (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
+                        (q '{:find [?e] :where [[?e :age 30]] :limit 5} 42)"
+                       {:linters {:datalog-syntax {:level :error}}}))))
+
+  (testing "Datahike pre-installs its bitemporal rules, so no % is needed"
+    (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
+                        (q '[:find ?s :in $ ?at
+                             :where (valid-at ?tx ?at) [?e :salary ?s ?tx true]] 42 43)"
+                       {:linters {:datalog-syntax {:level :error}}}))))
+
+  (testing "an engine without pre-installed rules still needs it"
+    (assert-submaps
+     '({:level :error, :message "Missing rules var '%' in :in"})
+     (lint! "(ns user (:require [datascript.core :refer [q]]))
+             (q '[:find ?e :where (my-rule ?e)] 42)"
+            {:linters {:datalog-syntax {:level :error}}})))
+
+  (testing "the default is configurable"
+    (assert-submaps
+     '({:level :error, :message "Missing rules var '%' in :in"})
+     (lint! "(ns user (:require [datahike.api :refer [q]]))
+             (q '[:find ?e :where (my-rule ?e)] 42)"
+            {:linters {:datalog-syntax {:level :error :implicit-rules false}}}))
+    (is (empty? (lint! "(ns user (:require [datascript.core :refer [q]]))
+                        (q '[:find ?e :where (my-rule ?e)] 42)"
+                       {:linters {:datalog-syntax {:level :error :implicit-rules true}}})))))

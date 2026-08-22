@@ -3493,7 +3493,7 @@
      [datomic.client.api q]
      [datalevin.core q]
      [datomic-type-extensions.api q])
-    (do (datalog/analyze-datalog ctx expr)
+    (do (datalog/analyze-datalog ctx expr resolved-namespace)
         (analyze-children ctx children false))
     ([compojure.core GET]
      [compojure.core POST]

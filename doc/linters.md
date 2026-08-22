@@ -371,7 +371,7 @@ Inconsistent alias. Expected old-api instead of api.
 *Keyword:* `:datalog-syntax`.
 
 *Description:* warn on invalid datalog syntax. This linter is implemented using
-[io.lambdaforge/datalog-parser](https://github.com/lambdaforge/datalog-parser). Also
+[org.replikativ/datalog-parser](https://github.com/replikativ/datalog-parser). Also
 see this [blog
 post](https://lambdaforge.io/2019/11/08/clj-kondo-datalog-support.html).
 
@@ -386,6 +386,16 @@ post](https://lambdaforge.io/2019/11/08/clj-kondo-datalog-support.html).
 ```
 
 *Example message:* `Query for unknown vars: [?a]`.
+
+*Configuration:* `:implicit-rules` controls whether a rule expression needs a
+`%` binding in `:in`. The default, `:auto`, decides per library: Datahike
+pre-installs its bitemporal rules (`valid-at` and friends), so a query calling
+one of them needs no `%`, while every other library does. Set it to `true` or
+`false` to override.
+
+``` clojure
+{:linters {:datalog-syntax {:implicit-rules true}}}
+```
 
 ### Deprecated var
 
