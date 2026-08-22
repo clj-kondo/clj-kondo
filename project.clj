@@ -30,7 +30,7 @@
                                    [io.github.borkdude/deflet "0.1.0"]
                                    [borkdude/missing.test.assertions "0.0.2"]]
                     :source-paths ["src" "parser" "inlined" "extract"]}
-             :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "0.1.0"]]
+             :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "1.0.6"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]
                        :main clj-kondo.main

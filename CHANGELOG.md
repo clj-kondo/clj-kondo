@@ -11,6 +11,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- Bump graal-build-time to 1.0.6 to fix startup crash in binaries built with GraalVM 25.1+.
+
 ## 2026.08.04
 
 - Hooks: clj-kondo reloads a hook namespace when another config dir defines a namespace with the same name.
