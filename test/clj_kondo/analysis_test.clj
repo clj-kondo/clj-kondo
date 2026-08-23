@@ -1420,6 +1420,17 @@
                   (or (not  (= 'foo (:name usage)))
                       (= 'foo (:from-var usage)))) var-usages))))
 
+(deftest defmethod-from-var-test
+  (let [{:keys [var-usages]}
+        (analyze "(ns foo (:require [clojure.string :as str]))
+                  (defmulti greet :type)
+                  (defmethod greet :formal [{:keys [name]}]
+                    (str/join \" \" [\"Dear\" name]))")]
+    (testing "var-usages inside defmethod body have from-var set to multimethod name"
+      (is (some (fn [usage]
+                  (and (= 'join (:name usage))
+                       (= 'greet (:from-var usage)))) var-usages)))))
+
 (defn- ana-vars-meta [s cfg]
   (-> (with-in-str s
         (clj-kondo/run! {:lint ["-"] :config
