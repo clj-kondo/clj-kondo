@@ -27,6 +27,28 @@
                                           '{:linters {:unresolved-namespace {:exclude #{baz}}}})
                            :linters :unresolved-namespace :exclude))))
 
+(deftest merge-min-clj-kondo-version-test
+  (testing "preserves highest min-clj-kondo-version when later config is lower"
+    (is (= "2025.02.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.02.01"}
+                           {:min-clj-kondo-version "2025.01.01"})))))
+  (testing "preserves highest min-clj-kondo-version when later config is higher"
+    (is (= "2025.02.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.01.01"}
+                           {:min-clj-kondo-version "2025.02.01"})))))
+  (testing "preserves min-clj-kondo-version when only one config defines it"
+    (is (= "2025.01.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.01.01"} {})))))
+  (testing "highest min-clj-kondo-version across multiple merged configs"
+    (is (= "2025.03.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.01.01"}
+                           {:min-clj-kondo-version "2025.03.01"}
+                           {:min-clj-kondo-version "2025.02.01"}))))))
+
 (deftest merge-config!-test
   (testing "type-mismatch :arities are overwritten instead of merged"
     (is (= {:linters {:type-mismatch {:namespaces '{my-ns {shared   {:arities {1 {:args [:str] :ret :str}
