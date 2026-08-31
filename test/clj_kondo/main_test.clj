@@ -1756,7 +1756,7 @@ foo/foo ;; this does use the private var
   (is (empty? (lint! "(defn foo [])")))
   (is (empty? (lint! "(ns foo (:refer-clojure :exclude [inc])) (defn inc [])")))
   (is (empty? (lint! "(declare foo) (def foo 1)")))
-  (is (empty? (lint! "(def foo 1) (declare foo)" 
+  (is (empty? (lint! "(def foo 1) (declare foo)"
                      {:linters {:redundant-declare {:level :off}}})))
   (is (empty? (lint! "(if (odd? 3) (def foo 1) (def foo 2))")))
   (testing "disable linter in comment"
@@ -4264,6 +4264,12 @@ x"
                    (lint! "(ns foo (:refer-global :only [String] :rename {String Str})) Str String"
                           {:linters {:unresolved-symbol {:level :error}}}
                           "--lang" "cljs")))
+
+(deftest reduce-str-test
+  (is (assert-submaps2
+       '({:file "<stdin>", :row 1, :col 1, :level :warning, :message "Use `(apply str ...)` or `(str/join ...)`"})
+       (lint! "(reduce str \"\" [1 2 3])" {:linters {:shadowed-fn-param {:level :warning}}})))
+  (is (empty? (lint! "#_:clj-kondo/ignore (reduce str \"\" [1 2 3])" {:linters {:shadowed-fn-param {:level :warning}}}))))
 
 ;;;; Scratch
 

@@ -3104,6 +3104,18 @@
        (node->line (:filename ctx) expr
                    :reduce-without-init
                    "Reduce called without explicit initial value.")))
+    (when (and (not (linter-disabled? ctx :reduce-str))
+               (= 'reduce hof-resolved-name)
+               (or (= 'clojure.core hof-ns-name)
+                   (= 'clojure.cljs hof-ns-name))
+               (one-of [resolved-namespace resolved-name]
+                       [[clojure.core str]
+                        [cljs.core str]]))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) expr
+                   :reduce-str
+                   "Use `(apply str ...)` or `(str/join ...)`")))
     (concat fana
             (analyze-children ctx f-args false))))
 

@@ -80,6 +80,7 @@
               ;; for example: foo.bar is always loaded in a user profile
               :reduce-without-init {:level :off
                                     :exclude [#_foo.bar/baz]}
+              :reduce-str {:level :warning}
               :misplaced-docstring {:level :warning}
               :misplaced-async-metadata {:level :warning}
               :not-empty? {:level :warning}

@@ -61,6 +61,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Invalid arity](#invalid-arity)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
+    - [Reduce `str`](#reduce-str)
     - [Loop without recur](#loop-without-recur)
     - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
@@ -1157,6 +1158,25 @@ why this can be problematic.
 
 ```clojure
 {:linters {:reduce-without-init {:exclude [clojure.core/max cljs.core/max]}}}
+```
+
+### Reduce `str`
+
+**Keyword:** `:reduce-str`
+
+*Description:* warn when a reduce is called using str instead of preferring `apply str` or `clojure.string/join`.
+`reduce str` accumulates new string object references each cycle.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(reduce str [\"Hello\" \" World\"])`.
+
+*Example message:* `Prefer apply str over reduce str`
+
+*Config:* to suppress the above warning:
+
+```clojure
+{:linters {:reduce-str {:level :off}}}
 ```
 
 ### Loop without recur
