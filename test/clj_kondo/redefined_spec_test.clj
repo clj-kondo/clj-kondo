@@ -141,6 +141,33 @@
         (is (empty? (redefined-spec-findings
                      (lint! (fs/file tmp "b.clj") "--cache" cache))))))))
 
+(deftest path-spelling-test
+  (testing "the same file linted by different path spellings is one index entry"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (spit (fs/file tmp "a.clj")
+              (str "(ns a (:require " spec-require "))\n"
+                   "(s/def ::foo string?)"))
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        (lint! (str (fs/canonicalize (fs/file tmp "a.clj"))) "--cache" cache)
+        (is (empty? (redefined-spec-findings
+                     (lint! (fs/file tmp "a.clj") "--cache" cache))))))))
+
+(deftest vanished-file-test
+  (testing "entries for deleted or renamed files are dropped from the index"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))
+            src (str "(ns a (:require " spec-require " [specs :as sp]))\n"
+                     "(s/def ::sp/bar string?)")]
+        (spit (fs/file tmp "specs.clj") "(ns specs)")
+        (spit (fs/file tmp "a.clj") src)
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        ;; rename a.clj to b.clj: b must not be reported against the old entry
+        (fs/delete (fs/file tmp "a.clj"))
+        (spit (fs/file tmp "b.clj") src)
+        (is (empty? (redefined-spec-findings
+                     (lint! (fs/file tmp "b.clj") "--cache" cache))))))))
+
 (deftest config-test
   (testing "the linter can be disabled"
     (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"

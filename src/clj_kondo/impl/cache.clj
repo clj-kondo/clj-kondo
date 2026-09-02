@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
@@ -239,6 +240,17 @@
       (let [writer (transit/writer os :json)]
         (transit/write writer index)))))
 
+(defn- prune-missing-files
+  "Drops index entries whose file no longer exists (deleted or renamed), so stale
+  registrations can't be reported as the original definition."
+  [index]
+  (reduce-kv (fn [m f entries]
+               (if (fs/exists? f)
+                 (assoc m f entries)
+                 (dissoc m f)))
+             index
+             index))
+
 (defn sync-spec-index!
   "Refreshes the global spec index for the files linted in this run and returns
   the registrations contributed by *other* files (as `first defined at`
@@ -252,11 +264,16 @@
   (when cache-dir
     (with-thread-lock
       (with-cache cache-dir 6
-        (let [index (or (read-spec-index cache-dir) {})
+        (let [current-filenames (into #{} (map (comp str fs/canonicalize)) current-filenames)
+              index (-> (or (read-spec-index cache-dir) {})
+                        prune-missing-files)
               index (apply dissoc index current-filenames)
               index (reduce-kv (fn [m f entries]
                                  (if (seq entries)
-                                   (assoc m f entries)
+                                   ;; keep the spelling used in this run for
+                                   ;; display, but key on the canonical path
+                                   (assoc m (str (fs/canonicalize f))
+                                          (mapv #(assoc % :filename f) entries))
                                    m))
                                index
                                current-contributions)]
@@ -264,7 +281,7 @@
           (vec (for [[f entries] index
                      :when (not (contains? current-filenames f))
                      e entries]
-                 (assoc e :filename f :reportable? false))))))))
+                 (assoc e :reportable? false))))))))
 
 ;;;; Scratch
 
