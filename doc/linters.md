@@ -1680,6 +1680,13 @@ message is: `inc already refers to #'clojure.core/inc`
 
 *Example message:* `redefined spec :user/foo, first defined at src/user.clj:1:8`.
 
+Detection is project-wide and spans runs: registrations from previously linted
+files are remembered in the cache (mirroring spec's own global registry), so a
+finding can point at a file that is not part of the current lint set, and
+linting a single file can report a redefinition of a spec registered elsewhere.
+Since this depends on cache state, stale results can be reset by deleting the
+cache directory (`.clj-kondo/.cache`) or by linting with `--cache false`.
+
 ### Var same name except case
 
 *Keyword:* `:var-same-name-except-case`.

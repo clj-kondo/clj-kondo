@@ -330,7 +330,7 @@
 (defn reg-spec-def!
   "Records a spec registration (`s/def` or `s/fdef`) in namespace `ns-sym` for
   the :redefined-spec linter. `entry` is a map describing the registration,
-  containing at least :type (:def or :fdef), the resolved :ns and :name and the
+  containing at least :kind (:keyword or :symbol), the resolved :ns and :name and the
   location (:filename :row :col :end-row :end-col) of the registered name.
 
   Registrations are stored in a map keyed by their location string so that (1)

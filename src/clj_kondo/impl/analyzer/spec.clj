@@ -67,9 +67,21 @@
         reg-val (if (:k name-expr)
                   (assoc name-expr :reg fq-def)
                   name-expr)]
-    (when (and (:k name-expr) (redefined-spec-enabled? ctx))
-      (let [{:keys [ns name]} (usages/resolve-keyword ctx name-expr (-> ctx :ns :name))]
-        (reg-spec-def! ctx :keyword name-expr ns name)))
+    (when (redefined-spec-enabled? ctx)
+      (cond
+        (:k name-expr)
+        (let [{:keys [ns name]} (usages/resolve-keyword ctx name-expr (-> ctx :ns :name))]
+          (reg-spec-def! ctx :keyword name-expr ns name))
+        ;; a symbol-keyed s/def registers in the same key space as s/fdef
+        (symbol? (:value name-expr))
+        (let [sym (:value name-expr)
+              ns-nm (-> ctx :ns :name)
+              {resolved-ns :ns resolved-name :name unresolved? :unresolved?}
+              (namespace/resolve-name ctx true ns-nm sym nil)]
+          (when resolved-ns
+            (if (and unresolved? (not (namespace sym)))
+              (reg-spec-def! ctx :symbol name-expr ns-nm resolved-name)
+              (reg-spec-def! ctx :symbol name-expr resolved-ns resolved-name))))))
     (common/analyze-expression** (utils/ctx-with-linter-disabled ctx :unresolved-symbol) reg-val)
     (common/analyze-children ctx body)))
 

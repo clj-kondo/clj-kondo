@@ -32,6 +32,43 @@
                             "(s/fdef f :args (s/cat :x int?))\n"
                             "(s/def ::f int?)"))))))
 
+(deftest symbol-keyed-def-test
+  (testing "s/def registering the same symbol twice"
+    (assert-submaps2
+     '({:row 3 :col 8 :level :warning
+        :message #"redefined spec foo/thing"})
+     (lint! (str "(ns foo (:require " spec-require "))\n"
+                 "(s/def foo/thing string?)\n"
+                 "(s/def foo/thing int?)"))))
+  (testing "s/fdef and a symbol-keyed s/def share spec's symbol key space"
+    (assert-submaps2
+     '({:row 4 :col 8 :level :warning
+        :message #"redefined spec foo/g"})
+     (lint! (str "(ns foo (:require " spec-require "))\n"
+                 "(defn g [x] x)\n"
+                 "(s/fdef g :args (s/cat :x int?))\n"
+                 "(s/def foo/g int?)"))))
+  (testing "a symbol-keyed s/def does not clash with a keyword of the same name"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def foo/x string?)\n"
+                            "(s/def ::x int?)"))))))
+
+(deftest load-order-test
+  (testing "the required namespace is reported as the original, even when its
+            filename sorts after the redefining one"
+    (fs/with-temp-dir [tmp {}]
+      (spit (fs/file tmp "b.clj")
+            (str "(ns b (:require " spec-require " [z]))\n"
+                 "(s/def :shared/x int?)"))
+      (spit (fs/file tmp "z.clj")
+            (str "(ns z (:require " spec-require "))\n"
+                 "(s/def :shared/x string?)"))
+      (assert-submaps2
+       '({:file #"b.clj" :row 2 :col 8 :level :warning
+          :message #"redefined spec :shared/x, first defined at .*z.clj:2:8"})
+       (filter #(re-find #"redefined spec" (:message %))
+               (lint! (fs/file tmp)))))))
+
 (deftest comment-form-test
   (testing "a registration inside (comment ...) does not clash, consistent with :redefined-var"
     (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"

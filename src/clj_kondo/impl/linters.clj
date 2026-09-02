@@ -902,10 +902,41 @@
   (for [ns (namespace/list-namespaces ctx)
         entry (vals (:spec-defs ns))]
     (assoc entry
+           :in-ns (:name ns)
            :lang (:lang ns)
            :base-lang (:base-lang ns)
            :config (:config ns)
            :reportable? true)))
+
+(defn- redefined-spec-load-ranks
+  "Load-order rank per namespace that registered a spec in this run, derived
+  from the require graph: a namespace ranks after every spec-registering
+  namespace it (transitively) requires, since those are loaded first at
+  runtime. Cycles and namespaces of unknown load order rank 0, leaving the
+  filename as the ordering criterion for them."
+  [ctx]
+  (let [requires (into {}
+                       (keep (fn [ns]
+                               (when (seq (:spec-defs ns))
+                                 [(:name ns) (:required ns)])))
+                       (namespace/list-namespaces ctx))
+        ranks (volatile! {})
+        rank (fn rank [ns-sym visiting]
+               (or (get @ranks ns-sym)
+                   (if (contains? visiting ns-sym)
+                     0
+                     (let [visiting (conj visiting ns-sym)
+                           r (reduce (fn [r dep]
+                                       (if (contains? requires dep)
+                                         (max r (inc (rank dep visiting)))
+                                         r))
+                                     0
+                                     (get requires ns-sym))]
+                       (vswap! ranks assoc ns-sym r)
+                       r))))]
+    (doseq [ns-sym (keys requires)]
+      (rank ns-sym #{}))
+    @ranks))
 
 (defn- redefined-spec-contributions
   "Turns the current run's occurrences into the minimal per-file entries stored
@@ -938,6 +969,7 @@
   [ctx]
   (when-not (utils/linter-disabled? ctx :redefined-spec)
     (let [current-occs (redefined-spec-current-occurrences ctx)
+          load-ranks (redefined-spec-load-ranks ctx)
           [contributions current-filenames]
           (redefined-spec-contributions ctx current-occs)
           ;; refresh the on-disk index and get the registrations from all other
@@ -952,7 +984,12 @@
                     occs (vals (into {} (map (juxt (juxt :filename :row :col)
                                                    identity))
                                      occs))
-                    occs (sort-by (juxt :filename :row :col) occs)]
+                    ;; the namespace loaded first wins, so that the reported
+                    ;; original matches what spec's registry sees at runtime;
+                    ;; the filename only breaks ties
+                    occs (sort-by (juxt #(get load-ranks (:in-ns %) 0)
+                                        :filename :row :col)
+                                  occs)]
               :when (> (count occs) 1)
               :let [original (first occs)
                     orig-loc (str (:filename original) ":"
