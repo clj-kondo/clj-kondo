@@ -214,74 +214,200 @@
       (with-cache cache-dir 6
         (sync-cache* idacs config-dir cache-dir)))
     (sync-cache* idacs config-dir cache-dir)))
-
-;;;; Global spec index
+;;;; Spec index
 ;;
-;; A single project-wide index of spec registrations (`s/def`/`s/fdef`),
-;; mirroring spec's own global registry. It maps each source file to the
-;; registrations it contributes, so re-linting a file replaces exactly its
-;; entries. Used by the :redefined-spec linter to detect redefinitions across
-;; separate runs, independent of the require graph.
+;; A project-wide index of spec registrations (`s/def`/`s/fdef`), mirroring
+;; spec's own global registry. Used by the :redefined-spec linter to detect
+;; redefinitions across separate runs, independent of the require graph.
+;;
+;; The index is sharded, next to the per-namespace cache entries, under
+;; `<cache-dir>/specs`:
+;;
+;; - `keys/<bucket>.transit.json` holds, for a bucket of spec identities, the
+;;   registrations of that spec per source file. Buckets are addressed by a
+;;   digest of the spec identity, so a run only touches the buckets for the
+;;   specs it actually registers instead of reading and rewriting a
+;;   project-wide blob.
+;; - `files/<digest-of-path>.transit.json` is a per-file manifest of the spec
+;;   identities that file contributed last time, so re-linting it can drop the
+;;   registrations it no longer has.
+;;
+;; Shards are written by atomic rename and every run is the single writer for
+;; its own files, so no global cache lock is needed.
 
-(defn spec-index-file ^java.io.File [cache-dir]
-  (io/file cache-dir "spec-index.transit.json"))
+(defn- spec-index-dir ^java.io.File [cache-dir]
+  (io/file cache-dir "specs"))
 
-(defn read-spec-index [cache-dir]
-  (let [f (spec-index-file cache-dir)]
-    (when (.exists f)
-      (try (with-open [is (io/input-stream f)]
-             (transit/read (transit/reader is :json)))
-           (catch Exception _ nil)))))
+(defn- digest
+  "Stable, filesystem-safe name for a string."
+  ^String [^String s]
+  (let [md (java.security.MessageDigest/getInstance "SHA-1")
+        sb (StringBuilder.)]
+    (doseq [b (.digest md (.getBytes s "UTF-8"))]
+      (.append sb (format "%02x" (bit-and (int b) 0xff))))
+    (str sb)))
 
-(defn write-spec-index! [cache-dir index]
-  (let [f (spec-index-file cache-dir)]
-    (io/make-parents f)
-    (with-open [os (no-flush-output-stream (io/output-stream f))]
-      (let [writer (transit/writer os :json)]
-        (transit/write writer index)))))
+(defn- manifest-file ^java.io.File [cache-dir ^String canonical-path]
+  (io/file (spec-index-dir cache-dir) "files"
+           (str (digest canonical-path) ".transit.json")))
 
-(defn- prune-missing-files
-  "Drops index entries whose file no longer exists (deleted or renamed), so stale
-  registrations can't be reported as the original definition."
-  [index]
-  (reduce-kv (fn [m f entries]
-               (if (fs/exists? f)
-                 (assoc m f entries)
-                 (dissoc m f)))
-             index
-             index))
+(defn- spec-key
+  "The identity a registration is indexed under, matching the grouping used by
+  the :redefined-spec linter."
+  [occ]
+  [(:kind occ) (:ns occ) (:name occ) (:lang occ)])
+
+(defn- bucket-file ^java.io.File [cache-dir spec-key]
+  ;; one hex byte of the digest: enough buckets to keep them small, few enough
+  ;; that a full-project run doesn't write thousands of tiny files
+  (io/file (spec-index-dir cache-dir) "keys"
+           (str (subs (digest (pr-str spec-key)) 0 2) ".transit.json")))
+
+(defn- read-shard
+  "Reads one shard, or nil if it's absent or unreadable (e.g. concurrently
+  replaced or written by an incompatible version)."
+  [^java.io.File f]
+  (when (.exists f)
+    (try (let [data (with-open [is (io/input-stream f)]
+                      (transit/read (transit/reader is :json)))]
+           (when (map? data) data))
+         (catch Exception _ nil))))
+
+(defn- write-shard!
+  "Writes a shard via a temp file + atomic rename, so concurrent readers see
+  either the old or the new contents, never a partial write."
+  [^java.io.File f data]
+  (io/make-parents f)
+  (let [tmp (java.io.File/createTempFile "spec-shard" ".transit.json" (.getParentFile f))]
+    (try
+      (with-open [os (no-flush-output-stream (io/output-stream tmp))]
+        (transit/write (transit/writer os :json) data))
+      (let [opts [java.nio.file.StandardCopyOption/REPLACE_EXISTING]]
+        (try (java.nio.file.Files/move
+              (.toPath tmp) (.toPath f)
+              (into-array java.nio.file.CopyOption
+                          (conj opts java.nio.file.StandardCopyOption/ATOMIC_MOVE)))
+             (catch java.nio.file.AtomicMoveNotSupportedException _
+               (java.nio.file.Files/move (.toPath tmp) (.toPath f)
+                                         (into-array java.nio.file.CopyOption opts)))))
+      (finally (.delete tmp)))))
+
+(defn- delete-quietly! [^java.io.File f]
+  (try (.delete f) (catch Exception _ false)))
+
+(defn- current-registrations
+  "The registrations of this run, as spec-key -> canonical file -> entries. Only
+  location and the filename spelling used in this run are stored; the rest of the
+  identity is the key itself."
+  [current-contributions canonical-by-filename]
+  (reduce-kv (fn [m filename occs]
+               (let [canonical (get canonical-by-filename filename)]
+                 (reduce (fn [m occ]
+                           (update-in m [(spec-key occ) canonical] (fnil conj [])
+                                      {:filename filename
+                                       :row (:row occ)
+                                       :col (:col occ)}))
+                         m
+                         occs)))
+             {}
+             current-contributions))
+
+(defn- previous-spec-keys
+  "Reads the manifests of the files linted this run: canonical file -> the spec
+  identities it registered according to the previous run. Their buckets have to
+  be visited too, to drop registrations that are gone now."
+  [cache-dir canonical-paths]
+  (into {}
+        (map (juxt identity #(:keys (read-shard (manifest-file cache-dir %)))))
+        canonical-paths))
+
+(defn- update-bucket
+  "Applies this run's registrations to one bucket and returns
+  `[updated-index external-occurrences]`, where the external occurrences are the
+  registrations of the bucket's keys coming from files not linted this run."
+  [index bucket-keys registrations current-canonical-paths file-exists?]
+  (reduce
+   (fn [[index externals] k]
+     (let [;; drop what the files of this run registered before (it is
+           ;; superseded by `registrations`) and what files that vanished
+           ;; (deleted or renamed) registered: stale entries must not be
+           ;; reported as the original definition
+           kept (reduce-kv (fn [m f _entries]
+                             (if (or (contains? current-canonical-paths f)
+                                     (not (file-exists? f)))
+                               (dissoc m f)
+                               m))
+                           (get index k {})
+                           (get index k {}))
+           by-file (merge kept (get registrations k))
+           externals (into externals
+                           (comp (mapcat val)
+                                 (map (fn [entry]
+                                        (assoc entry
+                                               :kind (nth k 0) :ns (nth k 1)
+                                               :name (nth k 2) :lang (nth k 3)
+                                               :reportable? false))))
+                           kept)]
+       [(if (seq by-file) (assoc index k by-file) (dissoc index k))
+        externals]))
+   [index []]
+   bucket-keys))
 
 (defn sync-spec-index!
-  "Refreshes the global spec index for the files linted in this run and returns
-  the registrations contributed by *other* files (as `first defined at`
-  originals for cross-run detection).
+  "Refreshes the spec index for the files linted in this run and returns the
+  registrations of the same specs contributed by *other* files (as
+  `first defined at` originals for cross-run detection).
 
   `current-contributions` is a map of filename -> vector of registration maps.
-  `current-filenames` is the set of files linted this run; their entries are
-  cleared first, so removing an `s/def` also removes it from the index. Runs
-  under the cache lock so concurrent clj-kondo processes don't clobber it."
+  `current-filenames` is the set of files linted this run; the registrations
+  they no longer have are dropped from the index, so removing an `s/def` also
+  removes it."
   [cache-dir current-contributions current-filenames]
   (when cache-dir
-    (with-thread-lock
-      (with-cache cache-dir 6
-        (let [current-filenames (into #{} (map (comp str fs/canonicalize)) current-filenames)
-              index (-> (or (read-spec-index cache-dir) {})
-                        prune-missing-files)
-              index (apply dissoc index current-filenames)
-              index (reduce-kv (fn [m f entries]
-                                 (if (seq entries)
-                                   ;; keep the spelling used in this run for
-                                   ;; display, but key on the canonical path
-                                   (assoc m (str (fs/canonicalize f))
-                                          (mapv #(assoc % :filename f) entries))
-                                   m))
-                               index
-                               current-contributions)]
-          (write-spec-index! cache-dir index)
-          (vec (for [[f entries] index
-                     :when (not (contains? current-filenames f))
-                     e entries]
-                 (assoc e :reportable? false))))))))
+    (let [canonical-by-filename (into {}
+                                      (map (juxt identity (comp str fs/canonicalize)))
+                                      (into (set current-filenames)
+                                            (keys current-contributions)))
+          current-canonical-paths (set (vals canonical-by-filename))
+          registrations (current-registrations current-contributions canonical-by-filename)
+          keys-by-file (reduce-kv (fn [m k by-file]
+                                    (reduce #(update %1 %2 (fnil conj []) k) m (keys by-file)))
+                                  {} registrations)
+          previous-keys (previous-spec-keys cache-dir current-canonical-paths)
+          ;; the same file shows up under many spec identities
+          ^java.util.HashMap existence (java.util.HashMap.)
+          file-exists? (fn [f]
+                         (if-some [cached (.get existence f)]
+                           cached
+                           (let [e (fs/exists? f)]
+                             (.put existence f e)
+                             e)))
+          ;; only the buckets of specs registered now or previously by these
+          ;; files can be affected by this run
+          buckets (group-by #(bucket-file cache-dir %)
+                            (distinct (concat (keys registrations) (mapcat val previous-keys))))
+          externals
+          (reduce-kv
+           (fn [acc f bucket-keys]
+             (let [index (or (:index (read-shard f)) {})
+                   [index' externals] (update-bucket index bucket-keys registrations
+                                                     current-canonical-paths file-exists?)]
+               (when-not (= index index')
+                 (if (seq index')
+                   (write-shard! f {:index index'})
+                   (delete-quietly! f)))
+               (into acc externals)))
+           []
+           buckets)]
+      ;; record what each file contributes now, so a later run can drop it again
+      (doseq [canonical current-canonical-paths
+              :let [ks (get keys-by-file canonical)
+                    f (manifest-file cache-dir canonical)]]
+        (cond
+          (= ks (get previous-keys canonical)) nil ;; unchanged, leave it alone
+          (seq ks) (write-shard! f {:file canonical :keys ks})
+          :else (when (.exists f) (delete-quietly! f))))
+      externals)))
 
 ;;;; Scratch
 
