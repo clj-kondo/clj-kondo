@@ -22,7 +22,9 @@
   `name-node` is the registered name node and `resolved-ns`/`resolved-name` its
   fully-resolved identity."
   [ctx kind name-node resolved-ns resolved-name]
-  (when (and resolved-ns resolved-name (redefined-spec-enabled? ctx))
+  (when (and resolved-ns resolved-name
+             (not (:in-comment ctx))
+             (redefined-spec-enabled? ctx))
     (namespace/reg-spec-def! ctx (-> ctx :ns :name)
                              (assoc (utils/location (meta name-node))
                                     :filename (:filename ctx)

@@ -32,6 +32,17 @@
                             "(s/fdef f :args (s/cat :x int?))\n"
                             "(s/def ::f int?)"))))))
 
+(deftest comment-form-test
+  (testing "a registration inside (comment ...) does not clash, consistent with :redefined-var"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def ::x string?)\n"
+                            "(comment (s/def ::x int?))"))))
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(comment (s/def ::x string?))\n"
+                            "(s/def ::x int?)"))))
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(comment (s/def ::x string?) (s/def ::x int?))"))))))
+
 (deftest edge-cases-test
   (testing "auto-resolved keywords in different namespaces are distinct"
     (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
