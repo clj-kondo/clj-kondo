@@ -10,7 +10,7 @@
   (testing "s/def registering the same keyword twice"
     (assert-submaps2
      '({:row 3 :col 8 :level :warning
-        :message #"redefined spec :foo/x"})
+        :message #"spec :foo/x"})
      (lint! (str "(ns foo (:require " spec-require "))\n"
                  "(s/def ::x string?)\n"
                  "(s/def ::x int?)"))))
@@ -20,7 +20,7 @@
   (testing "s/fdef registering the same symbol twice"
     (assert-submaps2
      '({:row 4 :col 9 :level :warning
-        :message #"redefined spec foo/f"})
+        :message #"spec foo/f"})
      (lint! (str "(ns foo (:require " spec-require "))\n"
                  "(defn f [x] x)\n"
                  "(s/fdef f :args (s/cat :x int?))\n"
@@ -36,14 +36,14 @@
   (testing "s/def registering the same symbol twice"
     (assert-submaps2
      '({:row 3 :col 8 :level :warning
-        :message #"redefined spec foo/thing"})
+        :message #"spec foo/thing"})
      (lint! (str "(ns foo (:require " spec-require "))\n"
                  "(s/def foo/thing string?)\n"
                  "(s/def foo/thing int?)"))))
   (testing "s/fdef and a symbol-keyed s/def share spec's symbol key space"
     (assert-submaps2
      '({:row 4 :col 8 :level :warning
-        :message #"redefined spec foo/g"})
+        :message #"spec foo/g"})
      (lint! (str "(ns foo (:require " spec-require "))\n"
                  "(defn g [x] x)\n"
                  "(s/fdef g :args (s/cat :x int?))\n"
@@ -53,9 +53,9 @@
                             "(s/def foo/x string?)\n"
                             "(s/def ::x int?)"))))))
 
-(deftest load-order-test
-  (testing "the required namespace is reported as the original, even when its
-            filename sorts after the redefining one"
+(deftest original-is-source-order-test
+  (testing "the original is chosen by source order, not by the require graph:
+            b.clj requires z, but sorts first, so z.clj is reported"
     (fs/with-temp-dir [tmp {}]
       (spit (fs/file tmp "b.clj")
             (str "(ns b (:require " spec-require " [z]))\n"
@@ -64,9 +64,9 @@
             (str "(ns z (:require " spec-require "))\n"
                  "(s/def :shared/x string?)"))
       (assert-submaps2
-       '({:file #"b.clj" :row 2 :col 8 :level :warning
-          :message #"redefined spec :shared/x, first defined at .*z.clj:2:8"})
-       (filter #(re-find #"redefined spec" (:message %))
+       '({:file #"z.clj" :row 2 :col 8 :level :warning
+          :message #"spec :shared/x also defined at .*b.clj:2:8"})
+       (filter #(re-find #"also defined at" (:message %))
                (lint! (fs/file tmp)))))))
 
 (deftest comment-form-test
@@ -89,7 +89,7 @@
   (testing "aliased and fully-qualified keyword resolving to the same spec clash"
     (assert-submaps2
      '({:row 4 :col 8 :level :warning
-        :message #"redefined spec :shared/x"})
+        :message #"spec :shared/x"})
      (lint! (str "(ns foo (:require " spec-require " [shared :as sh]))\n"
                  "(s/def ::sh/x string?)\n"
                  "(ns bar (:require " spec-require "))\n"
@@ -107,18 +107,18 @@
       (spit (fs/file tmp "shared.clj") "(ns shared)")
       (assert-submaps2
        '({:file #"b.clj" :row 2 :col 8 :level :warning
-          :message #"redefined spec :shared/x, first defined at"})
-       (filter #(re-find #"redefined spec" (:message %))
+          :message #"spec :shared/x also defined at"})
+       (filter #(re-find #"also defined at" (:message %))
                (lint! (fs/file tmp)))))))
 
 (deftest cljc-test
   (testing "a single cljc registration does not warn"
-    (is (empty? (filter #(re-find #"redefined spec" (:message %))
+    (is (empty? (filter #(re-find #"also defined at" (:message %))
                         (lint! (str "(ns foo (:require " spec-require "))\n"
                                     "(s/def ::x string?)")
                                "--lang" "cljc")))))
   (testing "a duplicate cljc registration warns exactly once"
-    (let [findings (filter #(re-find #"redefined spec" (:message %))
+    (let [findings (filter #(re-find #"also defined at" (:message %))
                            (lint! (str "(ns foo (:require " spec-require "))\n"
                                        "(s/def ::x string?)\n"
                                        "(s/def ::x int?)")
@@ -130,11 +130,11 @@
             (str "(ns p (:require " spec-require "))\n(s/def ::x string?)"))
       (spit (fs/file tmp "p.cljs")
             (str "(ns p (:require " spec-require "))\n(s/def ::x string?)"))
-      (is (empty? (filter #(re-find #"redefined spec" (:message %))
+      (is (empty? (filter #(re-find #"also defined at" (:message %))
                           (lint! (fs/file tmp))))))))
 
 (defn- redefined-spec-findings [findings]
-  (filter #(re-find #"redefined spec" (:message %)) findings))
+  (filter #(re-find #"also defined at" (:message %)) findings))
 
 (deftest cross-run-cache-test
   (testing "a redefinition is detected across runs via the global spec index,
@@ -152,7 +152,7 @@
         (lint! (fs/file tmp "a.clj") "--cache" cache)
         (assert-submaps2
          '({:file #"b.clj" :row 2 :col 8 :level :warning
-            :message #"redefined spec :specs/bar, first defined at"})
+            :message #"spec :specs/bar also defined at"})
          (redefined-spec-findings
           (lint! (fs/file tmp "b.clj") "--cache" cache))))))
   (testing "re-linting the same file does not report it against its own cached

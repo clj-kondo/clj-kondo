@@ -332,7 +332,7 @@
 
 (defn- external-occurrences
   "Rebuilds full registration maps from a spec identity and its per-file entries,
-  marked as non-reportable so they only serve as `first defined at` originals."
+  marked as non-reportable so they only serve as `also defined at` locations."
   [[kind ns name lang] by-file]
   (map #(assoc % :kind kind :ns ns :name name :lang lang :reportable? false)
        (mapcat val by-file)))
@@ -385,7 +385,7 @@
 (defn sync-spec-index!
   "Refreshes the spec index for the files linted in this run and returns the
   registrations of the same specs contributed by *other* files (as
-  `first defined at` originals for cross-run detection).
+  `also defined at` locations for cross-run detection).
 
   `current-contributions` is a map of filename -> vector of registration maps.
   `current-filenames` is the set of files linted this run; the registrations

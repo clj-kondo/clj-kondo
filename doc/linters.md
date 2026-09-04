@@ -1678,7 +1678,7 @@ message is: `inc already refers to #'clojure.core/inc`
 
 *Example trigger:* `(s/def ::foo string?) (s/def ::foo int?)`
 
-*Example message:* `redefined spec :user/foo, first defined at src/user.clj:1:8`.
+*Example message:* `spec :user/foo also defined at src/user.clj:1:8`.
 
 Detection is project-wide and spans runs: registrations from previously linted
 files are remembered in the cache (mirroring spec's own global registry), so a

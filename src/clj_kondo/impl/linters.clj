@@ -902,41 +902,10 @@
   (for [ns (namespace/list-namespaces ctx)
         entry (vals (:spec-defs ns))]
     (assoc entry
-           :in-ns (:name ns)
            :lang (:lang ns)
            :base-lang (:base-lang ns)
            :config (:config ns)
            :reportable? true)))
-
-(defn- redefined-spec-load-ranks
-  "Load-order rank per namespace that registered a spec in this run, derived
-  from the require graph: a namespace ranks after every spec-registering
-  namespace it (transitively) requires, since those are loaded first at
-  runtime. Cycles and namespaces of unknown load order rank 0, leaving the
-  filename as the ordering criterion for them."
-  [ctx]
-  (let [requires (into {}
-                       (keep (fn [ns]
-                               (when (seq (:spec-defs ns))
-                                 [(:name ns) (:required ns)])))
-                       (namespace/list-namespaces ctx))
-        ranks (volatile! {})
-        rank (fn rank [ns-sym visiting]
-               (or (get @ranks ns-sym)
-                   (if (contains? visiting ns-sym)
-                     0
-                     (let [visiting (conj visiting ns-sym)
-                           r (reduce (fn [r dep]
-                                       (if (contains? requires dep)
-                                         (max r (inc (rank dep visiting)))
-                                         r))
-                                     0
-                                     (get requires ns-sym))]
-                       (vswap! ranks assoc ns-sym r)
-                       r))))]
-    (doseq [ns-sym (keys requires)]
-      (rank ns-sym #{}))
-    @ranks))
 
 (defn- redefined-spec-contributions
   "Turns the current run's occurrences into the minimal per-file entries stored
@@ -965,15 +934,17 @@
   Detection is project-wide within a run. Across runs, a global spec index in the
   cache (mirroring spec's own global registry) makes detection complete: every
   registration from every previously linted file is considered, independent of
-  the require graph."
+  the require graph.
+
+  Which registration is reported as the original is decided by source order
+  (filename, row, col), not by runtime load order."
   [ctx]
   (when-not (utils/linter-disabled? ctx :redefined-spec)
     (let [current-occs (redefined-spec-current-occurrences ctx)
-          load-ranks (redefined-spec-load-ranks ctx)
           [contributions current-filenames]
           (redefined-spec-contributions ctx current-occs)
           ;; refresh the on-disk index and get the registrations from all other
-          ;; files as potential `first defined at` originals
+          ;; files as potential `also defined at` locations
           external-occs (cache/sync-spec-index! (:cache-dir ctx)
                                                 contributions
                                                 current-filenames)
@@ -984,12 +955,11 @@
                     occs (vals (into {} (map (juxt (juxt :filename :row :col)
                                                    identity))
                                      occs))
-                    ;; the namespace loaded first wins, so that the reported
-                    ;; original matches what spec's registry sees at runtime;
-                    ;; the filename only breaks ties
-                    occs (sort-by (juxt #(get load-ranks (:in-ns %) 0)
-                                        :filename :row :col)
-                                  occs)]
+                    ;; source order decides which registration is reported as
+                    ;; the original: a deterministic choice, independent of
+                    ;; which files happen to be linted in this run. It does not
+                    ;; attempt to model runtime load order.
+                    occs (sort-by (juxt :filename :row :col) occs)]
               :when (> (count occs) 1)
               :let [original (first occs)
                     orig-loc (str (:filename original) ":"
@@ -1008,8 +978,8 @@
           :end-row (:end-row occ)
           :end-col (:end-col occ)
           :type :redefined-spec
-          :message (str "redefined spec " (spec-def-display occ)
-                        ", first defined at " orig-loc)})))))
+          :message (str "spec " (spec-def-display occ)
+                        " also defined at " orig-loc)})))))
 
 (defn lint-unused-excluded-vars! [ctx]
   (when-not (utils/linter-disabled? ctx :unused-excluded-var)
