@@ -72,7 +72,6 @@
         (:k name-expr)
         (let [{:keys [ns name]} (usages/resolve-keyword ctx name-expr (-> ctx :ns :name))]
           (reg-spec-def! ctx :keyword name-expr ns name))
-        ;; a symbol-keyed s/def registers in the same key space as s/fdef
         (symbol? (:value name-expr))
         (let [sym (:value name-expr)
               ns-nm (-> ctx :ns :name)
