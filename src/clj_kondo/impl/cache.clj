@@ -299,7 +299,7 @@
   identity is the key itself."
   [current-contributions canonical-by-filename]
   (reduce-kv (fn [m filename occs]
-               (let [canonical (get canonical-by-filename filename)]
+               (let [canonical (canonical-by-filename filename)]
                  (reduce (fn [m occ]
                            (update-in m [(spec-key occ) canonical] (fnil conj [])
                                       {:filename filename
@@ -310,6 +310,17 @@
              {}
              current-contributions))
 
+(defn- registered-keys-by-file
+  "Inverts the registrations into canonical file -> the spec identities it
+  registers now, which is what each file's manifest records."
+  [registrations]
+  (reduce-kv (fn [m k by-file]
+               (reduce-kv (fn [m f _entries] (update m f (fnil conj []) k))
+                          m
+                          by-file))
+             {}
+             registrations))
+
 (defn- previous-spec-keys
   "Reads the manifests of the files linted this run: canonical file -> the spec
   identities it registered according to the previous run. Their buckets have to
@@ -319,37 +330,57 @@
         (map (juxt identity #(:keys (read-shard (manifest-file cache-dir %)))))
         canonical-paths))
 
+(defn- external-occurrences
+  "Rebuilds full registration maps from a spec identity and its per-file entries,
+  marked as non-reportable so they only serve as `first defined at` originals."
+  [[kind ns name lang] by-file]
+  (map #(assoc % :kind kind :ns ns :name name :lang lang :reportable? false)
+       (mapcat val by-file)))
+
 (defn- update-bucket
   "Applies this run's registrations to one bucket and returns
   `[updated-index external-occurrences]`, where the external occurrences are the
   registrations of the bucket's keys coming from files not linted this run."
-  [index bucket-keys registrations current-canonical-paths file-exists?]
+  [index bucket-keys registrations external-file?]
   (reduce
    (fn [[index externals] k]
-     (let [;; drop what the files of this run registered before (it is
-           ;; superseded by `registrations`) and what files that vanished
-           ;; (deleted or renamed) registered: stale entries must not be
-           ;; reported as the original definition
-           kept (reduce-kv (fn [m f _entries]
-                             (if (or (contains? current-canonical-paths f)
-                                     (not (file-exists? f)))
-                               (dissoc m f)
-                               m))
-                           (get index k {})
-                           (get index k {}))
-           by-file (merge kept (get registrations k))
-           externals (into externals
-                           (comp (mapcat val)
-                                 (map (fn [entry]
-                                        (assoc entry
-                                               :kind (nth k 0) :ns (nth k 1)
-                                               :name (nth k 2) :lang (nth k 3)
-                                               :reportable? false))))
-                           kept)]
+     ;; keep only what files outside this run still register: this run's own
+     ;; entries are superseded by `registrations`, and entries of vanished
+     ;; files must not be reported as the original definition
+     (let [kept (into {} (filter (comp external-file? key)) (get index k))
+           by-file (merge kept (get registrations k))]
        [(if (seq by-file) (assoc index k by-file) (dissoc index k))
-        externals]))
+        (into externals (external-occurrences k kept))]))
    [index []]
    bucket-keys))
+
+(defn- sync-buckets!
+  "Rewrites every bucket affected by this run and returns the external
+  registrations found in them."
+  [cache-dir affected-keys registrations external-file?]
+  (reduce-kv (fn [acc f bucket-keys]
+               (let [index (or (:index (read-shard f)) {})
+                     [index' externals] (update-bucket index bucket-keys
+                                                       registrations external-file?)]
+                 (when-not (= index index')
+                   (if (seq index')
+                     (write-shard! f {:index index'})
+                     (delete-quietly! f)))
+                 (into acc externals)))
+             []
+             (group-by #(bucket-file cache-dir %) affected-keys)))
+
+(defn- write-manifests!
+  "Records what each file contributes now, so a later run can drop it again.
+  Manifests that didn't change are left alone."
+  [cache-dir canonical-paths current-keys previous-keys]
+  (doseq [canonical canonical-paths
+          :let [ks (get current-keys canonical)]
+          :when (not= ks (get previous-keys canonical))
+          :let [f (manifest-file cache-dir canonical)]]
+    (if (seq ks)
+      (write-shard! f {:file canonical :keys ks})
+      (delete-quietly! f))))
 
 (defn sync-spec-index!
   "Refreshes the spec index for the files linted in this run and returns the
@@ -366,45 +397,18 @@
                                       (map (juxt identity (comp str fs/canonicalize)))
                                       (into (set current-filenames)
                                             (keys current-contributions)))
-          current-canonical-paths (set (vals canonical-by-filename))
+          current-paths (set (vals canonical-by-filename))
           registrations (current-registrations current-contributions canonical-by-filename)
-          keys-by-file (reduce-kv (fn [m k by-file]
-                                    (reduce #(update %1 %2 (fnil conj []) k) m (keys by-file)))
-                                  {} registrations)
-          previous-keys (previous-spec-keys cache-dir current-canonical-paths)
-          ;; the same file shows up under many spec identities
-          ^java.util.HashMap existence (java.util.HashMap.)
-          file-exists? (fn [f]
-                         (if-some [cached (.get existence f)]
-                           cached
-                           (let [e (fs/exists? f)]
-                             (.put existence f e)
-                             e)))
+          current-keys (registered-keys-by-file registrations)
+          previous-keys (previous-spec-keys cache-dir current-paths)
+          external-file? (fn [f] (and (not (contains? current-paths f))
+                                      (fs/exists? f)))
           ;; only the buckets of specs registered now or previously by these
           ;; files can be affected by this run
-          buckets (group-by #(bucket-file cache-dir %)
-                            (distinct (concat (keys registrations) (mapcat val previous-keys))))
-          externals
-          (reduce-kv
-           (fn [acc f bucket-keys]
-             (let [index (or (:index (read-shard f)) {})
-                   [index' externals] (update-bucket index bucket-keys registrations
-                                                     current-canonical-paths file-exists?)]
-               (when-not (= index index')
-                 (if (seq index')
-                   (write-shard! f {:index index'})
-                   (delete-quietly! f)))
-               (into acc externals)))
-           []
-           buckets)]
-      ;; record what each file contributes now, so a later run can drop it again
-      (doseq [canonical current-canonical-paths
-              :let [ks (get keys-by-file canonical)
-                    f (manifest-file cache-dir canonical)]]
-        (cond
-          (= ks (get previous-keys canonical)) nil ;; unchanged, leave it alone
-          (seq ks) (write-shard! f {:file canonical :keys ks})
-          :else (when (fs/exists? f) (delete-quietly! f))))
+          affected-keys (distinct (concat (keys registrations)
+                                          (mapcat val previous-keys)))
+          externals (sync-buckets! cache-dir affected-keys registrations external-file?)]
+      (write-manifests! cache-dir current-paths current-keys previous-keys)
       externals)))
 
 ;;;; Scratch
