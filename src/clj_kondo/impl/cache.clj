@@ -393,8 +393,15 @@
   removes it."
   [cache-dir current-contributions current-filenames]
   (when cache-dir
-    (let [canonical-by-filename (into {}
-                                      (map (juxt identity (comp str fs/canonicalize)))
+    (let [;; Only filesystem paths belong in the persistent index. In
+          ;; particular, fs/canonicalize throws for <stdin> on Windows, and a
+          ;; stdin entry could never be a useful cross-run definition anyway.
+          indexable-filename? (fn [filename]
+                                (and (not= "<stdin>" filename)
+                                     (not (str/includes? filename ".jar:"))))
+          canonical-by-filename (into {}
+                                      (comp (filter indexable-filename?)
+                                            (map (juxt identity (comp str fs/canonicalize))))
                                       (into (set current-filenames)
                                             (keys current-contributions)))
           current-paths (set (vals canonical-by-filename))

@@ -2182,7 +2182,7 @@
   :end-col 13,
   :langs (),
   :message
-  "redefined spec :metabase.test.generate/col, first defined at test-regression/checkouts/metabase/test/metabase/test/generate.clj:137:8",
+  "spec :metabase.test.generate/col also defined at test-regression/checkouts/metabase/test/metabase/test/generate.clj:137:8",
   :row 138}
  {:end-row 497,
   :type :is-message-not-string,

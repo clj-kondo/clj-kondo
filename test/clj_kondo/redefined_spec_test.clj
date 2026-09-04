@@ -189,6 +189,15 @@
         (is (empty? (redefined-spec-findings
                      (lint! (fs/file tmp "b.clj") "--cache" cache))))))))
 
+(deftest stdin-cache-test
+  (testing "stdin is not persisted in the cross-run index"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (is (empty? (redefined-spec-findings
+                     (lint! (str "(ns foo (:require " spec-require "))\n"
+                                 "(s/def ::foo string?)")
+                            "--cache" cache))))))))
+
 (deftest path-spelling-test
   (testing "the same file linted by different path spellings is one index entry"
     (fs/with-temp-dir [tmp {}]
