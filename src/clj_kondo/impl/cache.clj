@@ -235,8 +235,8 @@
 ;; Shards are written by atomic rename and every run is the single writer for
 ;; its own files, so no global cache lock is needed.
 
-(defn- spec-index-dir ^java.io.File [cache-dir]
-  (io/file cache-dir "specs"))
+(defn- spec-index-dir [cache-dir]
+  (fs/path cache-dir "specs"))
 
 (defn- digest
   "Stable, filesystem-safe name for a string."
@@ -247,8 +247,8 @@
       (.append sb (format "%02x" (bit-and (int b) 0xff))))
     (str sb)))
 
-(defn- manifest-file ^java.io.File [cache-dir ^String canonical-path]
-  (io/file (spec-index-dir cache-dir) "files"
+(defn- manifest-file [cache-dir canonical-path]
+  (fs/path (spec-index-dir cache-dir) "files"
            (str (digest canonical-path) ".transit.json")))
 
 (defn- spec-key
@@ -257,18 +257,18 @@
   [occ]
   [(:kind occ) (:ns occ) (:name occ) (:lang occ)])
 
-(defn- bucket-file ^java.io.File [cache-dir spec-key]
+(defn- bucket-file [cache-dir spec-key]
   ;; one hex byte of the digest: enough buckets to keep them small, few enough
   ;; that a full-project run doesn't write thousands of tiny files
-  (io/file (spec-index-dir cache-dir) "keys"
+  (fs/path (spec-index-dir cache-dir) "keys"
            (str (subs (digest (pr-str spec-key)) 0 2) ".transit.json")))
 
 (defn- read-shard
   "Reads one shard, or nil if it's absent or unreadable (e.g. concurrently
   replaced or written by an incompatible version)."
-  [^java.io.File f]
-  (when (.exists f)
-    (try (let [data (with-open [is (io/input-stream f)]
+  [f]
+  (when (fs/exists? f)
+    (try (let [data (with-open [is (io/input-stream (fs/file f))]
                       (transit/read (transit/reader is :json)))]
            (when (map? data) data))
          (catch Exception _ nil))))
@@ -276,24 +276,22 @@
 (defn- write-shard!
   "Writes a shard via a temp file + atomic rename, so concurrent readers see
   either the old or the new contents, never a partial write."
-  [^java.io.File f data]
-  (io/make-parents f)
-  (let [tmp (java.io.File/createTempFile "spec-shard" ".transit.json" (.getParentFile f))]
+  [f data]
+  (let [dir (fs/parent f)
+        _ (fs/create-dirs dir)
+        tmp (fs/create-temp-file {:dir dir
+                                  :prefix "spec-shard"
+                                  :suffix ".transit.json"})]
     (try
-      (with-open [os (no-flush-output-stream (io/output-stream tmp))]
+      (with-open [os (no-flush-output-stream (io/output-stream (fs/file tmp)))]
         (transit/write (transit/writer os :json) data))
-      (let [opts [java.nio.file.StandardCopyOption/REPLACE_EXISTING]]
-        (try (java.nio.file.Files/move
-              (.toPath tmp) (.toPath f)
-              (into-array java.nio.file.CopyOption
-                          (conj opts java.nio.file.StandardCopyOption/ATOMIC_MOVE)))
-             (catch java.nio.file.AtomicMoveNotSupportedException _
-               (java.nio.file.Files/move (.toPath tmp) (.toPath f)
-                                         (into-array java.nio.file.CopyOption opts)))))
-      (finally (.delete tmp)))))
+      (try (fs/move tmp f {:replace-existing true :atomic-move true})
+           (catch java.nio.file.AtomicMoveNotSupportedException _
+             (fs/move tmp f {:replace-existing true})))
+      (finally (fs/delete-if-exists tmp)))))
 
-(defn- delete-quietly! [^java.io.File f]
-  (try (.delete f) (catch Exception _ false)))
+(defn- delete-quietly! [f]
+  (try (fs/delete-if-exists f) (catch Exception _ false)))
 
 (defn- current-registrations
   "The registrations of this run, as spec-key -> canonical file -> entries. Only
@@ -406,7 +404,7 @@
         (cond
           (= ks (get previous-keys canonical)) nil ;; unchanged, leave it alone
           (seq ks) (write-shard! f {:file canonical :keys ks})
-          :else (when (.exists f) (delete-quietly! f))))
+          :else (when (fs/exists? f) (delete-quietly! f))))
       externals)))
 
 ;;;; Scratch
