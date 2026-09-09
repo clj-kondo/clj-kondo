@@ -510,16 +510,28 @@
    ;; 1994 'bound-fn*
    ;; 2006 'bound-fn
    ;; 2015 'find-var
-   ;; 2054 'agent
+   ;; 2054
+   'agent {:ret :agent}
    ;; 2089 'set-agent-send-executor!
    ;; 2095 'set-agent-send-off-executor!
-   ;; 2101 'send-via
-   ;; 2111 'send
-   ;; 2122 'send-off
+   ;; 2101
+   'send-via {:arities {:varargs {:args [:any :agent :ifn [{:op :rest
+                                                            :spec :any}]]
+                                  :ret :any}}}
+   ;; 2111
+   'send {:arities {:varargs {:args [:agent :ifn [{:op :rest
+                                                   :spec :any}]]
+                              :ret :any}}}
+   ;; 2122
+   'send-off {:arities {:varargs {:args [:agent :ifn [{:op :rest
+                                                       :spec :any}]]
+                                  :ret :any}}}
    ;; 2133 'release-pending-sends
    ;; 2144 'add-watch
    ;; 2162 'remove-watch
-   ;; 2169 'agent-error
+   ;; 2169
+   'agent-error {:arities {1 {:args [:agent]
+                              :ret :nilable/throwable}}}
    ;; 2177 'restart-agent
    ;; 2194 'set-error-handler!
    ;; 2204 'error-handler
@@ -538,14 +550,24 @@
    'swap! {:arities {:varargs {:args [:atom :ifn [{:op :rest
                                                    :spec :any}]]
                                :ret :any}}}
-   ;; 2357 'swap-vals!
-   ;; 2368 'compare-and-set!
+   ;; 2357
+   'swap-vals! {:arities {:varargs {:args [:atom :ifn [{:op :rest
+                                                        :spec :any}]]
+                                    :ret :vector}}}
+   ;; 2368
+   'compare-and-set! {:arities {3 {:args [:atom :any :any]
+                                   :ret :boolean}}}
    ;; 2376
    'reset! {:arities {2 {:args [:atom :any]
                          :ret :any}}}
-   ;; 2383 'reset-vals!
-   ;; 2389 'set-validator!
-   ;; 2400 'get-validator
+   ;; 2383
+   'reset-vals! {:arities {2 {:args [:atom :any]
+                              :ret :vector}}}
+   ;; 2389
+   'set-validator! {:arities {2 {:args [:ideref :ifn]}}}
+   ;; 2400
+   'get-validator! {:arities {1 {:args [:ideref]
+                                 :ret :nilable/ifn}}}
    ;; 2406 'alter-meta!
    ;; 2416 'reset-meta!
    ;; 2422 'commute
