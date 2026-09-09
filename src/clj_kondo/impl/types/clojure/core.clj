@@ -540,7 +540,12 @@
    ;; 2236 'agent-errors
    ;; 2246 'clear-agent-errors
    ;; 2254 'shutdown-agents
-   ;; 2262 'ref
+   ;; 2262
+   'ref {:arities {1 {:args [:any]
+                      :ret :ref}
+                   :varargs {:args [:any [{:op :rest
+                                           :spec :any}]]
+                             :ret :ref}}}
    ;; 2306 'deref
    'deref {:arities {1 {:args [:ideref]
                         :ret :any}}}
@@ -568,17 +573,44 @@
    ;; 2400
    'get-validator! {:arities {1 {:args [:ideref]
                                  :ret :nilable/ifn}}}
-   ;; 2406 'alter-meta!
-   ;; 2416 'reset-meta!
-   ;; 2422 'commute
-   ;; 2443 'alter
-   ;; 2455 'ref-set
-   ;; 2463 'ref-history-count
-   ;; 2470 'ref-min-history
-   ;; 2479 'ref-max-history
-   ;; 2488 'ensure
-   ;; 2498 'sync
-   ;; 2512 'io!
+   ;; 2406
+   'alter-meta! {:arities {:varargs {:args [:ideref :ifn [{:op :rest
+                                                           :spec :any}]]
+                                     :ret :any}}}
+   ;; 2416
+   'reset-meta! {:arities {2 {:args [:ideref :any]
+                              :ret :any}}}
+   ;; 2422
+   'commute {:arities {:varargs {:args [:ref :ifn [{:op :rest
+                                                    :spec :any}]]
+                                 :ret :any}}}
+   ;; 2443
+   'alter {:arities {:varargs {:args [:ref :ifn [{:op :rest
+                                                  :spec :any}]]
+                               :ret :any}}}
+   ;; 2455
+   'ref-set {:arities {2 {:args [:ref :any]
+                          :ret :any}}}
+   ;; 2463
+   'ref-history-count {:arities {1 {:args [:ref]
+                                    :ret :int}}}
+   ;; 2470
+   'ref-min-history {:arities {1 {:args [:ref]
+                                  :ret :int}
+                               2 {:args [:ref :int]
+                                  :ret :ref}}}
+   ;; 2479
+   'ref-max-history {:arities {1 {:args [:ref]
+                                  :ret :int}
+                               2 {:args [:ref :int]
+                                  :ret :ref}}}
+   ;; 2488
+   'ensure {:arities {:1 {:args [:ref]
+                          :ret :any}}}
+   ;; 2498
+   'sync {:fn last}
+   ;; 2512
+   'io! {:fn last}
    ;; 2525 'volatile!
    ;; 2532 'vreset!
    ;; 2539 'vswap!
@@ -930,7 +962,9 @@
                         1 {:args [:seqable]
                            :ret :seq}}}
    ;; 5058 'replace
-   ;; 5076 'dosync
+   ;; 5076
+   'dosync {:fn (fn [args]
+                  (tu/union-type :nil (last args)))}
    ;; 5086 'with-precision
    ;; 5109 'subseq
    ;; 5126 'rsubseq
