@@ -1257,6 +1257,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 203}
+ {:end-row 442,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/actions/api_test.clj",
+  :col 29,
+  :end-col 31,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 442}
  {:end-row 19,
   :type :unresolved-symbol,
   :level :error,
@@ -1347,6 +1357,16 @@
   :langs (),
   :message "Condition always true",
   :row 460}
+ {:end-row 528,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/analytics/stats_test.clj",
+  :col 40,
+  :end-col 42,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 528}
  {:end-row 64,
   :type :unresolved-symbol,
   :level :error,
@@ -1517,6 +1537,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 248}
+ {:end-row 693,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/collections/api_test.clj",
+  :col 38,
+  :end-col 40,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 693}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -1557,6 +1587,16 @@
   :langs (),
   :message "Expected: char sequence, received: symbol.",
   :row 42}
+ {:end-row 724,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/dashboards/api_test.clj",
+  :col 29,
+  :end-col 31,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 724}
  {:end-row 2253,
   :type :unresolved-symbol,
   :level :error,
@@ -1724,6 +1764,16 @@
   :langs (:clj :cljs),
   :message "Condition always true",
   :row 96}
+ {:end-row 189,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib_be/metadata/jvm_test.clj",
+  :col 39,
+  :end-col 41,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 189}
  {:end-row 165,
   :type :unresolved-symbol,
   :level :error,
@@ -1734,6 +1784,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 165}
+ {:end-row 71,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 45,
+  :end-col 47,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 71}
+ {:end-row 76,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 45,
+  :end-col 47,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 76}
  {:end-row 93,
   :type :constant-condition,
   :level :warning,
@@ -1744,6 +1814,46 @@
   :langs (),
   :message "Condition always true",
   :row 93}
+ {:end-row 115,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 45,
+  :end-col 47,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 115}
+ {:end-row 120,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 45,
+  :end-col 47,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 120}
+ {:end-row 175,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 45,
+  :end-col 47,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 175}
+ {:end-row 180,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/parameters/dashboard_test.clj",
+  :col 45,
+  :end-col 47,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 180}
  {:end-row 72,
   :type :unresolved-symbol,
   :level :error,
@@ -1754,6 +1864,96 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 72}
+ {:end-row 161,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 161}
+ {:end-row 163,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 163}
+ {:end-row 203,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 203}
+ {:end-row 205,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 205}
+ {:end-row 246,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 54,
+  :end-col 56,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 246}
+ {:end-row 272,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 272}
+ {:end-row 274,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 274}
+ {:end-row 276,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 276}
+ {:end-row 278,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 278}
  {:end-row 293,
   :type :unresolved-symbol,
   :level :error,
@@ -1764,6 +1964,86 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 293}
+ {:end-row 457,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 457}
+ {:end-row 495,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 495}
+ {:end-row 525,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 54,
+  :end-col 56,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 525}
+ {:end-row 527,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 54,
+  :end-col 56,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 527}
+ {:end-row 529,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 54,
+  :end-col 56,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 529}
+ {:end-row 739,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/data_permissions_test.clj",
+  :col 52,
+  :end-col 54,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 739}
+ {:end-row 122,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/permissions_group_test.clj",
+  :col 42,
+  :end-col 44,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 122}
+ {:end-row 123,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/permissions/models/permissions_group_test.clj",
+  :col 42,
+  :end-col 44,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 123}
  {:end-row 125,
   :type :type-mismatch,
   :level :error,
@@ -1805,6 +2085,56 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 628}
+ {:end-row 997,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
+  :col 31,
+  :end-col 33,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 997}
+ {:end-row 1000,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
+  :col 29,
+  :end-col 31,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 1000}
+ {:end-row 1520,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
+  :col 31,
+  :end-col 33,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 1520}
+ {:end-row 1539,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
+  :col 33,
+  :end-col 35,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 1539}
+ {:end-row 1546,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/public_sharing/api_test.clj",
+  :col 33,
+  :end-col 35,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 1546}
  {:end-row 902,
   :type :unresolved-symbol,
   :level :error,
@@ -1855,6 +2185,26 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 884}
+ {:end-row 927,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 28,
+  :end-col 30,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 927}
+ {:end-row 949,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/dashboard_subscription_test.clj",
+  :col 28,
+  :end-col 30,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 949}
  {:end-row 10,
   :type :deprecated-namespace,
   :level :warning,
@@ -2046,6 +2396,16 @@
   :langs (),
   :message "Write expected value first",
   :row 599}
+ {:end-row 227,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/revisions/models/revision_test.clj",
+  :col 31,
+  :end-col 33,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 227}
  {:end-row 394,
   :type :unresolved-symbol,
   :level :error,
@@ -2263,6 +2623,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 282}
+ {:end-row 138,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/api/table_test.clj",
+  :col 38,
+  :end-col 40,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 138}
  {:end-row 701,
   :type :redundant-format,
   :level :info,
@@ -2313,6 +2683,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 101}
+ {:end-row 154,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouse_schema/models/table_test.clj",
+  :col 22,
+  :end-col 24,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 154}
  {:end-row 120,
   :type :redundant-format,
   :level :info,
@@ -2323,6 +2703,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 120}
+ {:end-row 179,
+  :type :empty-binding,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/warehouses/api_test.clj",
+  :col 42,
+  :end-col 44,
+  :langs (),
+  :message "Empty destructuring form binds no values",
+  :row 179}
  {:end-row 408,
   :type :unresolved-symbol,
   :level :error,
