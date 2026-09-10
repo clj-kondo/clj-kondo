@@ -33,6 +33,7 @@
         destructuring-form (if vec?
                              (normalize-compojure-vector ctx destructuring-form)
                              destructuring-form)
-        bindings (extract-bindings ctx destructuring-form)
+        bindings (extract-bindings ctx destructuring-form destructuring-form
+                                   {:allow-empty-binding? true})
         ctx (ctx-with-bindings ctx bindings)]
     (analyze-children ctx (next children))))

@@ -47,6 +47,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Dynamic vars](#dynamic-vars)
         - [Dynamic var not earmuffed](#dynamic-var-not-earmuffed)
         - [Earmuffed var not dynamic](#earmuffed-var-not-dynamic)
+    - [Empty binding](#empty-binding)
     - [Equals expected position](#equals-expected-position)
     - [Equals float](#equals-float)
     - [Equals false](#equals-false)
@@ -877,6 +878,19 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(def *foo*)`
 
 *Example message:* `"Var has earmuffed name but is not declared dynamic: *foo*"`
+
+### Empty binding
+
+*Keyword:* `:empty-binding`.
+
+*Description:* warn when an empty sequential or map destructuring form binds no
+values.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(let [{} value] value)`.
+
+*Example message:* `Empty destructuring form binds no values`.
 
 ### Equals expected position
 

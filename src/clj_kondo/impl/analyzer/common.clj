@@ -9,8 +9,10 @@
 (defn analyze-expression** [ctx expr]
   ((get @common 'analyze-expression**) ctx expr))
 
-(defn extract-bindings [ctx expr]
-  ((get @common 'extract-bindings) ctx expr))
+(defn extract-bindings
+  ([ctx expr] ((get @common 'extract-bindings) ctx expr))
+  ([ctx expr scoped-expr opts]
+   ((get @common 'extract-bindings) ctx expr scoped-expr opts)))
 
 (defn ctx-with-bindings [ctx expr]
   ((get @common 'ctx-with-bindings) ctx expr))
