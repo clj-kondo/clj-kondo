@@ -92,6 +92,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Var same name except case](#var-same-name-except-case)
     - [Alias same as ns name](#alias-same-ns-name)
     - [Redundant do](#redundant-do)
+    - [Redundant boolean call](#redundant-boolean-call)
     - [Redundant call](#redundant-call)
     - [Redundant declare](#redundant-declare)
     - [Redundant fn wrapper](#redundant-fn-wrapper)
@@ -1867,6 +1868,19 @@ type-hinted symbols, which may be used for performance reasons.
 *Example trigger:* `(let [x x] x)`.
 
 *Example message:* `Redundant let binding: x`.
+
+### Redundant boolean call
+
+*Keyword:* `:redundant-boolean-call`.
+
+*Description:* warn when `boolean` wraps an expression already used as a
+condition.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(if (boolean x) :yes :no)`.
+
+*Example message:* `Boolean call is redundant in condition position`.
 
 ### Redundant str call
 
