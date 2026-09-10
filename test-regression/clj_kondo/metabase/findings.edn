@@ -37,6 +37,16 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 410}
+ {:end-row 473,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/api/macros.clj",
+  :col 14,
+  :end-col 40,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 469}
  {:end-row 998,
   :type :redundant-format,
   :level :info,
@@ -395,6 +405,16 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 189}
+ {:end-row 279,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/channel/slack.clj",
+  :col 20,
+  :end-col 83,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 279}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -524,6 +544,16 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 113}
+ {:end-row 73,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql_jdbc/actions.clj",
+  :col 14,
+  :end-col 50,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 66}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -534,6 +564,16 @@
   :langs (),
   :message "Unused excluded var: require",
   :row 2}
+ {:end-row 44,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/embedding/jwt.clj",
+  :col 16,
+  :end-col 59,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 44}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
@@ -652,6 +692,18 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: remove",
   :row 2}
+ {:end-row 495,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/query.cljc",
+  :col 16,
+  :end-col 71,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 495}
  {:end-row 431,
   :type :constant-condition,
   :level :warning,
@@ -780,6 +832,16 @@
   :langs (),
   :message "Expected: number, received: nil.",
   :row 220}
+ {:end-row 314,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 14,
+  :end-col 53,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 312}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -850,6 +912,16 @@
   :langs (),
   :message "Condition always true",
   :row 266}
+ {:end-row 606,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/queries/api/card.clj",
+  :col 16,
+  :end-col 77,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 606}
  {:end-row 79,
   :type :redundant-let-binding,
   :level :warning,
@@ -988,6 +1060,16 @@
   :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 59,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/search/filter.clj",
+  :col 31,
+  :end-col 110,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 59}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/search/impl.clj",
   :row 433,
@@ -997,6 +1079,26 @@
   "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
+ {:end-row 159,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/search/in_place/filter.clj",
+  :col 31,
+  :end-col 110,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 159}
+ {:end-row 118,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/session/api.clj",
+  :col 14,
+  :end-col 60,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 117}
  {:end-row 1410,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -1018,6 +1120,16 @@
   :langs (),
   :message "Condition always true",
   :row 253}
+ {:end-row 833,
+  :type :missing-caught-exception-cause,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/upload/impl.clj",
+  :col 22,
+  :end-col 65,
+  :langs (),
+  :message "Pass the caught exception as the ex-info cause",
+  :row 833}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
