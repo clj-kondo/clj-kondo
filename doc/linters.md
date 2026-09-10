@@ -19,6 +19,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Cond-else](#cond-else)
     - [Conditional build-up](#conditional-build-up)
     - [Constant condition](#constant-condition)
+    - [Constant logical expression](#constant-logical-expression)
     - [Conflicting-alias](#conflicting-alias)
     - [Consistent-alias](#consistent-alias)
     - [Datalog syntax](#datalog-syntax)
@@ -2357,6 +2358,19 @@ moved here from `:unreachable-code`. Config and ignores using the
 (is 42)                   ;;=> Condition always true
 (cond :else 1 (odd? 1) 2) ;;=> Unreachable code
 ```
+
+### Constant logical expression
+
+*Keyword:* `:constant-logical-expression`.
+
+*Description:* warn when a constant `and` or `or` operand makes every later
+operand unreachable.
+
+*Default level:* `:warning`.
+
+*Example triggers:* `(or true (work))`, `(and false (work))`.
+
+*Example message:* `Later logical operands are unreachable`.
 
 ### Unreachable code
 

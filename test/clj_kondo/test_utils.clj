@@ -134,7 +134,8 @@
              :uninitialized-var {:level :off}
              :redundant-str-call {:level :off}
              :redundant-ignore {:level :off}
-             :constant-condition {:level :off}}})
+             :constant-condition {:level :off}
+             :constant-logical-expression {:level :off}}})
 
 (defn lint-jvm!
   ([input]

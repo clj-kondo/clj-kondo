@@ -43,6 +43,7 @@
               :redundant-declare {:level :warning}
               :var-same-name-except-case {:level :warning}
               :constant-condition {:level :warning}
+              :constant-logical-expression {:level :warning}
               :unreachable-code {:level :warning}
               :datalog-syntax {:level :error}
               :unbound-destructuring-default {:level :warning}

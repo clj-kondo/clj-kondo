@@ -176,6 +176,25 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn lint-constant-logical-expression [ctx call operator]
+  (when-not (or (utils/linter-disabled? ctx :constant-logical-expression)
+                (:condition (:expr call)))
+    (loop [[operand & remaining] (rest (-> call :expr :children))]
+      (when (and operand (seq remaining))
+        (let [decisive? (case operator
+                          and (or (utils/nil-token? operand)
+                                  (false? (:value operand)))
+                          or (constant-condition-truthy? operand)
+                          false)]
+          (if decisive?
+            (when-not (:clj-kondo.impl/generated (:expr call))
+              (findings/reg-finding!
+               ctx
+               (node->line (:filename ctx) operand
+                           :constant-logical-expression
+                           "Later logical operands are unreachable")))
+            (recur remaining)))))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
@@ -185,6 +204,10 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      ([clojure.core and] [cljs.core and])
+      (lint-constant-logical-expression ctx call 'and)
+      ([clojure.core or] [cljs.core or])
+      (lint-constant-logical-expression ctx call 'or)
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
                              [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))

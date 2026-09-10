@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2963](https://github.com/clj-kondo/clj-kondo/issues/2963): new linter `:constant-logical-expression` warns when a constant `and` or `or` operand makes later operands unreachable.
 - Bump graal-build-time to 1.0.6 to fix startup crash in binaries built with GraalVM 25.1+.
 - Bump edamame to 1.6.43: a function literal inside a syntax-quoted macro extracted with `:clj-kondo/macroexpand-hook` no longer fails with `unsupported binding form ns/%1`.
 
