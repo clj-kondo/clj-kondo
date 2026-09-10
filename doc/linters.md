@@ -88,6 +88,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Plus one](#plus-one)
     - [Private call](#private-call)
     - [Protocol method varargs](#protocol-method-varargs)
+    - [Range direction](#range-direction)
     - [Redefined var](#redefined-var)
     - [Var same name except case](#var-same-name-except-case)
     - [Alias same as ns name](#alias-same-ns-name)
@@ -1842,6 +1843,18 @@ along with:
 
 *Example message:* `Redundant nested call: +`.
 
+### Range direction
+
+*Keyword:* `:range-direction`.
+
+*Description:* warn when a literal step passed to `range` moves away from its
+literal end value.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(range 0 10 -1)`.
+
+*Example message:* `Range step moves away from the end value`.
 ### Redundant let
 
 *Keyword:* `:redundant-let`.

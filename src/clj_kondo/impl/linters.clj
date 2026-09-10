@@ -176,6 +176,24 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn lint-range-direction [ctx call]
+  (when-not (utils/linter-disabled? ctx :range-direction)
+    (let [[start end step] (rest (:children call))
+          start-value (:value start)
+          end-value (:value end)
+          step-value (if step (:value step) 1)]
+      (when (and (utils/one-of (count (:children call)) [3 4])
+                 (number? start-value)
+                 (number? end-value)
+                 (number? step-value)
+                 (or (and (< start-value end-value) (neg? step-value))
+                     (and (> start-value end-value) (pos? step-value)))
+                 (not (:clj-kondo.impl/generated call)))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) (or step end) :range-direction
+                     "Range step moves away from the end value"))))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
@@ -185,6 +203,8 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      ([clojure.core range] [cljs.core range])
+      (lint-range-direction ctx (:expr call))
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
                              [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))
