@@ -70,6 +70,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Misplaced async metadata](#misplaced-async-metadata)
     - [Misplaced docstring](#misplaced-docstring)
     - [Missing body in when](#missing-body-in-when)
+    - [Missing caught exception cause](#missing-caught-exception-cause)
     - [Missing clause in try](#missing-clause-in-try)
     - [Missing docstring](#missing-docstring)
     - [Missing else branch](#missing-else-branch)
@@ -1170,6 +1171,19 @@ why this can be problematic.
 *Example trigger:* `(loop [])`.
 
 *Example message:* `Loop without recur.`
+
+### Missing caught exception cause
+
+*Keyword:* `:missing-caught-exception-cause`.
+
+*Description:* warn when a catch clause replaces the caught exception with a
+two-argument `ex-info`, losing the original cause.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(try (work) (catch Exception e (throw (ex-info "Failed" {}))))`.
+
+*Example message:* `Pass the caught exception as the ex-info cause`.
 
 ### Line length
 

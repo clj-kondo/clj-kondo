@@ -2342,12 +2342,40 @@
                                  :defined-by defined-by
                                  :defined-by->lint-as defined-by->lint-as)))))
 
+(defn- thrown-ex-info-without-cause [ctx body-expr]
+  (let [[_ thrown-expr] (:children body-expr)]
+    (when (and body-expr
+               (= 'throw (symbol-call body-expr))
+               (= 2 (count (:children body-expr)))
+               (let [call-sym (symbol-call thrown-expr)
+                     {:keys [ns name]}
+                     (when (and call-sym
+                                (not (contains? (:bindings ctx) call-sym)))
+                       (resolve-name ctx true (-> ctx :ns :name)
+                                     call-sym thrown-expr))]
+                 (and (= 'ex-info name)
+                      (one-of ns [clojure.core cljs.core])))
+               (= 3 (count (:children thrown-expr))))
+      thrown-expr)))
+
+(defn- lint-missing-caught-exception-cause [ctx expr binding-expr exprs]
+  (when (and (not (linter-disabled? ctx :missing-caught-exception-cause))
+             (not= '_ (:value binding-expr))
+             (not (:clj-kondo.impl/generated expr)))
+    (when-let [ex-info-expr (thrown-ex-info-without-cause ctx (last exprs))]
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) ex-info-expr
+                   :missing-caught-exception-cause
+                   "Pass the caught exception as the ex-info cause")))))
+
 (defn analyze-catch [ctx expr]
   (let [ctx (update ctx :callstack conj [nil 'catch])
         [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         ;; catch params are not let-bound, & is allowed there
         binding (extract-bindings ctx binding-expr (last exprs) {:allow-amp true})]
+    (lint-missing-caught-exception-cause ctx expr binding-expr exprs)
     ;; a catch body only runs on an exception, so it is conditional code
     (analyze-children (ctx-with-bindings (in-branch-ctx ctx) binding)
                       exprs)))
