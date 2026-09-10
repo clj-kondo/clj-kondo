@@ -253,6 +253,7 @@
                     (l/lint-var-usage ctx idacs)
                     (l/lint-deferred-conditions! ctx idacs)
                     (l/lint-unused-namespaces! ctx idacs)
+                    (l/lint-redefined-specs! ctx)
                     (l/lint-unused-private-vars! ctx)
                     (l/lint-bindings! ctx)
                     (l/lint-unresolved-symbols! ctx)
