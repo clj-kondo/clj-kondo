@@ -88,6 +88,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Plus one](#plus-one)
     - [Private call](#private-call)
     - [Protocol method varargs](#protocol-method-varargs)
+    - [Regex spaces](#regex-spaces)
     - [Redefined var](#redefined-var)
     - [Var same name except case](#var-same-name-except-case)
     - [Alias same as ns name](#alias-same-ns-name)
@@ -1841,6 +1842,19 @@ along with:
 *Example trigger:* `(+ 1 2 (+ 1 2 3))`.
 
 *Example message:* `Redundant nested call: +`.
+
+
+### Regex spaces
+
+*Keyword:* `:regex-spaces`.
+
+*Description:* warn when a regex contains consecutive literal spaces.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `#"foo  bar"`.
+
+*Example message:* `Use a quantifier instead of multiple spaces in a regex`.
 
 ### Redundant let
 
