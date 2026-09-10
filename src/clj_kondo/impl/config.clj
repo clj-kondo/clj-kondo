@@ -36,6 +36,7 @@
               :duplicate-map-key {:level :error}
               :duplicate-set-key {:level :error}
               :duplicate-require {:level :warning}
+              :duplicate-cond-test {:level :warning}
               :duplicate-field {:level :error}
               :duplicate-key-args {:level :warning}
               :missing-map-value {:level :error}
