@@ -80,6 +80,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing protocol method arity](#missing-protocol-method-arity)
     - [Missing test assertion](#missing-test-assertion)
     - [Is message not string](#is-message-not-string)
+    - [Negative zero comparison](#negative-zero-comparison)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
@@ -1504,6 +1505,19 @@ or
 ``` clojure
 (is (= 1 1) #_:clj-kondo/ignore 42)
 ```
+
+### Negative zero comparison
+
+*Keyword:* `:negative-zero-comparison`.
+
+*Description:* warn when a ClojureScript equality comparison uses negative
+zero.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(= value -0.0)`.
+
+*Example message:* `Use js/Object.is to compare against negative zero`.
 
 ### Namespace name mismatch
 

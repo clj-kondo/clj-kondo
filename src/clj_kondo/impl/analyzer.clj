@@ -3227,6 +3227,11 @@
   (analyze-children (ctx-with-bindings ctx with-precision-bindings)
                     children))
 
+(defn- negative-zero-node? [expr]
+  (some->> (:string-value expr)
+           (re-matches #"-0(?:\.0*)?(?:[eE][+-]?0+)?")
+           boolean))
+
 (defn- analyze-=-not= [ctx expr var-name]
   (let [[lhs rhs :as children] (rest (:children expr))
         var=? (= '= var-name)
@@ -3280,6 +3285,14 @@
                                             :type :equals-nil
                                             :message "Prefer (nil? x) over (= nil x)"
                                             :filename (:filename ctx))))))
+    (when (and (identical? :cljs (:lang ctx))
+               (or (negative-zero-node? lhs) (negative-zero-node? rhs))
+               (not (linter-disabled? ctx :negative-zero-comparison))
+               (not (:clj-kondo.impl/generated expr)))
+      (findings/reg-finding! ctx (assoc (meta expr)
+                                        :type :negative-zero-comparison
+                                        :message "Use js/Object.is to compare against negative zero"
+                                        :filename (:filename ctx))))
     res))
 
 (defn- analyze-+- [ctx sym expr]
