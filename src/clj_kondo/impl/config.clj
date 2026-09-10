@@ -159,6 +159,7 @@
               :is-message-not-string {:level :info}
               :redundant-primitive-coercion {:level :info}
               :redundant-format {:level :info}
+              :invalid-regex {:level :error}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}
               :aliased-namespace-symbol {:level :off
