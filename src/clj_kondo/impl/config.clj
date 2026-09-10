@@ -180,6 +180,7 @@
               :protocol-method-varargs {:level :error}
               :unused-alias {:level :off}
               :alias-same-as-ns {:level :off}
+              :self-assignment {:level :warning}
               :self-requiring-namespace {:level :warning}
               :underscore-in-namespace {:level :warning}
               :multiple-async-in-deftest {:level :warning}
