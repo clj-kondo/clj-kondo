@@ -2408,6 +2408,23 @@
                         interface? (map inc))))
             {} meths)))
 
+(defn- duplicate-method-implementation?
+  [methods method-name fixed-arities varargs-min-arity]
+  (some
+   (fn [method]
+     (when (= method-name method)
+       (let [{existing-fixed :impl-fixed-arities
+              existing-varargs :impl-varargs-min-arity} (meta method)]
+         (or (seq (set/intersection fixed-arities existing-fixed))
+             (and varargs-min-arity
+                  existing-varargs
+                  (= varargs-min-arity existing-varargs))
+             (and existing-varargs
+                  (some #(>= % existing-varargs) fixed-arities))
+             (and varargs-min-arity
+                  (some #(>= % varargs-min-arity) existing-fixed))))))
+   methods))
+
 (defn analyze-defprotocol [{:keys [ns] :as ctx} expr defined-by defined-by->lint-as]
   ;; for syntax, see https://clojure.org/reference/protocols#_basics
   (let [children (next (:children expr))
@@ -2589,16 +2606,28 @@
                       meta
                       :arity)
 
-                  methods (conj methods (let [val (:value protocol-method-name)
-                                              val (if (qualified-symbol? val)
-                                                    (symbol (name val))
-                                                    val)]
-                                          (cond-> val
-                                            (symbol? val)
-                                            (with-meta
-                                              (assoc (meta protocol-method-name)
-                                                     :impl-fixed-arities fixed-arities
-                                                     :impl-varargs-min-arity varargs-min-arity)))))]
+                  method-name (let [val (:value protocol-method-name)]
+                                (if (qualified-symbol? val)
+                                  (symbol (name val))
+                                  val))
+                  _ (when (and (symbol? method-name)
+                               (duplicate-method-implementation?
+                                methods method-name fixed-arities varargs-min-arity)
+                               (not (linter-disabled? ctx :duplicate-method-implementation))
+                               (not (:clj-kondo.impl/generated c)))
+                      (findings/reg-finding!
+                       ctx
+                       (node->line (:filename ctx) c
+                                   :duplicate-method-implementation
+                                   (str "Duplicate method implementation: "
+                                        method-name))))
+                  method (cond-> method-name
+                           (symbol? method-name)
+                           (with-meta
+                             (assoc (meta protocol-method-name)
+                                    :impl-fixed-arities fixed-arities
+                                    :impl-varargs-min-arity varargs-min-arity)))
+                  methods (conj methods method)]
               (when (end? (second children))
                 (namespace/reg-protocol-impl! ctx ns-name (assoc (meta protocol-node)
                                                                  :protocol-ns protocol-ns
