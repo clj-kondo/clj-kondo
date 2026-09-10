@@ -115,6 +115,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Shadowed var](#shadowed-var)
     - [Static field call](#static-field-call)
     - [Syntax](#syntax)
+    - [Throw in finally](#throw-in-finally)
     - [Type mismatch](#type-mismatch)
     - [Unbound destructuring default](#unbound-destructuring-default)
     - [Unexpected recur](#unexpected-recur)
@@ -2120,6 +2121,19 @@ the `ns` form.
 Mismatched bracket: found an opening [ and a closing ) on line 1
 Mismatched bracket: found an opening [ on line 1 and a closing )
 ```
+
+### Throw in finally
+
+*Keyword:* `:throw-in-finally`.
+
+*Description:* warn when a `throw` inside `finally` replaces the value or
+exception pending from `try` or `catch`.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(try (work) (finally (throw failure)))`.
+
+*Example message:* `Throw in finally replaces the pending value or exception`.
 
 ### Type mismatch
 

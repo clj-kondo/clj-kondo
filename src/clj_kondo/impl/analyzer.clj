@@ -52,6 +52,24 @@
 
 (declare analyze-expression**)
 
+(defn- inside-finally? [callstack]
+  (when-let [[[_ call] & remaining] (seq callstack)]
+    (cond
+      (= 'finally call) true
+      (one-of call [fn fn* defn defn-]) false
+      :else (recur remaining))))
+
+(defn- lint-throw-in-finally [ctx expr]
+  (when (and expr
+             (= 'throw (symbol-call expr))
+             (inside-finally? (:callstack ctx))
+             (not (linter-disabled? ctx :throw-in-finally))
+             (not (:clj-kondo.impl/generated expr)))
+    (findings/reg-finding!
+     ctx
+     (node->line (:filename ctx) expr :throw-in-finally
+                 "Throw in finally replaces the pending value or exception"))))
+
 (defn analyze-children
   ([ctx children]
    (analyze-children ctx children true))
@@ -78,6 +96,7 @@
                      (assoc-new :len len))]
          (into []
                (comp (map-indexed (fn [i e]
+                                    (lint-throw-in-finally ctx e)
                                     (analyze-expression** (assoc ctx :idx i) e)))
                      cat)
                children))))))
