@@ -80,6 +80,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Missing protocol method arity](#missing-protocol-method-arity)
     - [Missing test assertion](#missing-test-assertion)
     - [Is message not string](#is-message-not-string)
+    - [NaN comparison](#nan-comparison)
     - [Namespace name mismatch](#namespace-name-mismatch)
     - [Nil return from if-like forms](#nil-return-from-if-like-forms)
     - [Non-arg vec return type hint](#non-arg-vec-return-type-hint)
@@ -1504,6 +1505,18 @@ or
 ``` clojure
 (is (= 1 1) #_:clj-kondo/ignore 42)
 ```
+
+### NaN comparison
+
+*Keyword:* `:nan-comparison`.
+
+*Description:* warn when `=`, `not=`, or `==` compares a value with `##NaN`.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(= value ##NaN)`.
+
+*Example message:* `NaN cannot be compared`.
 
 ### Namespace name mismatch
 

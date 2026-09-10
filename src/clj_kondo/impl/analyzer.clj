@@ -3227,6 +3227,10 @@
   (analyze-children (ctx-with-bindings ctx with-precision-bindings)
                     children))
 
+(defn- nan-node? [expr]
+  (let [value (:value expr)]
+    (and (double? value) (Double/isNaN value))))
+
 (defn- analyze-=-not= [ctx expr var-name]
   (let [[lhs rhs :as children] (rest (:children expr))
         var=? (= '= var-name)
@@ -3280,6 +3284,13 @@
                                             :type :equals-nil
                                             :message "Prefer (nil? x) over (= nil x)"
                                             :filename (:filename ctx))))))
+    (when (and (or (nan-node? lhs) (nan-node? rhs))
+               (not (linter-disabled? ctx :nan-comparison))
+               (not (:clj-kondo.impl/generated expr)))
+      (findings/reg-finding! ctx (assoc (meta expr)
+                                        :type :nan-comparison
+                                        :message "NaN cannot be compared"
+                                        :filename (:filename ctx))))
     res))
 
 (defn- analyze-+- [ctx sym expr]
@@ -3654,7 +3665,7 @@
     if-not (analyze-if-not ctx expr lint-as?)
     new (analyze-constructor ctx expr)
     set! (analyze-set! ctx expr)
-    (= not=) (analyze-=-not= ctx expr resolved-as-clojure-var-name)
+    (= not= ==) (analyze-=-not= ctx expr resolved-as-clojure-var-name)
     (+ -) (analyze-+- ctx resolved-name expr)
     (with-redefs binding) (analyze-with-redefs ctx expr)
     (when when-not) (analyze-when ctx expr resolved-as-clojure-var-name lint-as?)
