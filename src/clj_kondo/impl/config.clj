@@ -155,6 +155,7 @@
               :redundant-call {:level :off
                                #_#_:exclude #{clojure.core/->}
                                #_#_:include #{clojure.core/conj!}}
+              :redundant-boolean-call {:level :warning}
               :redundant-str-call {:level :info}
               :is-message-not-string {:level :info}
               :redundant-primitive-coercion {:level :info}

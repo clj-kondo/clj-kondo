@@ -176,6 +176,16 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn lint-redundant-boolean-call [ctx call]
+  (let [expr (:expr call)]
+    (when (and (true? (:condition expr))
+               (not (utils/linter-disabled? ctx :redundant-boolean-call))
+               (not (:clj-kondo.impl/generated expr)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) expr :redundant-boolean-call
+                   "Boolean call is redundant in condition position")))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
@@ -185,6 +195,8 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      ([clojure.core boolean] [cljs.core boolean])
+      (lint-redundant-boolean-call ctx call)
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
                              [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))

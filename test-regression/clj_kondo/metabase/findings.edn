@@ -1008,6 +1008,46 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 1409}
+ {:end-row 176,
+  :type :redundant-boolean-call,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/sso/settings.clj",
+  :col 36,
+  :end-col 55,
+  :langs (),
+  :message "Boolean call is redundant in condition position",
+  :row 176}
+ {:end-row 50,
+  :type :redundant-boolean-call,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/timeline/api/timeline_event.clj",
+  :col 33,
+  :end-col 49,
+  :langs (),
+  :message "Boolean call is redundant in condition position",
+  :row 50}
+ {:end-row 51,
+  :type :redundant-boolean-call,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/timeline/api/timeline_event.clj",
+  :col 33,
+  :end-col 54,
+  :langs (),
+  :message "Boolean call is redundant in condition position",
+  :row 51}
+ {:end-row 77,
+  :type :redundant-boolean-call,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/timeline/api/timeline_event.clj",
+  :col 34,
+  :end-col 53,
+  :langs (),
+  :message "Boolean call is redundant in condition position",
+  :row 77}
  {:end-row 253,
   :type :constant-condition,
   :level :warning,
