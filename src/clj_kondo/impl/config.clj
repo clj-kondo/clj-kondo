@@ -126,6 +126,7 @@
               :redundant-nested-call {:level :info}
               :single-key-in {:level :off}
               :missing-clause-in-try {:level :warning}
+              :missing-caught-exception-cause {:level :warning}
               :missing-body-in-when {:level :warning}
               :hook {:level :error}
               :format {:level :error}
