@@ -2789,6 +2789,30 @@
       (analyze-children ctx (cons (first children) (nnext children)))
       (analyze-children ctx children))))
 
+(defn- multiple-regex-spaces? [pattern]
+  (when-not (re-find #"\(\?[idmsuxU-]*x" pattern)
+    (loop [[ch next-ch & remaining] pattern
+           escaped? false
+           character-class? false]
+      (cond
+        (nil? ch) false
+        escaped? (recur (cons next-ch remaining) false character-class?)
+        (= \\ ch) (recur (cons next-ch remaining) true character-class?)
+        (= \[ ch) (recur (cons next-ch remaining) false true)
+        (= \] ch) (recur (cons next-ch remaining) false false)
+        (and (= \space ch) (= \space next-ch) (not character-class?)) true
+        :else (recur (cons next-ch remaining) false character-class?)))))
+
+(defn lint-regex-spaces [ctx expr lang]
+  (when (and (not (identical? :edn lang))
+             (multiple-regex-spaces? (:pattern expr))
+             (not (linter-disabled? ctx :regex-spaces))
+             (not (:clj-kondo.impl/generated expr)))
+    (findings/reg-finding!
+     ctx
+     (node->line (:filename ctx) expr :regex-spaces
+                 "Use a quantifier instead of multiple spaces in a regex"))))
+
 (defn analyze-with-redefs
   [ctx expr]
   (let [call (-> (:callstack ctx) first second) ;; can be with-redefs or binding
@@ -4436,6 +4460,7 @@
           (types/add-arg-type-from-expr ctx expr :list))
         :regex (do
                  (lint-unused-value ctx expr)
+                 (lint-regex-spaces ctx expr lang)
                  (when (identical? :edn lang)
                    (findings/reg-finding! ctx (assoc (meta expr)
                                                      :filename (:filename ctx)

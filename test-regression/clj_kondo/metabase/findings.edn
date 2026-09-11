@@ -524,6 +524,26 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 113}
+ {:end-row 49,
+  :type :regex-spaces,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/postgres/actions.clj",
+  :col 27,
+  :end-col 214,
+  :langs (),
+  :message "Use a quantifier instead of multiple spaces in a regex",
+  :row 49}
+ {:end-row 60,
+  :type :regex-spaces,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/postgres/actions.clj",
+  :col 27,
+  :end-col 185,
+  :langs (),
+  :message "Use a quantifier instead of multiple spaces in a regex",
+  :row 60}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
