@@ -59,6 +59,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Inline def](#inline-def)
     - [Destructured or always evaluates](#destructured-or-always-evaluates)
     - [Invalid arity](#invalid-arity)
+    - [Invalid regex](#invalid-regex)
     - [Conflicting arity](#conflicting-arity)
     - [Reduce without initial value](#reduce-without-initial-value)
     - [Loop without recur](#loop-without-recur)
@@ -1125,6 +1126,19 @@ Normally a call to this macro will give an invalid arity error for `(select-keys
 ``` clojure
 {:linters {:invalid-arity {:skip-args [silly-macros/with-map]}}}
 ```
+
+### Invalid regex
+
+*Keyword:* `:invalid-regex`.
+
+*Description:* warn when `re-pattern` receives a constant string that is not a
+valid Java regular expression. This linter applies to Clojure only.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(re-pattern "[")`.
+
+*Example message:* `Invalid regex: Unclosed character class`.
 
 ### Conflicting arity
 

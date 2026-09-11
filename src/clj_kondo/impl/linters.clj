@@ -176,6 +176,19 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
+(defn lint-re-pattern [ctx call]
+  (when (and (identical? :clj (:lang call))
+             (not (utils/linter-disabled? ctx :invalid-regex)))
+    (let [pattern-node (-> call :expr :children second)]
+      (when-let [pattern (utils/string-from-token pattern-node)]
+        (try
+          (java.util.regex.Pattern/compile pattern)
+          (catch java.util.regex.PatternSyntaxException e
+            (findings/reg-finding!
+             ctx
+             (node->line (:filename ctx) pattern-node :invalid-regex
+                         (str "Invalid regex: " (.getDescription e))))))))))
+
 (defn lint-specific-calls! [ctx call called-fn]
   (let [called-ns (:ns called-fn)
         called-name (:name called-fn)
@@ -185,6 +198,8 @@
     (case [called-ns called-name]
       ([clojure.core cond] [cljs.core cond])
       (lint-cond ctx (:expr call))
+      [clojure.core re-pattern]
+      (lint-re-pattern ctx call)
       ([clojure.core if-let] [clojure.core if-not] [clojure.core if-some]
                              [cljs.core if-let] [cljs.core if-not] [cljs.core if-some])
       (do (lint-missing-else-branch ctx (:expr call))
