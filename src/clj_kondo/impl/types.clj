@@ -52,6 +52,8 @@
     :false
     :truthy
     :atom
+    :agent
+    :ref
     :future
     :regex
     :char
@@ -112,6 +114,8 @@
    :true #{:boolean}
    :false #{:boolean}
    :atom #{:ideref}
+   :agent #{:ideref}
+   :ref #{:ideref}
    :future #{:ideref}
    :var #{:ideref :ifn}
    :array #{:seqable :ilookup}})
@@ -145,11 +149,11 @@
    :sequential #{:seq :list :vector :ifn :associative :stack :ilookup}
    :map #{:sorted-map}
    :set #{:sorted-set}
-   :ideref #{:atom :future :var :ifn}
+   :ideref #{:atom :agent :ref :future :var :ifn}
    :ilookup #{:map :set :sorted-set :sorted-map :coll :seqable :ifn :associative
               :vector :sequential :stack :array}})
 
-(def misc-types #{:boolean :atom :future :regex :char :class :inst})
+(def misc-types #{:boolean :atom :agent :ref :future :regex :char :class :inst})
 
 (defn nilable? [k]
   (= "nilable" (namespace k)))
@@ -190,6 +194,8 @@
    :false "boolean"
    :truthy "truthy value"
    :atom "atom"
+   :agent "agent"
+   :ref "ref"
    :future "future"
    :ideref "deref"
    :fn "function"
