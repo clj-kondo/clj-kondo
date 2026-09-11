@@ -2362,12 +2362,13 @@ moved here from `:unreachable-code`. Config and ignores using the
 
 *Keyword:* `:unreachable-code`.
 
-*Description:* warn on code that can never execute. Currently: branches after
-a `:default` reader conditional branch, which never match.
+*Description:* warn on code that can never execute, including expressions after
+`throw` and branches after a `:default` reader conditional branch.
 
 *Default level:* `:warning`.
 
-*Example trigger:* `#?(:default 1 :clj 2)`.
+*Example triggers:* `(do (throw failure) (cleanup))`,
+`#?(:default 1 :clj 2)`.
 
 *Example message:* `Unreachable code: default reader conditional branch should go last`.
 

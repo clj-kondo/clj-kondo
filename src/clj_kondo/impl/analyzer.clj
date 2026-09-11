@@ -1568,6 +1568,20 @@
       (lint-conditional-build-up! ctx bv @collector))
     analyzed))
 
+(defn- lint-code-after-throw [ctx expr]
+  (when-not (linter-disabled? ctx :unreachable-code)
+    (let [[throw-expr & unreachable]
+          (drop-while #(not= 'throw (symbol-call %))
+                      (next (:children expr)))]
+      (when (and throw-expr
+                 (seq unreachable)
+                 (not (:clj-kondo.impl/generated throw-expr))
+                 (not (:clj-kondo.impl/generated (first unreachable))))
+        (findings/reg-finding!
+         ctx
+         (node->line (:filename ctx) (first unreachable)
+                     :unreachable-code "Unreachable code"))))))
+
 (defn analyze-do [{:keys [filename callstack] :as ctx} expr]
   (let [parent-call (second callstack)
         core? (one-of (first parent-call) [clojure.core cljs.core])
@@ -1594,6 +1608,7 @@
                                       doseq try when when-not when-first
                                       when-some future
                                       catch])))))]
+    (lint-code-after-throw ctx expr)
     (when redundant?
       (findings/reg-finding!
        ctx
