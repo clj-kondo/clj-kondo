@@ -524,6 +524,16 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 113}
+ {:end-row 1901,
+  :type :throw-in-finally,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/driver/sql/query_processor.clj",
+  :col 13,
+  :end-col 32,
+  :langs (),
+  :message "Throw in finally replaces the pending value or exception",
+  :row 1897}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -2173,6 +2183,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
+ {:end-row 481,
+  :type :throw-in-finally,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/util.clj",
+  :col 17,
+  :end-col 36,
+  :langs (),
+  :message "Throw in finally replaces the pending value or exception",
+  :row 477}
  {:end-row 497,
   :type :is-message-not-string,
   :level :info,

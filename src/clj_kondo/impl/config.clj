@@ -199,6 +199,7 @@
               :missing-protocol-method-arity {:level :off}
               :locking-suspicious-lock {:level :warning}
               :destructured-or-always-evaluates {:level :off}
+              :throw-in-finally {:level :warning}
               :unquote-not-syntax-quoted {:level :warning}
               :await-without-async-fn {:level :error}
               :conditional-build-up {:level :off}}

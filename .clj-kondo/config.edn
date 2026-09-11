@@ -42,6 +42,7 @@
  :auto-load-configs false
  :ns-groups [{:pattern ".*-test"
               :name test-namespaces}]
- :config-in-ns {test-namespaces {:linters {:warn-on-reflection {:level :off}}}}
+ :config-in-ns {clj-kondo.impl.analyzer {:linters {:throw-in-finally {:level :off}}}
+                test-namespaces {:linters {:warn-on-reflection {:level :off}}}}
  :config-paths ["imports/borkdude/deflet"]
  }

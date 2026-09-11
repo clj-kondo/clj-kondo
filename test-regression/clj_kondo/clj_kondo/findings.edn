@@ -32823,6 +32823,15 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
+ {:end-row 4757,
+  :type :throw-in-finally,
+  :level :warning,
+  :filename "src/clj_kondo/impl/analyzer.clj",
+  :col 15,
+  :end-col 24,
+  :langs (),
+  :message "Throw in finally replaces the pending value or exception",
+  :row 4757}
  {:end-row 46,
   :type :redundant-ignore,
   :level :info,
