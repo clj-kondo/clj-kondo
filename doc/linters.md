@@ -39,6 +39,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
     - [Duplicate map key](#duplicate-map-key)
+    - [Duplicate method implementation](#duplicate-method-implementation)
     - [Duplicate require](#duplicate-require)
     - [Duplicate refer](#duplicate-refer)
     - [Duplicate set key](#duplicate-set-key)
@@ -786,6 +787,19 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `{:a 1 :a 2}`
 
 *Example message:* `duplicate key :a`.
+
+### Duplicate method implementation
+
+*Keyword:* `:duplicate-method-implementation`.
+
+*Description:* warn when a type, record, reify, or proxy implements the same
+method and arity more than once.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(deftype T [] Object (toString [this] "a") (toString [this] "b"))`.
+
+*Example message:* `Duplicate method implementation: toString`.
 
 ### Duplicate require
 
