@@ -255,6 +255,18 @@
 (defn- merge-type-mismatch-namespaces [a b]
   (merge-with (partial merge-with merge-fn-types) a b))
 
+(defn- highest-min-clj-kondo-version
+  "When merging configs, preserve the strictest (highest) min-clj-kondo-version."
+  [merged cfg* cfg]
+  (if-let [highest (some->> [(:min-clj-kondo-version cfg*)
+                             (:min-clj-kondo-version cfg)]
+                            (remove nil?)
+                            seq
+                            sort
+                            last)]
+    (assoc merged :min-clj-kondo-version highest)
+    merged))
+
 (defn merge-config!
   ([])
   ([cfg] cfg)
@@ -270,7 +282,9 @@
                    (assoc-in [:linters :missing-else-branch] (:if (:linters cfg)))
                    (contains? (:linters cfg) :type-mismatch)
                    (update-in [:linters :type-mismatch] dissoc :namespaces))]
-         (deep-merge cfg* cfg))))
+         (-> cfg*
+             (deep-merge cfg)
+             (highest-min-clj-kondo-version cfg* cfg)))))
   ([cfg* cfg & cfgs]
    (reduce merge-config! cfg* (cons cfg cfgs))))
 
