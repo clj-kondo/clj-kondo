@@ -89,6 +89,19 @@
     (when-not (lint-cond-even-number-of-forms! ctx expr)
       (when (seq conditions)
         (lint-cond-constants! ctx conditions)
+        (when-not (utils/linter-disabled? ctx :duplicate-cond-test)
+          (loop [[condition & remaining] conditions
+                 seen #{}]
+            (when condition
+              (let [form (utils/sexpr condition)]
+                (when (and (contains? seen form)
+                           (not (constant? condition))
+                           (not (:clj-kondo.impl/generated condition)))
+                  (findings/reg-finding!
+                   ctx
+                   (node->line (:filename ctx) condition :duplicate-cond-test
+                               "Duplicate cond test")))
+                (recur remaining (conj seen form))))))
         #_(lint-cond-as-case! filename expr conditions)))))
 
 (defn expected-test-assertion? [callstack idx]

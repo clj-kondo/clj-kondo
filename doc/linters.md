@@ -38,6 +38,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Docstring blank](#docstring-blank)
     - [Docstring no summary](#docstring-no-summary)
     - [Docstring leading trailing whitespace](#docstring-leading-trailing-whitespace)
+    - [Duplicate cond test](#duplicate-cond-test)
     - [Duplicate map key](#duplicate-map-key)
     - [Duplicate require](#duplicate-require)
     - [Duplicate refer](#duplicate-refer)
@@ -774,6 +775,19 @@ Explanation by Bozhidar Batsov:
 *Example trigger:* `(defn foo "Has trailing whitespace.\n" [a b] 1)`
 
 *Example message:* `Docstring should not have leading or trailing whitespace.`
+
+### Duplicate cond test
+
+*Keyword:* `:duplicate-cond-test`.
+
+*Description:* warn when a `cond` contains the same non-constant test more than
+once.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(cond (odd? x) :odd (odd? x) :also-odd)`.
+
+*Example message:* `Duplicate cond test`.
 
 ### Duplicate map key
 
