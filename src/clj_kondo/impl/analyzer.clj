@@ -2782,7 +2782,21 @@
 
 (defn analyze-set!
   [ctx expr]
-  (let [children (next (:children expr))]
+  (let [[target field-or-value value :as children] (next (:children expr))
+        self-assignment?
+        (if value
+          (= (sexpr value)
+             (list (symbol (str "." (:value field-or-value)))
+                   (sexpr target)))
+          (= (sexpr target) (sexpr field-or-value)))]
+    (when (and (one-of (count children) [2 3])
+               self-assignment?
+               (not (linter-disabled? ctx :self-assignment))
+               (not (:clj-kondo.impl/generated expr)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) expr :self-assignment
+                   "Value is assigned to itself")))
     (if (and (identical? :cljs (:lang ctx))
              (= 3 (count children)))
       ;; ignore second argument which is the field, e.g. (set! o -x 3)

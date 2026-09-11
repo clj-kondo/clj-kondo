@@ -106,6 +106,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Refer clojure exclude unresolved var](#unresolved-excluded-var)
     - [Refer all](#refer-all)
     - [Schema misplaced return](#schema-misplaced-return)
+    - [Self-assignment](#self-assignment)
     - [Self-requiring namespace](#self-requiring-namespace)
     - [Seq rest](#seq-rest)
     - [Single key in](#single-key-in)
@@ -2000,6 +2001,18 @@ Example warning: `require with :refer`.
 *Example trigger:* `(ns foo (:require [foo]))`
 
 *Example message:* `Namespace is requiring itself: foo`
+
+### Self-assignment
+
+*Keyword:* `:self-assignment`.
+
+*Description:* warn when `set!` assigns an expression to itself.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(set! *x* *x*)`.
+
+*Example message:* `Value is assigned to itself`.
 
 ### Seq rest
 
