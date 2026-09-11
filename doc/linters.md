@@ -135,6 +135,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unsorted imports](#unsorted-imports)
     - [Unsorted required namespaces](#unsorted-required-namespaces)
     - [Unquote outside syntax-quote](#unquote-outside-syntax-quote)
+    - [Useless catch](#useless-catch)
     - [Unused namespace](#unused-namespace)
     - [Unused private var](#unused-private-var)
     - [Unused referred var](#unused-referred-var)
@@ -2590,6 +2591,19 @@ Possible values for `:sort` are `:case-insensitive` (default) and `:case-sensiti
 *Example trigger:* `~x`
 
 *Example message:* `Unquote (~) used outside syntax-quote`.
+
+### Useless catch
+
+*Keyword:* `:useless-catch`.
+
+*Description:* warn when the last catch clause only rethrows its caught
+exception.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `(try (work) (catch Exception e (throw e)))`.
+
+*Example message:* `Catch clause only rethrows the caught exception`.
 
 ### Await without async fn
 

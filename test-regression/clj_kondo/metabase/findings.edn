@@ -750,6 +750,16 @@
   :langs (),
   :message "Unquote (~) not syntax-quoted",
   :row 97}
+ {:end-row 191,
+  :type :useless-catch,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/token_check.clj",
+  :col 14,
+  :end-col 26,
+  :langs (),
+  :message "Catch clause only rethrows the caught exception",
+  :row 190}
  {:end-row 214,
   :type :type-mismatch,
   :level :error,

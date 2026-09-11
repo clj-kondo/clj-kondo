@@ -2342,12 +2342,30 @@
                                  :defined-by defined-by
                                  :defined-by->lint-as defined-by->lint-as)))))
 
-(defn analyze-catch [ctx expr]
+(defn- direct-rethrow? [binding-expr body-expr]
+  (let [[_ thrown-expr] (:children body-expr)]
+    (and (= 'throw (symbol-call body-expr))
+         (= 2 (count (:children body-expr)))
+         (= (:value binding-expr) (:value thrown-expr)))))
+
+(defn- lint-useless-catch [ctx expr binding-expr exprs last-catch?]
+  (when (and last-catch?
+             (= 1 (count exprs))
+             (direct-rethrow? binding-expr (first exprs))
+             (not (linter-disabled? ctx :useless-catch))
+             (not (:clj-kondo.impl/generated expr)))
+    (findings/reg-finding!
+     ctx
+     (node->line (:filename ctx) expr :useless-catch
+                 "Catch clause only rethrows the caught exception"))))
+
+(defn analyze-catch [ctx expr last-catch?]
   (let [ctx (update ctx :callstack conj [nil 'catch])
         [class-expr binding-expr & exprs] (next (:children expr))
         _ (analyze-expression** ctx class-expr) ;; analyze usage for unused import linter
         ;; catch params are not let-bound, & is allowed there
         binding (extract-bindings ctx binding-expr (last exprs) {:allow-amp true})]
+    (lint-useless-catch ctx expr binding-expr exprs last-catch?)
     ;; a catch body only runs on an exception, so it is conditional code
     (analyze-children (ctx-with-bindings (in-branch-ctx ctx) binding)
                       exprs)))
@@ -2375,7 +2393,8 @@
       (if fst-child
         (case (symbol-call fst-child)
           catch
-          (let [analyzed-catch (analyze-catch ctx fst-child)]
+          (let [last-catch? (not-any? #(= 'catch (symbol-call %)) rst-children)
+                analyzed-catch (analyze-catch ctx fst-child last-catch?)]
             (recur rst-children (into analyzed analyzed-catch)
                    true false true))
           finally
