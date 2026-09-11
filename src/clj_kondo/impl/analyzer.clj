@@ -52,6 +52,21 @@
 
 (declare analyze-expression**)
 
+(defn- lint-cljs-unsafe-integer [ctx expr]
+  (let [value (:value expr)
+        source (:string-value expr)]
+    (when (and (identical? :cljs (:lang ctx))
+               (integer? value)
+               (string? source)
+               (re-matches #"[+-]?\d+" source)
+               (> (abs value) 9007199254740991N)
+               (not (linter-disabled? ctx :cljs-unsafe-integer))
+               (not (:clj-kondo.impl/generated expr)))
+      (findings/reg-finding!
+       ctx
+       (node->line (:filename ctx) expr :cljs-unsafe-integer
+                   "Integer cannot be represented exactly in ClojureScript")))))
+
 (defn analyze-children
   ([ctx children]
    (analyze-children ctx children true))
@@ -4237,6 +4252,7 @@
           {:keys [row col]} (meta expr)
           arg-count (count (rest children))]
       (utils/handle-ignore ctx expr)
+      (lint-cljs-unsafe-integer ctx expr)
       ;; map's type is added in :map handler below
       ;; namespaced map's type is added when going through analyze-expression** via analyze-namespaced-map
       ;; list and quote are handled specially because of return types

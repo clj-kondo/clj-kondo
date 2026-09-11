@@ -140,6 +140,7 @@
               :bb.edn-unexpected-key {:level :warning}
               :bb.edn-task-missing-docstring {:level :off}
               :clj-kondo-config {:level :warning}
+              :cljs-unsafe-integer {:level :warning}
               :redundant-expression {:level :warning}
               :loop-without-recur {:level :warning}
               :unexpected-recur {:level :error}

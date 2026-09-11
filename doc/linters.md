@@ -16,6 +16,7 @@ configuration. For general configurations options, go [here](config.md).
         - [Case quoted test](#case-quoted-test)
         - [Case symbol test constant](#case-symbol-test-constant)
     - [Clj-kondo config](#clj-kondo-config)
+    - [ClojureScript unsafe integer](#clojurescript-unsafe-integer)
     - [Cond-else](#cond-else)
     - [Conditional build-up](#conditional-build-up)
     - [Constant condition](#constant-condition)
@@ -281,6 +282,19 @@ enabling this linter, you can prepend the `case` expression with
 ```
 
 *Example message:* `Unexpected linter name: :foo`.
+
+### ClojureScript unsafe integer
+
+*Keyword:* `:cljs-unsafe-integer`.
+
+*Description:* warn when an unsuffixed integer literal cannot be represented
+exactly by a JavaScript number. This linter applies to ClojureScript only.
+
+*Default level:* `:warning`.
+
+*Example trigger:* `9007199254740993`.
+
+*Example message:* `Integer cannot be represented exactly in ClojureScript`.
 
 ### Cond-else
 
