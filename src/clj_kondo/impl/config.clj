@@ -38,6 +38,7 @@
               :duplicate-require {:level :warning}
               :duplicate-field {:level :error}
               :duplicate-key-args {:level :warning}
+              :empty-binding {:level :warning}
               :missing-map-value {:level :error}
               :redefined-var {:level :warning}
               :redundant-declare {:level :warning}

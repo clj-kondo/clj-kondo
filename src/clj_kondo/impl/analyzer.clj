@@ -300,6 +300,16 @@
 
 (declare extract-bindings)
 
+(defn- lint-empty-binding [ctx expr opts]
+  (when (and (empty? (:children expr))
+             (not (:allow-empty-binding? opts))
+             (not (linter-disabled? ctx :empty-binding))
+             (not (:clj-kondo.impl/generated expr)))
+    (findings/reg-finding!
+     ctx
+     (node->line (:filename ctx) expr :empty-binding
+                 "Empty destructuring form binds no values"))))
+
 (defn node-contains-or?
   "Whether a destructuring form has an :or directive at any depth.
   Over-matches :or in other positions, which callers accept."
@@ -718,7 +728,8 @@
                         expr
                         :syntax
                         (str "unsupported binding form " expr))))
-         :vector (let [children (:children expr)
+         :vector (let [_ (lint-empty-binding ctx expr opts)
+                       children (:children expr)
                        all-tokens? (every? #(identical? :token %) (map :tag children))
                        exclude-as? (-> ctx :config :linters :unused-binding
                                        :exclude-destructured-as)
@@ -730,7 +741,8 @@
                        ;; the value's tag describes the whole sequence, not its
                        ;; elements, see the same guard in extract-map-bindings.
                        ;; Only :as names the whole value
-                       child-opts (assoc (dissoc opts :tag) :allow-amp true)
+                       child-opts (assoc (dissoc opts :tag :allow-empty-binding?)
+                                         :allow-amp true)
                        opts-for (fn [child]
                                   (if (and (identical? child as-node) (:tag opts))
                                     (assoc child-opts :tag (:tag opts))
@@ -777,7 +789,9 @@
                                            (assoc opts :namespaced-map true))
          :map
          ;; first check even amount of keys + vals
-         (extract-map-bindings ctx expr scoped-expr opts)
+         (do
+           (lint-empty-binding ctx expr opts)
+           (extract-map-bindings ctx expr scoped-expr opts))
          (findings/reg-finding!
           ctx
           (node->line (:filename ctx)
@@ -839,7 +853,10 @@
                                                  :syntax
                                                  "Function arguments should be wrapped in vector."))
               (let [fn-dupes (atom #{}) ;; used to detect duplicate fn arg names
-                    arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes) arg-vec body {:fn-args? true})
+                    arg-bindings (extract-bindings (assoc ctx :fn-dupes fn-dupes)
+                                                  arg-vec body
+                                                  {:fn-args? true
+                                                   :allow-empty-binding? true})
                     {return-tag :tag
                      arg-tags :tags
                      keys-bindings :keys-bindings} (meta arg-bindings)
@@ -2623,7 +2640,7 @@
                                           :mark-bindings-used? true)
                                    binding-vector
                                    expr
-                                   {})
+                                   {:allow-empty-binding? true})
         arglists? (:analyze-arglists? ctx)
         ctx (ctx-with-bindings ctx bindings)]
     (when (and record-name bindings)
