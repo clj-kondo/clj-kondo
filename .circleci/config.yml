@@ -287,7 +287,9 @@ jobs:
       - run:
           name: Install native dev tools
           command: |
-            sudo apt-get update
+            # bullseye is EOL, its security repo is dead
+            sudo sed -i '/bullseye-security/d' /etc/apt/sources.list
+            sudo apt-get -o Acquire::Check-Valid-Until=false update
             sudo apt-get -y install build-essential zlib1g-dev
             sudo -E script/setup-musl
       - run:
