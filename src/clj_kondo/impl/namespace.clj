@@ -754,6 +754,17 @@
         (lint-var (str resolved-ns))
         (run! lint-var (config/ns-groups-eduction ctx call-config resolved-ns filename))))))
 
+;; A qualified symbol in hook output resolves without a require in the calling namespace.
+(defn unresolved-ns-result [expr ns-sym name-sym]
+  (let [name-node (or (some-> expr :children first) expr)
+        var-name (symbol (name name-sym))]
+    (if (:clj-kondo.impl/generated name-node)
+      {:ns ns-sym
+       :name var-name}
+      {:name var-name
+       :unresolved? true
+       :unresolved-ns ns-sym})))
+
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
   (let [lang (:lang ctx)
@@ -827,16 +838,12 @@
                         {:interop? true
                          :ns ns-sym
                          :name (symbol (name name-sym))})
-                    {:name (symbol (name name-sym))
-                     :unresolved? true
-                     :unresolved-ns ns-sym})
+                    (unresolved-ns-result expr ns-sym name-sym))
                   (if cljs?
                     ;; see https://github.com/clojure/clojurescript/blob/6ed949278ba61dceeafb709583415578b6f7649b/src/main/clojure/cljs/analyzer.cljc#L781
                     (if-not (one-of ns* ["js" "goog"
                                          "Math" "String"])
-                      {:name (symbol (name name-sym))
-                       :unresolved? true
-                       :unresolved-ns ns-sym}
+                      (unresolved-ns-result expr ns-sym name-sym)
                       (let [var-name (-> (str/split (name name-sym) #"\." 2) first symbol)
                             {:keys [row end-row col end-col]} (meta expr)]
                         ;; interop calls don't make it into linters/lint-var-usage,
@@ -847,9 +854,7 @@
                                                (symbol (str ns-sym) ns*)
                                                nil expr true)
                         nil))
-                    {:name (symbol (name name-sym))
-                     :unresolved? true
-                     :unresolved-ns ns-sym}))))))
+                    (unresolved-ns-result expr ns-sym name-sym)))))))
       (or
        (when (and call?
                   (special-symbol? name-sym))
