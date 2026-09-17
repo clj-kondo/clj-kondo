@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Hooks: a qualified symbol in hook output resolves without a require in the calling namespace. E.g. a hook that returns `(my.library/foo ...)` now triggers the hook for `my.library/foo`.
 - Bump graal-build-time to 1.0.6 to fix startup crash in binaries built with GraalVM 25.1+.
 - Bump edamame to 1.6.43: a function literal inside a syntax-quoted macro extracted with `:clj-kondo/macroexpand-hook` no longer fails with `unsupported binding form ns/%1`.
 

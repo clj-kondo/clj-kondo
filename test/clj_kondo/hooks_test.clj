@@ -816,3 +816,14 @@ my-ns/special-map \"
       (clj-kondo/run! {:lint [(fs/file "corpus" "issue-2943" "src")]
                        :config (edn/read-string (slurp (fs/file "corpus" "issue-2943" ".clj-kondo" "config.edn")))
                        :config-dir (fs/file "corpus" "issue-2943" ".clj-kondo")})))))
+
+(deftest hook-generated-ns-test
+  (testing "a qualified symbol in hook output resolves without a require, a written one does not"
+    (assert-submaps2
+     '({:file "corpus/hook-generated-ns/src/consumer.clj", :row 3, :col 6, :level :warning, :message "unused binding y"}
+       {:file "corpus/hook-generated-ns/src/consumer.clj", :row 3, :col 13, :level :error, :message "Unresolved symbol: z"}
+       {:file "corpus/hook-generated-ns/src/consumer.clj", :row 4, :col 1, :level :warning, :message "Unresolved namespace my.other. Are you missing a require?"})
+     (lint! (fs/file "corpus" "hook-generated-ns" "src")
+            {:linters {:unused-binding {:level :warning}
+                       :unresolved-symbol {:level :error}}}
+            "--config-dir" (fs/file "corpus" "hook-generated-ns" ".clj-kondo")))))
