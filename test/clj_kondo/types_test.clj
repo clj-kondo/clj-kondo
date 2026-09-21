@@ -2339,6 +2339,32 @@
       (is (empty? (lint! "(defn bar [s] (if (string? s) (subs s 1) s)) (defn foo [x] (bar x)) (foo 42)"
                          config))))))
 
+(deftest agent-types-test
+  (is (empty? (lint! "(declare executor)
+                     (let [x (agent {})]
+                       (send-via executor x assoc :a {})
+                       (send x dissoc :c :d :e)
+                       (send-off x update-in [:a :b] conj :entry))"
+                     config)))
+  (assert-submaps2
+   [{:row 2
+     :col 33
+     :level :error
+     :message "Expected: agent, received: atom."}
+    {:row 3
+     :col 20
+     :level :error
+     :message "Expected: agent, received: map."}
+    {:row 4
+     :col 24
+     :level :error
+     :message "Expected: agent, received: positive integer."}]
+   (lint! "(let [x (atom {})]
+             (send-via executor x assoc :a {})
+             (send {} dissoc :c :d :e)
+             (send-off 1 update-in [:a :b] conj :entry))"
+          config)))
+
 ;;;; Scratch
 
 (comment)
