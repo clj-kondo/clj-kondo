@@ -1,0 +1,2 @@
+{:hooks {:analyze-call {my.library/foo hook-generated-ns.lib/foo
+                        app.macros/bar hook-generated-ns.app/bar}}}
