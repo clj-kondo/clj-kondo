@@ -1,0 +1,238 @@
+(ns clj-kondo.redefined-spec-test
+  (:require
+   [babashka.fs :as fs]
+   [clj-kondo.test-utils :refer [lint! assert-submaps2]]
+   [clojure.test :as t :refer [deftest is testing]]))
+
+(def spec-require "[clojure.spec.alpha :as s]")
+
+(deftest single-namespace-test
+  (testing "s/def registering the same keyword twice"
+    (assert-submaps2
+     '({:row 3 :col 8 :level :warning
+        :message #"spec :foo/x"})
+     (lint! (str "(ns foo (:require " spec-require "))\n"
+                 "(s/def ::x string?)\n"
+                 "(s/def ::x int?)"))))
+  (testing "no warning for a single registration"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def ::x string?)")))))
+  (testing "s/fdef registering the same symbol twice"
+    (assert-submaps2
+     '({:row 4 :col 9 :level :warning
+        :message #"spec foo/f"})
+     (lint! (str "(ns foo (:require " spec-require "))\n"
+                 "(defn f [x] x)\n"
+                 "(s/fdef f :args (s/cat :x int?))\n"
+                 "(s/fdef f :args (s/cat :y int?))"))))
+  (testing "a keyword s/def and a symbol s/fdef of the same name do not clash:
+            they occupy spec's two disjoint key spaces"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(defn f [x] x)\n"
+                            "(s/fdef f :args (s/cat :x int?))\n"
+                            "(s/def ::f int?)"))))))
+
+(deftest symbol-keyed-def-test
+  (testing "s/def registering the same symbol twice"
+    (assert-submaps2
+     '({:row 3 :col 8 :level :warning
+        :message #"spec foo/thing"})
+     (lint! (str "(ns foo (:require " spec-require "))\n"
+                 "(s/def foo/thing string?)\n"
+                 "(s/def foo/thing int?)"))))
+  (testing "s/fdef and a symbol-keyed s/def share spec's symbol key space"
+    (assert-submaps2
+     '({:row 4 :col 8 :level :warning
+        :message #"spec foo/g"})
+     (lint! (str "(ns foo (:require " spec-require "))\n"
+                 "(defn g [x] x)\n"
+                 "(s/fdef g :args (s/cat :x int?))\n"
+                 "(s/def foo/g int?)"))))
+  (testing "a symbol-keyed s/def does not clash with a keyword of the same name"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def foo/x string?)\n"
+                            "(s/def ::x int?)"))))))
+
+(deftest original-is-source-order-test
+  (testing "the original is chosen by source order, not by the require graph:
+            b.clj requires z, but sorts first, so z.clj is reported"
+    (fs/with-temp-dir [tmp {}]
+      (spit (fs/file tmp "b.clj")
+            (str "(ns b (:require " spec-require " [z]))\n"
+                 "(s/def :shared/x int?)"))
+      (spit (fs/file tmp "z.clj")
+            (str "(ns z (:require " spec-require "))\n"
+                 "(s/def :shared/x string?)"))
+      (assert-submaps2
+       '({:file #"z.clj" :row 2 :col 8 :level :warning
+          :message #"spec :shared/x also defined at .*b.clj:2:8"})
+       (filter #(re-find #"also defined at" (:message %))
+               (lint! (fs/file tmp)))))))
+
+(deftest comment-form-test
+  (testing "a registration inside (comment ...) does not clash, consistent with :redefined-var"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def ::x string?)\n"
+                            "(comment (s/def ::x int?))"))))
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(comment (s/def ::x string?))\n"
+                            "(s/def ::x int?)"))))
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(comment (s/def ::x string?) (s/def ::x int?))"))))))
+
+(deftest edge-cases-test
+  (testing "auto-resolved keywords in different namespaces are distinct"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def ::x string?)\n"
+                            "(ns bar (:require " spec-require "))\n"
+                            "(s/def ::x string?)")))))
+  (testing "aliased and fully-qualified keyword resolving to the same spec clash"
+    (assert-submaps2
+     '({:row 4 :col 8 :level :warning
+        :message #"spec :shared/x"})
+     (lint! (str "(ns foo (:require " spec-require " [shared :as sh]))\n"
+                 "(s/def ::sh/x string?)\n"
+                 "(ns bar (:require " spec-require "))\n"
+                 "(s/def :shared/x string?)")))))
+
+(deftest whole-project-test
+  (testing "duplicate specs are detected across files in a single run"
+    (fs/with-temp-dir [tmp {}]
+      (spit (fs/file tmp "a.clj")
+            (str "(ns a (:require " spec-require " [shared :as sh]))\n"
+                 "(s/def ::sh/x string?)"))
+      (spit (fs/file tmp "b.clj")
+            (str "(ns b (:require " spec-require "))\n"
+                 "(s/def :shared/x int?)"))
+      (spit (fs/file tmp "shared.clj") "(ns shared)")
+      (assert-submaps2
+       '({:file #"b.clj" :row 2 :col 8 :level :warning
+          :message #"spec :shared/x also defined at"})
+       (filter #(re-find #"also defined at" (:message %))
+               (lint! (fs/file tmp)))))))
+
+(deftest cljc-test
+  (testing "a single cljc registration does not warn"
+    (is (empty? (filter #(re-find #"also defined at" (:message %))
+                        (lint! (str "(ns foo (:require " spec-require "))\n"
+                                    "(s/def ::x string?)")
+                               "--lang" "cljc")))))
+  (testing "a duplicate cljc registration warns exactly once"
+    (let [findings (filter #(re-find #"also defined at" (:message %))
+                           (lint! (str "(ns foo (:require " spec-require "))\n"
+                                       "(s/def ::x string?)\n"
+                                       "(s/def ::x int?)")
+                                  "--lang" "cljc"))]
+      (is (= 1 (count findings)))))
+  (testing "same spec name in .clj and .cljs do not clash (disjoint runtimes)"
+    (fs/with-temp-dir [tmp {}]
+      (spit (fs/file tmp "p.clj")
+            (str "(ns p (:require " spec-require "))\n(s/def ::x string?)"))
+      (spit (fs/file tmp "p.cljs")
+            (str "(ns p (:require " spec-require "))\n(s/def ::x string?)"))
+      (is (empty? (filter #(re-find #"also defined at" (:message %))
+                          (lint! (fs/file tmp))))))))
+
+(defn- redefined-spec-findings [findings]
+  (filter #(re-find #"also defined at" (:message %)) findings))
+
+(deftest cross-run-cache-test
+  (testing "a redefinition is detected across runs via the global spec index,
+            even when the files don't require one another (both resolve to the
+            same spec via an alias)"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (spit (fs/file tmp "specs.clj") "(ns specs)")
+        (spit (fs/file tmp "a.clj")
+              (str "(ns a (:require " spec-require " [specs :as sp]))\n"
+                   "(s/def ::sp/bar string?)"))
+        (spit (fs/file tmp "b.clj")
+              (str "(ns b (:require " spec-require " [specs :as sp]))\n"
+                   "(s/def ::sp/bar int?)"))
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        (assert-submaps2
+         '({:file #"b.clj" :row 2 :col 8 :level :warning
+            :message #"spec :specs/bar also defined at"})
+         (redefined-spec-findings
+          (lint! (fs/file tmp "b.clj") "--cache" cache))))))
+  (testing "re-linting the same file does not report it against its own cached
+            entry"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (spit (fs/file tmp "a.clj")
+              (str "(ns a (:require " spec-require "))\n"
+                   "(s/def ::foo string?)"))
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        (is (empty? (redefined-spec-findings
+                     (lint! (fs/file tmp "a.clj") "--cache" cache))))))))
+
+(deftest cross-run-staleness-test
+  (testing "removing an s/def and re-linting clears it from the index"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (spit (fs/file tmp "specs.clj") "(ns specs)")
+        (spit (fs/file tmp "a.clj")
+              (str "(ns a (:require " spec-require " [specs :as sp]))\n"
+                   "(s/def ::sp/bar string?)"))
+        (spit (fs/file tmp "b.clj")
+              (str "(ns b (:require " spec-require " [specs :as sp]))\n"
+                   "(s/def ::sp/bar int?)"))
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        ;; b now redefines specs/bar
+        (is (seq (redefined-spec-findings
+                  (lint! (fs/file tmp "b.clj") "--cache" cache))))
+        ;; remove the registration from a and re-lint it
+        (spit (fs/file tmp "a.clj")
+              (str "(ns a (:require " spec-require " [specs :as sp]))"))
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        ;; b is no longer a redefinition
+        (is (empty? (redefined-spec-findings
+                     (lint! (fs/file tmp "b.clj") "--cache" cache))))))))
+
+(deftest stdin-cache-test
+  (testing "stdin is not persisted in the cross-run index"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (is (empty? (redefined-spec-findings
+                     (lint! (str "(ns foo (:require " spec-require "))\n"
+                                 "(s/def ::foo string?)")
+                            "--cache" cache))))))))
+
+(deftest path-spelling-test
+  (testing "the same file linted by different path spellings is one index entry"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))]
+        (spit (fs/file tmp "a.clj")
+              (str "(ns a (:require " spec-require "))\n"
+                   "(s/def ::foo string?)"))
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        (lint! (str (fs/canonicalize (fs/file tmp "a.clj"))) "--cache" cache)
+        (is (empty? (redefined-spec-findings
+                     (lint! (fs/file tmp "a.clj") "--cache" cache))))))))
+
+(deftest vanished-file-test
+  (testing "entries for deleted or renamed files are dropped from the index"
+    (fs/with-temp-dir [tmp {}]
+      (let [cache (str (fs/file tmp ".cache"))
+            src (str "(ns a (:require " spec-require " [specs :as sp]))\n"
+                     "(s/def ::sp/bar string?)")]
+        (spit (fs/file tmp "specs.clj") "(ns specs)")
+        (spit (fs/file tmp "a.clj") src)
+        (lint! (fs/file tmp "a.clj") "--cache" cache)
+        ;; rename a.clj to b.clj: b must not be reported against the old entry
+        (fs/delete (fs/file tmp "a.clj"))
+        (spit (fs/file tmp "b.clj") src)
+        (is (empty? (redefined-spec-findings
+                     (lint! (fs/file tmp "b.clj") "--cache" cache))))))))
+
+(deftest config-test
+  (testing "the linter can be disabled"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def ::x string?)\n"
+                            "(s/def ::x int?)")
+                       {:linters {:redefined-spec {:level :off}}}))))
+  (testing "individual registrations can be ignored"
+    (is (empty? (lint! (str "(ns foo (:require " spec-require "))\n"
+                            "(s/def ::x string?)\n"
+                            "#_{:clj-kondo/ignore [:redefined-spec]}\n"
+                            "(s/def ::x int?)"))))))

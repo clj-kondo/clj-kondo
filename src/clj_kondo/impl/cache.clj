@@ -1,6 +1,7 @@
 (ns clj-kondo.impl.cache
   {:no-doc true}
   (:require
+   [babashka.fs :as fs]
    [clj-kondo.impl.types :as types]
    [clj-kondo.impl.utils :refer [one-of]]
    [clojure.java.io :as io]
@@ -213,6 +214,209 @@
       (with-cache cache-dir 6
         (sync-cache* idacs config-dir cache-dir)))
     (sync-cache* idacs config-dir cache-dir)))
+;;;; Spec index
+;;
+;; A project-wide index of spec registrations (`s/def`/`s/fdef`), mirroring
+;; spec's own global registry. Used by the :redefined-spec linter to detect
+;; redefinitions across separate runs, independent of the require graph.
+;;
+;; The index is sharded, next to the per-namespace cache entries, under
+;; `<cache-dir>/specs`:
+;;
+;; - `keys/<bucket>.transit.json` holds, for a bucket of spec identities, the
+;;   registrations of that spec per source file. Buckets are addressed by a
+;;   digest of the spec identity, so a run only touches the buckets for the
+;;   specs it actually registers instead of reading and rewriting a
+;;   project-wide blob.
+;; - `files/<digest-of-path>.transit.json` is a per-file manifest of the spec
+;;   identities that file contributed last time, so re-linting it can drop the
+;;   registrations it no longer has.
+;;
+;; Shards are written by atomic rename and every run is the single writer for
+;; its own files, so no global cache lock is needed.
+
+(defn- spec-index-dir [cache-dir]
+  (fs/path cache-dir "specs"))
+
+(defn- digest
+  "Stable, filesystem-safe name for a string."
+  ^String [^String s]
+  (let [md (java.security.MessageDigest/getInstance "SHA-1")
+        sb (StringBuilder.)]
+    (doseq [b (.digest md (.getBytes s "UTF-8"))]
+      (.append sb (format "%02x" (bit-and (int b) 0xff))))
+    (str sb)))
+
+(defn- manifest-file [cache-dir canonical-path]
+  (fs/path (spec-index-dir cache-dir) "files"
+           (str (digest canonical-path) ".transit.json")))
+
+(defn- spec-key
+  "The identity a registration is indexed under, matching the grouping used by
+  the :redefined-spec linter."
+  [occ]
+  [(:kind occ) (:ns occ) (:name occ) (:lang occ)])
+
+(defn- bucket-file [cache-dir spec-key]
+  ;; one hex byte of the digest: enough buckets to keep them small, few enough
+  ;; that a full-project run doesn't write thousands of tiny files
+  (fs/path (spec-index-dir cache-dir) "keys"
+           (str (subs (digest (pr-str spec-key)) 0 2) ".transit.json")))
+
+(defn- read-shard
+  "Reads one shard, or nil if it's absent or unreadable (e.g. concurrently
+  replaced or written by an incompatible version)."
+  [f]
+  (when (fs/exists? f)
+    (try (let [data (with-open [is (io/input-stream (fs/file f))]
+                      (transit/read (transit/reader is :json)))]
+           (when (map? data) data))
+         (catch Exception _ nil))))
+
+(defn- write-shard!
+  "Writes a shard via a temp file + atomic rename, so concurrent readers see
+  either the old or the new contents, never a partial write."
+  [f data]
+  (let [dir (fs/parent f)
+        _ (fs/create-dirs dir)
+        tmp (fs/create-temp-file {:dir dir
+                                  :prefix "spec-shard"
+                                  :suffix ".transit.json"})]
+    (try
+      (with-open [os (no-flush-output-stream (io/output-stream (fs/file tmp)))]
+        (transit/write (transit/writer os :json) data))
+      (try (fs/move tmp f {:replace-existing true :atomic-move true})
+           (catch java.nio.file.AtomicMoveNotSupportedException _
+             (fs/move tmp f {:replace-existing true})))
+      (finally (fs/delete-if-exists tmp)))))
+
+(defn- delete-quietly! [f]
+  (try (fs/delete-if-exists f) (catch Exception _ false)))
+
+(defn- current-registrations
+  "The registrations of this run, as spec-key -> canonical file -> entries. Only
+  location and the filename spelling used in this run are stored; the rest of the
+  identity is the key itself."
+  [current-contributions canonical-by-filename]
+  (reduce-kv (fn [m filename occs]
+               (let [canonical (canonical-by-filename filename)]
+                 (reduce (fn [m occ]
+                           (update-in m [(spec-key occ) canonical] (fnil conj [])
+                                      {:filename filename
+                                       :row (:row occ)
+                                       :col (:col occ)}))
+                         m
+                         occs)))
+             {}
+             current-contributions))
+
+(defn- registered-keys-by-file
+  "Inverts the registrations into canonical file -> the spec identities it
+  registers now, which is what each file's manifest records."
+  [registrations]
+  (reduce-kv (fn [m k by-file]
+               (reduce-kv (fn [m f _entries] (update m f (fnil conj []) k))
+                          m
+                          by-file))
+             {}
+             registrations))
+
+(defn- previous-spec-keys
+  "Reads the manifests of the files linted this run: canonical file -> the spec
+  identities it registered according to the previous run. Their buckets have to
+  be visited too, to drop registrations that are gone now."
+  [cache-dir canonical-paths]
+  (into {}
+        (map (juxt identity #(:keys (read-shard (manifest-file cache-dir %)))))
+        canonical-paths))
+
+(defn- external-occurrences
+  "Rebuilds full registration maps from a spec identity and its per-file entries,
+  marked as non-reportable so they only serve as `also defined at` locations."
+  [[kind ns name lang] by-file]
+  (map #(assoc % :kind kind :ns ns :name name :lang lang :reportable? false)
+       (mapcat val by-file)))
+
+(defn- update-bucket
+  "Applies this run's registrations to one bucket and returns
+  `[updated-index external-occurrences]`, where the external occurrences are the
+  registrations of the bucket's keys coming from files not linted this run."
+  [index bucket-keys registrations external-file?]
+  (reduce
+   (fn [[index externals] k]
+     ;; keep only what files outside this run still register: this run's own
+     ;; entries are superseded by `registrations`, and entries of vanished
+     ;; files must not be reported as the original definition
+     (let [kept (into {} (filter (comp external-file? key)) (get index k))
+           by-file (merge kept (get registrations k))]
+       [(if (seq by-file) (assoc index k by-file) (dissoc index k))
+        (into externals (external-occurrences k kept))]))
+   [index []]
+   bucket-keys))
+
+(defn- sync-buckets!
+  "Rewrites every bucket affected by this run and returns the external
+  registrations found in them."
+  [cache-dir affected-keys registrations external-file?]
+  (reduce-kv (fn [acc f bucket-keys]
+               (let [index (or (:index (read-shard f)) {})
+                     [index' externals] (update-bucket index bucket-keys
+                                                       registrations external-file?)]
+                 (when-not (= index index')
+                   (if (seq index')
+                     (write-shard! f {:index index'})
+                     (delete-quietly! f)))
+                 (into acc externals)))
+             []
+             (group-by #(bucket-file cache-dir %) affected-keys)))
+
+(defn- write-manifests!
+  "Records what each file contributes now, so a later run can drop it again.
+  Manifests that didn't change are left alone."
+  [cache-dir canonical-paths current-keys previous-keys]
+  (doseq [canonical canonical-paths
+          :let [ks (get current-keys canonical)]
+          :when (not= ks (get previous-keys canonical))
+          :let [f (manifest-file cache-dir canonical)]]
+    (if (seq ks)
+      (write-shard! f {:file canonical :keys ks})
+      (delete-quietly! f))))
+
+(defn sync-spec-index!
+  "Refreshes the spec index for the files linted in this run and returns the
+  registrations of the same specs contributed by *other* files (as
+  `also defined at` locations for cross-run detection).
+
+  `current-contributions` is a map of filename -> vector of registration maps.
+  `current-filenames` is the set of files linted this run; the registrations
+  they no longer have are dropped from the index, so removing an `s/def` also
+  removes it."
+  [cache-dir current-contributions current-filenames]
+  (when cache-dir
+    (let [;; Only filesystem paths belong in the persistent index. In
+          ;; particular, fs/canonicalize throws for <stdin> on Windows, and a
+          ;; stdin entry could never be a useful cross-run definition anyway.
+          indexable-filename? (fn [filename]
+                                (and (not= "<stdin>" filename)
+                                     (not (str/includes? filename ".jar:"))))
+          canonical-by-filename (into {}
+                                      (comp (filter indexable-filename?)
+                                            (map (juxt identity (comp str fs/canonicalize))))
+                                      (into (set current-filenames)
+                                            (keys current-contributions)))
+          current-paths (set (vals canonical-by-filename))
+          registrations (current-registrations current-contributions canonical-by-filename)
+          current-keys (registered-keys-by-file registrations)
+          previous-keys (previous-spec-keys cache-dir current-paths)
+          external-file? (fn [f] (and (not (contains? current-paths f))
+                                      (fs/exists? f)))
+          ;; only the buckets of specs registered now or previously by these
+          ;; files can be affected by this run
+          affected-keys (distinct (concat (keys registrations)
+                                          (mapcat val previous-keys)))
+          externals (sync-buckets! cache-dir affected-keys registrations external-file?)]
+      (write-manifests! cache-dir current-paths current-keys previous-keys)
+      externals)))
 
 ;;;; Scratch
 
