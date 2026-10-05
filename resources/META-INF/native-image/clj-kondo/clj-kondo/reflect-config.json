@@ -62,6 +62,10 @@
     "allDeclaredFields":true
   },
   {
+    "name":"com.github.javaparser.ast.body.EnumConstantDeclaration",
+    "allDeclaredFields":true
+  },
+  {
     "name":"com.github.javaparser.ast.expr.ArrayCreationExpr",
     "allDeclaredFields":true
   },

@@ -355,6 +355,13 @@
         (is (contains? (:flags do-stuff-method) :public)
             "Default method in bytecode should be marked as public")))))
 
+(deftest enum-constants-test
+  (let [{:keys [java-member-definitions]} (analyze ["corpus/java/sources/foo/bar/EnumClass.java"])]
+    (assert-submaps2
+     '[{:class "foo.bar.EnumClass$Color" :name "RED" :flags #{:field}}
+       {:class "foo.bar.EnumClass$Color" :name "GREEN" :flags #{:field}}]
+     (filter #(= "foo.bar.EnumClass$Color" (:class %)) java-member-definitions))))
+
 (comment
 
   #_(assert-submap {:filename #"\.class"} {:filename "/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar:clojure/lang/RT.class"})
