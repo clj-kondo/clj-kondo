@@ -293,7 +293,7 @@
                               (class-is->class-info is)
                               (catch Exception e
                                 (binding [*out* *err*]
-                                  (println "Error parsing class file" filename "with error" (ex-message e)))))
+                                  (println "[clj-kondo] WARNING: could not parse class file" filename (str "(" (ex-message e) ")")))))
                             (source-is->java-member-definitions is filename)))]
       (doseq [[class-name class-info] class-by-info]
         (let [flags (:flags class-info)

@@ -373,20 +373,33 @@
     (aset-byte bs 7 (unchecked-byte major))
     bs))
 
-(deftest class-file-version-test
+(deftest java-25-class-file-test
+  (let [{:keys [java-class-definitions java-member-definitions var-definitions]}
+        (analyze ["corpus/java/java25.jar"])]
+    (testing "Java 25 sealed interface and record are analyzed"
+      (assert-submaps2
+       '[{:class "java25.Circle" :flags #{:public :final}}
+         {:class "java25.Shape" :flags #{:public :interface}}]
+       (sort-by :class java-class-definitions)))
+    (testing "record members are analyzed"
+      (is (match? (m/embeds [{:class "java25.Circle" :name "radius"}
+                             {:class "java25.Circle" :name "area"}
+                             {:class "java25.Circle" :name "describe"}])
+                  java-member-definitions)))
+    (testing "Clojure source next to Java 25 class files is analyzed"
+      (is (some #(= '[java25.core dispatch] [(:ns %) (:name %)]) var-definitions)))))
+
+(deftest unsupported-class-file-version-test
   (let [jar (str (fs/path (fs/create-temp-dir) "mixed.jar"))]
     (with-open [os (JarOutputStream. (io/output-stream jar))]
-      (doseq [[nm ^bytes bs] [["clojure/lang/Box.class" (class-bytes-with-major-version "clojure/lang/Box.class" 69)]
-                              ["clojure/lang/Volatile.class" (class-bytes-with-major-version "clojure/lang/Volatile.class" 999)]
+      (doseq [[nm ^bytes bs] [["clojure/lang/Volatile.class" (class-bytes-with-major-version "clojure/lang/Volatile.class" 999)]
                               ["repro/core.clj" (.getBytes "(ns repro.core) (defn dispatch [] 42)")]]]
         (.putNextEntry os (JarEntry. ^String nm))
         (.write os bs)
         (.closeEntry os)))
     (let [{:keys [java-class-definitions var-definitions]} (analyze [jar])]
-      (testing "Java 25 class file is analyzed"
-        (is (some #(= "clojure.lang.Box" (:class %)) java-class-definitions)))
-      (testing "unsupported class file version is skipped"
-        (is (not (some #(= "clojure.lang.Volatile" (:class %)) java-class-definitions))))
+      (testing "class file version 999 is skipped"
+        (is (empty? java-class-definitions)))
       (testing "Clojure source next to an unsupported class file is analyzed"
         (is (some #(= '[repro.core dispatch] [(:ns %) (:name %)]) var-definitions))))))
 
