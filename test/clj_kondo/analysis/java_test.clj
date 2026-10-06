@@ -1,20 +1,16 @@
 (ns clj-kondo.analysis.java-test
   (:require
-   [babashka.fs :as fs]
    [babashka.process :as p]
    [borkdude.deflet :as deflet]
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
    [clj-kondo.test-utils :as tu :refer [assert-submap2 assert-submaps2]]
    [clojure.edn :as edn]
-   [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :as t :refer [deftest is testing]]
    [clojure.tools.deps :as deps]
    [matcher-combinators.matchers :as m]
-   [matcher-combinators.test :refer [match?]])
-  (:import
-   [java.util.jar JarEntry JarOutputStream]))
+   [matcher-combinators.test :refer [match?]]))
 
 (defn analyze [lint]
   (let [config {:output {:canonical-paths true
@@ -366,13 +362,6 @@
        {:class "foo.bar.EnumClass$Color" :name "GREEN" :flags #{:field}}]
      (filter #(= "foo.bar.EnumClass$Color" (:class %)) java-member-definitions))))
 
-(defn- class-bytes-with-major-version [class-resource major]
-  (let [bs (with-open [is (io/input-stream (io/resource class-resource))]
-             (.readAllBytes is))]
-    (aset-byte bs 6 (unchecked-byte (bit-shift-right major 8)))
-    (aset-byte bs 7 (unchecked-byte major))
-    bs))
-
 (deftest java-25-class-file-test
   (let [{:keys [java-class-definitions java-member-definitions var-definitions]}
         (analyze ["corpus/java/java25.jar"])]
@@ -390,18 +379,12 @@
       (is (some #(= '[java25.core dispatch] [(:ns %) (:name %)]) var-definitions)))))
 
 (deftest unsupported-class-file-version-test
-  (let [jar (str (fs/path (fs/create-temp-dir) "mixed.jar"))]
-    (with-open [os (JarOutputStream. (io/output-stream jar))]
-      (doseq [[nm ^bytes bs] [["clojure/lang/Volatile.class" (class-bytes-with-major-version "clojure/lang/Volatile.class" 999)]
-                              ["repro/core.clj" (.getBytes "(ns repro.core) (defn dispatch [] 42)")]]]
-        (.putNextEntry os (JarEntry. ^String nm))
-        (.write os bs)
-        (.closeEntry os)))
-    (let [{:keys [java-class-definitions var-definitions]} (analyze [jar])]
-      (testing "class file version 999 is skipped"
-        (is (empty? java-class-definitions)))
-      (testing "Clojure source next to an unsupported class file is analyzed"
-        (is (some #(= '[repro.core dispatch] [(:ns %) (:name %)]) var-definitions))))))
+  (let [{:keys [java-class-definitions var-definitions]}
+        (analyze ["corpus/java/unsupported-class-version.jar"])]
+    (testing "class file version 999 is skipped"
+      (is (empty? java-class-definitions)))
+    (testing "Clojure source next to an unsupported class file is analyzed"
+      (is (some #(= '[unsupported.core dispatch] [(:ns %) (:name %)]) var-definitions)))))
 
 (comment
 
