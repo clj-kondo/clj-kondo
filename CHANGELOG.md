@@ -13,6 +13,9 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- Clojure 1.13 alpha8 destructuring: `:excess` and `:missing` bind a name. With `:missing` a `:keys!` key is not required.
+- Clojure 1.13 alpha8: lint `selector`. E.g. `(selector {:keys [a]})` will warn.
+- Clojure 1.13: `:defaults` no longer binds a name. A nil `:or` default adds its key to `:all` and `:select`.
 - [#2998](https://github.com/clj-kondo/clj-kondo/issues/2998): bump ASM to 9.10.1 to analyze Java 25 class files. An unreadable class file in a JAR no longer prevents analysis of the other entries ([@skylightis666](https://github.com/skylightis666)).
 - [#2996](https://github.com/clj-kondo/clj-kondo/issues/2996): native binary: Java member analysis no longer fails on a `.java` source file with an enum ([@skovati](https://github.com/skovati)).
 - Hooks: a qualified symbol in hook output resolves without a require in the calling namespace. E.g. a hook that returns `(my.library/foo ...)` now triggers the hook for `my.library/foo` without requiring `my.library`.

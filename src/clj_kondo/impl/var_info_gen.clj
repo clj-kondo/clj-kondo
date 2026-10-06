@@ -381,6 +381,8 @@ max-key
 memfn
 memoize
 merge
+merge-deep
+merge-deep-with
 merge-with
 meta
 method-sig
@@ -522,6 +524,7 @@ repeat
 repeatedly
 replace
 replicate
+req!
 require
 requiring-resolve
 reset!
@@ -539,6 +542,7 @@ run!
 satisfies?
 second
 select-keys
+selector
 send
 send-off
 send-via
@@ -569,6 +573,7 @@ some
 some->
 some->>
 some-fn
+some-vals
 some?
 sort
 sort-by
@@ -605,6 +610,7 @@ take
 take-last
 take-nth
 take-while
+tap->
 tap>
 test
 the-ns

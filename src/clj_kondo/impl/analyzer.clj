@@ -105,7 +105,7 @@
 (defn analyze-keys-destructuring-defaults [ctx prev-ctx m defaults opts]
   (let [;; every key the form reads, see form-keys
         form-keys (:form-keys opts)
-        ;; :all, :select and :defaults all bind the applied defaults
+        ;; :all and :select bind the applied defaults
         defaults-read? (:defaults-read opts)
         mark-used? (or (:skip-reg-binding? ctx)
                        (:mark-bindings-used? ctx)
@@ -318,13 +318,8 @@
                                 ;; the init's own key wins over the default
                                 (when-not (contains? (:val form-tag) dk)
                                   (let [t (types/expr->tag ctx node)]
-                                    ;; A nil default adds no key. :or works on the presence
-                                    ;; of a key, not its value, and a key mapped to nil is
-                                    ;; not a missing key, so :all and :select merge the
-                                    ;; defaults through some-vals, which drops them.
-                                    ;; Confirmed upstream
-                                    (when-not (identical? :nil t)
-                                      [dk (if t {:tag t} {})])))))
+                                    ;; a nil default adds its key too
+                                    [dk (if t {:tag t} {})]))))
                         defaults)
         ;; a nested form applies its own defaults, so only its mapness holds
         additions (into defaulted (map (fn [k] [k {:tag :map}])) nested-keys)]
@@ -332,6 +327,7 @@
           (identical? :map (:type form-tag)) (update form-tag :val merge additions)
           form-tag :map)))
 
+;; follows clojure.core/destmap* as of clojure commit 98d735fab02f337cee654cb0629bddc09883a75a
 (defn extract-map-bindings
   [ctx expr scoped-expr opts]
   (let [;; in a namespaced map the reader qualifies :as, :or and :select,
@@ -352,11 +348,12 @@
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
         all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
-        ;; :all, :select and :defaults all bind the applied :or defaults. :all
-        ;; and :select reach through nested forms too, :defaults does not
-        defaults-read-deep? (or all? select? (:defaults-read-deep opts))
-        defaults-read? (or defaults-read-deep?
-                           (some (fn [[k _]] (plain-directive? k :defaults)) kvs))
+        ;; :all and :select bind the applied :or defaults, also those of
+        ;; nested forms
+        defaults-read? (or all? select? (:defaults-read-deep opts))
+        ;; with :missing a missing required key is collected instead of thrown.
+        ;; Nested forms inherit it, but their keys don't reach param inference
+        missing? (some (fn [[k _]] (plain-directive? k :missing)) kvs)
         ;; the default per binding name or literal key, to type what :all adds.
         ;; Tagged like default-id, a name and a symbol key are not the same key
         or-defaults (when (and all? or?)
@@ -537,23 +534,26 @@
                                                          (assoc opts :tag {:type :map
                                                                            :val (update-vals sel (fn [t] {:tag t}))}))))
                                       (recur rest-kvs res))
-                            ;; Clojure 1.13 CLJ-2966: binds a map of the applied :or defaults
-                            :defaults (if (plain-directive? k :defaults)
-                                        (do (when-not or?
-                                              (findings/reg-finding!
-                                               ctx (node->line (:filename ctx) k :syntax
-                                                               "Can't specify :defaults without :or")))
-                                            (recur rest-kvs
-                                                   (merge res (extract-bindings ctx v scoped-expr opts))))
-                                        (recur rest-kvs res))
+                            ;; Clojure 1.13: :excess binds the entries the form
+                            ;; doesn't name, :missing the required keys that are
+                            ;; absent. Both nil when there are none
+                            (:excess :missing)
+                            (if (plain-directive? k key-name)
+                              (recur rest-kvs
+                                     (merge res (extract-bindings ctx v scoped-expr
+                                                                  (assoc opts :tag :nilable/map))))
+                              (recur rest-kvs res))
                             (recur rest-kvs res)))))
                   :else
                   ;; k is a binding form, v its lookup key
                   (let [mk (types/map-key ctx v)
                         known-key? (types/known-map-key? mk)
-                        child-opts (cond-> opts
-                                     defaults-read-deep?
-                                     (assoc :defaults-read-deep true))
+                        ;; :all and :select reach nested map forms only, not
+                        ;; those inside a vector
+                        child-opts (if (and defaults-read?
+                                            (one-of (tag k) [:map :namespaced-map]))
+                                     (assoc opts :defaults-read-deep true)
+                                     (dissoc opts :defaults-read-deep))
                         child-opts (if-let [vt (when known-key?
                                                  (types/destructured-key-tag
                                                   form-tag mk (defaulted? (:value k) mk)))]
@@ -595,7 +595,7 @@
                         (merge res (extract-bindings ctx all-expr scoped-expr all-opts)))
                       res)]
             (cond-> res
-              (seq req) (vary-meta assoc :keys-spec {:op :keys :req req})
+              (and (seq req) (not missing?)) (vary-meta assoc :keys-spec {:op :keys :req req})
               (seq @key-bindings) (vary-meta assoc :key-bindings @key-bindings))))))))
 
 (defn extract-bindings
@@ -2675,6 +2675,29 @@
         analyzed-body (analyze-expression** (ctx-with-bindings ctx bindings) body)]
     (concat analyzed-array-expr analyzed-init-expr analyzed-body)))
 
+(defn analyze-selector
+  "Analyzes a Clojure 1.13 selector call, a map destructuring form that binds
+  nothing."
+  [ctx expr]
+  (let [args (next (:children expr))
+        m (first args)]
+    (if (and (= 1 (count args))
+             (one-of (tag m) [:map :namespaced-map]))
+      (do (when-not (and (identical? :map (tag m))
+                         (some (fn [[k _]]
+                                 (and (one-of (:k k) [:select :all :missing :excess])
+                                      (not (:namespaced? k))))
+                               (partition 2 (:children m))))
+            (findings/reg-finding!
+             ctx (node->line (:filename ctx) m :syntax
+                             "selector form must contain at least one of :select :all :missing :excess")))
+          (:analyzed (extract-bindings (assoc ctx :mark-bindings-used? true) m expr {})))
+      (do (when (= 1 (count args))
+            (findings/reg-finding!
+             ctx (node->line (:filename ctx) m :syntax
+                             "selector expects a map destructuring form")))
+          (analyze-children ctx args)))))
+
 (defn analyze-this-as [ctx expr]
   (let [[binding-expr & body-exprs] (next (:children expr))
         binding (extract-bindings ctx binding-expr expr {})]
@@ -3632,6 +3655,7 @@
     try (analyze-try ctx expr)
     as-> (analyze-as-> ctx expr)
     areduce (analyze-areduce ctx expr)
+    selector (analyze-selector ctx expr)
     this-as (analyze-this-as ctx expr)
     await
     (do

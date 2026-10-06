@@ -463,7 +463,7 @@
                         :message "Expected: number, received: nil."})
                      (lint! "(let [{:keys [amount] :or {amount 0} :all data} {}] [amount (inc (:b data))])"
                             type-config))
-    (testing "a nil default adds no key, :or works on key presence"
+    (testing "a nil default adds its key with a nil value"
       (assert-submaps2 '({:row 1 :level :error
                           :message "Expected: number, received: nil."})
                        (lint! "(let [{:keys [amount] :or {amount nil} :all data} {}] [amount (inc (:amount data))])"
@@ -501,6 +501,85 @@
 (let [{::all m2} {}] m2)
 (let [#:person{:keys [id] :all m3} {}] [id m3])"
                             '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest excess-destructuring-test
+  (testing ":excess binds a name"
+    (is (empty? (lint! "(let [{:keys [a] :excess ex} {}] [a ex])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing ":excess binds a map or nil"
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: number, received: map or nil."})
+                     (lint! "(let [{:keys [a] :excess ex} {}] [a (inc ex)])"
+                            type-config)))
+  (testing "an unused :excess binding warns"
+    (assert-submaps2 '({:file "<stdin>" :row 1 :col 26 :level :warning
+                        :message "unused binding ex"})
+                     (lint! "(let [{:keys [a] :excess ex} {}] a)"
+                            '{:linters {:unused-binding {:level :warning}}})))
+  (testing "only the exact :excess keyword is a directive"
+    (assert-submaps2 '({:file "<stdin>" :level :error
+                        :message "Unresolved symbol: ex"})
+                     (lint! "(let [{::excess ex} {}] ex)"
+                            '{:linters {:unresolved-symbol {:level :error}}}))))
+
+(deftest missing-destructuring-test
+  (testing ":missing binds a name"
+    (is (empty? (lint! "(let [{:keys! [a] :missing m} {}] [a m])"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}}))))
+  (testing ":missing binds a map or nil"
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: number, received: map or nil."})
+                     (lint! "(let [{:keys! [a] :missing m} {}] [a (inc m)])"
+                            type-config)))
+  (testing ":missing makes :keys! keys optional for callers"
+    (assert-submaps2 '({:row 1 :level :error :message "Missing required key: :a"})
+                     (lint! "(defn f [{:keys! [a]}] a) (f {})" type-config))
+    (is (empty? (lint! "(defn f [{:keys! [a] :missing m}] [a m]) (f {})" type-config)))
+    (is (empty? (lint! "(defn f [{:keys! [& :a] :missing m}] m) (f {})" type-config))))
+  (testing "a key used unconditionally under :missing is still required"
+    (assert-submaps2 '({:row 1 :level :error :message "Missing required key: :a"})
+                     (lint! "(defn f [{:keys! [a] :missing m}] [(inc a) m]) (f {})"
+                            type-config)))
+  (testing ":missing still rejects a default for a required key"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Can't supply default value for required binding: x"})
+     (lint! "(let [{:keys! [x] :or {x 1} :missing m} {}] [x m])"))))
+
+(deftest selector-test
+  (testing "selector binds nothing"
+    (is (empty? (lint! "(selector {:keys [a b & :c] :keys! [d] :or {:c 1} :select s})"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}})))
+    (is (empty? (lint! "(selector {{aa :aa :select nest-sel} :nested x ::x :select _ :missing _ :all _ :excess _})"
+                       '{:linters {:unused-binding {:level :warning}
+                                   :unresolved-symbol {:level :error}}})))
+    (assert-submaps2 '({:file "<stdin>" :level :error :message "Unresolved symbol: s"})
+                     (lint! "(do (selector {:keys [a] :select s}) s)"
+                            '{:linters {:unresolved-symbol {:level :error}}})))
+  (testing ":or defaults are analyzed"
+    (assert-submaps2 '({:file "<stdin>" :level :error :message "Unresolved symbol: y"})
+                     (lint! "(selector {:keys [a] :or {a y} :all m})"
+                            '{:linters {:unresolved-symbol {:level :error}}})))
+  (testing "selector returns a fn"
+    (assert-submaps2 '({:row 1 :level :error
+                        :message "Expected: number, received: function."})
+                     (lint! "(inc (selector {:keys [a] :all m}))" type-config)))
+  (testing "selector without a directive warns"
+    (doseq [snippet ["(selector {:keys [a b]})"
+                     "(selector {})"
+                     "(selector #:foo{:keys [a] :select s})"]]
+      (assert-submaps2
+       '({:file "<stdin>" :level :error
+          :message "selector form must contain at least one of :select :all :missing :excess"})
+       (lint! snippet))))
+  (testing "selector of a non-map warns"
+    (assert-submaps2
+     '({:file "<stdin>" :level :error
+        :message "selector expects a map destructuring form"})
+     (lint! "(def x {}) (selector x)"))))
 
 (deftest used-underscored-binding-test
   (assert-submaps2
@@ -697,17 +776,10 @@
        [{:file "<stdin>", :level :warning,
          :message (str k " is not bound in this destructuring form")}]
        (lint! snippet '{:linters {:unused-binding {:level :warning}}}))))
-  (testing "CLJ-2966: :defaults binds a map of the applied :or defaults"
-    (is (empty? (lint! "(let [{:keys [a] :or {a 1} :defaults ds} {}] [a ds])"
-                       '{:linters {:unresolved-symbol {:level :error}}})))
-    (is (empty? (lint! "(defn foo [{:keys [a] :or {a 1} :defaults ds}] [a ds])"
-                       '{:linters {:unresolved-symbol {:level :error}
-                                   :unused-binding {:level :warning}}}))))
-  (testing "CLJ-2966: :defaults requires :or"
+  (testing ":defaults binds nothing"
     (assert-submaps2
-     '({:file "<stdin>", :level :error,
-        :message "Can't specify :defaults without :or"})
-     (lint! "(let [{:keys [a] :defaults ds} {}] [a ds])"
+     '({:file "<stdin>", :level :error, :message "Unresolved symbol: ds"})
+     (lint! "(let [{:keys [a] :or {a 1} :defaults ds} {}] [a ds])"
             '{:linters {:unresolved-symbol {:level :error}}}))))
 
 (deftest required-binding-default-test
@@ -754,7 +826,7 @@
                        '{:linters {:unused-binding {:level :off}}}))))
   (testing "bindings whose key we can't read are told apart by name"
     (is (empty? (lint! "(let [{a [:a] b [:b] :or {a 1 b 2}} {}] [a b])"))))
-  (testing ":all and :select read the defaults of nested forms, :defaults does not"
+  (testing ":all and :select read the defaults of nested map forms"
     (let [cfg '{:linters {:unused-binding {:level :warning}}}
           unused-x '({:file "<stdin>", :level :warning, :message "unused binding x"})
           unused-x+default (concat unused-x '({:file "<stdin>", :level :warning,
@@ -765,9 +837,14 @@
       (assert-submaps2
        unused-x
        (lint! "(let [{{:keys [x] :or {x 1}} :sub :select s} {:sub {}}] s)" cfg))
-      (assert-submaps2
-       unused-x+default
-       (lint! "(let [{{:keys [x] :or {x 1}} :sub :or {:sub {}} :defaults ds} {}] ds)" cfg))
+      (testing ":excess reads no defaults"
+        (assert-submaps2
+         unused-x+default
+         (lint! "(let [{{:keys [x] :or {x 1}} :sub :excess e} {:sub {}}] e)" cfg)))
+      (testing ":all reads no defaults of a map form inside a vector"
+        (assert-submaps2
+         unused-x+default
+         (lint! "(let [{[{:keys [x] :or {x 1}}] :sub :all m} {:sub [{}]}] m)" cfg)))
       (testing "and neither does a form without those directives"
         (assert-submaps2
          unused-x+default
