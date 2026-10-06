@@ -134,7 +134,7 @@ realize-parameter-list {2 {:ret :vector}}
 pprint-ns {1 {:args [:seqable]}}
 get-format-arg {1 {:ret :vector}}
 split-at-newline {1 {:ret :vector, :args [:seqable]}}
-group-by* {2 {:ret :seq, :args [nil :seqable]}}
+group-by* {2 {:ret :seq}}
 init-navigator {1 {:args [:seqable]}}
 insert-decimal {2 {:ret #{:string}, :args [nil :number]}}
 ltrim {2 {:args [:seqable]}}
@@ -169,7 +169,6 @@ add-core-ns {1 {:ret {:type :map, :val {}, :open true, :row 417, :col 5, :end-ro
 format-simple-cardinal {1 {:ret :string, :args [:number]}}
 get-line {1 {:args [:ideref]}}
 expand-fixed {3 {:args [nil :number]}}
-format-simple-number {1 {:ret #{:string :nil}}}
 pprint-code-list {1 {:args [:seqable]}}
 float-parts {1 {:ret #{:vector}}}
 single-defn {2 {:args [:seqable]}}
@@ -459,6 +458,7 @@ unchecked-long {1 {:args [#{:number :nil}]}}
 some? {1 {:ret :boolean}}
 get-super-and-interfaces {1 {:ret #{:vector}, :args [:seqable]}}
 remove-tap {1 {:ret :nil}}
+instance-methods {1 {:ret :seq, :args [#{:class :nil}]}}
 inst? {1 {:ret :boolean}}
 range {0 {:ret :seq}}
 sort {1 {:ret #{:list :nil :seq}}, 2 {:ret #{:list :nil :seq}, :args [nil :seqable]}}
@@ -473,6 +473,7 @@ simple-symbol? {1 {:ret :boolean}}
 assert-valid-fdecl {1 {:args [:seqable]}}
 partitionv {2 {:ret :seq}, 3 {:ret :seq, :args [nil nil :seqable]}, 4 {:ret :seq, :args [nil nil nil :seqable]}}
 fnil {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}}
+merge-with {1 {:ret :nil}, :varargs {:min-arity 3, :args [:ifn]}}
 nthrest {2 {:args [nil :number]}}
 sequential? {1 {:ret :boolean}}
 build-positional-factory {3 {:args [nil nil :seqable]}}
@@ -541,6 +542,7 @@ int? {1 {:ret :boolean}}
 associative? {1 {:ret :boolean}}
 unchecked-int {1 {:args [#{:number :nil}]}}
 keyword? {1 {:ret :boolean}}
+selector-impl {1 {:args [:ifn]}}
 bound-fn* {1 {:ret :fn}}
 group-by {2 {:args [nil :seqable]}}
 prn {:varargs {:ret #{:nil}, :min-arity 0}}
@@ -572,11 +574,12 @@ some {2 {:args [nil :seqable]}}
 future-cancelled? {1 {:args [#{:future :nil}]}}
 neg-int? {1 {:ret :boolean}}
 drop {1 {:ret :fn}, 2 {:ret #{:truthy :seq}}}
+reduce0 {2 {:args [nil :seqable]}, 3 {:args [nil nil :seqable]}}
 sorted? {1 {:ret :boolean}}
 split-at {2 {:ret :vector, :args [:nat-int :seqable]}}
 validate-generate-class-options {1 {:args [{:op :keys, :nilable true, :opt {:methods :seqable}}]}}
 random-sample {1 {:ret :transducer, :args [:number]}, 2 {:ret :seq, :args [:number :seqable]}}
-select-keys {2 {:args [nil :seqable]}}
+select-keys {2 {:args [#{:string :array :nil :set :ilookup :map} :seqable]}}
 update {3 {:ret :associative, :args [#{:associative :nil}]}, 4 {:ret :associative, :args [#{:associative :nil}]}, 5 {:ret :associative, :args [#{:associative :nil}]}, 6 {:ret :associative, :args [#{:associative :nil}]}, :varargs {:ret :associative, :min-arity 6, :args [#{:associative :nil} nil :ifn]}}
 group-by-sig {1 {:ret #{:nil :seq}}}
 list* {1 {:ret #{:nil :seq}, :args [:seqable]}, 2 {:args [nil :seqable]}, 3 {:args [nil nil :seqable]}, 4 {:args [nil nil nil :seqable]}}
@@ -609,6 +612,7 @@ partition {2 {:ret :seq, :args [:int :seqable]}, 3 {:ret :seq, :args [nil nil :s
 data-reader-urls {0 {:ret :seq}}
 filter-key {3 {:args [nil nil :seqable]}}
 find-field {2 {:args [#{:class :nil}]}}
+merge {0 {:ret :nil}, :varargs {:min-arity 2, :args [:seqable :seqable]}}
 integer? {1 {:ret :boolean}}
 mapv {2 {:args [nil :seqable]}, 3 {:ret :vector, :args [:ifn :seqable]}, 4 {:ret :vector, :args [:ifn :seqable]}, :varargs {:ret :vector, :min-arity 4}}
 infinite? {1 {:args (:double)}}
@@ -633,7 +637,6 @@ partial {2 {:ret :fn}, 3 {:ret :fn}, 4 {:ret :fn}, :varargs {:ret :fn, :min-arit
 chunked-seq? {1 {:ret :boolean}}
 replicate {2 {:ret :seq, :args [:nat-int]}}
 unchecked-byte {1 {:args [#{:number :nil}]}}
-reduce1 {2 {:args [nil :seqable]}, 3 {:args [nil nil :seqable]}}
 every-pred {1 {:ret :fn}, 2 {:ret :fn}, 3 {:ret :fn}, :varargs {:ret :fn, :min-arity 3}}
 distinct? {1 {:ret :boolean}, 2 {:ret :boolean}}
 libspec? {1 {:ret #{:true :false :nil :boolean}}}
@@ -713,7 +716,7 @@ diff-sequential {2 {:ret :vector, :args [:seqable :seqable]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.java.javadoc.transit.json  ===
 fill-in-module-name {2 {:ret #{:nilable/string :string}, :args [#{:string :nil} #{:string :nil}]}}
-javadoc-url {1 {:args [#{:string :nil}]}}
+javadoc-url {1 {:args [:string]}}
 
 ===  resources/clj_kondo/impl/cache/built_in/clj/clojure.spec.test.alpha.transit.json  ===
 maybe-wrap-kvs-emulation {2 {:args [nil :seqable]}}

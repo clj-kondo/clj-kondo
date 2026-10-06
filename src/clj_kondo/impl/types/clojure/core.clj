@@ -1285,6 +1285,8 @@
    ;; 7414 'splitv-at
    ;; 7420 'partitionv
    ;; 7443 'partitionv-all
+   ;; 1.13
+   'selector {:arities {1 {:ret :fn}}}
    })
 
 (def cljs-core

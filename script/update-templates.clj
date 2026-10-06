@@ -4,21 +4,27 @@
 (require '[clojure.java.io :as io])
 (require '[clojure.string :as str])
 (require '[clojure.edn :as edn])
+(require '[rewrite-clj.node :as n])
+(require '[rewrite-clj.zip :as z])
 
 (def versions (edn/read-string (slurp "script/versions.edn")))
 
 (def version (str/trim (slurp (io/file "resources/CLJ_KONDO_VERSION"))))
 (def stable-version (str/trim (slurp (io/file "resources/CLJ_KONDO_RELEASED_VERSION"))))
 
-(def deps-edn (edn/read-string (slurp "deps.edn")))
+(def deps-edn (z/of-file "deps.edn"))
 
-(def deps-dependencies (:deps deps-edn))
+;; reading deps.edn as data loses its order
+(defn ordered-deps [loc]
+  (->> loc z/node n/child-sexprs (partition 2)))
+
+(def deps-dependencies (ordered-deps (z/get deps-edn :deps)))
 (def lein-dependencies (cons '[org.clojure/clojure "1.11.4"]
                              (map (fn [[k v]]
                                     [k (:mvn/version v)])
                                   deps-dependencies)))
 
-(def deps-test-dependencies (-> deps-edn :aliases :test :extra-deps))
+(def deps-test-dependencies (ordered-deps (-> deps-edn (z/get :aliases) (z/get :test) (z/get :extra-deps))))
 (def lein-test-dependencies (keep (fn [[k v]]
                                     (when-not (#{'cognitect/test-runner 'org.clojure/clojure} k)
                                       [k (:mvn/version v)]))
