@@ -362,6 +362,30 @@
        {:class "foo.bar.EnumClass$Color" :name "GREEN" :flags #{:field}}]
      (filter #(= "foo.bar.EnumClass$Color" (:class %)) java-member-definitions))))
 
+(deftest java-25-class-file-test
+  (let [{:keys [java-class-definitions java-member-definitions var-definitions]}
+        (analyze ["corpus/java/java25.jar"])]
+    (testing "Java 25 sealed interface and record are analyzed"
+      (assert-submaps2
+       '[{:class "java25.Circle" :flags #{:public :final}}
+         {:class "java25.Shape" :flags #{:public :interface}}]
+       (sort-by :class java-class-definitions)))
+    (testing "record members are analyzed"
+      (is (match? (m/embeds [{:class "java25.Circle" :name "radius"}
+                             {:class "java25.Circle" :name "area"}
+                             {:class "java25.Circle" :name "describe"}])
+                  java-member-definitions)))
+    (testing "Clojure source next to Java 25 class files is analyzed"
+      (is (some #(= '[java25.core dispatch] [(:ns %) (:name %)]) var-definitions)))))
+
+(deftest unsupported-class-file-version-test
+  (let [{:keys [java-class-definitions var-definitions]}
+        (analyze ["corpus/java/unsupported-class-version.jar"])]
+    (testing "class file version 999 is skipped"
+      (is (empty? java-class-definitions)))
+    (testing "Clojure source next to an unsupported class file is analyzed"
+      (is (some #(= '[unsupported.core dispatch] [(:ns %) (:name %)]) var-definitions)))))
+
 (comment
 
   #_(assert-submap {:filename #"\.class"} {:filename "/Users/borkdude/.m2/repository/org/clojure/clojure/1.10.3/clojure-1.10.3.jar:clojure/lang/RT.class"})

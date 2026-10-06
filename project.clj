@@ -17,7 +17,7 @@
                  [nrepl/bencode "1.2.0"]
                  [org.babashka/sci "0.15.56"]
                  [babashka/fs "0.5.31"]
-                 [org.ow2.asm/asm "9.7"]
+                 [org.ow2.asm/asm "9.10.1"]
                  [com.github.javaparser/javaparser-core "3.26.1"]]
   ;; :global-vars {*print-namespace-maps* false}
   :profiles {:clojure-1.11.4 {:dependencies [[org.clojure/clojure "1.11.4"]]}

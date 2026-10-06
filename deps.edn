@@ -7,7 +7,7 @@
         ;; above sci's own pin, until a sci release carries it
         borkdude/edamame {:mvn/version "1.6.43"}
         babashka/fs {:mvn/version "0.5.31"}
-        org.ow2.asm/asm {:mvn/version "9.7"}
+        org.ow2.asm/asm {:mvn/version "9.10.1"}
         com.github.javaparser/javaparser-core {:mvn/version "3.26.1"}}
  :aliases {:cider {:extra-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
            :dev
