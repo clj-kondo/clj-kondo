@@ -464,6 +464,26 @@
      (lint! "(zero? \"foo\")"
             {:linters {:type-mismatch {:level :error}}}))))
 
+(deftest merge-test
+  (testing "merge requires a map or nil as first argument"
+    (assert-submaps2
+     '({:row 1 :col 8 :message "Expected: map or nil, received: vector."}
+       {:row 2 :col 8 :message "Expected: map or nil, received: list."}
+       {:row 3 :col 15 :message "Expected: map or nil, received: vector."})
+     (lint! "(merge [1 2] [3 4])
+(merge (list 1) {})
+(merge-with + [1] {})"
+            {:linters {:type-mismatch {:level :error}}})))
+  (testing "merge accepts nil, records and seqables of entries"
+    (is (empty? (lint! "(merge)
+(merge nil {:a 1})
+(merge {:a 1} [[1 2]])
+(defrecord R [])
+(merge (->R) {})
+(merge-with +)
+(merge-with + {} [[1 2]])"
+                       {:linters {:type-mismatch {:level :error}}})))))
+
 (deftest map-spec-test
   (testing "map spec"
     (assert-submaps2

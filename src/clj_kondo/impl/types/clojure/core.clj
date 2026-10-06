@@ -662,12 +662,19 @@
                      3 {:args [:number :number :number]
                         :ret :seq}}}
    ;; 3041
-   'merge {:arities {:varargs {:args [{:op :rest
+   'merge {:arities {0 {:ret :nil}
+                     :varargs {:min-arity 1
+                               :args [:nilable/map
+                                      {:op :rest
                                        :spec :seqable}]
                                :ret :nilable/map}}}
    ;; 3051
-   'merge-with {:arities {:varargs {:args [:ifn {:op :rest
-                                                 :spec :seqable}]
+   'merge-with {:arities {1 {:args [:ifn]
+                              :ret :nil}
+                          :varargs {:min-arity 2
+                                    :args [:ifn :nilable/map
+                                           {:op :rest
+                                            :spec :seqable}]
                                     :ret :nilable/map}}}
    ;; 3071
    'zipmap {:arities {2 {:args [:seqable :seqable]

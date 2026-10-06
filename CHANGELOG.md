@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:type-mismatch`: `merge` and `merge-with` require a map or nil as first map argument. E.g. `(merge [1 2] [3 4])` will warn.
 - Catch up with new 1.13 destructuring.
 - [#2998](https://github.com/clj-kondo/clj-kondo/issues/2998): bump ASM to 9.10.1 to analyze Java 25 class files. An unreadable class file in a JAR no longer prevents analysis of the other entries ([@skylightis666](https://github.com/skylightis666)).
 - [#2996](https://github.com/clj-kondo/clj-kondo/issues/2996): native binary: Java member analysis no longer fails on a `.java` source file with an enum ([@skovati](https://github.com/skovati)).
