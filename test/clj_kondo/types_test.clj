@@ -487,15 +487,35 @@
                        {:linters {:type-mismatch {:level :error}}}))))
   (testing "merge rejects a vector with a non-entry element"
     (assert-submaps2
-     '({:row 1 :col 11 :message "Expected: seqable of map entries, received: vector containing keyword."}
-       {:row 2 :col 18 :message "Expected: seqable of map entries, received: vector containing string."}
-       {:row 3 :col 27 :message "Expected: seqable of map entries, received: vector containing keyword."}
-       {:row 4 :col 27 :message "Expected: seqable of map entries, received: vector containing keyword."})
+     '({:row 1 :col 11 :message "Expected: seqable of map or nil or vector, received: vector containing keyword."}
+       {:row 2 :col 18 :message "Expected: seqable of map or nil or vector, received: vector containing string."}
+       {:row 3 :col 27 :message "Expected: seqable of map or nil or vector, received: vector containing keyword."}
+       {:row 4 :col 27 :message "Expected: seqable of map or nil or vector, received: vector containing keyword."})
      (lint! "(merge {} [:a 1])
 (merge-with + {} [\"a\"])
 (defn f [x] (-> {} (merge (when x [:a x]))))
 (let [x [:a 1]] (merge {} x))"
             {:linters {:type-mismatch {:level :error}}}))))
+
+(deftest coll-of-test
+  (let [config {:linters {:type-mismatch
+                          {:level :error
+                           :namespaces {'foo {'f {:arities {1 {:args [{:op :coll-of
+                                                                       :spec {:op :coll-of
+                                                                              :spec :keyword}}]}}}}}}}}]
+    (testing "nested coll-of checks elements of vector literals"
+      (assert-submaps2
+       '({:row 2 :col 4 :message "Expected: seqable of seqable of keyword, received: vector containing vector containing positive integer."}
+         {:row 3 :col 4 :message "Expected: seqable of seqable of keyword, received: vector containing positive integer."})
+       (lint! "(ns foo) (defn f [x] x)
+(f [[:a] [1]])
+(f [[:a] 1])"
+              config)))
+    (testing "coll-of accepts matching and unknown elements"
+      (is (empty? (lint! "(ns foo) (defn f [x] x)
+(f [[:a] [:b]])
+(defn g [y] (f [[:a] [y]]))"
+                         config))))))
 
 (deftest map-spec-test
   (testing "map spec"

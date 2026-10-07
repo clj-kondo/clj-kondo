@@ -82,6 +82,10 @@ Special operators:
 - `{:op :keys, :req {:a :string} :opt {:b :int}}`. This can be used to match map
   literals and check for required and optional keys.
 
+- `{:op :coll-of, :spec :keyword}`. This can be used to match a seqable whose
+  elements match `:spec`. Elements are checked for vector literals. The spec
+  may be nested: `{:op :coll-of, :spec {:op :coll-of, :spec :keyword}}`.
+
 ## How can I help?
 
 - Provide a PR for missing
