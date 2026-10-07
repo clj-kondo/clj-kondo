@@ -137,7 +137,7 @@
            :fn (fn [args]
                  (let [[farg & kvs] args]
                    (if-let [t (:tag farg)]
-                     (case t
+                     (case (if (identical? :vector (:type t)) :vector t)
                        :map :map
                        :vector :vector
                        (if (and (map? t)
@@ -667,7 +667,7 @@
                                :args [:nilable/map
                                       {:op :rest
                                        :spec {:type :seqable
-                                              :elem #{:nil :map :vector}}}]
+                                              :elem #{:nil :map {:type :vector :count 2}}}}]
                                :ret :nilable/map}}}
    ;; 3051
    'merge-with {:arities {1 {:args [:ifn]
@@ -676,7 +676,7 @@
                                     :args [:ifn :nilable/map
                                            {:op :rest
                                             :spec {:type :seqable
-                                                   :elem #{:nil :map :vector}}}]
+                                                   :elem #{:nil :map {:type :vector :count 2}}}}]
                                     :ret :nilable/map}}}
    ;; 3071
    'zipmap {:arities {2 {:args [:seqable :seqable]
@@ -1086,6 +1086,7 @@
           :fn (fn [args]
                 (let [t (:tag (first args))]
                   (cond (identical? :any t) :coll
+                        (identical? :vector (:type t)) :vector
                         ;; into adds entries and can overwrite the seed's:
                         ;; keys stay present, value facts do not survive,
                         ;; absence proves nothing

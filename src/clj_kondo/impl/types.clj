@@ -381,7 +381,7 @@
 (defn elem-tag [t]
   (cond (keyword? t) t
         (map? t) (if (identical? :vector (:type t))
-                   (select-keys t [:type :elem])
+                   (select-keys t [:type :elem :count])
                    (:type t))))
 
 (defn vector->tag [ctx expr]
@@ -391,9 +391,8 @@
                          acc))
                      #{}
                      (:children expr))]
-    (if (seq elem)
-      {:type :vector :elem elem}
-      :vector)))
+    (cond-> {:type :vector :count (count (:children expr))}
+      (seq elem) (assoc :elem elem))))
 
 (defn destructured-key-tag
   "Value tag for map key `dk` of a destructuring form whose init has tag
@@ -1030,7 +1029,7 @@
 (defn lint-map! [ctx s a t]
   (cond (and (:nilable s) (= :nil t))
         nil
-        (keyword? t)
+        (or (keyword? t) (identical? :vector (:type t)))
         (when-not (match? t :map)
           (emit-non-match! ctx :map a t))
         :else
@@ -1043,26 +1042,35 @@
 (defn structured-spec? [s]
   (and (map? s) (nil? (:op s)) (some? (:type s))))
 
-(declare spec-matches?)
+(declare spec-matches? elem-mismatch)
+
+(defn member-mismatch
+  "Returns a label for vector literal tag v if it does not match structured
+  spec s, or nil if it matches."
+  [v s]
+  (let [c (:count s)]
+    (if (and c (:count v) (not= c (:count v)))
+      (str "vector with " (:count v) " elements")
+      (when-let [es (:elem s)]
+        (let [es (if (set? es) es #{es})]
+          (when-let [bad (first (sort-by tag->label
+                                         (remove (fn [e] (some #(spec-matches? e %) es))
+                                                 (:elem v))))]
+            (str "vector containing "
+                 (or (some #(when (and (structured-spec? %)
+                                       (match? bad (:type %)))
+                              (elem-mismatch bad %))
+                           es)
+                     (tag->label bad)))))))))
 
 (defn elem-mismatch
-  "Returns a label for the first element of a vector literal in tag t that
-  does not match the :elem of structured spec s, or nil if there is none."
+  "Returns a label for the first vector literal in tag t that does not match
+  structured spec s, or nil if there is none."
   [t s]
-  (when-let [es (:elem s)]
-    (let [es (if (set? es) es #{es})]
-      (some (fn [v]
-              (when (and (map? v) (identical? :vector (:type v)))
-                (when-let [bad (first (sort-by tag->label
-                                               (remove (fn [e] (some #(spec-matches? e %) es))
-                                                       (:elem v))))]
-                  (str "vector containing "
-                       (or (some #(when (and (structured-spec? %)
-                                             (match? bad (:type %)))
-                                    (elem-mismatch bad %))
-                                 es)
-                           (tag->label bad))))))
-            (if (set? t) t [t])))))
+  (some (fn [v]
+          (when (and (map? v) (identical? :vector (:type v)))
+            (member-mismatch v s)))
+        (if (set? t) t [t])))
 
 (defn spec-matches? [t s]
   (cond (structured-spec? s) (and (match? t (:type s))
@@ -1072,6 +1080,8 @@
 
 (defn spec-label [s]
   (cond (structured-spec? s) (str (tag->label (:type s))
+                                  (when-let [c (:count s)]
+                                    (str " with " c " elements"))
                                   (when-let [es (:elem s)]
                                     (str " of " (spec-label es))))
         (set? s) (str/join " or " (sort (map spec-label s)))

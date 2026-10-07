@@ -86,6 +86,8 @@ Special operators:
   `:type` whose elements match `:elem`. Elements are checked for vector
   literals. The `:elem` spec may be nested: `{:type :seqable, :elem {:type
   :vector, :elem :keyword}}`.
+  A `:count` checks the number of elements of a vector literal: `{:type :vector,
+  :count 2}`.
 
 ## How can I help?
 

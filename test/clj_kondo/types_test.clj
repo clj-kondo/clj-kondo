@@ -483,18 +483,21 @@
 (merge-with +)
 (merge-with + {} [[1 2]])
 (merge {} [{:a 1} nil])
-(defn f [a b] (merge {} [a b]))"
+(defn f [a b] (merge {} [a b]))
+(defn g [a b] (merge {} [[a b]]))"
                        {:linters {:type-mismatch {:level :error}}}))))
   (testing "merge rejects a vector with a non-entry element"
     (assert-submaps2
-     '({:row 1 :col 11 :message "Expected: seqable collection of map or nil or vector, received: vector containing keyword."}
-       {:row 2 :col 18 :message "Expected: seqable collection of map or nil or vector, received: vector containing string."}
-       {:row 3 :col 27 :message "Expected: seqable collection of map or nil or vector, received: vector containing keyword."}
-       {:row 4 :col 27 :message "Expected: seqable collection of map or nil or vector, received: vector containing keyword."})
+     '({:row 1 :col 11 :message "Expected: seqable collection of map or nil or vector with 2 elements, received: vector containing keyword."}
+       {:row 2 :col 18 :message "Expected: seqable collection of map or nil or vector with 2 elements, received: vector containing string."}
+       {:row 3 :col 27 :message "Expected: seqable collection of map or nil or vector with 2 elements, received: vector containing keyword."}
+       {:row 4 :col 27 :message "Expected: seqable collection of map or nil or vector with 2 elements, received: vector containing keyword."}
+       {:row 5 :col 11 :message "Expected: seqable collection of map or nil or vector with 2 elements, received: vector containing vector with 3 elements."})
      (lint! "(merge {} [:a 1])
 (merge-with + {} [\"a\"])
 (defn f [x] (-> {} (merge (when x [:a x]))))
-(let [x [:a 1]] (merge {} x))"
+(let [x [:a 1]] (merge {} x))
+(merge {} [[1 2 3]])"
             {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest elem-spec-test
