@@ -952,13 +952,9 @@
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
                 (set? x) (str/join " or " (map label-fn x))
-                (map? x) (cond (identical? :vector (:type x)) (label-fn :vector)
-                               (identical? :coll-of (:op x))
-                               (let [es (:spec x)]
-                                 (str "seqable of " (if (set? es)
-                                                      (str/join " or " (sort (map tag->label es)))
-                                                      (tag->label es))))
-                               :else "map"))]
+                (map? x) (if (identical? :vector (:type x))
+                           (label-fn :vector)
+                           "map"))]
     l))
 
 ;; nil, false and any keyword are valid map keys, absence needs a sentinel
@@ -1044,45 +1040,56 @@
           (lint-map-types! ctx a mval s :req (not (:open t)))
           (lint-map-types! ctx a mval s :opt false))))
 
-(declare coll-of-mismatch)
+(defn structured-spec? [s]
+  (and (map? s) (nil? (:op s)) (some? (:type s))))
 
-(defn spec-match? [t s]
-  (cond (keyword? s) (match? t s)
-        (set? s) (some #(spec-match? t %) s)
-        (identical? :coll-of (:op s)) (and (match? t :seqable)
-                                           (nil? (coll-of-mismatch t (:spec s))))
-        :else true))
+(declare spec-matches?)
 
-(defn elem-mismatch-label [t s]
-  (or (when (map? t)
-        (some #(when (identical? :coll-of (:op %))
-                 (coll-of-mismatch t (:spec %)))
-              (if (set? s) s [s])))
-      (tag->label t)))
-
-(defn coll-of-mismatch
+(defn elem-mismatch
   "Returns a label for the first element of a vector literal in tag t that
-  does not match spec s, or nil if there is none."
+  does not match the :elem of structured spec s, or nil if there is none."
   [t s]
-  (some (fn [v]
-          (when (and (map? v) (identical? :vector (:type v)))
-            (when-let [bad (first (sort-by tag->label (remove #(spec-match? % s) (:elem v))))]
-              (str "vector containing " (elem-mismatch-label bad s)))))
-        (if (set? t) t [t])))
+  (when-let [es (:elem s)]
+    (let [es (if (set? es) es #{es})]
+      (some (fn [v]
+              (when (and (map? v) (identical? :vector (:type v)))
+                (when-let [bad (first (sort-by tag->label
+                                               (remove (fn [e] (some #(spec-matches? e %) es))
+                                                       (:elem v))))]
+                  (str "vector containing "
+                       (or (some #(when (and (structured-spec? %)
+                                             (match? bad (:type %)))
+                                    (elem-mismatch bad %))
+                                 es)
+                           (tag->label bad))))))
+            (if (set? t) t [t])))))
 
-(defn lint-coll-of! [ctx s a t]
-  (if-not (match? t :seqable)
-    (emit-non-match! ctx s a t)
-    (when-let [bad (coll-of-mismatch t (:spec s))]
-      (findings/reg-finding! ctx
-                             {:filename (:filename ctx)
-                              :row (:row a)
-                              :col (:col a)
-                              :end-row (:end-row a)
-                              :end-col (:end-col a)
-                              :type :type-mismatch
-                              :message (str "Expected: " (tag->label s)
-                                            ", received: " bad ".")}))))
+(defn spec-matches? [t s]
+  (cond (structured-spec? s) (and (match? t (:type s))
+                                  (nil? (elem-mismatch t s)))
+        (set? s) (some #(spec-matches? t %) s)
+        :else (match? t s)))
+
+(defn spec-label [s]
+  (cond (structured-spec? s) (str (tag->label (:type s))
+                                  (when-let [es (:elem s)]
+                                    (str " of " (spec-label es))))
+        (set? s) (str/join " or " (sort (map spec-label s)))
+        :else (tag->label s)))
+
+(defn lint-typed! [ctx s a t]
+  (when-let [received (if (match? t (:type s))
+                        (elem-mismatch t s)
+                        (tag->label t))]
+    (findings/reg-finding! ctx
+                           {:filename (:filename ctx)
+                            :row (:row a)
+                            :col (:col a)
+                            :end-row (:end-row a)
+                            :end-col (:end-col a)
+                            :type :type-mismatch
+                            :message (str "Expected: " (spec-label s)
+                                          ", received: " received ".")})))
 
 (defn lint-arg-types
   [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
@@ -1121,9 +1128,6 @@
                       :keys
                       (do (lint-map! ctx s a t)
                           (recur check-ctx rest-args-spec rest-args rest-tags))
-                      :coll-of
-                      (do (lint-coll-of! ctx s a t)
-                          (recur check-ctx rest-args-spec rest-args rest-tags))
                       ;; an op from a newer version's cache: skip this arg
                       (recur check-ctx rest-args-spec rest-args rest-tags))
                     (nil? s) (cond (seq all-specs)
@@ -1136,6 +1140,10 @@
                                      ;; the last arg
                                      (recur check-ctx [(some check-ctx [:last :rest])] all-args all-tags)))
                     (vector? s) (recur check-ctx (concat s rest-args-spec) all-args all-tags)
+                    (map? s) (cond (empty? all-args) (emit-more-input-expected! ctx call (last args))
+                                   :else
+                                   (do (lint-typed! ctx s a t)
+                                       (recur check-ctx rest-args-spec rest-args rest-tags)))
                     (set? s) (do (when-not (some #(match? t %) s)
                                    (emit-non-match! ctx s a t))
                                  (recur check-ctx rest-args-spec rest-args rest-tags))
