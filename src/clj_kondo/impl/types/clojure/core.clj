@@ -666,7 +666,7 @@
                      :varargs {:min-arity 1
                                :args [:nilable/map
                                       {:op :rest
-                                       :spec :seqable}]
+                                       :spec {:op :entries}}]
                                :ret :nilable/map}}}
    ;; 3051
    'merge-with {:arities {1 {:args [:ifn]
@@ -674,7 +674,7 @@
                           :varargs {:min-arity 2
                                     :args [:ifn :nilable/map
                                            {:op :rest
-                                            :spec :seqable}]
+                                            :spec {:op :entries}}]
                                     :ret :nilable/map}}}
    ;; 3071
    'zipmap {:arities {2 {:args [:seqable :seqable]

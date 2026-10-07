@@ -470,7 +470,7 @@
      '({:row 1 :col 8 :message "Expected: map or nil, received: vector."}
        {:row 2 :col 8 :message "Expected: map or nil, received: list."}
        {:row 3 :col 15 :message "Expected: map or nil, received: vector."})
-     (lint! "(merge [1 2] [3 4])
+     (lint! "(merge [1 2] {})
 (merge (list 1) {})
 (merge-with + [1] {})"
             {:linters {:type-mismatch {:level :error}}})))
@@ -481,8 +481,21 @@
 (defrecord R [])
 (merge (->R) {})
 (merge-with +)
-(merge-with + {} [[1 2]])"
-                       {:linters {:type-mismatch {:level :error}}})))))
+(merge-with + {} [[1 2]])
+(merge {} [{:a 1} nil])
+(defn f [a b] (merge {} [a b]))"
+                       {:linters {:type-mismatch {:level :error}}}))))
+  (testing "merge rejects a vector with a non-entry element"
+    (assert-submaps2
+     '({:row 1 :col 11 :message "Expected: seqable of map entries, received: vector containing keyword."}
+       {:row 2 :col 18 :message "Expected: seqable of map entries, received: vector containing string."}
+       {:row 3 :col 27 :message "Expected: seqable of map entries, received: vector containing keyword."}
+       {:row 4 :col 27 :message "Expected: seqable of map entries, received: vector containing keyword."})
+     (lint! "(merge {} [:a 1])
+(merge-with + {} [\"a\"])
+(defn f [x] (-> {} (merge (when x [:a x]))))
+(let [x [:a 1]] (merge {} x))"
+            {:linters {:type-mismatch {:level :error}}}))))
 
 (deftest map-spec-test
   (testing "map spec"

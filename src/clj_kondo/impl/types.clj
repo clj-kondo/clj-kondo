@@ -378,6 +378,21 @@
                 (not (:row m)))))
       (assoc :open true))))
 
+(defn base-tag [t]
+  (cond (keyword? t) t
+        (map? t) (:type t)))
+
+(defn vector->tag [ctx expr]
+  (let [elem (reduce (fn [acc child]
+                       (if-let [b (base-tag (expr->tag ctx child))]
+                         (conj acc b)
+                         acc))
+                     #{}
+                     (:children expr))]
+    (if (seq elem)
+      {:type :vector :elem elem}
+      :vector)))
+
 (defn destructured-key-tag
   "Value tag for map key `dk` of a destructuring form whose init has tag
   `form-tag`: the key's value type of a concrete map, provably :nil when the
@@ -548,7 +563,7 @@
         quoted? (or quoted (identical? :edn lang))
         ret (case t
               :map (map->tag ctx expr)
-              :vector :vector
+              :vector (if quoted? :vector (vector->tag ctx expr))
               :set :set
               :list (if quoted? :list
                         (:tag (spec-from-list-expr ctx expr))) ;; a call we know nothing about
@@ -935,8 +950,9 @@
   (let [label-fn #(or (label %) (name %))
         l (cond (keyword? x) (label-fn x)
                 (set? x) (str/join " or " (map label-fn x))
-                ;; TODO:
-                (map? x) "map")]
+                (map? x) (if (identical? :vector (:type x))
+                           (label-fn :vector)
+                           "map"))]
     l))
 
 ;; nil, false and any keyword are valid map keys, absence needs a sentinel
@@ -1022,6 +1038,29 @@
           (lint-map-types! ctx a mval s :req (not (:open t)))
           (lint-map-types! ctx a mval s :opt false))))
 
+(defn non-entry-tag? [b]
+  (and (not (contains? #{:nil :any :truthy} b))
+       (or (identical? :string b)
+           (not (match? b :nilable/seqable)))))
+
+(defn lint-entries! [ctx a t]
+  (if-not (match? t :seqable)
+    (emit-non-match! ctx :seqable a t)
+    (let [vs (if (set? t) t [t])]
+      (when-let [bad (some (fn [v]
+                             (when (and (map? v) (identical? :vector (:type v)))
+                               (first (sort (filter non-entry-tag? (:elem v))))))
+                           vs)]
+        (findings/reg-finding! ctx
+                               {:filename (:filename ctx)
+                                :row (:row a)
+                                :col (:col a)
+                                :end-row (:end-row a)
+                                :end-col (:end-col a)
+                                :type :type-mismatch
+                                :message (str "Expected: seqable of map entries, received: vector containing "
+                                              (tag->label bad) ".")})))))
+
 (defn lint-arg-types
   [ctx {called-ns :ns called-name :name arities :arities :as _called-fn}
    args tags call]
@@ -1058,6 +1097,9 @@
                              all-tags)
                       :keys
                       (do (lint-map! ctx s a t)
+                          (recur check-ctx rest-args-spec rest-args rest-tags))
+                      :entries
+                      (do (lint-entries! ctx a t)
                           (recur check-ctx rest-args-spec rest-args rest-tags))
                       ;; an op from a newer version's cache: skip this arg
                       (recur check-ctx rest-args-spec rest-args rest-tags))

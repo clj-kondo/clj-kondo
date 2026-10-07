@@ -163,8 +163,9 @@
   (or (keyword? arg-type)
       (and (set? arg-type) (every? resolved-type? arg-type))
       (and (map? arg-type) (when-let [t (:type arg-type)]
-                             (and (not (:kw-calls arg-type))
-                                  (identical? t :map))))))
+                             (or (identical? t :vector)
+                                 (and (not (:kw-calls arg-type))
+                                      (identical? t :map)))))))
 
 (defn map-kw-lookup
   "Value tag of `kw-call` in map type `t`: the entry's tag, provably :nil
