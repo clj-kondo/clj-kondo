@@ -236,8 +236,7 @@
                                    (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
                                            resolved-tag (map-kw-lookup resolved-arg-type kw-call)]
-                                       (cond->>
-                                           (cond
+                                       (cond
                                          (and rest-kw-calls
                                               (= :map (:type resolved-tag)))
                                          (resolve-arg-type idacs
@@ -252,9 +251,7 @@
 
                                          :else
                                          ;; resolved-tag may be a :call that still needs resolving
-                                         (resolve-arg-type idacs resolved-tag seen-calls))
-                                         ;; a keyword call on nil returns nil
-                                         (:nilable resolved-arg-type) (union-type :nil))))
+                                         (resolve-arg-type idacs resolved-tag seen-calls))))
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [usage (:usage arg-type)]
                          (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))
