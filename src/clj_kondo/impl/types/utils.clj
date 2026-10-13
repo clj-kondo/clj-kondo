@@ -189,6 +189,22 @@
         (when-let [r (map-kw-lookup t kw)]
           (resolve-arg-type idacs r seen-calls))))
 
+(comment
+  (require '[clj-kondo.impl.types.utils :as tu])
+  (def closed {:type :map :val {:a {:tag :int}} :closed true})
+  (def open   (dissoc closed :closed))
+  (def nested {:type :map :val {:m {:tag {:type :map :val {:k {:tag :string}}}}}})
+
+  (tu/kw-lookup nil closed :a #{})              ;=> :int
+  (tu/kw-lookup nil closed :b #{})              ;=> :nil      closed, key missing
+  (tu/kw-lookup nil open :b #{})                ;=> nil       open, unknown
+  (tu/kw-lookup nil :nil :a #{})                ;=> :nil
+  (tu/kw-lookup nil #{:nil closed} :a #{})      ;=> #{:int :nil}
+  (tu/kw-lookup nil #{:nil open} :b #{})        ;=> nil       one member unknown
+  (tu/kw-lookup nil #{:nil :string} :a #{})     ;=> nil       :string isn't a map
+  (tu/kw-lookup nil (tu/kw-lookup nil #{:nil nested} :m #{}) :k #{})
+  ,)
+
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
   ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
@@ -270,4 +286,3 @@
              (or (:args m)
                  (:ret m)))
     m))
-
