@@ -1018,7 +1018,34 @@
 (do
   (defn fun4 [m] (:a m))
   (fun4 {}))"
-            config-2))))
+            config-2)))
+
+  (testing "a keyword lookup on a :nilable true map return includes nil"
+    (assert-submaps2
+     '({:row 3 :message "Expected: string, received: integer or nil."}
+       {:row 4 :message "Expected: string, received: integer or nil."}
+       {:row 5 :message "Expected: string, received: integer."})
+     (lint! "(ns a) (defn f [x] (when x {:id 1 :m {:k 1}})) (defn g [m] m)
+(ns b (:require [a]))
+(subs (:id (a/f 1)) 0)
+(subs (:k (:m (a/f 1))) 0)
+(a/g (a/f 1))"
+            (assoc-in config [:linters :type-mismatch :namespaces]
+                      '{a {f {:arities {1 {:ret {:op :keys
+                                                 :req {:id :int
+                                                       :m {:op :keys :req {:k :int}}}
+                                                 :nilable true}}}}
+                           g {:arities {1 {:args [{:op :keys :req {:id :string}}]}}}}}))))
+
+  (testing "a keyword lookup on an inferred nilable map return includes nil"
+    (assert-submaps2
+     '({:row 3 :message "Expected: string, received: nil or positive integer."}
+       {:row 4 :message "Expected: number, received: string or nil."})
+     (lint! "(ns a) (defn f [x] (when x {:a 1 :b {:c \"s\"}}))
+(ns b (:require [a]))
+(subs (:a (a/f 1)) 0)
+(inc (:c (:b (a/f 1))))"
+            config))))
 
 (deftest misc-false-positives-test
   (is (empty? (lint! "(even? ('a {'a 10}))" config)))

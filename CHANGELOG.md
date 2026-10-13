@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:type-mismatch`: a keyword lookup on a map return that may be nil includes nil. E.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` will warn.
 - [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): `:constant-condition`: a function return spec `{:op :keys ... :nilable true}` may be nil. E.g. `(if-let [x (find-thing id)] ...)` no longer warns with `Condition always true`.
 - `:type-mismatch`: `merge` and `merge-with` require a map or nil as first map argument. E.g. `(merge [1 2] [3 4])` will warn.
 - Catch up with new 1.13 destructuring.

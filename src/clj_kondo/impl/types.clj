@@ -486,25 +486,32 @@
                               ;; build chain of keyword calls
                               :kw-calls ((fnil conj []) (:kw-calls call*)
                                                         nm))}
-                (let [t (:tag arg-type)
-                      nm (:name call)]
-                  (cond (:req t)
-                        (let [v (get (:req t) nm)]
-                          ;; keyword access on nil is nil
-                          {:tag (if (and v (:nilable t))
-                                  (type-utils/union-type :nil v)
-                                  v)})
-                        ;; keyword access on provable nil is nil
-                        (identical? :nil t)
-                        {:tag :nil}
-                        :else
-                        (when-let [v (:val t)]
-                          ;; a closed literal map without the key provably
-                          ;; yields nil. A present key with an unknown value
-                          ;; type stays unknown
-                          {:tag (if-let [e (find v nm)]
-                                  (val e)
-                                  (when-not (:open t) :nil))}))))))))))
+                (let [lookup (fn lookup [t]
+                               (cond (set? t)
+                                     (reduce (fn [acc m]
+                                               (if-let [r (lookup m)]
+                                                 (type-utils/union-type acc r)
+                                                 (reduced nil)))
+                                             #{} t)
+                                     (:req t)
+                                     (let [v (get (:req t) nm)]
+                                       ;; keyword access on nil is nil
+                                       (if (and v (:nilable t))
+                                         (type-utils/union-type :nil v)
+                                         v))
+                                     ;; keyword access on provable nil is nil
+                                     (identical? :nil t)
+                                     :nil
+                                     :else
+                                     (when-let [v (:val t)]
+                                       ;; a closed literal map without the key provably
+                                       ;; yields nil. A present key with an unknown value
+                                       ;; type stays unknown
+                                       (if-let [e (find v nm)]
+                                         (val e)
+                                         (when-not (:open t) :nil)))))]
+                  (when-let [t (lookup (:tag arg-type))]
+                    {:tag t})))))))))
 
 (defn- array-class-literal? [sym]
   (when (and (symbol? sym) (namespace sym))
@@ -1018,6 +1025,10 @@
         (keyword? t)
         (when-not (match? t :map)
           (emit-non-match! ctx :map a t))
+        (set? t)
+        (doseq [m t]
+          (when (map? m)
+            (lint-map! ctx s a m)))
         :else
         (when-let [mval (-> t :val)]
           ;; an open map may have keys its :val does not list, so absence
