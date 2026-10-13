@@ -23,7 +23,7 @@
                      ;; belongs in this one rather than nested inside it
                      (into #{} (mapcat #(if (set? %) % [%])) ks)))
         (map? t) (if (identical? :map (:type t))
-                   :map
+                   (if (:nilable t) #{:nil :map} :map)
                    (some-> (or (:type t) (:tag t)) truthiness-tag))))
 
 (defn truthy-keyword?
@@ -236,7 +236,8 @@
                                    (when (identical? :map (:type resolved-arg-type))
                                      (let [[kw-call & rest-kw-calls] kw-calls
                                            resolved-tag (map-kw-lookup resolved-arg-type kw-call)]
-                                       (cond
+                                       (cond->>
+                                           (cond
                                          (and rest-kw-calls
                                               (= :map (:type resolved-tag)))
                                          (resolve-arg-type idacs
@@ -251,7 +252,9 @@
 
                                          :else
                                          ;; resolved-tag may be a :call that still needs resolving
-                                         (resolve-arg-type idacs resolved-tag seen-calls))))
+                                         (resolve-arg-type idacs resolved-tag seen-calls))
+                                         ;; a keyword call on nil returns nil
+                                         (:nilable resolved-arg-type) (union-type :nil))))
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [usage (:usage arg-type)]
                          (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))
@@ -259,12 +262,13 @@
                            (resolve-arg-type idacs resolved)))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
-                           {:type :map
-                            :val (->> (:req arg-type)
-                                      (mapv (fn [[k v]]
-                                              [k (merge {:tag (resolve-arg-type idacs v seen-calls)}
-                                                        (select-keys arg-type [:row :col :end-row :end-col]))]))
-                                      (into {}))}))
+                           (cond-> {:type :map
+                                    :val (->> (:req arg-type)
+                                              (mapv (fn [[k v]]
+                                                      [k (merge {:tag (resolve-arg-type idacs v seen-calls)}
+                                                                (select-keys arg-type [:row :col :end-row :end-col]))]))
+                                              (into {}))}
+                             (:nilable arg-type) (assoc :nilable true))))
                        :any)
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)

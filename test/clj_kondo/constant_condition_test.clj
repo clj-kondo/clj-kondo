@@ -452,6 +452,19 @@
       ;; keys/vals return nil on empty collections, issue #2928
       (is (empty? (lint! "(defn g [m] (if-let [ks (keys m)] ks :empty-map))" config)))
       (is (empty? (lint! "(defn g [m] (if-let [vs (vals m)] vs :empty-map))" config))))
+    (testing "a :keys return spec with :nilable true keeps its nil case"
+      (let [src "(ns a) (defn f [x] (when x {:id 1}))
+                 (ns b (:require [a]))
+                 (defn g [x] [(if (a/f x) 1 2) (if-let [y (a/f x)] y 2) (if (:id (a/f x)) 1 2)])"
+            ret-config (fn [ret]
+                         (assoc-in config [:linters :type-mismatch :namespaces]
+                                   {'a {'f {:arities {1 {:ret ret}}}}}))]
+        (is (empty? (lint! src (ret-config {:op :keys :req {:id :int} :nilable true}))))
+        (assert-submaps2
+         '({:row 3 :message "Condition always true"}
+           {:row 3 :message "Condition always true"}
+           {:row 3 :message "Condition always true"})
+         (lint! src (ret-config {:op :keys :req {:id :int}})))))
     (testing "a var with a built-in spec is left to the analysis phase"
       (is (empty? (lint! "(when (re-matches #\"x\" \"y\") 1)" config))))
     (testing "a lint-as'ed conditional does not check its condition"

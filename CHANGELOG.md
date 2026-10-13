@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): `:constant-condition`: a function return spec `{:op :keys ... :nilable true}` may be nil. E.g. `(if-let [x (find-thing id)] ...)` no longer warns with `Condition always true`.
 - `:type-mismatch`: `merge` and `merge-with` require a map or nil as first map argument. E.g. `(merge [1 2] [3 4])` will warn.
 - Catch up with new 1.13 destructuring.
 - [#2998](https://github.com/clj-kondo/clj-kondo/issues/2998): bump ASM to 9.10.1 to analyze Java 25 class files. An unreadable class file in a JAR no longer prevents analysis of the other entries ([@skylightis666](https://github.com/skylightis666)).

@@ -489,8 +489,11 @@
                 (let [t (:tag arg-type)
                       nm (:name call)]
                   (cond (:req t)
-                        {:tag (get (:req (:tag arg-type))
-                               nm)}
+                        (let [v (get (:req t) nm)]
+                          ;; keyword access on nil is nil
+                          {:tag (if (and v (:nilable t))
+                                  (type-utils/union-type :nil v)
+                                  v)})
                         ;; keyword access on provable nil is nil
                         (identical? :nil t)
                         {:tag :nil}
