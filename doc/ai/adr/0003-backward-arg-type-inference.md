@@ -349,14 +349,14 @@ tracking covers keyword and string tokens only.
   suggest `:keys!` for a proven-required key once 1.13 adoption exists.
 - Map literals the user wrote are closed: a missing key is provably nil, in
   direct keyword access, chains, destructuring and fn return maps, and
-  keyword access on provable nil is nil. Only literals produce `:val` map
-  types, so completeness is exact. Maps built via merge or branching get no
+  keyword access on provable nil is nil. A map type is open unless marked
+  `:closed`, which `map->tag` sets on a literal. Maps built via merge or branching get no
   `:val` and stay open, and assoc is modeled precisely, see below. A generated literal, e.g. a hook's
   placeholder `{}` that metabase's defendpoint binds params against, is
-  marked `:open` in `map->tag` and proves nothing by absence, detected by
+  not marked `:closed` in `map->tag` and proves nothing by absence, detected by
   the generated flag or missing location, and `:or`-defaulted bindings get
-  no tag from the init at all. The into fn spec marks a passed-through input
-  map `:open`, it adds keys the input's `:val` does not list, and `lint-map!`
+  no tag from the init at all. The into fn spec drops `:closed` from a passed-through
+  input map, it adds keys the input's `:val` does not list, and `lint-map!`
   skips required-key reporting for open args. assoc is modeled precisely:
   arg types carry the literal value of keyword and string token args, so
   its fn spec extends the input map's `:val` with each known assoc'd key and the

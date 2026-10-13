@@ -371,12 +371,12 @@
       ;; a generated literal, e.g. a hook's placeholder map, is no evidence
       ;; of absence, and a dynamic or inextractable key could be any key:
       ;; only a map whose every key is statically known is closed
-      (or (not @all-known?)
-          (let [m (meta expr)]
-            (or (:clj-kondo.impl/generated expr)
-                (:clj-kondo.impl/generated m)
-                (not (:row m)))))
-      (assoc :open true))))
+      (and @all-known?
+           (let [m (meta expr)]
+             (not (or (:clj-kondo.impl/generated expr)
+                      (:clj-kondo.impl/generated m)
+                      (not (:row m))))))
+      (assoc :closed true))))
 
 (defn destructured-key-tag
   "Value tag for map key `dk` of a destructuring form whose init has tag
@@ -390,7 +390,7 @@
     (cond (identical? :map (:type form-tag))
           (if-let [e (find (:val form-tag) dk)]
             (:tag (val e))
-            (when-not (:open form-tag) :nil))
+            (when (:closed form-tag) :nil))
           (and (:call form-tag) (keyword? dk))
           (let [c (:call form-tag)]
             {:call (assoc c :kw-calls ((fnil conj []) (:kw-calls c) dk))}))))
@@ -511,7 +511,7 @@
                                        ;; type stays unknown
                                        (if-let [e (find v nm)]
                                          (val e)
-                                         (when-not (:open t) :nil)))))]
+                                         (when (:closed t) :nil)))))]
                   (when-let [t (lookup (:tag arg-type))]
                     {:tag t})))))))))
 
@@ -1033,9 +1033,8 @@
             (lint-map! ctx s a m)))
         :else
         (when-let [mval (-> t :val)]
-          ;; an open map may have keys its :val does not list, so absence
-          ;; is no missing-key proof
-          (lint-map-types! ctx a mval s :req (not (:open t)))
+          ;; absence proves a missing key only in a closed map
+          (lint-map-types! ctx a mval s :req (:closed t))
           (lint-map-types! ctx a mval s :opt false))))
 
 (defn lint-arg-types

@@ -171,7 +171,7 @@
   [t kw-call]
   (if-let [e (find (:val t) kw-call)]
     (:tag (val e))
-    (when-not (:open t) :nil)))
+    (when (:closed t) :nil)))
 
 (declare resolve-arg-type)
 
@@ -243,9 +243,7 @@
                                        :val (merge (update-vals (or (:opt arg-type) {})
                                                                 #(entry (union-type :nil (resolve-arg-type idacs % seen-calls))))
                                                    (update-vals (or (:req arg-type) {})
-                                                                #(entry (resolve-arg-type idacs % seen-calls))))
-                                       ;; a spec allows unlisted keys
-                                       :open true}
+                                                                #(entry (resolve-arg-type idacs % seen-calls))))}
                                (:nilable arg-type) (hash-set :nil)))))
                        :any)
                    (nil? arg-type) :any)]

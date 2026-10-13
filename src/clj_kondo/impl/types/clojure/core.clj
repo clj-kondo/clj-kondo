@@ -153,7 +153,7 @@
                                                  (:tag v) (assoc :tag (:tag v))))
                                      (cond-> t
                                        (:val t) (update :val update-vals #(dissoc % :tag))
-                                       true (assoc :open true))))
+                                       true (dissoc :closed))))
                                  t
                                  (partition 2 kvs))
                          :associative))
@@ -1089,7 +1089,7 @@
                         ;; absence proves nothing
                         (and (map? t) (:val t))
                         (-> t
-                            (assoc :open true)
+                            (dissoc :closed)
                             (update :val update-vals #(dissoc % :tag)))
                         :else t)))}
    ;; 6903
