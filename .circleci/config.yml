@@ -332,6 +332,7 @@ jobs:
       GRAALVM_VERSION: "25.0.1" # graalvm-pin: last GraalVM with macos-x64 builds
       GRAALVM_HOME: /Users/distiller/graalvm-25.0.1/Contents/Home # graalvm-pin
       CLJ_KONDO_PLATFORM: macos # used in release script
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_ARCH: amd64 # used in release script
 
@@ -406,6 +407,7 @@ jobs:
       GRAALVM_VERSION: "25.0.4"
       GRAALVM_HOME: /Users/distiller/graalvm-25.0.4/Contents/Home
       CLJ_KONDO_PLATFORM: macos # used in release script
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
       CLJ_KONDO_TEST_ENV: native
       CLJ_KONDO_ARCH: aarch64 # used in release script
     steps:
