@@ -488,11 +488,7 @@
                                                         nm))}
                 (let [lookup (fn lookup [t]
                                (cond (set? t)
-                                     (reduce (fn [acc m]
-                                               (if-let [r (lookup m)]
-                                                 (type-utils/union-type acc r)
-                                                 (reduced nil)))
-                                             #{} t)
+                                     (type-utils/union-of lookup t)
                                      (identical? :keys (:op t))
                                      (let [v (or (get (:req t) nm)
                                                  (some->> (get (:opt t) nm)

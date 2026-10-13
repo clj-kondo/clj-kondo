@@ -173,6 +173,15 @@
     (:tag (val e))
     (when (:closed t) :nil)))
 
+(defn union-of
+  "Returns the union of (f m) over each member m of set t, or nil if f returns nil for a member."
+  [f t]
+  (reduce (fn [acc m]
+            (if-let [r (f m)]
+              (union-type acc r)
+              (reduced nil)))
+          #{} t))
+
 (declare resolve-arg-type)
 
 (defn kw-lookup
@@ -180,11 +189,7 @@
   A lookup on nil is nil."
   [idacs t kw seen-calls]
   (cond (identical? :nil t) :nil
-        (set? t) (reduce (fn [acc m]
-                           (if-let [r (kw-lookup idacs m kw seen-calls)]
-                             (union-type acc r)
-                             (reduced nil)))
-                         #{} t)
+        (set? t) (union-of #(kw-lookup idacs % kw seen-calls) t)
         (identical? :map (:type t))
         (when-let [r (map-kw-lookup t kw)]
           (resolve-arg-type idacs r seen-calls))))
