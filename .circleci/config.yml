@@ -326,7 +326,7 @@ jobs:
           destination: release
   mac-amd64:
     macos:
-      xcode: "14.3.1"
+      xcode: "16.4.0"
       resource_class: m4pro.medium
     environment:
       GRAALVM_VERSION: "25.0.1" # graalvm-pin: last GraalVM with macos-x64 builds
@@ -400,7 +400,7 @@ jobs:
           destination: release
   mac-arm64:
     macos:
-      xcode: "14.3.1"
+      xcode: "16.4.0"
       resource_class: m4pro.medium
     environment:
       GRAALVM_VERSION: "25.0.4"
