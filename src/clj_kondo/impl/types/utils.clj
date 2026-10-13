@@ -162,9 +162,7 @@
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)
       (and (set? arg-type) (every? resolved-type? arg-type))
-      (and (map? arg-type) (when-let [t (:type arg-type)]
-                             (and (not (:kw-calls arg-type))
-                                  (identical? t :map))))))
+      (and (map? arg-type) (identical? :map (:type arg-type)))))
 
 (defn map-kw-lookup
   "Value tag of `kw-call` in map type `t`: the entry's tag, provably :nil
@@ -173,7 +171,43 @@
   [t kw-call]
   (if-let [e (find (:val t) kw-call)]
     (:tag (val e))
-    (when-not (:open t) :nil)))
+    (when (:closed t) :nil)))
+
+(defn union-of
+  "Returns the union of (f m) over each member m of set t, or nil if f returns nil for a member."
+  [f t]
+  (reduce (fn [acc m]
+            (if-let [r (f m)]
+              (union-type acc r)
+              (reduced nil)))
+          #{} t))
+
+(declare resolve-arg-type)
+
+(defn kw-lookup
+  "Returns the resolved type of keyword kw looked up in resolved type t, or nil if unknown.
+  A lookup on nil is nil."
+  [idacs t kw seen-calls]
+  (cond (identical? :nil t) :nil
+        (set? t) (union-of #(kw-lookup idacs % kw seen-calls) t)
+        (identical? :map (:type t))
+        (when-let [r (map-kw-lookup t kw)]
+          (resolve-arg-type idacs r seen-calls))))
+
+(comment
+  (def closed {:type :map :val {:a {:tag :int}} :closed true})
+  (def open   (dissoc closed :closed))
+  (def nested {:type :map :val {:m {:tag {:type :map :val {:k {:tag :string}}}}}})
+
+  (kw-lookup nil closed :a #{})              ;=> :int
+  (kw-lookup nil closed :b #{})              ;=> :nil      closed, key missing
+  (kw-lookup nil open :b #{})                ;=> nil       open, unknown
+  (kw-lookup nil :nil :a #{})                ;=> :nil
+  (kw-lookup nil #{:nil closed} :a #{})      ;=> #{:int :nil}
+  (kw-lookup nil #{:nil open} :b #{})        ;=> nil       one member unknown
+  (kw-lookup nil #{:nil :string} :a #{})     ;=> nil       :string isn't a map
+  (kw-lookup nil (kw-lookup nil #{:nil nested} :m #{}) :k #{})
+  ,)
 
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
@@ -194,28 +228,7 @@
                             t)
                           seen-calls))
                        (when-let [t (:type arg-type)]
-                         (if (identical? t :map)
-                           (if-let [[kw-call & rest-kw-calls] (seq (:kw-calls arg-type))]
-                             ;; a key missing from a closed map is provably
-                             ;; nil, and any deeper lookup on nil stays nil
-                             (let [resolved-tag (map-kw-lookup arg-type kw-call)]
-                               (cond
-                                 (and rest-kw-calls
-                                      (= :map (:type resolved-tag)))
-                                 (resolve-arg-type idacs
-                                                   (assoc resolved-tag :kw-calls rest-kw-calls)
-                                                   seen-calls)
-
-                                 (identical? :nil resolved-tag)
-                                 :nil
-
-                                 rest-kw-calls
-                                 nil
-
-                                 :else
-                                 resolved-tag))
-                             t)
-                           (resolve-arg-type idacs t seen-calls)))
+                         (resolve-arg-type idacs t seen-calls))
                        (when-let [call (:call arg-type)]
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)]
@@ -233,25 +246,10 @@
                                  ;; See `clj-kondo.impl.types/ret-tag-from-call` where
                                  ;; `kw-calls` is introduced.
                                  (if-let [kw-calls (:kw-calls call)]
-                                   (when (identical? :map (:type resolved-arg-type))
-                                     (let [[kw-call & rest-kw-calls] kw-calls
-                                           resolved-tag (map-kw-lookup resolved-arg-type kw-call)]
-                                       (cond
-                                         (and rest-kw-calls
-                                              (= :map (:type resolved-tag)))
-                                         (resolve-arg-type idacs
-                                                           (assoc resolved-tag :kw-calls rest-kw-calls)
-                                                           seen-calls)
-
-                                         (identical? :nil resolved-tag)
-                                         :nil
-
-                                         rest-kw-calls
-                                         nil
-
-                                         :else
-                                         ;; resolved-tag may be a :call that still needs resolving
-                                         (resolve-arg-type idacs resolved-tag seen-calls))))
+                                   (reduce (fn [t kw]
+                                             (or (kw-lookup idacs t kw seen-calls)
+                                                 (reduced nil)))
+                                           resolved-arg-type kw-calls)
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
                        (when-let [usage (:usage arg-type)]
                          (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))
@@ -259,12 +257,14 @@
                            (resolve-arg-type idacs resolved)))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
-                           {:type :map
-                            :val (->> (:req arg-type)
-                                      (mapv (fn [[k v]]
-                                              [k (merge {:tag (resolve-arg-type idacs v seen-calls)}
-                                                        (select-keys arg-type [:row :col :end-row :end-col]))]))
-                                      (into {}))}))
+                           (let [pos (select-keys arg-type [:row :col :end-row :end-col])
+                                 entry (fn [t] (merge {:tag t} pos))]
+                             (cond->> {:type :map
+                                       :val (merge (update-vals (or (:opt arg-type) {})
+                                                                #(entry (union-type :nil (resolve-arg-type idacs % seen-calls))))
+                                                   (update-vals (or (:req arg-type) {})
+                                                                #(entry (resolve-arg-type idacs % seen-calls))))}
+                               (:nilable arg-type) (hash-set :nil)))))
                        :any)
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)
@@ -290,4 +290,3 @@
              (or (:args m)
                  (:ret m)))
     m))
-

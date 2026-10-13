@@ -532,7 +532,8 @@
                                              (merge res (extract-bindings
                                                          ctx v scoped-expr
                                                          (assoc opts :tag {:type :map
-                                                                           :val (update-vals sel (fn [t] {:tag t}))}))))
+                                                                           :val (update-vals sel (fn [t] {:tag t}))
+                                                                           :closed true}))))
                                       (recur rest-kvs res))
                             ;; Clojure 1.13: :excess binds the entries the form
                             ;; doesn't name, :missing the required keys that are
