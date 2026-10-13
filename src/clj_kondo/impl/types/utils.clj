@@ -195,19 +195,18 @@
           (resolve-arg-type idacs r seen-calls))))
 
 (comment
-  (require '[clj-kondo.impl.types.utils :as tu])
   (def closed {:type :map :val {:a {:tag :int}} :closed true})
   (def open   (dissoc closed :closed))
   (def nested {:type :map :val {:m {:tag {:type :map :val {:k {:tag :string}}}}}})
 
-  (tu/kw-lookup nil closed :a #{})              ;=> :int
-  (tu/kw-lookup nil closed :b #{})              ;=> :nil      closed, key missing
-  (tu/kw-lookup nil open :b #{})                ;=> nil       open, unknown
-  (tu/kw-lookup nil :nil :a #{})                ;=> :nil
-  (tu/kw-lookup nil #{:nil closed} :a #{})      ;=> #{:int :nil}
-  (tu/kw-lookup nil #{:nil open} :b #{})        ;=> nil       one member unknown
-  (tu/kw-lookup nil #{:nil :string} :a #{})     ;=> nil       :string isn't a map
-  (tu/kw-lookup nil (tu/kw-lookup nil #{:nil nested} :m #{}) :k #{})
+  (kw-lookup nil closed :a #{})              ;=> :int
+  (kw-lookup nil closed :b #{})              ;=> :nil      closed, key missing
+  (kw-lookup nil open :b #{})                ;=> nil       open, unknown
+  (kw-lookup nil :nil :a #{})                ;=> :nil
+  (kw-lookup nil #{:nil closed} :a #{})      ;=> #{:int :nil}
+  (kw-lookup nil #{:nil open} :b #{})        ;=> nil       one member unknown
+  (kw-lookup nil #{:nil :string} :a #{})     ;=> nil       :string isn't a map
+  (kw-lookup nil (kw-lookup nil #{:nil nested} :m #{}) :k #{})
   ,)
 
 (defn resolve-arg-type
