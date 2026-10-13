@@ -1037,6 +1037,21 @@
                                                  :nilable true}}}}
                            g {:arities {1 {:args [{:op :keys :req {:id :string}}]}}}}}))))
 
+  (testing "a keyword lookup of an :opt or unlisted key on a :keys map return is not provably nil"
+    (assert-submaps2
+     '({:row 5 :message "Expected: number, received: string or nil."})
+     (lint! "(ns a) (defn f [] {:id 1 :name \"x\" :extra 2})
+(ns w (:require [a])) (defn g [] (a/f))
+(ns b (:require [w]))
+(if (:extra (w/g)) 1 2)
+(inc (:name (w/g)))"
+            (-> config
+                (assoc-in [:linters :constant-condition :level] :warning)
+                (assoc-in [:linters :type-mismatch :namespaces]
+                          '{a {f {:arities {0 {:ret {:op :keys
+                                                     :req {:id :int}
+                                                     :opt {:name :string}}}}}}})))))
+
   (testing "a keyword lookup on an inferred nilable map return includes nil"
     (assert-submaps2
      '({:row 3 :message "Expected: string, received: nil or positive integer."}

@@ -237,13 +237,16 @@
                            (resolve-arg-type idacs resolved)))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
-                           (cond->> {:type :map
-                                     :val (->> (:req arg-type)
-                                               (mapv (fn [[k v]]
-                                                       [k (merge {:tag (resolve-arg-type idacs v seen-calls)}
-                                                                 (select-keys arg-type [:row :col :end-row :end-col]))]))
-                                               (into {}))}
-                             (:nilable arg-type) (hash-set :nil))))
+                           (let [pos (select-keys arg-type [:row :col :end-row :end-col])
+                                 entry (fn [t] (merge {:tag t} pos))]
+                             (cond->> {:type :map
+                                       :val (merge (update-vals (or (:opt arg-type) {})
+                                                                #(entry (union-type :nil (resolve-arg-type idacs % seen-calls))))
+                                                   (update-vals (or (:req arg-type) {})
+                                                                #(entry (resolve-arg-type idacs % seen-calls))))
+                                       ;; a spec allows unlisted keys
+                                       :open true}
+                               (:nilable arg-type) (hash-set :nil)))))
                        :any)
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)

@@ -493,8 +493,10 @@
                                                  (type-utils/union-type acc r)
                                                  (reduced nil)))
                                              #{} t)
-                                     (:req t)
-                                     (let [v (get (:req t) nm)]
+                                     (identical? :keys (:op t))
+                                     (let [v (or (get (:req t) nm)
+                                                 (some->> (get (:opt t) nm)
+                                                          (type-utils/union-type :nil)))]
                                        ;; keyword access on nil is nil
                                        (if (and v (:nilable t))
                                          (type-utils/union-type :nil v)
