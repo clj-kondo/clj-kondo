@@ -92,7 +92,10 @@
     (is (empty? (messages "(let [m (assoc {:a 1} (rand) 1)] (:b m))")))
     (is (empty? (messages "(def ^:dynamic *opts* {:a 1}) (:b *opts*)")))
     (is (empty? (lint! "(let [m {:a 1}] (:b m))"
-                       {:linters {:unknown-map-key {:level :off}}})))))
+                       {:linters {:unknown-map-key {:level :off}}}))))
+  (testing ":type-mismatch :off disables the warning"
+    (is (empty? (messages "(let [m {:a 1}] (:b m))"
+                          (assoc-in config [:linters :type-mismatch :level] :off))))))
 
 (deftest edit-distance-test
   (is (= 0 (linters/edit-distance "name" "name")))

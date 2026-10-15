@@ -2310,8 +2310,8 @@ This will exclude all bindings starting with `_x`.
 *Description:* warn on a keyword lookup of a key outside the known keys of a
 map. The keys of a map are known for a map literal, a map literal extended with
 `assoc`, and a map returned by a function that ends in one of those. The
-lookup returns nil. Return types are only inferred while `:type-mismatch` is
-enabled. A lookup with a default value and a lookup on a map literal at the
+lookup returns nil. This linter requires `:type-mismatch` to be enabled. A
+lookup with a default value and a lookup on a map literal at the
 call site do not warn. A lookup on a hook-generated or `:lint-as` `let`
 binding, or on the return of a hook-generated `defn`, does not warn.
 

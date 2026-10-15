@@ -4031,8 +4031,7 @@
         expr-meta (meta expr)
         resolved-namespace :clj-kondo/unknown-namespace
         ctx (update ctx :callstack conj [nil :token])
-        arg-types (when-not (and (linter-disabled? ctx :type-mismatch)
-                                 (linter-disabled? ctx :unknown-map-key))
+        arg-types (when-not (linter-disabled? ctx :type-mismatch)
                     (atom []))
         ctx (assoc ctx :arg-types arg-types)
         analyzed
