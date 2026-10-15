@@ -123,6 +123,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Unused binding](#unused-binding)
     - [Unused value](#unused-value)
     - [Used underscored bindings](#used-underscored-bindings)
+    - [Unknown map key](#unknown-map-key)
     - [Unknown ns option](#unknown-ns-option)
     - [Unknown :require option](#unknown-require-option)
     - [Unreachable code](#unreachable-code)
@@ -2301,6 +2302,35 @@ A regex is also supported:
 ```
 
 This will exclude all bindings starting with `_x`.
+
+### Unknown map key
+
+*Keyword:* `:unknown-map-key`
+
+*Description:* warn on a keyword lookup of a key outside the known keys of a
+map. The keys of a map are known for a map literal, a map literal extended with
+`assoc`, and a map returned by a function that ends in one of those. The
+lookup returns nil. Return types are only inferred while `:type-mismatch` is
+enabled. A lookup with a default value and a lookup on a map literal at the
+call site do not warn.
+
+*Default level:* `:warning`
+
+*Example triggers:*
+
+- `(let [m {:name "x"}] (:nmae m))`
+- `(defn opts [] {:host "localhost"}) (:hots (opts))`
+
+*Example messages:*
+
+- `Unknown key :nmae, closest match: :name`
+- `Unknown key :b in map with keys :a`
+
+*Config:*
+
+``` clojure
+{:linters {:unknown-map-key {:level :warning}}}
+```
 
 ### Unknown ns option
 

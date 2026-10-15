@@ -400,6 +400,83 @@
                                     utils/condition-always-true-msg))
       nil)))
 
+(defn edit-distance
+  "Returns the number of insertions, deletions, substitutions and adjacent
+  transpositions that turn string a into string b."
+  [^String a ^String b]
+  (let [n (.length b)]
+    (loop [i 0 prev2 nil prev (vec (range (inc n)))]
+      (if (= i (.length a))
+        (peek prev)
+        (let [ca (.charAt a i)
+              cur (reduce (fn [cur j]
+                            (let [cb (.charAt b j)
+                                  v (min (inc (peek cur))
+                                         (inc (nth prev (inc j)))
+                                         (+ (nth prev j) (if (= ca cb) 0 1)))]
+                              (conj cur (if (and prev2 (pos? j)
+                                                 (= ca (.charAt b (dec j)))
+                                                 (= (.charAt a (dec i)) cb))
+                                          (min v (inc (nth prev2 (dec j))))
+                                          v))))
+                          [(inc i)]
+                          (range n))]
+          (recur (inc i) prev cur))))))
+
+(defn- similar-key
+  "Returns the key in ks closest to kw, or nil if each key needs more edits
+  than a third of the name length of kw."
+  [kw ks]
+  (let [s (str kw)
+        max-d (quot (count (name kw)) 3)
+        [d k] (first (sort-by first (map (fn [k] [(edit-distance s (str k)) k]) ks)))]
+    (when (and d (<= 1 d max-d))
+      k)))
+
+(defn- missing-key-maps
+  "Returns the closed map types in t, or nil if a member of t is neither nil
+  nor a closed map without kw."
+  [t kw]
+  (let [members (if (set? t) t #{t})
+        maps (filter map? members)]
+    (when (and (seq maps)
+               (every? (fn [m]
+                         (or (identical? :nil m)
+                             (and (map? m) (:closed m) (:val m)
+                                  (not (contains? (:val m) kw)))))
+                       members))
+      maps)))
+
+(defn lint-unknown-map-keys!
+  "Reports keyword lookups of a key outside the keys of a closed map.
+  Skips a lookup at the location of a :type-mismatch or :constant-condition
+  finding."
+  [ctx idacs]
+  (doseq [:let [reported (into #{}
+                               (keep (fn [{:keys [type filename row col]}]
+                                       (when (or (identical? :type-mismatch type)
+                                                 (identical? :constant-condition type))
+                                         [filename row col])))
+                               @(:findings ctx))]
+          {:keys [ctx kw arg-types loc]} @(:kw-lookups ctx)
+          :when (not (contains? reported [(:filename ctx) (:row loc) (:col loc)]))
+          :let [entry (first @arg-types)]
+          :when entry
+          :let [t (tu/resolve-arg-type idacs (mask-var-usages entry))]
+          :when (not (identical? :any t))]
+    (when-let [maps (missing-key-maps t kw)]
+      (let [ks (sort-by str (distinct (mapcat (comp keys :val) maps)))
+            suggestion (similar-key kw ks)]
+        (findings/reg-finding!
+         ctx
+         (assoc loc
+                :filename (:filename ctx)
+                :type :unknown-map-key
+                :message (str "Unknown key " kw
+                              (cond suggestion (str ", closest match: " suggestion)
+                                    (seq ks) (str " in map with keys " (str/join ", " ks))
+                                    :else " in empty map"))))))))
+
 (defn reg-unused-value!
   [ctx call called-fn config call-config filename row end-row col end-col]
   (when-let [idx (:idx call)]
