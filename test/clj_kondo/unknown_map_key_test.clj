@@ -49,6 +49,15 @@
            (messages "(ns a) (defn specs [] {:extends 1 :with 2})
 (ns b (:require [a]))
 (:with-mixins (a/specs))"))))
+  (testing "a lookup on a def'd map warns"
+    (is (= [[2 "Unknown key :hots, closest match: :host"]]
+           (messages "(def db {:host \"localhost\" :port 5432})
+(:hots db)"))))
+  (testing "a lookup on a def'd map from another namespace warns"
+    (is (= [[3 "Unknown key :hots, closest match: :host"]]
+           (messages "(ns a) (def db {:host \"localhost\" :port 5432})
+(ns b (:require [a]))
+(:hots a/db)"))))
   (testing "a :type-mismatch finding at the lookup replaces the warning"
     (is (assert-submaps2
          '({:row 1 :message "Expected: number, received: nil."})
@@ -68,6 +77,10 @@
   (testing "a lookup on a hook-generated let binding of a fn call does not warn"
     (is (empty? (messages (str with-temp-hook "(defn q [] {:name 1})
 (with-temp [:model/Card card (q)] (:id card))")
+                          (assoc-in config [:hooks :__dangerously-allow-string-hooks__] true)))))
+  (testing "a lookup on a hook-generated let binding of a def'd map does not warn"
+    (is (empty? (messages (str with-temp-hook "(def attrs {:name 1})
+(with-temp [:model/Card card attrs] (:id card))")
                           (assoc-in config [:hooks :__dangerously-allow-string-hooks__] true)))))
   (testing "a lookup on a hook-generated defn return does not warn"
     (is (empty? (messages "(ns bar {:clj-kondo/config '{:hooks {:analyze-call {foo/defenterprise \"

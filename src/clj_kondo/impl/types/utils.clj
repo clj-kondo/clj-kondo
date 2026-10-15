@@ -161,7 +161,7 @@
 
 (defn open-map-tag
   "Returns tag t with every map type in it, nested values included, open. A
-  deferred call is marked to open its type once resolved."
+  deferred call or var usage is marked to open its type once resolved."
   [t]
   (cond (set? t) (into #{} (map open-map-tag) t)
         (not (map? t)) t
@@ -169,7 +169,7 @@
         (cond-> (dissoc t :closed)
           (:val t) (update :val update-vals open-map-tag))
         (:tag t) (update t :tag open-map-tag)
-        (:call t) (assoc t :open-maps true)
+        (or (:call t) (:usage t)) (assoc t :open-maps true)
         :else t))
 
 (defn resolved-type? [arg-type]

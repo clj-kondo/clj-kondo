@@ -462,7 +462,7 @@
           :when (not (contains? reported [(:filename ctx) (:row loc) (:col loc)]))
           :let [entry (first @arg-types)]
           :when entry
-          :let [t (tu/resolve-arg-type idacs (mask-var-usages entry))]
+          :let [t (tu/resolve-arg-type idacs entry)]
           :when (not (identical? :any t))]
     (when-let [maps (missing-key-maps t kw)]
       (let [ks (sort-by str (distinct (mapcat (comp keys :val) maps)))

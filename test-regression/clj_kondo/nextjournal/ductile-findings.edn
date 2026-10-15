@@ -70,6 +70,28 @@
   :message "Var query! is referred but used via alias: clerk-elog",
   :level :info,
   :langs ()}
+ {:end-row 234,
+  :type :unknown-map-key,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/krefeld_invoice_lager.clj",
+  :col 83,
+  :end-col 111,
+  :langs (),
+  :message
+  "Unknown key :sum-handling in map with keys :days-lager-ductile, :sum-handling-ductile, :sum-lager-ductile",
+  :row 234}
+ {:end-row 235,
+  :type :unknown-map-key,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/billing/krefeld_invoice_lager.clj",
+  :col 65,
+  :end-col 90,
+  :langs (),
+  :message
+  "Unknown key :sum-lager in map with keys :days-lager-ductile, :sum-handling-ductile, :sum-lager-ductile",
+  :row 235}
  {:filename
   "test-regression/checkouts/ductile/dev/ductile/insights/eitting_import.clj",
   :row 141,
