@@ -94,6 +94,16 @@
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
+ {:end-row 45,
+  :type :unknown-map-key,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/ductile/dev/ductile/insights/sixt_eitting_edi.clj",
+  :col 5,
+  :end-col 113,
+  :langs (),
+  :message "Unknown key :result, closest match: :results",
+  :row 44}
  {:end-row 5,
   :type :deprecated-namespace,
   :level :warning,

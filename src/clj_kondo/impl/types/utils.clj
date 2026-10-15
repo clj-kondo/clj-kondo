@@ -159,6 +159,19 @@
                                  acc
                                  (union-type acc part))))))))
 
+(defn open-map-tag
+  "Returns tag t with every map type in it, nested values included, open. A
+  deferred call is marked to open its type once resolved."
+  [t]
+  (cond (set? t) (into #{} (map open-map-tag) t)
+        (not (map? t)) t
+        (identical? :map (:type t))
+        (cond-> (dissoc t :closed)
+          (:val t) (update :val update-vals open-map-tag))
+        (:tag t) (update t :tag open-map-tag)
+        (:call t) (assoc t :open-maps true)
+        :else t))
+
 (defn resolved-type? [arg-type]
   (or (keyword? arg-type)
       (and (set? arg-type) (every? resolved-type? arg-type))
@@ -268,7 +281,8 @@
                        :any)
                    (nil? arg-type) :any)]
          ;; (prn arg-type '-> ret)
-         ret))))
+         (cond-> ret
+           (and (map? arg-type) (:open-maps arg-type)) open-map-tag)))))
 
 (defn strip-positions
   "Strips positions from a map type's :val entries, recursively. A cached
