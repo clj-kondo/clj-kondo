@@ -13,6 +13,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- New linter `:unknown-map-key`: warn on a keyword lookup of a key outside the known keys of a map. E.g. `(defn opts [] {:host "localhost"}) (:hots (opts))` will warn.
+- `:type-mismatch`, `:constant-condition`: a missing key proves nothing in a map bound by a hook-generated `let`, or returned by a hook-generated `defn`. E.g. a `defenterprise` stub returning `{}` in metabase no longer warns.
 - [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): `:constant-condition`: a `:keys` return spec with `:nilable true` may be nil and a key outside `:req` may be present. E.g. `(if-let [x (find-thing id)] ...)` no longer warns with `Condition always true`.
 - `:type-mismatch`, `:constant-condition`: a keyword lookup on a map return that may be nil includes nil. E.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` will warn.
 - `:type-mismatch`: a `:keys` arg spec checks each map of a union argument. E.g. `(g (if x {:id 1} {:id 2}))` with `g` taking `{:op :keys :req {:id :string}}` will warn.

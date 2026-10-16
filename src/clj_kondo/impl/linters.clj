@@ -400,6 +400,110 @@
                                     utils/condition-always-true-msg))
       nil)))
 
+(defn edit-distance
+  "Returns the number of insertions, deletions, substitutions and adjacent
+  transpositions that turn string a into string b."
+  [^String a ^String b]
+  (let [n (.length b)]
+    (loop [i 0 prev2 nil prev (vec (range (inc n)))]
+      (if (= i (.length a))
+        (peek prev)
+        (let [ca (.charAt a i)
+              cur (reduce (fn [cur j]
+                            (let [cb (.charAt b j)
+                                  v (min (inc (peek cur))
+                                         (inc (nth prev (inc j)))
+                                         (+ (nth prev j) (if (= ca cb) 0 1)))]
+                              (conj cur (if (and prev2 (pos? j)
+                                                 (= ca (.charAt b (dec j)))
+                                                 (= (.charAt a (dec i)) cb))
+                                          (min v (inc (nth prev2 (dec j))))
+                                          v))))
+                          [(inc i)]
+                          (range n))]
+          (recur (inc i) prev cur))))))
+
+(defn edit-distance-with-substrings
+  "Returns the edit distance between strings a and b minus their length
+  difference, or nil if it exceeds limit.
+  A substring of the other string scores 1.
+  The length difference counts half, or in full if one string is more than
+  twice as long as the other."
+  [a b limit]
+  (let [n (count a)
+        m (count b)
+        big-len-diff (or (< (* 2 n) m) (< (* 2 m) n))
+        len-diff (if (> m n) (- m n) (- n m))
+        score (- (edit-distance a b) len-diff)
+        score (cond (and (zero? score) (pos? len-diff) (not big-len-diff)) 1
+                    (not big-len-diff) (+ score (quot (inc len-diff) 2))
+                    :else (+ score len-diff))]
+    (when (<= score limit)
+      score)))
+
+(defn sorted-words [s]
+  (sort (str/split s #"-")))
+
+(defn similar-key
+  "Returns the key in ks closest to kw, or nil if none is close enough.
+  A key equal to kw ignoring case wins first.
+  Then the lowest edit-distance-with-substrings within a third of the name
+  length of kw wins, with ties broken by edit-distance.
+  Otherwise a key with the same dash-separated words in another order wins."
+  [kw ks]
+  (let [k-str #(if (keyword? %) (str (symbol %)) (str %))
+        s (k-str kw)
+        limit (quot (count (name kw)) 3)]
+    (or (let [up (str/upper-case s)]
+          (some #(when (= up (str/upper-case (k-str %))) %) ks))
+        (let [scored (keep (fn [k]
+                             (when-let [d (edit-distance-with-substrings s (k-str k) limit)]
+                               [d k]))
+                           ks)]
+          (when (seq scored)
+            (let [best (apply min (map first scored))
+                  ties (keep (fn [[d k]] (when (= best d) k)) scored)]
+              (if (next ties)
+                (first (sort-by #(edit-distance s (k-str %)) ties))
+                (first ties)))))
+        (let [words (sorted-words s)]
+          (some #(when (= words (sorted-words (k-str %))) %) ks)))))
+
+(defn closed-maps-without-key
+  "Returns the closed map types in t, or nil if a member of t is neither nil
+  nor a closed map without kw."
+  [t kw]
+  (let [members (if (set? t) t #{t})
+        maps (filter map? members)]
+    (when (and (seq maps)
+               (every? (fn [m]
+                         (or (identical? :nil m)
+                             (and (map? m) (:closed m) (:val m)
+                                  (not (contains? (:val m) kw)))))
+                       members))
+      maps)))
+
+(defn lint-unknown-map-keys!
+  "Reports keyword lookups of a key outside the keys of a closed map."
+  [ctx idacs]
+  (doseq [{:keys [ctx kw arg-types loc]} @(:kw-lookups ctx)
+          :let [entry (first @arg-types)]
+          :when entry
+          :let [t (tu/resolve-arg-type idacs entry)]
+          :when (not (identical? :any t))]
+    (when-let [maps (closed-maps-without-key t kw)]
+      (let [ks (sort-by str (distinct (mapcat (comp keys :val) maps)))
+            suggestion (similar-key kw ks)]
+        (findings/reg-finding!
+         ctx
+         (assoc loc
+                :filename (:filename ctx)
+                :type :unknown-map-key
+                :message (str "Unknown key " kw
+                              (cond suggestion (str ", closest match: " suggestion)
+                                    (seq ks) (str " in map with keys " (str/join ", " ks))
+                                    :else " in empty map"))))))))
+
 (defn reg-unused-value!
   [ctx call called-fn config call-config filename row end-row col end-col]
   (when-let [idx (:idx call)]
