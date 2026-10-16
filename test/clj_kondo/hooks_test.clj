@@ -598,6 +598,37 @@ my-ns/special-map \"
       (is (not (fs/exists? inline-config))))
     (cleanup!)))
 
+(deftest macro-from-source-refer-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-refer" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "qualification.clj")
+        src-dir (fs/file "corpus" "macro-from-source-refer" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (try
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}
+                        :aliased-referred-var {:level :off}}}
+             "--config-dir" (str cfg-dir))
+      (let [gen (slurp gen-file)]
+        (testing "syntax-quoted refers retain their source namespace and original name"
+          (is (str/includes? gen "`(clojure.test/deftest ~sym)"))
+          (is (str/includes? gen "(clojure.string/join \",\" ~join)")))
+        (testing "ordinary quoted symbols remain unchanged"
+          (is (str/includes? gen "'(quote join)"))))
+      (testing "generated hooks chain into analyze-call hooks with aliases and refers,
+      with or without requiring the underlying macro namespace at the call site"
+        (assert-submaps2
+         []
+         (lint! src-dir
+                {:linters {:unresolved-symbol {:level :error}
+                           :aliased-referred-var {:level :off}}}
+                "--config-dir" (str cfg-dir))))
+      (finally
+        (cleanup!)))))
+
 (deftest macro-from-source-cross-ns-helper-test
   (let [cfg-dir (fs/file "corpus" "macro-from-source-xref" ".clj-kondo")
         helpers-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "helpers.clj")

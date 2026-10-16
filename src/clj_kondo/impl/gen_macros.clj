@@ -5,7 +5,8 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.rewrite-clj.node.keyword :as keyword-node]
    [clojure.java.io :as io]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [clojure.walk :as walk])
   (:import [java.io File]))
 
 (set! *warn-on-reflection* true)
@@ -121,6 +122,22 @@
   [orig-ns]
   (str/starts-with? (str orig-ns) reserved-ns-prefix))
 
+(let [->location->referred-symbol-xf
+      (keep (fn [{:keys [referred-symbol location]}]
+              (when referred-symbol
+                [location referred-symbol])))]
+  (defn- qualify-referred-tokens [expr usages]
+    (let [referred (into {} ->location->referred-symbol-xf usages)]
+      (if (empty? referred)
+        expr
+        (walk/postwalk
+         (fn [node]
+           (if-let [sym (and (instance? clj_kondo.impl.rewrite_clj.node.token.TokenNode node)
+                             (get referred (select-keys (meta node) [:row :col])))]
+             (assoc node :value sym :string-value (str sym))
+             node))
+         expr)))))
+
 (defn record!
   "Push an entry onto the per-file `:gen-macros` ctx atom and rewrite the
   gen file from scratch using the current accumulated entries (in source
@@ -132,11 +149,13 @@
   in the same source file can expand the marker macro mid-analysis: the
   gen file must exist on disk before SCI's `require` of it runs.
 
-  `:alias-usages` is the per-usage `{:ns :kind}` vector produced by the
-  analyzer while walking the macro/helper body. `:source-aliases` is the
+  `:alias-usages` contains namespace usages (`{:ns :kind}`) and referred
+  symbols (`{:referred-symbol :location}`) collected while walking the
+  macro/helper body. `:source-aliases` is the
   alias map of the source namespace (`{alias full-ns}`), used to look up
   the alias symbol for each used namespace and to honor `:as-alias`
-  intent (preserved as meta on the alias key)."
+  intent (preserved as meta on the alias key). Referred symbols inside
+  syntax-quote are qualified using their source resolution before writing."
   [ctx {:keys [orig-ns expr alias-usages source-aliases]}]
   ;; `(:lang ctx)` here is the per-pass lang during walking: `:clj` or
   ;; `:cljs`. For .cljc files the analyzer runs both passes; we only want
@@ -148,7 +167,8 @@
             f (gen-file cfg-dir gen-ns)
             new-aliases (aggregate-alias-usages alias-usages source-aliases cfg-dir)
             entries (swap! (:gen-macros ctx) conj
-                           {:form expr :aliases new-aliases})]
+                           {:form (qualify-referred-tokens expr alias-usages)
+                            :aliases new-aliases})]
         (with-gen-lock cfg-dir
           ;; Bind keyword-node's autoresolve-ns so bare `::foo` keywords
           ;; in the macro/helper body serialize as `:<orig-ns>/foo` and
