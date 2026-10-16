@@ -433,7 +433,7 @@
     (when (and d (<= 1 d max-d))
       k)))
 
-(defn- missing-key-maps
+(defn- closed-maps-without-key
   "Returns the closed map types in t, or nil if a member of t is neither nil
   nor a closed map without kw."
   [t kw]
@@ -455,7 +455,7 @@
           :when entry
           :let [t (tu/resolve-arg-type idacs entry)]
           :when (not (identical? :any t))]
-    (when-let [maps (missing-key-maps t kw)]
+    (when-let [maps (closed-maps-without-key t kw)]
       (let [ks (sort-by str (distinct (mapcat (comp keys :val) maps)))
             suggestion (similar-key kw ks)]
         (findings/reg-finding!

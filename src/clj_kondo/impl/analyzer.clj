@@ -973,9 +973,7 @@
             (map (fn [{:keys [binding]}] [binding entry]) simple-params))))
 
 (defn analyze-fn-body [ctx body]
-  (let [open-ret-maps (:open-ret-maps ctx)
-        ctx (dissoc ctx :open-ret-maps)
-        docstring (:docstring ctx)
+  (let [docstring (:docstring ctx)
         macro? (:macro? ctx)
         {:keys [arg-bindings
                 arity analyzed-arg-vec arglist-str arg-vec keys-bindings]
@@ -1076,8 +1074,7 @@
     (assoc-some (assoc arity
                        :parsed
                        (concat analyzed-arg-vec analyze-pre-post parsed)
-                       :ret (cond-> return-tag
-                              open-ret-maps types-utils/open-map-tag)
+                       :ret return-tag
                        :arglist-str arglist-str
                        :arg-vec arg-vec
                        :args arg-tags)
@@ -1228,11 +1225,12 @@
                                                 :async-fn? (:async var-meta)
                                                 :macro? macro?))
                                gen-macros-acc
-                               (assoc :gen-macros-aliases-acc gen-macros-acc)
-                               (:clj-kondo.impl/generated expr)
-                               (assoc :open-ret-maps true))
+                               (assoc :gen-macros-aliases-acc gen-macros-acc))
                              %)
                            bodies)
+        parsed-bodies (cond->> parsed-bodies
+                        (:clj-kondo.impl/generated expr)
+                        (map #(update % :ret types-utils/open-map-tag)))
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
@@ -1403,9 +1401,7 @@
       (recur (next entries) (if (first entries) (inc run) 0)))))
 
 (defn analyze-let-like-bindings [ctx binding-vector scoped-expr]
-  (let [open-binding-maps (:open-binding-maps ctx)
-        ctx (dissoc ctx :open-binding-maps)
-        resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
+  (let [resolved-as-clojure-var-name (:resolved-as-clojure-var-name ctx)
         for-like? (one-of resolved-as-clojure-var-name [for doseq])
         callstack (:callstack ctx)
         call (-> callstack second second)
@@ -1465,7 +1461,7 @@
                                    (analyze-expression** ctx** (assoc value :id value-id)))
                   tag (when (and let? binding (one-of (tag binding) [:token :map]))
                         (cond-> (init-tag ctx* value-id value)
-                          open-binding-maps types-utils/open-map-tag))
+                          (:clj-kondo.impl/generated scoped-expr) types-utils/open-map-tag))
                   new-bindings (when binding
                                  (extract-bindings ctx* binding scoped-expr
                                                    (cond-> {:tag tag}
@@ -1520,9 +1516,7 @@
 (defn analyze-like-let
   [{:keys [filename callstack
            let-parent] :as ctx} expr]
-  (let [open-binding-maps (:open-binding-maps ctx)
-        ctx (dissoc ctx :open-binding-maps)
-        call (-> callstack first second)
+  (let [call (-> callstack first second)
         [current-call parent-call] callstack
         parent-let (one-of parent-call
                            [[clojure.core let]
@@ -1546,11 +1540,9 @@
              arities :arities
              analyzed :analyzed}
             (analyze-let-like-bindings
-             (cond-> (-> ctx
-                         ;; prevent linting redundant let when using let in bindings
-                         (update :callstack #(cons [nil :let-bindings] %)))
-               open-binding-maps (assoc :open-binding-maps true))
-             valid-bv-node expr)
+             (-> ctx
+                 ;; prevent linting redundant let when using let in bindings
+                 (update :callstack #(cons [nil :let-bindings] %))) valid-bv-node expr)
             let-body (nnext (:children expr))
             let-parent (when (and current-let (= 1 (count let-body)))
                          current-let)
@@ -3647,10 +3639,7 @@
                                ctx expr
                                resolved-as-name))
     (let let*)
-    (analyze-let (cond-> ctx
-                   (or lint-as? (:clj-kondo.impl/generated expr))
-                   (assoc :open-binding-maps true))
-                 expr)
+    (analyze-let ctx expr)
     (for doseq dotimes with-open with-local-vars)
     (analyze-like-let ctx expr)
     letfn

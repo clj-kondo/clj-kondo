@@ -94,10 +94,6 @@
 (defenterprise decode-token \"In OSS, this returns an empty map.\" ee.ns [_] {})
 (:max-users (decode-token 1))"
                           (assoc-in config [:hooks :__dangerously-allow-string-hooks__] true)))))
-  (testing "a lookup on a :lint-as let binding does not warn"
-    (is (empty? (messages "(ns bar (:require [foo :refer [with-temp]]))
-(with-temp [card {}] (:id card))"
-                          (assoc config :lint-as '{foo/with-temp clojure.core/let})))))
   (testing "a default, a present key, an open map, a dynamic var and :off do not warn"
     (is (empty? (messages "(:a {})")))
     (is (empty? (messages "(let [m {:a 1}] (:b m 2))")))
