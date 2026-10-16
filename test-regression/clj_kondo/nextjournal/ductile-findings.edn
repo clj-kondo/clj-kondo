@@ -79,7 +79,7 @@
   :end-col 111,
   :langs (),
   :message
-  "Unknown key :sum-handling in map with keys :days-lager-ductile, :sum-handling-ductile, :sum-lager-ductile",
+  "Unknown key :sum-handling, closest match: :sum-handling-ductile",
   :row 234}
  {:end-row 235,
   :type :unknown-map-key,
@@ -89,8 +89,7 @@
   :col 65,
   :end-col 90,
   :langs (),
-  :message
-  "Unknown key :sum-lager in map with keys :days-lager-ductile, :sum-handling-ductile, :sum-lager-ductile",
+  :message "Unknown key :sum-lager, closest match: :sum-lager-ductile",
   :row 235}
  {:filename
   "test-regression/checkouts/ductile/dev/ductile/insights/eitting_import.clj",
