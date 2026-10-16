@@ -262,9 +262,10 @@
 
 (deftest def-self-reference-test
   (is (empty? (lint! "(ns demo (:require [clojure.test :refer :all]))
-                      (def client (identity client))"
+                      (def client (identity client))
+                      (deftest client-test (is (some? client)))"
                      '{:linters {:unresolved-symbol {:level :error}}})))
-  (is (empty? (lint! "(ns demo (:require [clojure.test :refer [deftest is]))
+  (is (empty? (lint! "(ns demo (:require [clojure.test :refer [deftest is]]))
                       (def client (identity client))
                       (deftest client-test (is (some? client)))"
                      '{:linters {:unresolved-symbol {:level :error}}})))
