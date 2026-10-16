@@ -260,6 +260,18 @@
     (is (empty? (lint! "(String. \"a\")"
                        '{:linters {:unresolved-symbol {:level :error}}})))))
 
+(deftest def-self-reference-test
+  (is (empty? (lint! "(ns demo (:require [clojure.test :refer :all]))
+                      (def client (identity client))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns demo (:require [clojure.test :refer [deftest is]))
+                      (def client (identity client))
+                      (deftest client-test (is (some? client)))"
+                     '{:linters {:unresolved-symbol {:level :error}}})))
+  (is (empty? (lint! "(ns demo)
+                      (def client (identity client))"
+                     '{:linters {:unresolved-symbol {:level :error}}}))))
+
 (deftest cljs-property-access-test
   (is (empty? (lint! "(defn editable? [coll] (satisfies? cljs.core.IEditableCollection coll))"
                      '{:linters {:unresolved-symbol {:level :error}}}))))
