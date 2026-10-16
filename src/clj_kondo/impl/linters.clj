@@ -469,7 +469,7 @@
         (let [words (sorted-words s)]
           (some #(when (= words (sorted-words (k-str %))) %) ks)))))
 
-(defn- closed-maps-without-key
+(defn closed-maps-without-key
   "Returns the closed map types in t, or nil if a member of t is neither nil
   nor a closed map without kw."
   [t kw]
