@@ -1669,6 +1669,19 @@
   :langs (:clj),
   :message "Test assertion message should be a string",
   :row 819}
+ {:end-row 123,
+  :type :shadowed-var,
+  :level :warning,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/lib/drill_thru/underlying_records_test.cljc",
+  :col 18,
+  :end-col 28,
+  :cljc true,
+  :langs (:clj),
+  :message
+  "Shadowed var: metabase.lib.drill-thru.underlying-records-test/last-month",
+  :row 123}
  {:end-row 2032,
   :type :redundant-primitive-coercion,
   :level :warning,
