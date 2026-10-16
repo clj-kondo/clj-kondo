@@ -58,13 +58,15 @@
            (messages "(ns a) (def db {:host \"localhost\" :port 5432})
 (ns b (:require [a]))
 (:hots a/db)"))))
-  (testing "a :type-mismatch finding at the lookup replaces the warning"
+  (testing "a :type-mismatch finding at the lookup does not hide the warning"
     (is (assert-submaps2
-         '({:row 1 :message "Expected: number, received: nil."})
+         '({:row 1 :col 22 :message "Expected: number, received: nil."}
+           {:row 1 :col 22 :message "Unknown key :b in map with keys :a"})
          (lint! "(let [m {:a 1}] (inc (:b m)))" config))))
-  (testing "a :constant-condition finding at the lookup replaces the warning"
+  (testing "a :constant-condition finding at the lookup does not hide the warning"
     (is (assert-submaps2
-         '({:row 1 :message "Condition always false"})
+         '({:row 1 :col 23 :message "Condition always false"}
+           {:row 1 :col 23 :message "Unknown key :b in map with keys :a"})
          (lint! "(let [m {:a 1}] (when (:b m) 1))"
                 (assoc-in config [:linters :constant-condition :level] :warning)))))
   (testing "a lookup on a hook-generated let binding does not warn"

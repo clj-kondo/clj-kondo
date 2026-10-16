@@ -448,18 +448,9 @@
       maps)))
 
 (defn lint-unknown-map-keys!
-  "Reports keyword lookups of a key outside the keys of a closed map.
-  Skips a lookup at the location of a :type-mismatch or :constant-condition
-  finding."
+  "Reports keyword lookups of a key outside the keys of a closed map."
   [ctx idacs]
-  (doseq [:let [reported (into #{}
-                               (keep (fn [{:keys [type filename row col]}]
-                                       (when (or (identical? :type-mismatch type)
-                                                 (identical? :constant-condition type))
-                                         [filename row col])))
-                               @(:findings ctx))]
-          {:keys [ctx kw arg-types loc]} @(:kw-lookups ctx)
-          :when (not (contains? reported [(:filename ctx) (:row loc) (:col loc)]))
+  (doseq [{:keys [ctx kw arg-types loc]} @(:kw-lookups ctx)
           :let [entry (first @arg-types)]
           :when entry
           :let [t (tu/resolve-arg-type idacs entry)]
