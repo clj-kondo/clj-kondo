@@ -161,7 +161,9 @@
 
 (defn open-map-tag
   "Returns tag t with every map type in it, nested values included, open. A
-  deferred call or var usage is marked to open its type once resolved."
+  deferred call or var usage is marked to open its type once resolved.
+  Only applied to types from hook-generated code, where a missing key proves
+  nothing."
   [t]
   (cond (set? t) (into #{} (map open-map-tag) t)
         (not (map? t)) t
