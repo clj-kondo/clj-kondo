@@ -4028,7 +4028,6 @@
           (analyze-children next-ctx children false))
         _ (when-let [kw-lookups (:kw-lookups ctx)]
             (when (and arg-types (= 1 arg-count)
-                       (not (identical? :map (tag (first children))))
                        (not (linter-disabled? ctx :unknown-map-key)))
               (swap! kw-lookups conj {:ctx ctx :kw full-fn-name :arg-types arg-types
                                       :loc (assoc (utils/location expr-meta)

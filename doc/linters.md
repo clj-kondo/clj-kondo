@@ -2311,8 +2311,7 @@ This will exclude all bindings starting with `_x`.
 map. The keys of a map are known for a map literal, a map literal extended with
 `assoc`, and a var or function return defined as one of those. The
 lookup returns nil. This linter requires `:type-mismatch` to be enabled. A
-lookup with a default value and a lookup on a map literal at the
-call site do not warn. A lookup on a hook-generated `let`
+lookup with a default value does not warn. A lookup on a hook-generated `let`
 binding, or on the return of a hook-generated `defn`, does not warn.
 
 *Default level:* `:warning`

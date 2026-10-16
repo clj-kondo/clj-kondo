@@ -94,8 +94,10 @@
 (defenterprise decode-token \"In OSS, this returns an empty map.\" ee.ns [_] {})
 (:max-users (decode-token 1))"
                           (assoc-in config [:hooks :__dangerously-allow-string-hooks__] true)))))
+  (testing "a lookup on a map literal warns"
+    (is (= [[1 "Unknown key :a in empty map"]]
+           (messages "(:a {})"))))
   (testing "a default, a present key, an open map, a dynamic var and :off do not warn"
-    (is (empty? (messages "(:a {})")))
     (is (empty? (messages "(let [m {:a 1}] (:b m 2))")))
     (is (empty? (messages "(let [m {:a 1}] (:a m))")))
     (is (empty? (messages "(defn f [m] (:b m))")))
