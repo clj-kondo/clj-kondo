@@ -34,6 +34,7 @@
               :missing-test-assertion {:level :warning}
               :conflicting-alias {:level :error}
               :duplicate-map-key {:level :error}
+              :unknown-map-key {:level :warning}
               :duplicate-set-key {:level :error}
               :duplicate-require {:level :warning}
               :duplicate-field {:level :error}

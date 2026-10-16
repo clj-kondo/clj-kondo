@@ -1228,6 +1228,9 @@
                                (assoc :gen-macros-aliases-acc gen-macros-acc))
                              %)
                            bodies)
+        parsed-bodies (cond->> parsed-bodies
+                        (:clj-kondo.impl/generated expr)
+                        (map #(update % :ret types-utils/open-map-tag)))
         ;; poor naming, this is for type information
         arities (extract-arity-info ctx parsed-bodies)
         fixed-arities (into #{} (filter number?) (keys arities))
@@ -1457,7 +1460,8 @@
                   analyzed-value (when (and value (not for-let?))
                                    (analyze-expression** ctx** (assoc value :id value-id)))
                   tag (when (and let? binding (one-of (tag binding) [:token :map]))
-                        (init-tag ctx* value-id value))
+                        (cond-> (init-tag ctx* value-id value)
+                          (:clj-kondo.impl/generated scoped-expr) types-utils/open-map-tag))
                   new-bindings (when binding
                                  (extract-bindings ctx* binding scoped-expr
                                                    (cond-> {:tag tag}
@@ -4024,6 +4028,12 @@
         analyzed
         (let [next-ctx ctx]
           (analyze-children next-ctx children false))
+        _ (when-let [kw-lookups (:kw-lookups ctx)]
+            (when (and arg-types (= 1 arg-count)
+                       (not (linter-disabled? ctx :unknown-map-key)))
+              (swap! kw-lookups conj {:ctx ctx :kw full-fn-name :arg-types arg-types
+                                      :loc (assoc (utils/location expr-meta)
+                                                  :row row :col col)})))
         in-def (:in-def ctx)
         id (:id expr)
         m (meta analyzed)
