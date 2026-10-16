@@ -2082,6 +2082,8 @@
         init-ctx (cond-> ctx
                    gen-macros-acc
                    (assoc :gen-macros-aliases-acc gen-macros-acc))
+        _ (when (and core-def? var-name)
+            (namespace/reg-var! ctx ns-name var-name expr {:temp true}))
         def-init (when (and core-def?
                             (= 1 (count children)))
                    (or (analyze-expression** init-ctx (first children))

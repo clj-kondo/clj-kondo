@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3005](https://github.com/clj-kondo/clj-kondo/issues/3005): self-referencing vars in `def` initializers are no longer reported as unresolved when `clojure.test` is required with `:refer :all`.
 - New linter `:unknown-map-key`: warn on a keyword lookup of a key outside the known keys of a map. E.g. `(defn opts [] {:host "localhost"}) (:hots (opts))` will warn.
 - `:type-mismatch`, `:constant-condition`: a missing key proves nothing in a map bound by a hook-generated `let`, or returned by a hook-generated `defn`. E.g. a `defenterprise` stub returning `{}` in metabase no longer warns.
 - [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): `:constant-condition`: a `:keys` return spec with `:nilable true` may be nil and a key outside `:req` may be present. E.g. `(if-let [x (find-thing id)] ...)` no longer warns with `Condition always true`.
