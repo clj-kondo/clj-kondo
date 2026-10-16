@@ -231,6 +231,13 @@
                          end-row (:end-row m)
                          end-col (:end-col m)]
                      (when resolved-ns
+                       (when (and simple? new-syntax-quote-level-pos?
+                                  (not unresolved?) (not interop?)
+                                  (not resolved-core?) (not= ns-name resolved-ns))
+                         (when-let [acc (:gen-macros-aliases-acc ctx)]
+                           (swap! acc conj {:referred-symbol (symbol (str resolved-ns)
+                                                                    (str resolved-name))
+                                           :location (select-keys m [:row :col])})))
                        ;; this causes the namespace data to be loaded from cache
                        (swap! (:used-namespaces ctx) update (:base-lang ctx) conj resolved-ns)
                        (namespace/reg-used-namespace! ctx
