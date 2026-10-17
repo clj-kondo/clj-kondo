@@ -27,6 +27,9 @@
 
   - Reverse-look up the alias from `source-aliases` (an `{alias full-ns}`
     map provided by the source namespace).
+  - A namespace in `source-required` without an alias is used by its full
+    name, so alias it under that name. Syntax-quote doesn't need the alias,
+    so this only happens for an expand-time usage.
   - When source declared an alias as `:as-alias` (preserved via meta on the
     alias key), pin the result to `:as-alias` regardless of usage location -
     matches source intent and avoids forcing SCI to load a stub namespace.
@@ -35,11 +38,12 @@
     marker macros/helpers), redirect the require to point at the gen ns
     so SCI uses the extracted copy instead of the (possibly SCI-incompatible)
     original."
-  [usages source-aliases ^File cfg-dir]
+  [usages source-aliases source-required ^File cfg-dir]
   (let [ns->alias-key (reduce-kv (fn [m alias-key full-ns]
                                    (assoc m full-ns alias-key))
                                  {}
                                  source-aliases)
+        required (set source-required)
         ;; Memoize is local to one call - no cross-call retention,
         ;; no leak. Saves redundant `fs/exists?` stats when many
         ;; marker forms share an alias.
@@ -52,7 +56,9 @@
                         ns))))]
     (reduce
      (fn [m {:keys [ns kind]}]
-       (if-let [alias-key (get ns->alias-key ns)]
+       (if-let [alias-key (or (get ns->alias-key ns)
+                              (when (and (= :as kind) (contains? required ns))
+                                ns))]
          (let [alias-sym (symbol (name alias-key))
                kind (if (:as-alias (meta alias-key)) :as-alias kind)
                redirected-ns (redirect ns)
@@ -136,8 +142,10 @@
   analyzer while walking the macro/helper body. `:source-aliases` is the
   alias map of the source namespace (`{alias full-ns}`), used to look up
   the alias symbol for each used namespace and to honor `:as-alias`
-  intent (preserved as meta on the alias key)."
-  [ctx {:keys [orig-ns expr alias-usages source-aliases]}]
+  intent (preserved as meta on the alias key). `:source-required` are the
+  namespaces the source namespace requires, used for the ones without an
+  alias."
+  [ctx {:keys [orig-ns expr alias-usages source-aliases source-required]}]
   ;; `(:lang ctx)` here is the per-pass lang during walking: `:clj` or
   ;; `:cljs`. For .cljc files the analyzer runs both passes; we only want
   ;; to write the gen file once, so positive-check `:clj`. See
@@ -146,7 +154,8 @@
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
-            new-aliases (aggregate-alias-usages alias-usages source-aliases cfg-dir)
+            new-aliases (aggregate-alias-usages alias-usages source-aliases
+                                                source-required cfg-dir)
             entries (swap! (:gen-macros ctx) conj
                            {:form expr :aliases new-aliases})]
         (with-gen-lock cfg-dir
