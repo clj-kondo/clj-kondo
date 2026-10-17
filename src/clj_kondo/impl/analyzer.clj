@@ -2765,7 +2765,7 @@
   the args after it."
   [ctx children]
   (let [narrow? (not (linter-disabled? ctx :type-mismatch))
-        first-analyzed (analyze-children ctx (take 1 children) false)]
+        first-analyzed (vec (analyze-children ctx (take 1 children) false))]
     ;; the first arg always evaluates, the rest are conditional
     (loop [ctx (-> (in-branch-ctx ctx)
                    (assoc :top-level? false :len (dec (count children))))
