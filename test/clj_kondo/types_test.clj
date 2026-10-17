@@ -2038,6 +2038,10 @@
       (assert-submaps2
        '({:row 1 :col 42 :message "Expected: string, received: number."})
        (lint! "(defn f [n] (cond (pos? n) 1 :else (subs n 1)))" config)))
+    (testing "a call after a type predicate in and keeps the predicate type"
+      (assert-submaps2
+       '({:row 1 :col 59 :message "Expected: number, received: string."})
+       (lint! "(defn f [x] (when (and (string? x) (pos? (count x))) (inc x)))" config)))
     (testing "a type predicate does not narrow the else branch"
       (is (empty? (lint! "(defn f [x] (if (string? x) 0 (inc x)))" config)))
       (is (empty? (lint! "(defn f [x] (cond (string? x) 1 :else (inc x)))" config))))

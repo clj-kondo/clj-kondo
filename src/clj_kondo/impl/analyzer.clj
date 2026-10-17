@@ -2735,6 +2735,15 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
+(defn narrow-bindings
+  "Returns ctx with each binding `sym` of `narrowings` narrowed to its `tag` for
+  the current scope. The tag is stored in the binding's metadata, which binding
+  equality ignores."
+  [ctx narrowings]
+  (reduce (fn [ctx [sym tag]]
+            (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+          ctx narrowings))
+
 (defn call-arg-specs
   "Returns the positional arg specs of a call to `fsym` with `arity` args, or
   nil if `fsym` has no spec.
@@ -2808,7 +2817,15 @@
       (when (and f (identical? :token (tag f)))
         (let [fsym (:value f)]
           (if (= 'and fsym)
-            (when-let [pairs (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))]
+            ;; threaded, so a call does not widen an earlier predicate's tag
+            (when-let [pairs (loop [ctx ctx
+                                    args (next (:children condition))
+                                    acc nil]
+                               (if-let [a (first args)]
+                                 (if-let [pairs (narrowings-from-condition ctx a)]
+                                   (recur (narrow-bindings ctx pairs) (next args) (into (or acc []) pairs))
+                                   (recur ctx (next args) acc))
+                                 acc))]
               ;; resolution is the costly check, so gate it behind the rest
               (when (namespace/core-symbol-in-scope? ctx 'and)
                 pairs))
@@ -2822,15 +2839,6 @@
                                  (namespace/core-symbol-in-scope? ctx fsym))
                         [[asym t]]))))
                 (call-narrowings ctx condition))))))))
-
-(defn narrow-bindings
-  "Returns ctx with each binding `sym` of `narrowings` narrowed to its `tag` for
-  the current scope. The tag is stored in the binding's metadata, which binding
-  equality ignores."
-  [ctx narrowings]
-  (reduce (fn [ctx [sym tag]]
-            (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
-          ctx narrowings))
 
 (defn analyze-and
   "Analyzes the args of `and`.
