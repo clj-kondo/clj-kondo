@@ -2747,8 +2747,10 @@
       (when (and f (identical? :token (tag f)))
         (let [fsym (:value f)]
           (if (= 'and fsym)
-            (when (namespace/core-symbol-in-scope? ctx 'and)
-              (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition)))))
+            (when-let [pairs (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))]
+              ;; resolution is the costly check, so gate it behind the rest
+              (when (namespace/core-symbol-in-scope? ctx 'and)
+                pairs))
             (when (and arg (nil? more)
                        (identical? :token (tag arg)))
               ;; predicate->tag and bindings lookups already constrain fsym and asym
