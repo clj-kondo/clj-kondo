@@ -1946,7 +1946,26 @@
     (testing "args before the test are not narrowed"
       (is (empty? (lint! "(defn f [x] (and (inc x) (string? x)))" config))))
     (testing "or does not narrow"
-      (is (empty? (lint! "(defn f [x] (or (string? x) (inc x)))" config))))))
+      (is (empty? (lint! "(defn f [x] (or (string? x) (inc x)))" config))))
+    (testing "an and condition narrows the body of when"
+      (assert-submaps2
+       '({:row 1 :col 53 :message "Expected: number, received: string."})
+       (lint! "(defn f [x n] (when (and (string? x) (pos? n)) (inc x)))" config)))
+    (testing "an and condition narrows the then branch of if"
+      (assert-submaps2
+       '({:row 1 :col 51 :message "Expected: number, received: string."})
+       (lint! "(defn f [x n] (if (and (string? x) (pos? n)) (inc x) 0))" config)))
+    (testing "an and condition does not narrow the else branch"
+      (is (empty? (lint! "(defn f [x n] (if (and (string? x) (pos? n)) 0 (inc x)))" config))))
+    (testing "a nested and test narrows the args after it"
+      (assert-submaps2
+       '({:row 1 :col 45 :message "Expected: number, received: string."})
+       (filter (comp #{:error} :level)
+               (lint! "(defn f [x y] (and (and (string? x) y) (inc x)))" config))))
+    (testing "a shadowed and does not narrow"
+      (is (empty? (filter (comp #{:error} :level)
+                          (lint! "(ns a (:refer-clojure :exclude [and])) (defmacro and [& xs] xs)
+(defn f [x n] (when (and (string? x) (pos? n)) (inc x)))" config)))))))
 
 (deftest nil-narrowing-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
