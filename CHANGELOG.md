@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:type-mismatch`: a call in a condition narrows its local args to their arg spec in both branches. E.g. `(when (pos? n) (subs n 1))` will warn.
 - `:type-mismatch`: a type predicate test in `if-not` narrows the local in the else branch. E.g. `(if-not (string? x) 0 (inc x))` will warn.
 - `:type-mismatch`: a type predicate test in `cond` narrows the local in the expr of its clause. E.g. `(cond (string? x) (inc x))` will warn.
 - `:type-mismatch`: an `and` condition of `if` or `when` narrows the locals of its type predicates in the then branch. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
