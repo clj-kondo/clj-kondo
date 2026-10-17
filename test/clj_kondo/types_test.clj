@@ -1987,6 +1987,25 @@
                           (lint! "(ns a (:refer-clojure :exclude [cond])) (defmacro cond [& xs] xs)
 (defn f [x] (cond (string? x) (inc x)))" config)))))))
 
+(deftest if-not-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "the test narrows the else branch"
+      (assert-submaps2
+       '({:row 1 :col 40 :message "Expected: number, received: string."})
+       (lint! "(defn f [x] (if-not (string? x) 0 (inc x)))" config)))
+    (testing "an and test narrows the else branch"
+      (assert-submaps2
+       '({:row 1 :col 57 :message "Expected: number, received: string."})
+       (lint! "(defn f [x n] (if-not (and (string? x) (pos? n)) 0 (inc x)))" config)))
+    (testing "the then branch is not narrowed"
+      (is (empty? (lint! "(defn f [x] (if-not (string? x) (inc x) (subs x 1)))" config))))
+    (testing "the when-not body is not narrowed"
+      (is (empty? (lint! "(defn f [x] (when-not (string? x) (inc x)))" config))))
+    (testing "a shadowed if-not does not narrow"
+      (is (empty? (filter (comp #{:error} :level)
+                          (lint! "(ns a (:refer-clojure :exclude [if-not])) (defmacro if-not [& xs] xs)
+(defn f [x] (if-not (string? x) 0 (inc x)))" config)))))))
+
 (deftest nil-narrowing-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "an inverted nil guard is flagged"
