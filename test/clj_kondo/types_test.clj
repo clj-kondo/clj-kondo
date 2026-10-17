@@ -1931,6 +1931,23 @@
     (testing "when-not does not narrow, its condition is negated"
       (is (empty? (lint! "(defn f [x] (when-not (string? x) (subs x 1)))" config))))))
 
+(deftest and-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "value is narrowed in the args after the test"
+      (assert-submaps2
+       '({:row 1 :col 35 :message "Expected: number, received: string."})
+       (lint! "(defn f [x] (and (string? x) (inc x)))" config)))
+    (testing "narrowings accumulate over the args"
+      (assert-submaps2
+       '({:row 1 :col 57 :message "Expected: number, received: string."})
+       (lint! "(defn f [x y] (and (string? x) (int? y) (subs x y) (inc x)))" config)))
+    (testing "correct usage after the test is not flagged"
+      (is (empty? (lint! "(defn f [x] (and (string? x) (subs x 1)))" config))))
+    (testing "args before the test are not narrowed"
+      (is (empty? (lint! "(defn f [x] (and (inc x) (string? x)))" config))))
+    (testing "or does not narrow"
+      (is (empty? (lint! "(defn f [x] (or (string? x) (inc x)))" config))))))
+
 (deftest nil-narrowing-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "an inverted nil guard is flagged"

@@ -2759,6 +2759,29 @@
   [ctx [sym tag]]
   (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
 
+(defn analyze-and
+  "Analyzes the args of `and`.
+  A type predicate test on a local, e.g. `(string? x)`, narrows that local in
+  the args after it."
+  [ctx children]
+  (let [narrow? (not (linter-disabled? ctx :type-mismatch))
+        first-analyzed (vec (analyze-children ctx (take 1 children) false))]
+    ;; the first arg always evaluates, the rest are conditional
+    (loop [ctx (-> (in-branch-ctx ctx)
+                   (assoc :top-level? false :len (dec (count children))))
+           prev (first children)
+           more (rest children)
+           i 0
+           acc first-analyzed]
+      (if (seq more)
+        (let [ctx (if-let [narrowing (when narrow? (narrowing-from-condition ctx prev))]
+                    (narrow-binding ctx narrowing)
+                    ctx)
+              arg (first more)]
+          (recur ctx arg (rest more) (inc i)
+                 (into acc (analyze-expression** (assoc ctx :idx i) arg))))
+        acc))))
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr lint-as?]
@@ -3690,7 +3713,8 @@
     ;; the first operand, the first cond test and the
     ;; condp pred and dispatch expr always evaluate,
     ;; everything after is conditional
-    (cond and or)
+    and (analyze-and ctx children)
+    (cond or)
     (concat (analyze-children ctx (take 1 children) false)
             (analyze-children (in-branch-ctx ctx)
                               (rest children) false))
