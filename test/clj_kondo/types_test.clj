@@ -1967,6 +1967,26 @@
                           (lint! "(ns a (:refer-clojure :exclude [and])) (defmacro and [& xs] xs)
 (defn f [x n] (when (and (string? x) (pos? n)) (inc x)))" config)))))))
 
+(deftest cond-narrowing-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "each test narrows the expr of its clause"
+      (assert-submaps2
+       '({:row 1 :col 36 :message "Expected: number, received: string."}
+         {:row 1 :col 54 :message "Expected: string, received: map."})
+       (lint! "(defn f [x] (cond (string? x) (inc x) (map? x) (subs x 1) :else x))" config)))
+    (testing "an and test narrows the expr of its clause"
+      (assert-submaps2
+       '({:row 1 :col 53 :message "Expected: number, received: string."})
+       (lint! "(defn f [x n] (cond (and (string? x) (pos? n)) (inc x) :else 0))" config)))
+    (testing "correct usage in each clause is not flagged"
+      (is (empty? (lint! "(defn f [x] (cond (string? x) (subs x 1) (number? x) (inc x) :else (inc x)))" config))))
+    (testing "a later test is not narrowed"
+      (is (empty? (lint! "(defn f [x] (cond (string? x) 1 (inc x) 2))" config))))
+    (testing "a shadowed cond does not narrow"
+      (is (empty? (filter (comp #{:error} :level)
+                          (lint! "(ns a (:refer-clojure :exclude [cond])) (defmacro cond [& xs] xs)
+(defn f [x] (cond (string? x) (inc x)))" config)))))))
+
 (deftest nil-narrowing-test
   (let [config {:linters {:type-mismatch {:level :error}}}]
     (testing "an inverted nil guard is flagged"
