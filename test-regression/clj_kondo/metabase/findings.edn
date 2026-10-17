@@ -752,6 +752,30 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 119}
+ {:end-row 210,
+  :type :redundant-str-call,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pivot/core.cljc",
+  :col 50,
+  :end-col 57,
+  :cljc true,
+  :langs (:clj),
+  :message "Single argument to str already is a string",
+  :row 210}
+ {:end-row 211,
+  :type :redundant-str-call,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pivot/core.cljc",
+  :col 38,
+  :end-col 45,
+  :cljc true,
+  :langs (:cljs),
+  :message "Single argument to str already is a string",
+  :row 211}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,

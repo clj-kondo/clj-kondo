@@ -2792,6 +2792,27 @@
                  (into acc (analyze-expression** (assoc ctx :idx i) arg))))
         acc))))
 
+(defn analyze-cond
+  "Analyzes the clauses of `cond`.
+  A type predicate test on a local, e.g. `(string? x)`, narrows that local in
+  the expr of its clause."
+  [ctx children]
+  (let [narrow? (not (linter-disabled? ctx :type-mismatch))
+        first-analyzed (vec (analyze-children ctx (take 1 children) false))
+        ;; the first test always evaluates, the rest are conditional
+        branch-ctx (-> (in-branch-ctx ctx)
+                       (assoc :top-level? false :len (dec (count children))))]
+    (into first-analyzed
+          (comp (map-indexed
+                 (fn [i [test e]]
+                   ;; odd i is a test, even i the expr of the test before it
+                   (let [ctx (cond-> branch-ctx
+                               (and narrow? (even? i))
+                               (narrow-bindings (narrowings-from-condition branch-ctx test)))]
+                     (analyze-expression** (assoc ctx :idx i) e))))
+                cat)
+          (map vector children (rest children)))))
+
 (defn analyze-if
   "Analyzes if special form for arity errors"
   [ctx expr lint-as?]
@@ -3724,7 +3745,8 @@
     ;; condp pred and dispatch expr always evaluate,
     ;; everything after is conditional
     and (analyze-and ctx children)
-    (cond or)
+    cond (analyze-cond ctx children)
+    or
     (concat (analyze-children ctx (take 1 children) false)
             (analyze-children (in-branch-ctx ctx)
                               (rest children) false))
