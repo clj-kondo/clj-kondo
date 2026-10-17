@@ -2842,10 +2842,19 @@
 (defn analyze-if-not
   "Analyzes if-not macro"
   [ctx expr lint-as?]
-  (let [[condition & clauses] (rest (:children expr))]
+  (let [[condition & clauses] (rest (:children expr))
+        [then else] clauses
+        ;; the else branch runs when the condition is truthy
+        narrowings (when (and (= 2 (count clauses))
+                              (not (linter-disabled? ctx :type-mismatch)))
+                     (narrowings-from-condition ctx condition))]
     (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
-    (analyze-children (in-branch-ctx ctx)
-                      clauses false)))
+    (let [branch-ctx (in-branch-ctx ctx)]
+      (if narrowings
+        (let [branch-ctx (assoc branch-ctx :len 2)]
+          (concat (analyze-expression** (assoc branch-ctx :idx 0) then)
+                  (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings narrowings)) else)))
+        (analyze-children branch-ctx clauses false)))))
 
 (defn analyze-is
   [ctx expr lint-as?]
