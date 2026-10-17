@@ -2735,29 +2735,38 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
-(defn- narrowing-from-condition
-  "When `condition` is `(pred local)` with `pred` a known core type predicate and
-  `local` a binding, returns [sym tag]: the binding to narrow and the type it is
-  narrowed to when the condition holds. Returns nil otherwise."
+(defn narrowings-from-condition
+  "Returns the [sym tag] pairs that hold if `condition` is truthy, or nil if
+  none.
+  A pair comes from `(pred local)` with `pred` a known core type predicate and
+  `local` a binding.
+  An `and` condition yields the pairs of each of its args."
   [ctx condition]
   (when (identical? :list (tag condition))
     (let [[f arg & more] (:children condition)]
-      (when (and f arg (nil? more)
-                 (identical? :token (tag f))
-                 (identical? :token (tag arg)))
-        ;; predicate->tag and bindings lookups already constrain fsym and asym
-        (when-let [t (get types/predicate->tag (:value f))]
-          (let [asym (:value arg)]
-            (when (and (get (:bindings ctx) asym)
-                       ;; resolution is the costly check, so gate it behind the rest
-                       (namespace/core-symbol-in-scope? ctx (:value f)))
-              [asym t])))))))
+      (when (and f (identical? :token (tag f)))
+        (let [fsym (:value f)]
+          (if (= 'and fsym)
+            (when (namespace/core-symbol-in-scope? ctx 'and)
+              (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition)))))
+            (when (and arg (nil? more)
+                       (identical? :token (tag arg)))
+              ;; predicate->tag and bindings lookups already constrain fsym and asym
+              (when-let [t (get types/predicate->tag fsym)]
+                (let [asym (:value arg)]
+                  (when (and (get (:bindings ctx) asym)
+                             ;; resolution is the costly check, so gate it behind the rest
+                             (namespace/core-symbol-in-scope? ctx fsym))
+                    [[asym t]]))))))))))
 
-(defn narrow-binding
-  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
-  is stored in the binding's metadata, which binding equality ignores."
-  [ctx [sym tag]]
-  (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+(defn narrow-bindings
+  "Returns ctx with each binding `sym` of `narrowings` narrowed to its `tag` for
+  the current scope. The tag is stored in the binding's metadata, which binding
+  equality ignores."
+  [ctx narrowings]
+  (reduce (fn [ctx [sym tag]]
+            (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+          ctx narrowings))
 
 (defn analyze-and
   "Analyzes the args of `and`.
@@ -2774,9 +2783,8 @@
            i 0
            acc first-analyzed]
       (if (seq more)
-        (let [ctx (if-let [narrowing (when narrow? (narrowing-from-condition ctx prev))]
-                    (narrow-binding ctx narrowing)
-                    ctx)
+        (let [ctx (cond-> ctx
+                    narrow? (narrow-bindings (narrowings-from-condition ctx prev)))
               arg (first more)]
           (recur ctx arg (rest more) (inc i)
                  (into acc (analyze-expression** (assoc ctx :idx i) arg))))
@@ -2798,13 +2806,13 @@
                    msg)))
     (let [[condition & clauses] args
           [then else] clauses
-          narrowing (when-not (linter-disabled? ctx :type-mismatch)
-                      (narrowing-from-condition ctx condition))]
+          narrowings (when-not (linter-disabled? ctx :type-mismatch)
+                       (narrowings-from-condition ctx condition))]
       (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
       (let [branch-ctx (in-branch-ctx ctx)]
-        (if narrowing
+        (if narrowings
           (let [branch-ctx (assoc branch-ctx :len (count clauses))]
-            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-binding narrowing)) then)
+            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-bindings narrowings)) then)
                     (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
           (analyze-children branch-ctx clauses false))))))
 
@@ -2879,9 +2887,9 @@
         condition (first children)
         body (next children)
         ;; when-not negates the condition, so narrow only for when
-        narrowing (when (and (= 'when op)
-                             (not (linter-disabled? ctx :type-mismatch)))
-                    (narrowing-from-condition ctx condition))]
+        narrowings (when (and (= 'when op)
+                              (not (linter-disabled? ctx :type-mismatch)))
+                     (narrowings-from-condition ctx condition))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.
@@ -2895,7 +2903,7 @@
         :missing-body-in-when
         "Missing body in when"))
       (analyze-children (in-branch-ctx
-                         (cond-> ctx narrowing (narrow-binding narrowing)))
+                         (narrow-bindings ctx narrowings))
                         body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]

@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:type-mismatch`: an `and` condition of `if` or `when` narrows the locals of its type predicates in the then branch. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
 - `:type-mismatch`: a type predicate in `and` narrows the local in the args after it. E.g. `(and (string? x) (inc x))` will warn.
 - New linter `:unknown-map-key`: warn on a keyword lookup of a key outside the known keys of a map. E.g. `(defn opts [] {:host "localhost"}) (:hots (opts))` will warn.
 - `:type-mismatch`, `:constant-condition`: a missing key proves nothing in a map bound by a hook-generated `let`, or returned by a hook-generated `defn`. E.g. a `defenterprise` stub returning `{}` in metabase no longer warns.
