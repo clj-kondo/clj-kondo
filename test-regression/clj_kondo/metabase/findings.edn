@@ -640,6 +640,18 @@
   :langs (:clj :cljs),
   :message "Redundant let binding: home-cols",
   :row 560}
+ {:end-row 50,
+  :type :type-mismatch,
+  :level :error,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/lib/metadata/result_metadata.cljc",
+  :col 42,
+  :end-col 43,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Expected: char sequence, received: keyword.",
+  :row 50}
  {:end-row 2,
   :type :unused-excluded-var,
   :level :info,
@@ -740,6 +752,30 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 119}
+ {:end-row 210,
+  :type :redundant-str-call,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pivot/core.cljc",
+  :col 50,
+  :end-col 57,
+  :cljc true,
+  :langs (:clj),
+  :message "Single argument to str already is a string",
+  :row 210}
+ {:end-row 211,
+  :type :redundant-str-call,
+  :level :info,
+  :lang :cljs,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pivot/core.cljc",
+  :col 38,
+  :end-col 45,
+  :cljc true,
+  :langs (:cljs),
+  :message "Single argument to str already is a string",
+  :row 211}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -2143,6 +2179,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
+ {:end-row 1187,
+  :type :type-mismatch,
+  :level :error,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/util.clj",
+  :col 33,
+  :end-col 34,
+  :langs (),
+  :message "Expected: char sequence, received: symbol.",
+  :row 1187}
  {:end-row 497,
   :type :is-message-not-string,
   :level :info,

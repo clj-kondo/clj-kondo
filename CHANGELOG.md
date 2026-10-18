@@ -14,6 +14,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#3006](https://github.com/clj-kondo/clj-kondo/issues/3006): macros extracted with `:clj-kondo/macroexpand-hook` preserve the namespace resolution of referred symbols inside syntax-quote.
+- `:type-mismatch`: a type predicate test in `if-not` narrows the local in the else branch. E.g. `(if-not (string? x) 0 (inc x))` will warn.
+- `:type-mismatch`: a type predicate test in `cond` narrows the local in the expr of its clause. E.g. `(cond (string? x) (inc x))` will warn.
+- `:type-mismatch`: an `and` condition of `if` or `when` narrows the locals of its type predicates in the then branch. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
+- `:type-mismatch`: a type predicate in `and` narrows the local in the args after it. E.g. `(and (string? x) (inc x))` will warn.
 - New linter `:unknown-map-key`: warn on a keyword lookup of a key outside the known keys of a map. E.g. `(defn opts [] {:host "localhost"}) (:hots (opts))` will warn.
 - `:type-mismatch`, `:constant-condition`: a missing key proves nothing in a map bound by a hook-generated `let`, or returned by a hook-generated `defn`. E.g. a `defenterprise` stub returning `{}` in metabase no longer warns.
 - [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): `:constant-condition`: a `:keys` return spec with `:nilable true` may be nil and a key outside `:req` may be present. E.g. `(if-let [x (find-thing id)] ...)` no longer warns with `Condition always true`.

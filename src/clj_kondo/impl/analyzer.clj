@@ -2735,29 +2735,83 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
-(defn- narrowing-from-condition
-  "When `condition` is `(pred local)` with `pred` a known core type predicate and
-  `local` a binding, returns [sym tag]: the binding to narrow and the type it is
-  narrowed to when the condition holds. Returns nil otherwise."
+(defn narrowings-from-condition
+  "Returns the [sym tag] pairs that hold if `condition` is truthy, or nil if
+  none.
+  A pair comes from `(pred local)` with `pred` a known core type predicate and
+  `local` a binding.
+  An `and` condition yields the pairs of each of its args."
   [ctx condition]
   (when (identical? :list (tag condition))
     (let [[f arg & more] (:children condition)]
-      (when (and f arg (nil? more)
-                 (identical? :token (tag f))
-                 (identical? :token (tag arg)))
-        ;; predicate->tag and bindings lookups already constrain fsym and asym
-        (when-let [t (get types/predicate->tag (:value f))]
-          (let [asym (:value arg)]
-            (when (and (get (:bindings ctx) asym)
-                       ;; resolution is the costly check, so gate it behind the rest
-                       (namespace/core-symbol-in-scope? ctx (:value f)))
-              [asym t])))))))
+      (when (and f (identical? :token (tag f)))
+        (let [fsym (:value f)]
+          (if (= 'and fsym)
+            (when-let [pairs (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))]
+              ;; resolution is the costly check, so gate it behind the rest
+              (when (namespace/core-symbol-in-scope? ctx 'and)
+                pairs))
+            (when (and arg (nil? more)
+                       (identical? :token (tag arg)))
+              ;; predicate->tag and bindings lookups already constrain fsym and asym
+              (when-let [t (get types/predicate->tag fsym)]
+                (let [asym (:value arg)]
+                  (when (and (get (:bindings ctx) asym)
+                             ;; resolution is the costly check, so gate it behind the rest
+                             (namespace/core-symbol-in-scope? ctx fsym))
+                    [[asym t]]))))))))))
 
-(defn narrow-binding
-  "Returns ctx with binding `sym` narrowed to `tag` for the current scope. The tag
-  is stored in the binding's metadata, which binding equality ignores."
-  [ctx [sym tag]]
-  (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+(defn narrow-bindings
+  "Returns ctx with each binding `sym` of `narrowings` narrowed to its `tag` for
+  the current scope. The tag is stored in the binding's metadata, which binding
+  equality ignores."
+  [ctx narrowings]
+  (reduce (fn [ctx [sym tag]]
+            (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
+          ctx narrowings))
+
+(defn analyze-and
+  "Analyzes the args of `and`.
+  A type predicate test on a local, e.g. `(string? x)`, narrows that local in
+  the args after it."
+  [ctx children]
+  (let [narrow? (not (linter-disabled? ctx :type-mismatch))
+        first-analyzed (vec (analyze-children ctx (take 1 children) false))]
+    ;; the first arg always evaluates, the rest are conditional
+    (loop [ctx (-> (in-branch-ctx ctx)
+                   (assoc :top-level? false :len (dec (count children))))
+           prev (first children)
+           more (rest children)
+           i 0
+           acc first-analyzed]
+      (if (seq more)
+        (let [ctx (cond-> ctx
+                    narrow? (narrow-bindings (narrowings-from-condition ctx prev)))
+              arg (first more)]
+          (recur ctx arg (rest more) (inc i)
+                 (into acc (analyze-expression** (assoc ctx :idx i) arg))))
+        acc))))
+
+(defn analyze-cond
+  "Analyzes the clauses of `cond`.
+  A type predicate test on a local, e.g. `(string? x)`, narrows that local in
+  the expr of its clause."
+  [ctx children]
+  (let [narrow? (not (linter-disabled? ctx :type-mismatch))
+        first-analyzed (vec (analyze-children ctx (take 1 children) false))
+        ;; the first test always evaluates, the rest are conditional
+        branch-ctx (-> (in-branch-ctx ctx)
+                       (assoc :top-level? false :len (dec (count children))))]
+    (into first-analyzed
+          (comp (map-indexed
+                 (fn [i [test e]]
+                   ;; odd i is a test, even i the expr of the test before it
+                   (let [ctx (cond-> branch-ctx
+                               (and narrow? (even? i))
+                               (narrow-bindings (narrowings-from-condition branch-ctx test)))]
+                     (analyze-expression** (assoc ctx :idx i) e))))
+                cat)
+          (map vector children (rest children)))))
 
 (defn analyze-if
   "Analyzes if special form for arity errors"
@@ -2775,23 +2829,32 @@
                    msg)))
     (let [[condition & clauses] args
           [then else] clauses
-          narrowing (when-not (linter-disabled? ctx :type-mismatch)
-                      (narrowing-from-condition ctx condition))]
+          narrowings (when-not (linter-disabled? ctx :type-mismatch)
+                       (narrowings-from-condition ctx condition))]
       (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
       (let [branch-ctx (in-branch-ctx ctx)]
-        (if narrowing
+        (if narrowings
           (let [branch-ctx (assoc branch-ctx :len (count clauses))]
-            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-binding narrowing)) then)
+            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-bindings narrowings)) then)
                     (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
           (analyze-children branch-ctx clauses false))))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"
   [ctx expr lint-as?]
-  (let [[condition & clauses] (rest (:children expr))]
+  (let [[condition & clauses] (rest (:children expr))
+        [then else] clauses
+        ;; the else branch runs when the condition is truthy
+        narrowings (when (and (= 2 (count clauses))
+                              (not (linter-disabled? ctx :type-mismatch)))
+                     (narrowings-from-condition ctx condition))]
     (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
-    (analyze-children (in-branch-ctx ctx)
-                      clauses false)))
+    (let [branch-ctx (in-branch-ctx ctx)]
+      (if narrowings
+        (let [branch-ctx (assoc branch-ctx :len 2)]
+          (concat (analyze-expression** (assoc branch-ctx :idx 0) then)
+                  (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings narrowings)) else)))
+        (analyze-children branch-ctx clauses false)))))
 
 (defn analyze-is
   [ctx expr lint-as?]
@@ -2856,9 +2919,9 @@
         condition (first children)
         body (next children)
         ;; when-not negates the condition, so narrow only for when
-        narrowing (when (and (= 'when op)
-                             (not (linter-disabled? ctx :type-mismatch)))
-                    (narrowing-from-condition ctx condition))]
+        narrowings (when (and (= 'when op)
+                              (not (linter-disabled? ctx :type-mismatch)))
+                     (narrowings-from-condition ctx condition))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.
@@ -2872,7 +2935,7 @@
         :missing-body-in-when
         "Missing body in when"))
       (analyze-children (in-branch-ctx
-                         (cond-> ctx narrowing (narrow-binding narrowing)))
+                         (narrow-bindings ctx narrowings))
                         body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
@@ -3690,7 +3753,9 @@
     ;; the first operand, the first cond test and the
     ;; condp pred and dispatch expr always evaluate,
     ;; everything after is conditional
-    (cond and or)
+    and (analyze-and ctx children)
+    cond (analyze-cond ctx children)
+    or
     (concat (analyze-children ctx (take 1 children) false)
             (analyze-children (in-branch-ctx ctx)
                               (rest children) false))
