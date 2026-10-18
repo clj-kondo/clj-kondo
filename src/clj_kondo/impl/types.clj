@@ -72,12 +72,6 @@
    'clojure.string clojure-string
    'clojure.test clojure-test})
 
-(def macro-specs
-  "Names in built-in-specs that are macros or special forms, per namespace."
-  '{clojure.core #{and cond do doto fn for future if if-let lazy-seq let or selector throw when when-let when-not}
-    cljs.core #{and cond do doto fn for future if if-let lazy-seq let or selector throw when when-let when-not}
-    clojure.test #{are deftest deftest- is set-test testing thrown-with-msg? thrown? with-test}})
-
 (def predicate->tag
   "Core type predicates mapped to the type each proves about its argument."
   '{string? :string number? :number int? :int integer? :int pos-int? :pos-int
@@ -709,6 +703,22 @@
             s ss]
       (record-constraint! ctx infers b s))))
 
+(defn usage-spec
+  "Returns the spec of argument `idx` of the call `[called-ns called-name
+  arity]`, from a config or built-in spec, or a deferred {:op :arg-spec-of ..}
+  pointer for a spec-less user fn, or nil if unknown."
+  [ctx [called-ns called-name arity] idx]
+  (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
+    (spec-at specs idx)
+    (when-not (utils/one-of called-ns [clojure.core cljs.core])
+      {:op :arg-spec-of
+       :ns called-ns
+       :name called-name
+       :arity arity
+       :arg-idx idx
+       :lang (:lang ctx)
+       :base-lang (:base-lang ctx)})))
+
 (defn infer-local-usage!
   "Backward parameter-type inference, triggered where a local usage is
   analyzed: binding `b` appears as argument `idx` of the call `[called-ns
@@ -717,23 +727,49 @@
   deferred {:op :arg-spec-of ..} constraint for a spec-less user fn, and
   routes it through record-constraint!. Type predicates need no special
   case: their arg spec is :any, so they record nothing."
-  [ctx [called-ns called-name arity] infers b idx]
+  [ctx ic infers b idx]
   (when-let [{:keys [branch-mark]} (get infers b)]
     ;; equal counts mean no conditional was crossed since the param's fn entry
     (when (== branch-mark (:branch-count ctx 0))
-      (let [core? (utils/one-of called-ns [clojure.core cljs.core])
-            s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
-                (spec-at specs idx)
-                (when-not core?
-                  {:op :arg-spec-of
-                   :ns called-ns
-                   :name called-name
-                   :arity arity
-                   :arg-idx idx
-                   :lang (:lang ctx)
-                   :base-lang (:base-lang ctx)}))]
+      (let [s (usage-spec ctx ic idx)]
         (when (constraining-spec? s)
           (record-constraint! ctx infers b (desugar-nilable s)))))))
+
+;; pairs is a volatile vector of [binding spec], or [binding spec true] for a
+;; pair that holds only if the condition is truthy
+(defrecord NarrowSink [pairs branch-mark fn-mark parent children])
+
+(defn sink-on-spine?
+  "Returns true if the usage at the counters `branch-count` and `fn-depth` is on the
+  spine of the condition of `sink`."
+  [^NarrowSink sink branch-count fn-depth]
+  (and sink
+       (== (.-branch-mark sink) branch-count)
+       (== (.-fn-mark sink) fn-depth)))
+
+(defn record-narrowing!
+  "Call narrowing, triggered where a local usage is analyzed: binding `b`
+  appears as argument `idx` of the call `ic`, `[called-ns called-name arity]`,
+  in a condition. Once the call returns, `b` matches the callee's arg spec.
+  Records `[b spec]` in the ctx's narrow sink and each enclosing one whose
+  condition has the usage on its spine, i.e. neither a conditional nor a fn
+  boundary was crossed since that sink was created. A spec-less user fn
+  yields a deferred {:op :arg-spec-of ..} spec, resolved during type
+  checking."
+  [ctx ic b idx]
+  (when-let [^NarrowSink sink (:narrow-sink ctx)]
+    (let [branch-count (:branch-count ctx 0)
+          fn-depth (:fn-depth ctx 0)]
+      (when (sink-on-spine? sink branch-count fn-depth)
+        (let [s (usage-spec ctx ic idx)]
+          (when (or (and (keyword? s) (not (identical? :any s)))
+                    (and (map? s) (identical? :arg-spec-of (:op s))))
+            ;; an enclosing sink's marks are at most this one's, so its
+            ;; condition contains this usage on its spine too while they match
+            (loop [^NarrowSink sink sink]
+              (when (sink-on-spine? sink branch-count fn-depth)
+                (vswap! (.-pairs sink) conj [b s])
+                (recur (.-parent sink))))))))))
 
 (defn is-a?
   "Provable subtype check: every value of tag `a` is also of tag `b`."

@@ -224,6 +224,25 @@
   (kw-lookup nil (kw-lookup nil #{:nil nested} :m #{}) :k #{})
   ,)
 
+(defn deferred-arg-spec
+  "Returns the keyword spec of a deferred {:op :arg-spec-of ..} narrowing, the
+  callee's spec for that arg, or nil if the callee is unknown, a macro, or has
+  no keyword spec for that arg."
+  [idacs {:keys [arity arg-idx] :as c}]
+  (when-let [called-fn (resolve-call* idacs c (:ns c) (:name c))]
+    ;; macro args may not evaluate
+    (when-not (:macro called-fn)
+      (let [arities (:arities called-fn)
+            a (or (get arities arity)
+                  (when-let [v (:varargs arities)]
+                    (when (>= arity (:min-arity v)) v)))
+            args (:args a)]
+        ;; a nested vector spec shifts the positions after it
+        (when (and args (not-any? vector? (take arg-idx args)))
+          (let [s (nth args arg-idx nil)]
+            (when (and (keyword? s) (not (identical? :any s)))
+              s)))))))
+
 (defn resolve-arg-type
   "Resolves arg-type to something which is not a call anymore, i.e. a resolved type or :any."
   ([idacs arg-type] (resolve-arg-type idacs arg-type #{}))
@@ -270,6 +289,8 @@
                          (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))
                                resolved (utils/prefer-comment-def usage resolved)]
                            (resolve-arg-type idacs resolved)))
+                       (when (identical? :arg-spec-of (:op arg-type))
+                         (deferred-arg-spec idacs arg-type))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
                            (let [pos (select-keys arg-type [:row :col :end-row :end-col])

@@ -171,15 +171,20 @@
                                   (get (:bindings ctx)
                                        (str/replace (str symbol-val) #"\**$" ""))))]
                    (do
-                     (when-let [infers (:param-infers ctx)]
-                       ;; the callstack head carries ::infer-call only when
-                       ;; this local sits directly in that call's argument
-                       ;; list, see analyze-call
-                       (when-let [ic (some-> (first (:callstack ctx)) meta
-                                             ::types/infer-call)]
-                         (when-let [arg-types (:arg-types ctx)]
-                           (types/infer-local-usage! ctx ic infers b
-                                                     (count @arg-types)))))
+                     (let [infers (:param-infers ctx)
+                           sink (:narrow-sink ctx)]
+                       (when (or infers sink)
+                         ;; the callstack head carries ::infer-call only when
+                         ;; this local sits directly in that call's argument
+                         ;; list, see analyze-call
+                         (when-let [ic (some-> (first (:callstack ctx)) meta
+                                               ::types/infer-call)]
+                           (when-let [arg-types (:arg-types ctx)]
+                             (let [idx (count @arg-types)]
+                               (when infers
+                                 (types/infer-local-usage! ctx ic infers b idx))
+                               (when sink
+                                 (types/record-narrowing! ctx ic b idx)))))))
                      (when-let [ul (:undefined-locals ctx)]
                        (when (contains? ul symbol-val)
                          (findings/reg-finding! ctx (utils/node->line (:filename ctx)

@@ -954,10 +954,10 @@
 
 (defn in-branch-ctx
   "Enters conditionally evaluated code: bumps the branch count, which stops
-  every currently visible param from constraining. No-op when inference is
-  off."
+  every currently visible param from constraining, and every usage from
+  narrowing, see types/record-narrowing!. No-op when both are off."
   [ctx]
-  (if (:param-infers ctx)
+  (if (or (:param-infers ctx) (:narrow-sink ctx))
     (update ctx :branch-count (fnil inc 0))
     ctx))
 
@@ -991,8 +991,8 @@
         ;; the fn invoked on the spine, see types/activate-pending!
         pending-sink (when (:param-infers ctx) (atom {}))
         ctx (cond-> ctx
-              pending-sink (-> (update :fn-depth (fnil inc 0))
-                               (assoc :pending-infers pending-sink)))
+              (or pending-sink (:narrow-sink ctx)) (update :fn-depth (fnil inc 0))
+              pending-sink (assoc :pending-infers pending-sink))
         simple-params (inferable-params ctx arg-vec arg-bindings arity macro? keys-bindings)
         param-infer (when simple-params
                       (atom (into {}
@@ -2744,155 +2744,139 @@
             (update-in ctx [:bindings sym] vary-meta assoc :narrowed-tag tag))
           ctx narrowings))
 
-(defn call-arg-specs
-  "Returns the positional arg specs of a call to the fn `fsym` with `arity`
-  args, or nil if `fsym` has no built-in spec or is a macro.
-  A config spec for `fsym` takes precedence over the built-in one.
-  The specs are empty if the spec has none for `arity`.
-  `fsym` resolves through an alias or to a core var."
-  [ctx fsym arity]
-  (when (symbol? fsym)
-    (let [specs (fn [called-ns called-name]
-                  (when (get-in types/built-in-specs [called-ns called-name])
-                    ;; macro args may not evaluate, or may rebind the local
-                    (when-not (contains? (get types/macro-specs called-ns) called-name)
-                      (or (types/spec-args (:config ctx) called-ns called-name arity) []))))]
-      (if-let [alias (namespace fsym)]
-        (let [ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
-          (when-let [called-ns (get (:qualify-ns ns) (symbol alias))]
-            (specs called-ns (symbol (name fsym)))))
-        (when-let [specs (specs (if (identical? :cljs (:lang ctx)) 'cljs.core 'clojure.core) fsym)]
-          ;; resolution is the costly check, so gate it behind the spec lookup
-          (when (namespace/core-symbol-in-scope? ctx fsym)
-            specs))))))
+(defn narrow-sink
+  "Returns a fresh narrow sink for analyzing the condition `node`, chained to
+  the sink of ctx, see types/record-narrowing!, or nil if `node` is not a call
+  or :type-mismatch is disabled."
+  [ctx node]
+  (when (and (identical? :list (tag node))
+             (not (linter-disabled? ctx :type-mismatch)))
+    (types/->NarrowSink (volatile! []) (:branch-count ctx 0) (:fn-depth ctx 0)
+                        (:narrow-sink ctx) (:children node))))
 
-(defn call-narrowings
-  "Returns the [sym tag] pairs that hold once `expr` returns, or nil if none.
-  A pair comes from a local of unknown type passed to a call with a known
-  keyword spec for that arg, e.g. `s` in `(subs s 1)` is a string.
-  The list args of such a call yield their pairs as well."
-  [ctx expr]
-  (when (identical? :list (tag expr))
-    (let [[f & args] (:children expr)
-          bindings (:bindings ctx)]
-      (when (and f (identical? :token (tag f))
-                 (some #(case (tag %)
-                          :token (get bindings (:value %))
-                          :list true
-                          nil)
-                       args))
-        (when-let [specs (call-arg-specs ctx (:value f) (count args))]
-          ;; spec-at can't position these
-          (when-not (some #(or (vector? %) (and (map? %) (:last %))) specs)
-            (loop [i 0
-                   args args
-                   acc nil]
-              (if-let [a (first args)]
-                (recur (inc i) (next args)
-                       (case (tag a)
-                         :token (let [s (types/spec-at specs i)]
-                                  (if (and (keyword? s) (not (identical? :any s)))
-                                    (let [asym (:value a)
-                                          b (get bindings asym)
-                                          t (when b (or (:narrowed-tag (meta b)) (:tag b)))]
-                                      (if (and b (or (nil? t) (identical? :any t)))
-                                        (conj (or acc []) [asym s])
-                                        acc))
-                                    acc))
-                         :list (if-let [pairs (call-narrowings ctx a)]
-                                 (into (or acc []) pairs)
-                                 acc)
-                         acc))
-                acc))))))))
+(defn with-sink [ctx sink]
+  (if sink (assoc ctx :narrow-sink sink) ctx))
+
+(defn sink-narrowings
+  "Returns the [sym tag] pairs recorded in `sink` that apply to the bindings of
+  `ctx`, or nil if none.
+  `mode` is :calls for the pairs that hold once the condition returned,
+  :truthy for those that hold only if it was truthy, or :all for both.
+  A pair applies if its binding is the current binding of that name and the
+  binding's tag is unknown."
+  [ctx ^clj_kondo.impl.types.NarrowSink sink mode]
+  (when sink
+    (let [bindings (:bindings ctx)]
+      (reduce (fn [acc [b s truthy]]
+                (let [sym (:name b)
+                      cur (get bindings sym)]
+                  ;; a shadowing binding of the same name is not = to b
+                  (if (and (case mode :calls (not truthy) :truthy truthy :all true)
+                           cur (= b cur)
+                           (let [t (or (:narrowed-tag (meta cur)) (:tag cur))]
+                             (or (nil? t) (identical? :any t))))
+                    (conj (or acc []) [sym s])
+                    acc)))
+              nil @(.-pairs sink)))))
 
 (defn narrowings-from-condition
   "Returns the [sym tag] pairs that hold if `condition` is truthy, or nil if
   none.
   A pair comes from `(pred local)` with `pred` a known core type predicate and
   `local` a binding.
-  An `and` condition yields the pairs of each of its args.
-  Any other call yields its call-narrowings, or `calls` if given.
-  `calls` is the call-narrowings of `condition`, computed by the caller."
-  ([ctx condition] (narrowings-from-condition ctx condition ::compute))
-  ([ctx condition calls]
-   (when (identical? :list (tag condition))
-     (let [[f arg & more] (:children condition)]
-       (when (and f (identical? :token (tag f)))
-         (let [fsym (:value f)]
-           (if (= 'and fsym)
-             ;; threaded, so a call does not widen an earlier predicate's tag
-             (when-let [pairs (loop [ctx ctx
-                                     args (next (:children condition))
-                                     acc nil]
-                                (if-let [a (first args)]
-                                  (if-let [pairs (narrowings-from-condition ctx a)]
-                                    (recur (narrow-bindings ctx pairs) (next args) (into (or acc []) pairs))
-                                    (recur ctx (next args) acc))
-                                  acc))]
-               ;; resolution is the costly check, so gate it behind the rest
-               (when (namespace/core-symbol-in-scope? ctx 'and)
-                 pairs))
-             (or (when (and arg (nil? more)
-                            (identical? :token (tag arg)))
-                   ;; predicate->tag and bindings lookups already constrain fsym and asym
-                   (when-let [t (get types/predicate->tag fsym)]
-                     (let [asym (:value arg)]
-                       (when (and (get (:bindings ctx) asym)
-                                  ;; resolution is the costly check, so gate it behind the rest
-                                  (namespace/core-symbol-in-scope? ctx fsym))
-                         [[asym t]]))))
-                 (if (identical? ::compute calls)
-                   (call-narrowings ctx condition)
-                   calls)))))))))
+  An `and` condition yields the pairs of each of its args."
+  [ctx condition]
+  (when (identical? :list (tag condition))
+    (let [[f arg & more] (:children condition)]
+      (when (and f (identical? :token (tag f)))
+        (let [fsym (:value f)]
+          (if (= 'and fsym)
+            (when-let [pairs (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))]
+              ;; resolution is the costly check, so gate it behind the rest
+              (when (namespace/core-symbol-in-scope? ctx 'and)
+                pairs))
+            (when (and arg (nil? more)
+                       (identical? :token (tag arg)))
+              ;; predicate->tag and bindings lookups already constrain fsym and asym
+              (when-let [t (get types/predicate->tag fsym)]
+                (let [asym (:value arg)]
+                  (when (and (get (:bindings ctx) asym)
+                             ;; resolution is the costly check, so gate it behind the rest
+                             (namespace/core-symbol-in-scope? ctx fsym))
+                    [[asym t]]))))))))))
 
 (defn analyze-and
   "Analyzes the args of `and`.
   A type predicate test on a local, e.g. `(string? x)`, narrows that local in
-  the args after it."
-  [ctx children]
+  the args after it.
+  The call narrowings of an arg hold in the args after it. If the `and` is
+  itself a condition, they hold where it is truthy."
+  [ctx expr children]
   (let [narrow? (not (linter-disabled? ctx :type-mismatch))
-        first-analyzed (vec (analyze-children ctx (take 1 children) false))]
+        ^clj_kondo.impl.types.NarrowSink parent (:narrow-sink ctx)
+        truthy-sink (when (and parent (identical? (:children expr) (.-children parent)))
+                      parent)
+        sink (narrow-sink ctx (first children))
+        first-analyzed (vec (analyze-children (with-sink ctx sink) (take 1 children) false))]
     ;; the first arg always evaluates, the rest are conditional
     (loop [ctx (-> (in-branch-ctx ctx)
-                   (assoc :top-level? false :len (dec (count children))))
+                   (assoc :top-level? false :len (dec (count children)))
+                   (narrow-bindings (sink-narrowings ctx sink :all)))
+           sink sink
            prev (first children)
            more (rest children)
            i 0
            acc first-analyzed]
+      (when (and truthy-sink sink)
+        (vswap! (.-pairs truthy-sink) into
+                (map (fn [[b s]] [b s true]))
+                @(.-pairs ^clj_kondo.impl.types.NarrowSink sink)))
       (if (seq more)
+        ;; predicates go on top of call narrowings, they are at least as precise
         (let [ctx (cond-> ctx
                     narrow? (narrow-bindings (narrowings-from-condition ctx prev)))
-              arg (first more)]
-          (recur ctx arg (rest more) (inc i)
-                 (into acc (analyze-expression** (assoc ctx :idx i) arg))))
+              arg (first more)
+              ctx' (assoc ctx :idx i)
+              sink (narrow-sink ctx' arg)
+              analyzed (doall (analyze-expression** (with-sink ctx' sink) arg))]
+          (recur (narrow-bindings ctx (sink-narrowings ctx sink :all))
+                 sink arg (rest more) (inc i)
+                 (into acc analyzed)))
         acc))))
 
 (defn analyze-cond
   "Analyzes the clauses of `cond`.
   A type predicate test on a local, e.g. `(string? x)`, narrows that local in
   the expr of its clause.
-  The call-narrowings of a test hold in all clauses after it."
+  The call narrowings of a test hold in all clauses after it.
+  Its truthy call narrowings hold in its expr."
   [ctx children]
   (let [narrow? (not (linter-disabled? ctx :type-mismatch))
-        first-analyzed (vec (analyze-children ctx (take 1 children) false))]
+        sink (narrow-sink ctx (first children))
+        first-analyzed (vec (analyze-children (with-sink ctx sink) (take 1 children) false))]
     ;; the first test always evaluates, the rest are conditional
     (loop [ctx (-> (in-branch-ctx ctx)
-                   (assoc :top-level? false :len (dec (count children))))
+                   (assoc :top-level? false :len (dec (count children)))
+                   (narrow-bindings (sink-narrowings ctx sink :calls)))
+           truthy (sink-narrowings ctx sink :truthy)
            pairs (map vector children (rest children))
            i 0
            acc first-analyzed]
       (if-let [[test e] (first pairs)]
         ;; odd i is a test, even i the expr of the test before it
-        (if (and narrow? (even? i))
-          (let [calls (call-narrowings ctx test)]
-            (recur (narrow-bindings ctx calls)
+        (if (even? i)
+          (recur ctx nil (next pairs) (inc i)
+                 (into acc (analyze-expression** (cond-> (assoc ctx :idx i)
+                                                   truthy (narrow-bindings truthy)
+                                                   narrow? (narrow-bindings (narrowings-from-condition ctx test)))
+                                                 e)))
+          (let [ctx' (assoc ctx :idx i)
+                sink (narrow-sink ctx' e)
+                analyzed (doall (analyze-expression** (with-sink ctx' sink) e))]
+            (recur (narrow-bindings ctx (sink-narrowings ctx sink :calls))
+                   (sink-narrowings ctx sink :truthy)
                    (next pairs) (inc i)
-                   (into acc (analyze-expression** (-> ctx
-                                                       (narrow-bindings (narrowings-from-condition ctx test calls))
-                                                       (assoc :idx i))
-                                                   e))))
-          (recur ctx (next pairs) (inc i)
-                 (into acc (analyze-expression** (assoc ctx :idx i) e))))
+                   (into acc analyzed))))
         acc))))
 
 (defn analyze-if
@@ -2911,36 +2895,50 @@
                    msg)))
     (let [[condition & clauses] args
           [then else] clauses
-          narrow? (not (linter-disabled? ctx :type-mismatch))
-          ;; the condition always evaluates, so its calls narrow the else branch too
-          else-narrowings (when narrow? (call-narrowings ctx condition))
-          narrowings (when narrow? (narrowings-from-condition ctx condition else-narrowings))]
-      (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
-      (let [branch-ctx (in-branch-ctx ctx)]
-        (if (or narrowings else-narrowings)
-          (let [branch-ctx (assoc branch-ctx :len (count clauses))]
-            (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-bindings narrowings)) then)
-                    (when else (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings else-narrowings)) else))))
-          (analyze-children branch-ctx clauses false))))))
+          sink (narrow-sink ctx condition)
+          _ (analyze-condition (with-sink ctx sink) condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
+          ;; the condition always evaluates, so its calls narrow both branches
+          calls (sink-narrowings ctx sink :calls)
+          truthy (sink-narrowings ctx sink :truthy)
+          narrowings (when-not (linter-disabled? ctx :type-mismatch)
+                       (narrowings-from-condition ctx condition))
+          branch-ctx (in-branch-ctx ctx)]
+      (if (or calls truthy narrowings)
+        (let [branch-ctx (-> branch-ctx
+                             (assoc :len (count clauses))
+                             (narrow-bindings calls))]
+          (concat (analyze-expression** (-> branch-ctx (assoc :idx 0)
+                                            (narrow-bindings truthy)
+                                            (narrow-bindings narrowings))
+                                        then)
+                  (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
+        (analyze-children branch-ctx clauses false)))))
 
 (defn analyze-if-not
   "Analyzes if-not macro"
   [ctx expr lint-as?]
   (let [[condition & clauses] (rest (:children expr))
         [then else] clauses
-        narrow? (and (<= (count clauses) 2)
-                     (not (linter-disabled? ctx :type-mismatch)))
-        ;; the condition always evaluates, so its calls narrow the then branch
-        then-narrowings (when narrow? (call-narrowings ctx condition))
+        sink (narrow-sink ctx condition)
+        _ (analyze-condition (with-sink ctx sink) condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
+        narrow? (<= (count clauses) 2)
+        ;; the condition always evaluates, so its calls narrow both branches
+        calls (when narrow? (sink-narrowings ctx sink :calls))
+        truthy (when (and narrow? else) (sink-narrowings ctx sink :truthy))
         ;; the else branch runs when the condition is truthy
-        narrowings (when (and narrow? else) (narrowings-from-condition ctx condition then-narrowings))]
-    (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
-    (let [branch-ctx (in-branch-ctx ctx)]
-      (if (or then-narrowings narrowings)
-        (let [branch-ctx (assoc branch-ctx :len (count clauses))]
-          (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-bindings then-narrowings)) then)
-                  (when else (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings narrowings)) else))))
-        (analyze-children branch-ctx clauses false)))))
+        narrowings (when (and narrow? else (not (linter-disabled? ctx :type-mismatch)))
+                     (narrowings-from-condition ctx condition))
+        branch-ctx (in-branch-ctx ctx)]
+    (if (or calls truthy narrowings)
+      (let [branch-ctx (-> branch-ctx
+                           (assoc :len (count clauses))
+                           (narrow-bindings calls))]
+        (concat (analyze-expression** (assoc branch-ctx :idx 0) then)
+                (when else (analyze-expression** (-> branch-ctx (assoc :idx 1)
+                                                     (narrow-bindings truthy)
+                                                     (narrow-bindings narrowings))
+                                                 else))))
+      (analyze-children branch-ctx clauses false))))
 
 (defn analyze-is
   [ctx expr lint-as?]
@@ -3004,15 +3002,20 @@
   (let [children (next (:children expr))
         condition (first children)
         body (next children)
-        ;; when-not negates the condition, so only its calls narrow
-        narrowings (when-not (linter-disabled? ctx :type-mismatch)
-                     (if (= 'when op)
-                       (narrowings-from-condition ctx condition)
-                       (call-narrowings ctx condition)))]
-    ;; analyze-condition marks the condition node with :condition true, which
-    ;; analyze-do / unused-value consult to avoid treating the test as an
-    ;; implicit-do body of when/when-not.
-    (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
+        sink (narrow-sink ctx condition)
+        ;; analyze-condition marks the condition node with :condition true, which
+        ;; analyze-do / unused-value consult to avoid treating the test as an
+        ;; implicit-do body of when/when-not.
+        _ (analyze-condition (with-sink ctx sink) condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
+        ;; the condition always evaluates, so its calls narrow the body
+        calls (sink-narrowings ctx sink :calls)
+        when? (= 'when op)
+        ;; when-not negates the condition, so truthy and predicate narrowings
+        ;; apply only for when
+        truthy (when when? (sink-narrowings ctx sink :truthy))
+        narrowings (when (and when?
+                              (not (linter-disabled? ctx :type-mismatch)))
+                     (narrowings-from-condition ctx condition))]
     (if-not (seq body)
       (findings/reg-finding!
        ctx
@@ -3022,7 +3025,10 @@
         :missing-body-in-when
         "Missing body in when"))
       (analyze-children (in-branch-ctx
-                         (narrow-bindings ctx narrowings))
+                         (-> ctx
+                             (narrow-bindings calls)
+                             (narrow-bindings truthy)
+                             (narrow-bindings narrowings)))
                         body false))))
 
 (defn analyze-clojure-string-replace [ctx expr]
@@ -3542,6 +3548,16 @@
                    (-> (assoc-in [:recur-arity :fixed-arity] 0)
                        (assoc :seen-recur? (volatile! nil))
                        (dissoc :protocol-fn))
+                   ;; a deferred body has not run once the call returns, so it
+                   ;; does not narrow, see types/record-narrowing!
+                   (and (:narrow-sink ctx)
+                        (one-of [resolved-namespace resolved-name]
+                                [[clojure.core.async thread]
+                                 [clojure.core future]
+                                 [clojure.core lazy-seq]
+                                 [clojure.core lazy-cat]
+                                 [clojure.core delay]]))
+                   (dissoc :narrow-sink)
                    ;; an unresolved call could be a macro,
                    ;; treat its args as conditionally
                    ;; evaluated, like a when body
@@ -3840,7 +3856,7 @@
     ;; the first operand, the first cond test and the
     ;; condp pred and dispatch expr always evaluate,
     ;; everything after is conditional
-    and (analyze-and ctx children)
+    and (analyze-and ctx expr children)
     cond (analyze-cond ctx children)
     or
     (concat (analyze-children ctx (take 1 children) false)
@@ -4067,9 +4083,11 @@
                                                  (:clj-kondo.impl/generated expr)
                                                  (assoc :clj-kondo.impl/generated true)
                                                  ;; a local usage directly under this
-                                                 ;; call may constrain a param, see
-                                                 ;; types/infer-local-usage!
-                                                 (and arg-types (:param-infers ctx)
+                                                 ;; call may constrain a param or narrow
+                                                 ;; it, see types/infer-local-usage! and
+                                                 ;; types/record-narrowing!
+                                                 (and arg-types
+                                                      (or (:param-infers ctx) (:narrow-sink ctx))
                                                       (not unresolved?))
                                                  (assoc ::types/infer-call
                                                         [resolved-namespace resolved-name arg-count])))]

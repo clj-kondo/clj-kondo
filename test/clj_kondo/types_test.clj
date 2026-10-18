@@ -2038,6 +2038,30 @@
       (assert-submaps2
        '({:row 1 :col 42 :message "Expected: string, received: number."})
        (lint! "(defn f [n] (cond (pos? n) 1 :else (subs n 1)))" config)))
+    (testing "a call in the first arg of an and condition narrows both branches"
+      (assert-submaps2
+       '({:row 1 :col 44 :message "Expected: string, received: number."})
+       (lint! "(defn f [n c] (when (and (pos? n) c) (subs n 1)))" config))
+      (assert-submaps2
+       '({:row 1 :col 48 :message "Expected: string, received: number."})
+       (lint! "(defn f [n c] (when-not (and (pos? n) c) (subs n 1)))" config)))
+    (testing "a call in a later arg of an and condition narrows where it is truthy"
+      (assert-submaps2
+       '({:row 1 :col 44 :message "Expected: string, received: number."})
+       (lint! "(defn f [n c] (when (and c (pos? n)) (subs n 1)))" config))
+      (assert-submaps2
+       '({:row 1 :col 42 :message "Expected: string, received: number."})
+       (lint! "(defn f [n c] (if (and c (pos? n)) (subs n 1) (subs n 2)))" config))
+      (assert-submaps2
+       '({:row 1 :col 57 :message "Expected: string, received: number."})
+       (lint! "(defn f [n c] (if-not (and c (pos? n)) (subs n 1) (subs n 2)))" config))
+      (assert-submaps2
+       '({:row 1 :col 44 :message "Expected: string, received: number."})
+       (lint! "(defn f [n c] (cond (and c (pos? n)) (subs n 1) :else (subs n 2)))" config)))
+    (testing "an and nested in a condition does not narrow where it is truthy"
+      (doseq [s ["(defn f [n c] (when (identity (and c (pos? n))) (subs n 1)))"
+                 "(defn f [n c] (when (not (and c (pos? n))) (subs n 1)))"]]
+        (is (empty? (lint! s config)) s)))
     (testing "a call after a type predicate in and keeps the predicate type"
       (assert-submaps2
        '({:row 1 :col 59 :message "Expected: number, received: string."})
@@ -2051,6 +2075,16 @@
                  "(defn f [x c] (when-not (and c (pos? x)) (subs x 1)))"
                  "(defn f [x c] (when (pos? (count (when c (subs x 1)))) (inc x)))"]]
         (is (empty? (filter (comp #{:error} :level) (lint! s config))) s)))
+    (testing "a call to a user fn narrows by its inferred spec"
+      (assert-submaps2
+       '({:row 1 :col 103 :message "Expected: number, received: string."})
+       (filter (comp #{:error} :level)
+               (lint! "(ns lib) (defn port [s] (subs s 1)) (ns app (:require [lib :as l])) (defn f [s] (when (l/port s) (inc s)))" config))))
+    (testing "a call to a user macro does not narrow"
+      (is (empty? (filter (comp #{:error} :level)
+                          (lint! "(ns lib) (defmacro m [x] x) (ns app (:require [lib :as l])) (defn f [x] (when (l/m x) (inc x)))" config)))))
+    (testing "a deferred body does not narrow"
+      (is (empty? (lint! "(defn f [x] (when (some? (lazy-seq (subs x 1))) (inc x)))" config))))
     (testing "a config spec overrides the built-in spec"
       (is (empty? (lint! "(defn f [n] (when (pos? n) (subs n 1)))"
                          (assoc-in config [:linters :type-mismatch :namespaces]
