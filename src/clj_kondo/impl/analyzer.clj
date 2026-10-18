@@ -2745,17 +2745,17 @@
           ctx narrowings))
 
 (defn call-arg-specs
-  "Returns the positional arg specs of a call to `fsym` with `arity` args, or
-  nil if `fsym` has no spec.
+  "Returns the positional arg specs of a call to the fn `fsym` with `arity`
+  args, or nil if `fsym` has no built-in spec or is a macro.
   The specs are empty if the spec has none for `arity`.
   `fsym` resolves through an alias or to a core var."
   [ctx fsym arity]
   (when (symbol? fsym)
-    (let [config (:config ctx)
-          specs (fn [called-ns called-name]
-                  (when (or (get-in types/built-in-specs [called-ns called-name])
-                            (config/type-mismatch-config config called-ns called-name))
-                    (or (types/spec-args config called-ns called-name arity) [])))]
+    (let [specs (fn [called-ns called-name]
+                  (when-let [spec (get-in types/built-in-specs [called-ns called-name])]
+                    ;; macro args may not evaluate, or may rebind the local
+                    (when-not (contains? (get types/macro-specs called-ns) called-name)
+                      (or (some-> (:arities spec) (types/args-spec-from-arities arity)) []))))]
       (if-let [alias (namespace fsym)]
         (let [ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
           (when-let [called-ns (get (:qualify-ns ns) (symbol alias))]
@@ -2810,35 +2810,39 @@
   A pair comes from `(pred local)` with `pred` a known core type predicate and
   `local` a binding.
   An `and` condition yields the pairs of each of its args.
-  Any other call yields its call-narrowings."
-  [ctx condition]
-  (when (identical? :list (tag condition))
-    (let [[f arg & more] (:children condition)]
-      (when (and f (identical? :token (tag f)))
-        (let [fsym (:value f)]
-          (if (= 'and fsym)
-            ;; threaded, so a call does not widen an earlier predicate's tag
-            (when-let [pairs (loop [ctx ctx
-                                    args (next (:children condition))
-                                    acc nil]
-                               (if-let [a (first args)]
-                                 (if-let [pairs (narrowings-from-condition ctx a)]
-                                   (recur (narrow-bindings ctx pairs) (next args) (into (or acc []) pairs))
-                                   (recur ctx (next args) acc))
-                                 acc))]
-              ;; resolution is the costly check, so gate it behind the rest
-              (when (namespace/core-symbol-in-scope? ctx 'and)
-                pairs))
-            (or (when (and arg (nil? more)
-                           (identical? :token (tag arg)))
-                  ;; predicate->tag and bindings lookups already constrain fsym and asym
-                  (when-let [t (get types/predicate->tag fsym)]
-                    (let [asym (:value arg)]
-                      (when (and (get (:bindings ctx) asym)
-                                 ;; resolution is the costly check, so gate it behind the rest
-                                 (namespace/core-symbol-in-scope? ctx fsym))
-                        [[asym t]]))))
-                (call-narrowings ctx condition))))))))
+  Any other call yields its call-narrowings, or `calls` if given.
+  `calls` is the call-narrowings of `condition`, computed by the caller."
+  ([ctx condition] (narrowings-from-condition ctx condition ::compute))
+  ([ctx condition calls]
+   (when (identical? :list (tag condition))
+     (let [[f arg & more] (:children condition)]
+       (when (and f (identical? :token (tag f)))
+         (let [fsym (:value f)]
+           (if (= 'and fsym)
+             ;; threaded, so a call does not widen an earlier predicate's tag
+             (when-let [pairs (loop [ctx ctx
+                                     args (next (:children condition))
+                                     acc nil]
+                                (if-let [a (first args)]
+                                  (if-let [pairs (narrowings-from-condition ctx a)]
+                                    (recur (narrow-bindings ctx pairs) (next args) (into (or acc []) pairs))
+                                    (recur ctx (next args) acc))
+                                  acc))]
+               ;; resolution is the costly check, so gate it behind the rest
+               (when (namespace/core-symbol-in-scope? ctx 'and)
+                 pairs))
+             (or (when (and arg (nil? more)
+                            (identical? :token (tag arg)))
+                   ;; predicate->tag and bindings lookups already constrain fsym and asym
+                   (when-let [t (get types/predicate->tag fsym)]
+                     (let [asym (:value arg)]
+                       (when (and (get (:bindings ctx) asym)
+                                  ;; resolution is the costly check, so gate it behind the rest
+                                  (namespace/core-symbol-in-scope? ctx fsym))
+                         [[asym t]]))))
+                 (if (identical? ::compute calls)
+                   (call-narrowings ctx condition)
+                   calls)))))))))
 
 (defn analyze-and
   "Analyzes the args of `and`.
@@ -2879,12 +2883,13 @@
       (if-let [[test e] (first pairs)]
         ;; odd i is a test, even i the expr of the test before it
         (if (and narrow? (even? i))
-          (recur (narrow-bindings ctx (call-narrowings ctx test))
-                 (next pairs) (inc i)
-                 (into acc (analyze-expression** (-> ctx
-                                                     (narrow-bindings (narrowings-from-condition ctx test))
-                                                     (assoc :idx i))
-                                                 e)))
+          (let [calls (call-narrowings ctx test)]
+            (recur (narrow-bindings ctx calls)
+                   (next pairs) (inc i)
+                   (into acc (analyze-expression** (-> ctx
+                                                       (narrow-bindings (narrowings-from-condition ctx test calls))
+                                                       (assoc :idx i))
+                                                   e))))
           (recur ctx (next pairs) (inc i)
                  (into acc (analyze-expression** (assoc ctx :idx i) e))))
         acc))))
@@ -2906,9 +2911,9 @@
     (let [[condition & clauses] args
           [then else] clauses
           narrow? (not (linter-disabled? ctx :type-mismatch))
-          narrowings (when narrow? (narrowings-from-condition ctx condition))
           ;; the condition always evaluates, so its calls narrow the else branch too
-          else-narrowings (when (and narrow? else) (call-narrowings ctx condition))]
+          else-narrowings (when narrow? (call-narrowings ctx condition))
+          narrowings (when narrow? (narrowings-from-condition ctx condition else-narrowings))]
       (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
       (let [branch-ctx (in-branch-ctx ctx)]
         (if (or narrowings else-narrowings)
@@ -2927,7 +2932,7 @@
         ;; the condition always evaluates, so its calls narrow the then branch
         then-narrowings (when narrow? (call-narrowings ctx condition))
         ;; the else branch runs when the condition is truthy
-        narrowings (when (and narrow? else) (narrowings-from-condition ctx condition))]
+        narrowings (when (and narrow? else) (narrowings-from-condition ctx condition then-narrowings))]
     (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
     (let [branch-ctx (in-branch-ctx ctx)]
       (if (or then-narrowings narrowings)

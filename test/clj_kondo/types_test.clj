@@ -2042,6 +2042,13 @@
       (assert-submaps2
        '({:row 1 :col 59 :message "Expected: number, received: string."})
        (lint! "(defn f [x] (when (and (string? x) (pos? (count x))) (inc x)))" config)))
+    (testing "the args of a macro or special form do not narrow"
+      (doseq [s ["(defn f [x c] (when (or c (subs x 1)) (inc x)))"
+                 "(defn f [x c] (if (and c (subs x 1)) 0 (inc x)))"
+                 "(defn f [x c] (when (if c (pos? x) true) (subs x 1)))"
+                 "(defn f [x] (when (pos? (count (let [x \"a\"] (subs x 1)))) (inc x)))"
+                 "(defn f [x] (when (fn? (fn [] (subs x 1))) (inc x)))"]]
+        (is (empty? (filter (comp #{:error} :level) (lint! s config))) s)))
     (testing "a type predicate does not narrow the else branch"
       (is (empty? (lint! "(defn f [x] (if (string? x) 0 (inc x)))" config)))
       (is (empty? (lint! "(defn f [x] (cond (string? x) 1 :else (inc x)))" config))))

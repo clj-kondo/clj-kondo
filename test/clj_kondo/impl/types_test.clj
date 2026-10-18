@@ -114,3 +114,13 @@
         (clj-kondo.core/run! {:lint ["-"]}))
       :findings)
   )
+
+(deftest macro-specs-test
+  (require 'clojure.set 'clojure.string 'clojure.test)
+  (doseq [[spec-ns specs] types/built-in-specs
+          :let [clj-ns (if (= 'cljs.core spec-ns) 'clojure.core spec-ns)]
+          k (keys specs)]
+    (is (= (or (special-symbol? k)
+               (true? (:macro (meta (ns-resolve clj-ns k)))))
+           (contains? (get types/macro-specs spec-ns) k))
+        (str spec-ns "/" k))))
