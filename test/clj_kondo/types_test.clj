@@ -2047,8 +2047,14 @@
                  "(defn f [x c] (if (and c (subs x 1)) 0 (inc x)))"
                  "(defn f [x c] (when (if c (pos? x) true) (subs x 1)))"
                  "(defn f [x] (when (pos? (count (let [x \"a\"] (subs x 1)))) (inc x)))"
-                 "(defn f [x] (when (fn? (fn [] (subs x 1))) (inc x)))"]]
+                 "(defn f [x] (when (fn? (fn [] (subs x 1))) (inc x)))"
+                 "(defn f [x c] (when-not (and c (pos? x)) (subs x 1)))"
+                 "(defn f [x c] (when (pos? (count (when c (subs x 1)))) (inc x)))"]]
         (is (empty? (filter (comp #{:error} :level) (lint! s config))) s)))
+    (testing "a config spec overrides the built-in spec"
+      (is (empty? (lint! "(defn f [n] (when (pos? n) (subs n 1)))"
+                         (assoc-in config [:linters :type-mismatch :namespaces]
+                                   '{clojure.core {pos? {:arities {1 {:args [:any]}}}}})))))
     (testing "a type predicate does not narrow the else branch"
       (is (empty? (lint! "(defn f [x] (if (string? x) 0 (inc x)))" config)))
       (is (empty? (lint! "(defn f [x] (cond (string? x) 1 :else (inc x)))" config))))

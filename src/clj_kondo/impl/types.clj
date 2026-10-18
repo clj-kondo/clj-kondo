@@ -74,9 +74,9 @@
 
 (def macro-specs
   "Names in built-in-specs that are macros or special forms, per namespace."
-  '{clojure.core #{and cond do doto fn for future if if-let lazy-seq let or throw when when-let when-not}
-    cljs.core #{and cond do doto fn for future if if-let lazy-seq let or throw when when-let when-not}
-    clojure.test #{are deftest deftest- is set-test testing with-test}})
+  '{clojure.core #{and cond do doto fn for future if if-let lazy-seq let or selector throw when when-let when-not}
+    cljs.core #{and cond do doto fn for future if if-let lazy-seq let or selector throw when when-let when-not}
+    clojure.test #{are deftest deftest- is set-test testing thrown-with-msg? thrown? with-test}})
 
 (def predicate->tag
   "Core type predicates mapped to the type each proves about its argument."

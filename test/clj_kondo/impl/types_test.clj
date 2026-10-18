@@ -120,7 +120,8 @@
   (doseq [[spec-ns specs] types/built-in-specs
           :let [clj-ns (if (= 'cljs.core spec-ns) 'clojure.core spec-ns)]
           k (keys specs)]
-    (is (= (or (special-symbol? k)
-               (true? (:macro (meta (ns-resolve clj-ns k)))))
-           (contains? (get types/macro-specs spec-ns) k))
-        (str spec-ns "/" k))))
+    ;; a key that resolves to no fn, e.g. selector before Clojure 1.13, is listed
+    (let [v (ns-resolve clj-ns k)]
+      (is (= (not (and v (not (:macro (meta v))) (ifn? @v)))
+             (contains? (get types/macro-specs spec-ns) k))
+          (str spec-ns "/" k)))))

@@ -2747,15 +2747,16 @@
 (defn call-arg-specs
   "Returns the positional arg specs of a call to the fn `fsym` with `arity`
   args, or nil if `fsym` has no built-in spec or is a macro.
+  A config spec for `fsym` takes precedence over the built-in one.
   The specs are empty if the spec has none for `arity`.
   `fsym` resolves through an alias or to a core var."
   [ctx fsym arity]
   (when (symbol? fsym)
     (let [specs (fn [called-ns called-name]
-                  (when-let [spec (get-in types/built-in-specs [called-ns called-name])]
+                  (when (get-in types/built-in-specs [called-ns called-name])
                     ;; macro args may not evaluate, or may rebind the local
                     (when-not (contains? (get types/macro-specs called-ns) called-name)
-                      (or (some-> (:arities spec) (types/args-spec-from-arities arity)) []))))]
+                      (or (types/spec-args (:config ctx) called-ns called-name arity) []))))]
       (if-let [alias (namespace fsym)]
         (let [ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) (-> ctx :ns :name))]
           (when-let [called-ns (get (:qualify-ns ns) (symbol alias))]
