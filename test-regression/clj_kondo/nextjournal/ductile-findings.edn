@@ -271,6 +271,14 @@
   :langs (),
   :message "Condition always true",
   :row 209}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/schema.cljc",
+  :row 28,
+  :col 21,
+  :type :redundant-str-call,
+  :message "Single argument to str already is a string",
+  :level :info,
+  :langs (:clj :cljs)}
  {:end-row 261,
   :type :constant-condition,
   :level :warning,
@@ -358,6 +366,14 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 123}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
+  :row 597,
+  :col 9,
+  :type :constant-condition,
+  :message "Condition always true",
+  :level :warning,
+  :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
   :row 755,
