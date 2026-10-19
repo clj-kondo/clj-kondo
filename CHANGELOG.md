@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2956](https://github.com/clj-kondo/clj-kondo/issues/2956): fix `:invalid-arity` false positive for a map, set or vector literal passed to the transducer arity of `map` or `mapcat`, e.g. `(map {})`.
 - [#2994](https://github.com/clj-kondo/clj-kondo/issues/2994): a call in a protocol method implementation or in `clojure.test/is` is arity checked against a namespace from the cache.
 - [#3005](https://github.com/clj-kondo/clj-kondo/issues/3005): self-referencing vars in `def` initializers are no longer reported as unresolved when `clojure.test` is required with `:refer :all`.
 - [#3006](https://github.com/clj-kondo/clj-kondo/issues/3006): a hook extracted with `:clj-kondo/macroexpand-hook` resolves a referred var in syntax-quote to the var's own namespace, so the expansion reaches its `analyze-call` hook ([@imrekoszo](https://github.com/imrekoszo)).
