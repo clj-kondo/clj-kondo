@@ -85,7 +85,7 @@ Library-specific analysis: core.async, re-frame, spec, potemkin, datalog, compoj
 3. **Low latency**: Prioritize editor feedback speed
 4. **Single config**: `.clj-kondo/config.edn` is the central configuration
 5. **Non-intrusive**: Users shouldn't change code just for the linter
-6. **Resolve, don't match**: Identify a call through the analyzer, never by inspecting a node. Call identity comes from resolution: the resolved namespace and name in `analyze-call` and its dispatch, the callstack, arg types and delayed tags. Matching the text of a head token misses aliases, shadowed locals, qualified calls, quoted forms and macros.
+6. **Resolve, don't match**: Identify a call through the analyzer, never by inspecting a node. Call identity comes from resolution: the resolved namespace and name in `analyze-call` and its dispatch, the callstack, arg types and delayed tags. Matching the text of a head token misses aliases, shadowed locals, qualified calls, quoted forms and macros. Exception: a core symbol may be matched by its head token when `namespace/core-symbol-in-scope?` confirms it, as a fast path.
 
 ## Adding a New Linter
 
