@@ -25,7 +25,7 @@
                          :ret :set}}}
    'index {:arities {2 {:args [:seqable :seqable]
                         :ret :map}}}
-   'map-invert {:arities {2 {:args [:seqable]
+   'map-invert {:arities {1 {:args [:seqable]
                              :ret :map}}}
    'join {:arities {2 {:args [:seqable :seqable]
                        :ret :set}

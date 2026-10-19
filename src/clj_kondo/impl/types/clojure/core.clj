@@ -1303,6 +1303,10 @@
       (assoc-in ['bases :arities 1 :args] [#{:class :fn}])
       (assoc-in ['supers :arities 1 :args] [#{:class :fn}])
       (assoc 'throw {:arities {1 {:args [:any]}}})
+      ;; a CLJS char is a string
+      (assoc-in ['char :arities 1] {:args [#{:int :string}] :ret :string})
+      (assoc-in ['int :arities 1 :args] [#{:number :string}])
+      (assoc-in ['byte :arities 1 :args] [#{:byte :number :string}])
       (assoc 'keyword {:arities {1 {:args [#{:string :keyword :symbol}]
                                     :ret :keyword}
                                  2 {:args [#{:nilable/string :keyword :symbol}

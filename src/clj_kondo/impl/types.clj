@@ -1,16 +1,16 @@
 (ns clj-kondo.impl.types
   {:no-doc true}
-  (:refer-clojure :exclude [keyword select-keys get-in])
+  (:refer-clojure :exclude [keyword select-keys])
   (:require
    [clj-kondo.impl.config :as config]
    [clj-kondo.impl.findings :as findings]
    [clj-kondo.impl.types.clojure.core :refer [clojure-core cljs-core]]
    [clj-kondo.impl.types.clojure.set :refer [clojure-set]]
-   [clj-kondo.impl.types.clojure.string :refer [clojure-string]]
+   [clj-kondo.impl.types.clojure.string :refer [clojure-string cljs-string]]
    [clj-kondo.impl.types.clojure.test :refer [clojure-test]]
    [clj-kondo.impl.types.utils :as type-utils]
    [clj-kondo.impl.utils :as utils :refer
-    [tag sexpr select-keys get-in]]
+    [tag sexpr select-keys]]
    [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
@@ -71,6 +71,17 @@
    'clojure.set clojure-set
    'clojure.string clojure-string
    'clojure.test clojure-test})
+
+(def cljs-built-in-specs
+  (assoc built-in-specs 'clojure.string cljs-string))
+
+(defn built-in-spec
+  "Returns the built-in spec of `called-ns`/`called-name` for `lang`, or nil if
+  none."
+  [lang called-ns called-name]
+  (get (get (if (identical? :cljs lang) cljs-built-in-specs built-in-specs)
+            called-ns)
+       called-name))
 
 (def predicate->tag
   "Core type predicates mapped to the type each proves about its argument."
@@ -455,7 +466,7 @@
                 (if-let [spec
                          (or
                           (config/type-mismatch-config (:config ctx) called-ns called-name)
-                          (get-in built-in-specs [called-ns called-name]))]
+                          (built-in-spec (:lang ctx) called-ns called-name))]
                   (or
                    (when-let [a (:arities spec)]
                      (when-let [ca (called-arity a (:arity call))]
@@ -574,7 +585,8 @@
                          (string? v) :string
                          (keyword? v) :keyword
                          (number? v) (number->tag v)
-                         (char? v) :char))
+                         ;; a CLJS char is a string
+                         (char? v) (if (identical? :cljs lang) :string :char)))
               :regex :regex
               :quote (expr->tag (assoc ctx :quoted true) (first (:children expr)))
               :var :var
@@ -632,9 +644,9 @@
   "Positional expected-type spec vector for a call to `called-ns`/`called-name`
   at `arity`, from a user-configured or built-in spec. Nil when no spec is
   known. Used for backward parameter-type inference."
-  [config called-ns called-name arity]
+  [config lang called-ns called-name arity]
   (when-let [spec (or (config/type-mismatch-config config called-ns called-name)
-                      (get (get built-in-specs called-ns) called-name))]
+                      (built-in-spec lang called-ns called-name))]
     (when-let [a (:arities spec)]
       (args-spec-from-arities a arity))))
 
@@ -716,7 +728,7 @@
     ;; equal counts mean no conditional was crossed since the param's fn entry
     (when (== branch-mark (:branch-count ctx 0))
       (let [core? (utils/one-of called-ns [clojure.core cljs.core])
-            s (if-let [specs (spec-args (:config ctx) called-ns called-name arity)]
+            s (if-let [specs (spec-args (:config ctx) (:lang ctx) called-ns called-name arity)]
                 (spec-at specs idx)
                 (when-not core?
                   {:op :arg-spec-of
@@ -1046,7 +1058,7 @@
                   (when-let [s (config/type-mismatch-config config called-ns called-name)]
                     (when-let [a (:arities s)]
                       (args-spec-from-arities a arity)))
-                  (when-let [s (get-in built-in-specs [called-ns called-name])]
+                  (when-let [s (built-in-spec (:lang call) called-ns called-name)]
                     (when-let [a (:arities s)]
                       (args-spec-from-arities a arity)))
                   (args-spec-from-arities arities arity))]

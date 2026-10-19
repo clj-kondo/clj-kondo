@@ -732,6 +732,31 @@
                          {:linters {:type-mismatch {:level :error}}}
                          "--cache" "true"))))))
 
+(deftest clojure-string-specs-test
+  (let [config {:linters {:type-mismatch {:level :error}}}]
+    (testing "a non-string arg warns"
+      (assert-submaps2
+       '({:row 1 :col 47 :message "Expected: char sequence, received: positive integer."}
+         {:row 1 :col 66 :message "Expected: char sequence, received: keyword."}
+         {:row 1 :col 82 :message "Expected: char sequence or nil, received: positive integer."})
+       (lint! "(require '[clojure.string :as str]) (str/trim 1) (str/lower-case :k) (str/blank? 1)" config)))
+    (testing "blank? takes nil"
+      (is (empty? (lint! "(require '[clojure.string :as str]) (str/blank? nil)" config))))
+    (testing "split-lines returns a vector"
+      (assert-submaps2
+       '({:row 1 :col 42 :message "Expected: number, received: vector."})
+       (lint! "(require '[clojure.string :as str]) (inc (str/split-lines \"a\"))" config)))
+    (testing "split takes a regex separator"
+      (assert-submaps2
+       '({:row 1 :col 54 :message "Expected: regular expression, received: string."})
+       (lint! "(require '[clojure.string :as str]) (str/split \"a,b\" \",\")" config)))
+    (testing "split takes a string separator in CLJS"
+      (is (empty? (lint! "(require '[clojure.string :as str]) (str/split \"a,b\" \",\")" config
+                         "--lang" "cljs"))))
+    (testing "a char is a string in CLJS"
+      (is (empty? (lint! "(require '[clojure.string :as str]) (str/upper-case \\a) (int \\a) (char \"a\")" config
+                         "--lang" "cljs"))))))
+
 (deftest clojure-string-replace-test
   (assert-submaps2
    '({:file "<stdin>", :row 3, :col 27, :level :error,
