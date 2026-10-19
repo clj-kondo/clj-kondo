@@ -57,6 +57,16 @@
   :langs (),
   :message "Condition always true",
   :row 43}
+ {:end-row 39,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/cache/settings.clj",
+  :col 23,
+  :end-col 102,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 34}
  {:end-row 207,
   :type :type-mismatch,
   :level :error,
@@ -534,6 +544,16 @@
   :langs (),
   :message "Unused excluded var: require",
   :row 2}
+ {:end-row 24,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/embedding/jwt.clj",
+  :col 14,
+  :end-col 56,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 24}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
@@ -710,6 +730,26 @@
   :langs (),
   :message "Unused excluded var: replace",
   :row 2}
+ {:end-row 58,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/model_persistence/models/persisted_info.clj",
+  :col 3,
+  :end-col 66,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 58}
+ {:end-row 67,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/models/humanization.clj",
+  :col 14,
+  :end-col 92,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 65}
  {:end-row 528,
   :type :redundant-declare,
   :level :warning,
@@ -720,6 +760,16 @@
   :langs (),
   :message "Redundant declare: extract-query",
   :row 528}
+ {:end-row 35,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/native_query_snippets/models/native_query_snippet.clj",
+  :col 14,
+  :end-col 112,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 35}
  {:end-row 20,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -731,6 +781,16 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 20}
+ {:end-row 67,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/notification/payload/impl/card.clj",
+  :col 16,
+  :end-col 54,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 67}
  {:end-row 565,
   :type :redundant-let-binding,
   :level :warning,
@@ -752,6 +812,26 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 119}
+ {:end-row 20,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/permissions/models/application_permissions_revision.clj",
+  :col 10,
+  :end-col 71,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 20}
+ {:end-row 20,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/permissions/models/permissions_revision.clj",
+  :col 10,
+  :end-col 71,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 20}
  {:end-row 210,
   :type :redundant-str-call,
   :level :info,
@@ -776,6 +856,16 @@
   :langs (:cljs),
   :message "Single argument to str already is a string",
   :row 211}
+ {:end-row 81,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/premium_features/defenterprise.clj",
+  :col 12,
+  :end-col 83,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 79}
  {:end-row 97,
   :type :unquote-not-syntax-quoted,
   :level :warning,
@@ -846,6 +936,16 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 328}
+ {:end-row 117,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/pulse/models/pulse.clj",
+  :col 11,
+  :end-col 92,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 117}
  {:end-row 266,
   :type :constant-condition,
   :level :warning,
@@ -916,6 +1016,16 @@
   :langs (),
   :message "Redundant let binding: source-metadata",
   :row 104}
+ {:end-row 54,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/query_processor/middleware/permissions.clj",
+  :col 14,
+  :end-col 69,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 52}
  {:end-row 630,
   :type :redundant-let-binding,
   :level :warning,
@@ -994,6 +1104,26 @@
   :message "Var *current-user-id* is referred but used via alias: api",
   :level :info,
   :langs ()}
+ {:end-row 96,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/revisions/models/revision.clj",
+  :col 20,
+  :end-col 70,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 96}
+ {:end-row 21,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/search/appdb/specialization/h2.clj",
+  :col 28,
+  :end-col 37,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 21}
  {:filename
   "test-regression/checkouts/metabase/src/metabase/search/impl.clj",
   :row 433,
@@ -1003,6 +1133,16 @@
   "Var SearchContext is referred but used via alias: search.config",
   :level :info,
   :langs ()}
+ {:end-row 86,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/segments/models/segment.clj",
+  :col 12,
+  :end-col 99,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 86}
  {:end-row 1410,
   :type :redundant-primitive-coercion,
   :level :warning,
@@ -1014,6 +1154,16 @@
   :message
   "Redundant boolean coercion: expression already has type boolean",
   :row 1409}
+ {:end-row 63,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/sync/analyze/classify.clj",
+  :col 16,
+  :end-col 93,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 63}
  {:end-row 253,
   :type :constant-condition,
   :level :warning,
@@ -1024,6 +1174,16 @@
   :langs (),
   :message "Condition always true",
   :row 253}
+ {:end-row 59,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/upload/settings.clj",
+  :col 29,
+  :end-col 123,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 59}
  {:end-row 137,
   :type :redundant-let-binding,
   :level :warning,
@@ -1116,6 +1276,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 223}
+ {:end-row 97,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/src/metabase/util/i18n/plural.clj",
+  :col 16,
+  :end-col 36,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 97}
  {:end-row 114,
   :type :unresolved-var,
   :level :warning,
@@ -1493,6 +1663,16 @@
   :langs (),
   :message "#'hiccup.core/html is deprecated since 2.0",
   :row 29}
+ {:end-row 105,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/channel/render/js/color_test.clj",
+  :col 29,
+  :end-col 52,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 105}
  {:end-row 4,
   :type :deprecated-namespace,
   :level :warning,
@@ -1583,6 +1763,16 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 3514}
+ {:end-row 27,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/common_test.clj",
+  :col 65,
+  :end-col 74,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 27}
  {:end-row 82,
   :type :unresolved-symbol,
   :level :error,
@@ -1643,6 +1833,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 12}
+ {:end-row 293,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/driver/sql_jdbc/sync/describe_table_test.clj",
+  :col 49,
+  :end-col 111,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 293}
  {:end-row 31,
   :type :unresolved-symbol,
   :level :error,
@@ -1753,6 +1953,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 165}
+ {:end-row 45,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/models/interface_test.clj",
+  :col 68,
+  :end-col 87,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 45}
  {:end-row 93,
   :type :constant-condition,
   :level :warning,
@@ -1834,6 +2044,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 902}
+ {:end-row 1329,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/pulse/api/pulse_test.clj",
+  :col 75,
+  :end-col 98,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 1329}
  {:end-row 827,
   :type :redundant-format,
   :level :info,
@@ -1954,6 +2174,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 160}
+ {:end-row 60,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/catch_exceptions_test.clj",
+  :col 14,
+  :end-col 89,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 60}
+ {:end-row 130,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/query_processor/middleware/metrics_test.clj",
+  :col 85,
+  :end-col 114,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 130}
  {:end-row 22,
   :type :redundant-let-binding,
   :level :warning,
@@ -2075,6 +2315,16 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 394}
+ {:end-row 66,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sample_data/impl_test.clj",
+  :col 70,
+  :end-col 82,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 66}
  {:end-row 542,
   :type :type-mismatch,
   :level :error,
@@ -2149,6 +2399,26 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 114}
+ {:end-row 56,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sso/api/ldap_test.clj",
+  :col 49,
+  :end-col 85,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 56}
+ {:end-row 285,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/sync/analyze/fingerprint_test.clj",
+  :col 21,
+  :end-col 44,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 285}
  {:end-row 83,
   :type :unresolved-symbol,
   :level :error,
@@ -2192,6 +2462,46 @@
   :langs (),
   :message "Format string contains no format specifiers",
   :row 123}
+ {:end-row 81,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/data/dataset_definitions.clj",
+  :col 29,
+  :end-col 75,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 81}
+ {:end-row 163,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/data/sql.clj",
+  :col 8,
+  :end-col 35,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 161}
+ {:end-row 58,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/data/users.clj",
+  :col 33,
+  :end-col 42,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 58}
+ {:end-row 19,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/test/sync.clj",
+  :col 10,
+  :end-col 44,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 19}
  {:end-row 1187,
   :type :type-mismatch,
   :level :error,
@@ -2272,6 +2582,16 @@
   :langs (),
   :message "Test assertion message should be a string",
   :row 42}
+ {:end-row 67,
+  :type :warn-on-reflection,
+  :level :warning,
+  :filename
+  "test-regression/checkouts/metabase/test/metabase/version/settings_test.clj",
+  :col 39,
+  :end-col 48,
+  :langs (),
+  :message "Var *warn-on-reflection* is not set in this namespace.",
+  :row 67}
  {:end-row 33,
   :type :unresolved-symbol,
   :level :error,
