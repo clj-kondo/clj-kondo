@@ -2735,20 +2735,26 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
-(defn core-symbol
-  "Returns `sym` without its namespace if it names a clojure.core or cljs.core
-  var in ctx and satisfies `pred`, or nil otherwise.
-  `pred` is a predicate on the unqualified symbol."
-  [ctx sym pred]
+(defn core-name
+  "Returns `sym` without its namespace if its name is in `names` and it is
+  bare or qualified with a core namespace, or nil otherwise.
+  A bare symbol may be shadowed, see core-in-scope?."
+  [ctx sym names]
   (when (symbol? sym)
-    (if-let [ns (namespace sym)]
-      (when (or (= "clojure.core" ns) (= "cljs.core" ns))
-        (let [s (symbol (name sym))]
-          (when (pred s) s)))
-      (when (and (pred sym)
-                 ;; resolution is the costly check, so gate it behind the rest
-                 (namespace/core-symbol-in-scope? ctx sym))
-        sym))))
+    (let [n (name sym)]
+      (when (contains? names n)
+        (if-let [ns (namespace sym)]
+          (when (or (= "clojure.core" ns)
+                    ;; CLJS resolves clojure.core to cljs.core
+                    (and (= "cljs.core" ns) (identical? :cljs (:lang ctx))))
+            (symbol n))
+          sym)))))
+
+(defn core-in-scope?
+  "Returns true if `sym`, with `core` its name, refers to the core var."
+  [ctx sym core]
+  (or (qualified-symbol? sym)
+      (namespace/core-symbol-in-scope? ctx core)))
 
 (defn binding-tag [b]
   (or (:narrowed-tag (meta b)) (:tag b)))
@@ -2763,8 +2769,10 @@
         (when-let [b (get (:bindings ctx) asym)]
           [asym b])))))
 
-(defn narrowing-pred? [sym]
-  (or (= 'some? sym) (contains? types/predicate->tag sym)))
+(def truthy-names
+  (into #{"some?"} (map name) (keys types/predicate->tag)))
+
+(def falsy-names #{"nil?" "some?"})
 
 (defn narrowings-from-condition
   "Returns the [sym tag] pairs that hold if `condition` is truthy, or nil if
@@ -2782,31 +2790,39 @@
     :list (when-let [f (first (:children condition))]
             (when (identical? :token (tag f))
               (let [fsym (:value f)]
-                (if (core-symbol ctx fsym #{'and})
-                  (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))
-                  (when-let [[asym b] (local-arg ctx condition)]
-                    (when-let [pred (core-symbol ctx fsym narrowing-pred?)]
+                (if (core-name ctx fsym #{"and"})
+                  (when-let [pairs (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))]
+                    ;; resolution is the costly check, so gate it behind the rest
+                    (when (core-in-scope? ctx fsym 'and)
+                      pairs))
+                  (when-let [pred (core-name ctx fsym truthy-names)]
+                    (when-let [[asym b] (local-arg ctx condition)]
                       (when-let [t (if (= 'some? pred)
                                      (types/without-nil (binding-tag b))
                                      (get types/predicate->tag pred))]
-                        [[asym t]])))))))
+                        (when (core-in-scope? ctx fsym pred)
+                          [[asym t]]))))))))
     nil))
 
 (defn falsy-narrowings-from-condition
   "Returns the [sym tag] pairs that hold if `condition` is falsy, or nil if
   none.
   `(nil? local)` removes nil from the tag of local.
-  `(some? local)` narrows local to nil."
+  `(some? local)` narrows local to nil if its tag may include nil."
   [ctx condition]
   (when (identical? :list (tag condition))
     (when-let [f (first (:children condition))]
       (when (identical? :token (tag f))
-        (when-let [[asym b] (local-arg ctx condition)]
-          (case (core-symbol ctx (:value f) #{'nil? 'some?})
-            nil? (when-let [t (types/without-nil (binding-tag b))]
-                   [[asym t]])
-            some? [[asym :nil]]
-            nil))))))
+        (let [fsym (:value f)]
+          (when-let [pred (core-name ctx fsym falsy-names)]
+            (when-let [[asym b] (local-arg ctx condition)]
+              (when-let [t (if (= 'nil? pred)
+                             (types/without-nil (binding-tag b))
+                             (let [t (binding-tag b)]
+                               (when (or (nil? t) (identical? :any t) (map? t) (types/without-nil t))
+                                 :nil)))]
+                (when (core-in-scope? ctx fsym pred)
+                  [[asym t]])))))))))
 
 (defn narrow-bindings
   "Returns ctx with each binding `sym` of `narrowings` narrowed to its `tag` for
@@ -2876,7 +2892,8 @@
                    msg)))
     (let [[condition & clauses] args
           [then else] clauses
-          narrow? (not (linter-disabled? ctx :type-mismatch))
+          narrow? (and (<= (count clauses) 2)
+                       (not (linter-disabled? ctx :type-mismatch)))
           narrowings (when narrow?
                        (narrowings-from-condition ctx condition))
           falsy (when (and narrow? else)

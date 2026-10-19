@@ -2019,11 +2019,11 @@
       (is (empty? (lint! "(defn f [x] (when (nil? x) (count x)))" config)))
       (is (empty? (lint! "(defn f [x] (if (nil? x) 0 (inc x)))" config))))
     (testing "a nil check removes nil from the tag of a local"
-      (doseq [[s col] [["(let [x (if (rand-int 2) nil \"s\")] (when (some? x) (inc x)))" 57]
-                       ["(let [x (if (rand-int 2) nil \"s\")] (when x (inc x)))" 49]
-                       ["(let [x (if (rand-int 2) nil \"s\")] (if (nil? x) 0 (inc x)))" 56]
-                       ["(let [x (if (rand-int 2) nil \"s\")] (if-not (nil? x) (inc x) 0))" 58]
-                       ["(let [x (if (rand-int 2) nil \"s\")] (when-not (nil? x) (inc x)))" 60]]]
+      (doseq [[s col] [["(let [x (if (odd? (rand-int 2)) nil \"s\")] (when (some? x) (inc x)))" 64]
+                       ["(let [x (if (odd? (rand-int 2)) nil \"s\")] (when x (inc x)))" 56]
+                       ["(let [x (if (odd? (rand-int 2)) nil \"s\")] (if (nil? x) 0 (inc x)))" 63]
+                       ["(let [x (if (odd? (rand-int 2)) nil \"s\")] (if-not (nil? x) (inc x) 0))" 65]
+                       ["(let [x (if (odd? (rand-int 2)) nil \"s\")] (when-not (nil? x) (inc x)))" 67]]]
         (assert-submaps2
          [{:row 1 :col col :message "Expected: number, received: string."}]
          (lint! s config))))
@@ -2033,12 +2033,38 @@
                  "(let [x nil] (when x (subs x 1)))"
                  "(let [x nil] (and x (subs x 1)))"
                  "(some-> nil (subs 1))"]]
-        (is (empty? (remove (comp #{:constant-condition} :type) (lint! s config))) s)))
+        (is (empty? (lint! s config)) s)))
+    (testing "a qualified type predicate narrows"
+      (assert-submaps2
+       '({:row 1 :col 49 :message "Expected: number, received: string."})
+       (lint! "(defn f [x] (when (clojure.core/string? x) (inc x)))" config)))
+    (testing "cljs.core/some? narrows only in CLJS"
+      (is (empty? (lint! "(let [x nil] (when (cljs.core/some? x) (subs x 1)))" config "--lang" "cljs")))
+      (assert-submaps2
+       '({:row 1 :col 46 :message "Expected: string, received: nil."})
+       (filter #(str/starts-with? (:message %) "Expected")
+               (lint! "(let [x nil] (when (cljs.core/some? x) (subs x 1)))" config))))
+    (testing "the args after else of an if are analyzed"
+      (assert-submaps2
+       '({:row 1 :message "Unresolved symbol: unknown-fn"})
+       (filter #(str/starts-with? (:message %) "Unresolved symbol")
+               (lint! "(let [x (if (odd? (rand-int 2)) nil \"s\")] (if x 1 2 (unknown-fn)))"
+                      (assoc-in config [:linters :unresolved-symbol :level] :error)))))
+    (testing "cond and if-not narrow by a nil check"
+      (assert-submaps2
+       '({:row 1 :col 56 :message "Expected: number, received: string."})
+       (lint! "(let [x (if (odd? (rand-int 2)) nil \"s\")] (cond x (inc x)))" config))
+      (assert-submaps2
+       '({:row 1 :col 66 :message "Expected: number, received: nil."})
+       (lint! "(let [x (if (odd? (rand-int 2)) nil \"s\")] (if-not (some? x) (inc x) 0))" config)))
+    (testing "some? does not narrow a local to nil if its tag excludes nil"
+      (assert-submaps2
+       '({:row 1 :col 35 :message "Expected: number, received: string."})
+       (lint! "(let [x \"s\"] (if (some? x) 0 (inc x)))" config)))
     (testing "some? in the else branch narrows to nil"
       (assert-submaps2
-       '({:row 1 :col 57 :message "Expected: number, received: nil."})
-       (remove (comp #{:constant-condition} :type)
-               (lint! "(let [x (if (rand-int 2) nil \"s\")] (if (some? x) 0 (inc x)))" config))))
+       '({:row 1 :col 64 :message "Expected: number, received: nil."})
+       (lint! "(let [x (if (odd? (rand-int 2)) nil \"s\")] (if (some? x) 0 (inc x)))" config)))
     (testing "a shadowed some? does not narrow"
       (assert-submaps2
        '({:row 1 :col 51 :message "Expected: string, received: nil."})
