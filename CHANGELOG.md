@@ -14,6 +14,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 ## Unreleased
 
 - [#3014](https://github.com/clj-kondo/clj-kondo/issues/3014): a hook extracted with `:clj-kondo/macroexpand-hook` requires the generated namespace of a marked helper after one run, also when the helper's namespace is linted after the macro's.
+- [#3015](https://github.com/clj-kondo/clj-kondo/issues/3015): a hook extracted with `:clj-kondo/macroexpand-hook` requires a namespace that its source requires without an alias, when it calls a var from it at expansion time.
+- [#3016](https://github.com/clj-kondo/clj-kondo/issues/3016): fix `Unresolved namespace` false positive when a macroexpand hook expands to a call of another macroexpand hook
 - `:type-mismatch`: a type predicate test in `if-not` narrows the local in the else branch. E.g. `(if-not (string? x) 0 (inc x))` will warn.
 - `:type-mismatch`: a type predicate test in `cond` narrows the local in the expr of its clause. E.g. `(cond (string? x) (inc x))` will warn.
 - `:type-mismatch`: an `and` condition of `if` or `when` narrows the locals of its type predicates in the then branch. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
