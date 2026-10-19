@@ -602,6 +602,7 @@ my-ns/special-map \"
   (let [cfg-dir (fs/file "corpus" "macro-from-source-xref" ".clj-kondo")
         helpers-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "helpers.clj")
         main-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "main.clj")
+        qualified-gen (fs/file cfg-dir "clj_kondo" "gen_macros" "qualified.clj")
         src-dir (fs/file "corpus" "macro-from-source-xref" "src")
         cleanup! (fn []
                    (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
@@ -621,7 +622,10 @@ my-ns/special-map \"
              {:linters {:unresolved-symbol {:level :error}}}
              "--config-dir" (str cfg-dir))
       (let [gen (slurp (fs/file main-gen))]
-        (is (str/includes? gen "[clj-kondo.gen-macros.helpers :as h]"))))
+        (is (str/includes? gen "[clj-kondo.gen-macros.helpers :as h]")))
+      (testing "for a namespace required without an alias"
+        (is (str/includes? (slurp (fs/file qualified-gen))
+                           "[clj-kondo.gen-macros.helpers :as helpers]"))))
     (testing "subsequent run lints clean - macro expands using the redirected helper"
       (assert-submaps2
        []
