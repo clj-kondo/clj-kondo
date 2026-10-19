@@ -87,7 +87,32 @@
    existing
    new))
 
-(defn- ns-form-string [gen-ns orig-ns aliases]
+(defn- refers-string
+  "Returns the forms that refer the referred vars of the source ns in the gen
+  ns, so syntax-quote resolves them to their own ns.
+  `referred-vars` maps each referred name to its var's `{:ns :name}`.
+  A stub var replaces a var whose ns is not loaded.
+  A stub ns is removed again, so a later require loads the real ns."
+  [referred-vars]
+  (->> referred-vars
+       (group-by (comp :ns val))
+       (sort-by key)
+       (map (fn [[ns refers]]
+              (let [refers (sort-by key refers)
+                    renames (into {} (keep (fn [[k {var-name :name}]]
+                                             (when (not= k var-name) [var-name k])))
+                                  refers)]
+                (str "(let [created? (nil? (find-ns '" ns "))]\n"
+                     (str/join (map (fn [[_ {var-name :name}]]
+                                      (str "  (intern (create-ns '" ns ") '" var-name ")\n"))
+                                    refers))
+                     "  (refer '" ns " :only '[" (str/join " " (map (comp :name val) refers)) "]"
+                     (when (seq renames) (str " :rename '" renames))
+                     ")\n"
+                     "  (when created? (remove-ns '" ns ")))\n\n"))))
+       (str/join)))
+
+(defn- ns-form-string [gen-ns orig-ns aliases referred-vars]
   (let [ns-form (if (empty? aliases)
                   (str "(ns " gen-ns ")\n\n")
                   (let [requires (->> aliases
@@ -102,12 +127,12 @@
         ;; name - that alias wins, matching source resolution.
         self-alias (when-not (contains? aliases orig-ns)
                      (str "(alias '" orig-ns " '" gen-ns ")\n\n"))]
-    (str ns-form self-alias)))
+    (str ns-form self-alias (refers-string referred-vars))))
 
-(defn- write-file! [^File f gen-ns orig-ns aliases top-forms]
+(defn- write-file! [^File f gen-ns orig-ns aliases referred-vars top-forms]
   (if (seq top-forms)
     (do (io/make-parents f)
-        (spit f (str (ns-form-string gen-ns orig-ns aliases)
+        (spit f (str (ns-form-string gen-ns orig-ns aliases referred-vars)
                      (str/join "\n\n" (map str top-forms))
                      "\n")))
     (when (fs/exists? f)
@@ -193,7 +218,8 @@
                                          (:source-required %) cfg-dir)
                                        entries))
                   new? (not (fs/exists? f))]
-              (write-file! f gen-ns orig-ns aliases forms)
+              (write-file! f gen-ns orig-ns aliases
+                           (:referred-vars (:ns ctx)) forms)
               (when new?
                 (rewrite-dependent-requires! cfg-dir orig-ns gen-ns)))))))))
 

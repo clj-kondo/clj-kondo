@@ -157,6 +157,20 @@
          "/"
          (->> name clojure.core/name str/lower-case))))
 
+(defn reg-temp-var!
+  "Registers `var-sym` in `ns-sym` as a temporary var so it resolves before
+  its def is registered.
+  Leaves a var that is already registered alone."
+  [{:keys [base-lang lang namespaces] :as ctx} ns-sym var-sym]
+  (when-not (:skip-reg-var ctx)
+    (let [path [base-lang lang ns-sym :vars]]
+      (when-not (contains? (get-in @namespaces path) var-sym)
+        (swap! namespaces update-in path
+               (fn [vars]
+                 (if (contains? vars var-sym)
+                   vars
+                   (assoc vars var-sym {:ns ns-sym :name var-sym :temp true}))))))))
+
 (defn reg-var!
   ([ctx ns-sym var-sym expr]
    (reg-var! ctx ns-sym var-sym expr nil))

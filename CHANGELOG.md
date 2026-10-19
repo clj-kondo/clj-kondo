@@ -13,6 +13,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3005](https://github.com/clj-kondo/clj-kondo/issues/3005): self-referencing vars in `def` initializers are no longer reported as unresolved when `clojure.test` is required with `:refer :all`.
+- [#3006](https://github.com/clj-kondo/clj-kondo/issues/3006): a hook extracted with `:clj-kondo/macroexpand-hook` resolves a referred var in syntax-quote to the var's own namespace, so the expansion reaches its `analyze-call` hook ([@imrekoszo](https://github.com/imrekoszo)).
 - [#3014](https://github.com/clj-kondo/clj-kondo/issues/3014): a hook extracted with `:clj-kondo/macroexpand-hook` requires the generated namespace of a marked helper after one run, also when the helper's namespace is linted after the macro's.
 - [#3015](https://github.com/clj-kondo/clj-kondo/issues/3015): a hook extracted with `:clj-kondo/macroexpand-hook` requires a namespace that its source requires without an alias, when it calls a var from it at expansion time.
 - [#3016](https://github.com/clj-kondo/clj-kondo/issues/3016): fix `Unresolved namespace` false positive when a macroexpand hook expands to a call of another macroexpand hook

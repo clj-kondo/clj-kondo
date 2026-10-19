@@ -631,6 +631,37 @@ my-ns/special-map \"
               "--config-dir" (str cfg-dir))))
     (cleanup!)))
 
+(deftest macro-from-source-refer-test
+  (let [cfg-dir (fs/file "corpus" "macro-from-source-refer" ".clj-kondo")
+        gen-file (fs/file cfg-dir "clj_kondo" "gen_macros" "qualification.clj")
+        src-dir (fs/file "corpus" "macro-from-source-refer" "src")
+        cleanup! (fn []
+                   (fs/delete-tree (fs/file cfg-dir "clj_kondo"))
+                   (fs/delete-tree (fs/file cfg-dir "inline-configs"))
+                   (fs/delete-tree (fs/file cfg-dir ".cache")))]
+    (cleanup!)
+    (try
+      (lint! src-dir
+             {:linters {:unresolved-symbol {:level :error}
+                        :aliased-referred-var {:level :off}}}
+             "--config-dir" (str cfg-dir))
+      (let [gen (slurp gen-file)]
+        (testing "the gen ns refers the referred vars of the source ns, renames included"
+          (is (str/includes? gen "(refer 'clojure.string :only '[join])"))
+          (is (str/includes? gen "(refer 'clojure.test :only '[deftest] :rename '{deftest defcheck})")))
+        (testing "ordinary quoted symbols remain unchanged"
+          (is (str/includes? gen "'(quote join)"))))
+      (testing "generated hooks chain into analyze-call hooks with aliases and refers,
+      with or without requiring the underlying macro namespace at the call site"
+        (assert-submaps2
+         []
+         (lint! src-dir
+                {:linters {:unresolved-symbol {:level :error}
+                           :aliased-referred-var {:level :off}}}
+                "--config-dir" (str cfg-dir))))
+      (finally
+        (cleanup!)))))
+
 (deftest hook-failure-surfaces-as-finding-test
   (testing "When a macroexpand hook fails (e.g. SCI can't resolve a symbol in
   the gen ns), clj-kondo registers a :hook :error finding at the call site so
