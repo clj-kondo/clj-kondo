@@ -127,6 +127,23 @@
   [orig-ns]
   (str/starts-with? (str orig-ns) reserved-ns-prefix))
 
+(defn- rewrite-dependent-requires!
+  "Rewrite the ns form of every other gen file that requires `orig-ns` to
+  require `gen-ns` instead. Gen files written before `gen-ns` existed
+  require `orig-ns`, see `aggregate-alias-usages`."
+  [^File cfg-dir orig-ns gen-ns]
+  (let [from (str "[" orig-ns " ")
+        to (str "[" gen-ns " ")]
+    (doseq [p (fs/glob (io/file cfg-dir (ns-path "clj-kondo.gen-macros")) "**.clj")
+            :let [g (fs/file p)
+                  s (slurp g)
+                  ns-form-end (str/index-of s "\n\n")]
+            :when ns-form-end
+            :let [ns-form (subs s 0 ns-form-end)
+                  ns-form' (str/replace ns-form from to)]
+            :when (not= ns-form ns-form')]
+      (spit g (str ns-form' (subs s ns-form-end))))))
+
 (defn record!
   "Push an entry onto the per-file `:gen-macros` ctx atom and rewrite the
   gen file from scratch using the current accumulated entries (in source
@@ -144,7 +161,11 @@
   the alias symbol for each used namespace and to honor `:as-alias`
   intent (preserved as meta on the alias key). `:source-required` are the
   namespaces the source namespace requires, used for the ones without an
-  alias."
+  alias.
+
+  The first write of a gen file redirects the requires of `orig-ns` in
+  gen files written before it. Aliases are aggregated under the lock so
+  that a concurrent first write can't be missed."
   [ctx {:keys [orig-ns expr alias-usages source-aliases source-required]}]
   ;; `(:lang ctx)` here is the per-pass lang during walking: `:clj` or
   ;; `:cljs`. For .cljc files the analyzer runs both passes; we only want
@@ -154,10 +175,11 @@
     (when-let [cfg-dir (some-> ctx :config :cfg-dir io/file)]
       (let [gen-ns (gen-ns-sym orig-ns)
             f (gen-file cfg-dir gen-ns)
-            new-aliases (aggregate-alias-usages alias-usages source-aliases
-                                                source-required cfg-dir)
             entries (swap! (:gen-macros ctx) conj
-                           {:form expr :aliases new-aliases})]
+                           {:form expr
+                            :alias-usages alias-usages
+                            :source-aliases source-aliases
+                            :source-required source-required})]
         (with-gen-lock cfg-dir
           ;; Bind keyword-node's autoresolve-ns so bare `::foo` keywords
           ;; in the macro/helper body serialize as `:<orig-ns>/foo` and
@@ -165,8 +187,15 @@
           ;; ns's current-ns at load time.
           (binding [keyword-node/*autoresolve-ns* orig-ns]
             (let [forms (mapv :form entries)
-                  aliases (reduce merge-alias-maps {} (map :aliases entries))]
-              (write-file! f gen-ns orig-ns aliases forms))))))))
+                  aliases (reduce merge-alias-maps {}
+                                  (map #(aggregate-alias-usages
+                                         (:alias-usages %) (:source-aliases %)
+                                         (:source-required %) cfg-dir)
+                                       entries))
+                  new? (not (fs/exists? f))]
+              (write-file! f gen-ns orig-ns aliases forms)
+              (when new?
+                (rewrite-dependent-requires! cfg-dir orig-ns gen-ns)))))))))
 
 (defn delete-for-file!
   "Delete the gen file owned by this source file. Called when the source

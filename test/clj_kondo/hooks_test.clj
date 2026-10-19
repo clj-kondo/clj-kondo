@@ -609,20 +609,17 @@ my-ns/special-map \"
                    (fs/delete-tree (fs/file cfg-dir "inline-configs"))
                    (fs/delete-tree (fs/file cfg-dir ".cache")))]
     (cleanup!)
-    (testing "first run extracts both namespaces' marker forms"
-      (lint! src-dir
+    (testing "first run extracts both namespaces' marker forms and redirects
+    the consumer's alias to the helper's gen ns, also when the consumer is
+    linted first"
+      (lint! [(fs/file src-dir "main.clj") (fs/file src-dir "qualified.clj") (fs/file src-dir "helpers.clj")]
              {:linters {:unresolved-symbol {:level :error}}}
              "--config-dir" (str cfg-dir))
       (is (fs/exists? helpers-gen))
       (is (str/includes? (slurp (fs/file helpers-gen)) "(defn binding-vec?"))
-      (is (fs/exists? main-gen)))
-    (testing "second run redirects the consumer's alias to the helper's gen ns
-    (after the first run produced the helper gen file)"
-      (lint! src-dir
-             {:linters {:unresolved-symbol {:level :error}}}
-             "--config-dir" (str cfg-dir))
-      (let [gen (slurp (fs/file main-gen))]
-        (is (str/includes? gen "[clj-kondo.gen-macros.helpers :as h]")))
+      (is (fs/exists? main-gen))
+      (is (str/includes? (slurp (fs/file main-gen))
+                         "[clj-kondo.gen-macros.helpers :as h]"))
       (testing "for a namespace required without an alias"
         (is (str/includes? (slurp (fs/file qualified-gen))
                            "[clj-kondo.gen-macros.helpers :as helpers]"))))
