@@ -186,6 +186,12 @@
         (meta node)))
     node))
 
+(defn- earlier-hook-output?
+  "True for a node an earlier hook expansion generated: annotate sets
+  :derived-location only on hook output."
+  [node]
+  (:derived-location (meta node)))
+
 (defn annotate
   {:no-doc true}
   [node original-meta]
@@ -198,7 +204,8 @@
                    (if-let [m (meta node)]
                      (if-let [m (not-empty (select-keys m [:row :end-row :col :end-col]))]
                        (do (vreset! !!last-meta (assoc m :derived-location true))
-                           node #_(utils/mark-generate node))
+                           (cond-> node
+                             (earlier-hook-output? node) utils/mark-generate))
                        (-> (with-meta node
                              (merge @!!last-meta (meta node)))
                            utils/mark-generate))
@@ -209,7 +216,8 @@
                    (instance? clj_kondo.impl.rewrite_clj.node.protocols.Node node)
                    (let [m (meta node)]
                      (if (:row m)
-                       node
+                       (cond-> node
+                         (earlier-hook-output? node) utils/mark-generate)
                        (-> (with-meta node
                              (merge @!!last-meta m))
                            utils/mark-generate)))
