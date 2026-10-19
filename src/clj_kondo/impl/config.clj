@@ -261,7 +261,9 @@
   ([cfg] cfg)
   ([cfg* cfg]
    (if (empty? cfg) cfg*
-       (let [cfg* (cond-> cfg*
+       (let [min-version* (:min-clj-kondo-version cfg*)
+             min-version (:min-clj-kondo-version cfg)
+             cfg* (cond-> cfg*
                     (contains? (:linters cfg) :type-mismatch)
                     (update-in [:linters :type-mismatch :namespaces]
                                merge-type-mismatch-namespaces
@@ -270,7 +272,12 @@
                    (contains? (:linters cfg) :if)
                    (assoc-in [:linters :missing-else-branch] (:if (:linters cfg)))
                    (contains? (:linters cfg) :type-mismatch)
-                   (update-in [:linters :type-mismatch] dissoc :namespaces))]
+                   (update-in [:linters :type-mismatch] dissoc :namespaces)
+                   ;; the higher minimum version wins, unless cfg is ^:replace
+                   (and (string? min-version*) (string? min-version)
+                        (pos? (compare min-version* min-version))
+                        (not (:replace (meta cfg))))
+                   (dissoc :min-clj-kondo-version))]
          (deep-merge cfg* cfg))))
   ([cfg* cfg & cfgs]
    (reduce merge-config! cfg* (cons cfg cfgs))))
