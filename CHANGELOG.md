@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2945](https://github.com/clj-kondo/clj-kondo/issues/2945): bump datalog-parser to `org.replikativ/datalog-parser` 0.2.43: Datalevin and Datahike queries with `:order-by`, `:having`, `:timeout`, or `:limit` in a map query no longer report `:datalog-syntax` errors.
 - [#2947](https://github.com/clj-kondo/clj-kondo/issues/2947): config merging preserves the highest `:min-clj-kondo-version` value, unless the later config is marked `^:replace` ([@arimu1](https://github.com/arimu1))
 - [#2956](https://github.com/clj-kondo/clj-kondo/issues/2956): fix `:invalid-arity` false positive for a map, set or vector literal passed to the transducer arity of `map` or `mapcat`, e.g. `(map {})`.
 - [#2994](https://github.com/clj-kondo/clj-kondo/issues/2994): a call in a protocol method implementation or in `clojure.test/is` is arity checked against a namespace from the cache.
