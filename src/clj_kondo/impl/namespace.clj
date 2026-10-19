@@ -781,6 +781,12 @@
        :unresolved? true
        :unresolved-ns ns-sym})))
 
+(defn- warn-reflection-on-interop [ctx call? expr]
+  (if call?
+    (findings/warn-reflection ctx expr)
+    (when-let [ctor-expr (:constructor-expr ctx)]
+      (findings/warn-reflection ctx ctor-expr))))
+
 (defn resolve-name
   [ctx call? ns-name name-sym expr]
   (let [lang (:lang ctx)
@@ -842,7 +848,7 @@
                                (when cljs?
                                  (find (:referred-globals ns) ns-sym)))]
                   (reg-used-import! ctx name-sym ns-name package class-name expr {:call call?})
-                  (when call? (findings/warn-reflection ctx expr))
+                  (warn-reflection-on-interop ctx call? expr)
                   {:interop? true
                    :ns (symbol (str package "." class-name))
                    :name (symbol (name name-sym))})
@@ -850,7 +856,7 @@
                   (if (and (not (one-of ns* ["clojure.core"]))
                            (class-name? ns*))
                     (do (java/reg-class-usage! ctx ns* (name name-sym) (meta expr) (meta name-sym) {:call call?})
-                        (when call? (findings/warn-reflection ctx expr))
+                        (warn-reflection-on-interop ctx call? expr)
                         {:interop? true
                          :ns ns-sym
                          :name (symbol (name name-sym))})
@@ -914,7 +920,7 @@
                                      (find (:referred-globals ns) fs))))
                              (find (:imports ns) name-sym)))]
               (reg-used-import! ctx name-sym ns-name package name-sym* expr {:call call?})
-              (when call? (findings/warn-reflection ctx expr))
+              (warn-reflection-on-interop ctx call? expr)
               {:ns package
                :interop? true
                :name name-sym*})
@@ -944,7 +950,7 @@
                       (if (and (not referred-all-ns)
                                (class-name? name-sym))
                         (do (java/reg-class-usage! ctx (str name-sym) nil (meta expr))
-                            (when call? (findings/warn-reflection ctx expr))
+                            (warn-reflection-on-interop ctx call? expr)
                             {:interop? true})
                         {:ns (or referred-all-ns :clj-kondo/unknown-namespace)
                          :name (or (::original-name ctx) name-sym)
