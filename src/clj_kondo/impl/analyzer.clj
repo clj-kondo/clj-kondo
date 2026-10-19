@@ -2593,8 +2593,12 @@
                           (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
                                                             :level :warning
                                                             :message "Prefer a symbol to refer to the array class")))
-                        (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
-                                    (assoc c :protocol-fn protocol-fn?)))
+                        (let [analyzed (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
+                                                   (assoc c :protocol-fn protocol-fn?))]
+                          ;; calls in a method body skip analyze-expression*, register their namespaces here
+                          (when-let [nss (seq (keep #(when-not (:interop? %) (:resolved-ns %)) analyzed))]
+                            (swap! (:used-namespaces ctx) update (:base-lang ctx) into nss))
+                          analyzed))
                       meta
                       :arity)
 

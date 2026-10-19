@@ -344,3 +344,21 @@
        '({:level :warning
           :message "Protocol method foo is implemented with arity 2 but expects 1"})
        (lint! (fs/file tmp "impl.clj") "--cache" (str tmp))))))
+
+(deftest protocol-impl-calls-from-cache-test
+  (testing "a call in a protocol method impl is arity checked against a cached ns"
+    (fs/with-temp-dir [tmp {}]
+      (spit (fs/file tmp "other.clj")
+            "(ns other) (defn one-arg [a] a)")
+      (lint! (fs/file tmp "other.clj") "--cache" (str tmp))
+      (spit (fs/file tmp "impl.clj")
+            "(ns impl (:require [other :as o]))
+(defprotocol P (f [a]))
+(defrecord R [] P (f [_] (o/one-arg 1 2)))
+(reify P (f [_] (o/one-arg 1 2)))
+(extend-protocol P String (f [_] (o/one-arg 1 2)))")
+      (assert-submaps2
+       '({:row 3 :message "other/one-arg is called with 2 args but expects 1"}
+         {:row 4 :message "other/one-arg is called with 2 args but expects 1"}
+         {:row 5 :message "other/one-arg is called with 2 args but expects 1"})
+       (lint! (fs/file tmp "impl.clj") "--cache" (str tmp))))))
