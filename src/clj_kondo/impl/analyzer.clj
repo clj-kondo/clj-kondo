@@ -464,10 +464,10 @@
                                                  ctx (node->line (:filename ctx) child :syntax
                                                                  (str "Binding symbols can only appear before &, use keys after: " (:value child))))
                                                 :else
+                                                ;; after & the entry is the key itself, the
+                                                ;; :keys/:strs/:syms reading does not apply
                                                 (do (when (:k child)
-                                                      (usages/analyze-keyword ctx child opts))
-                                                    ;; after & the entry is the key itself, the
-                                                    ;; :keys/:strs/:syms reading does not apply
+                                                      (usages/analyze-keyword ctx child))
                                                     (let [mk (types/map-key ctx child)]
                                                       (when (types/known-map-key? mk)
                                                         (note-key! mk nil required-keys?)))))
