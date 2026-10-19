@@ -256,24 +256,14 @@
 (defn- merge-type-mismatch-namespaces [a b]
   (merge-with (partial merge-with merge-fn-types) a b))
 
-(defn- highest-min-clj-kondo-version
-  "When merging configs, preserve the strictest (highest) min-clj-kondo-version."
-  [merged cfg* cfg]
-  (if-let [highest (some->> [(:min-clj-kondo-version cfg*)
-                             (:min-clj-kondo-version cfg)]
-                            (remove nil?)
-                            seq
-                            sort
-                            last)]
-    (assoc merged :min-clj-kondo-version highest)
-    merged))
-
 (defn merge-config!
   ([])
   ([cfg] cfg)
   ([cfg* cfg]
    (if (empty? cfg) cfg*
-       (let [cfg* (cond-> cfg*
+       (let [min-version* (:min-clj-kondo-version cfg*)
+             min-version (:min-clj-kondo-version cfg)
+             cfg* (cond-> cfg*
                     (contains? (:linters cfg) :type-mismatch)
                     (update-in [:linters :type-mismatch :namespaces]
                                merge-type-mismatch-namespaces
@@ -282,10 +272,13 @@
                    (contains? (:linters cfg) :if)
                    (assoc-in [:linters :missing-else-branch] (:if (:linters cfg)))
                    (contains? (:linters cfg) :type-mismatch)
-                   (update-in [:linters :type-mismatch] dissoc :namespaces))]
-         (-> cfg*
-             (deep-merge cfg)
-             (highest-min-clj-kondo-version cfg* cfg)))))
+                   (update-in [:linters :type-mismatch] dissoc :namespaces)
+                   ;; the higher minimum version wins, unless cfg is ^:replace
+                   (and (string? min-version*) (string? min-version)
+                        (pos? (compare min-version* min-version))
+                        (not (:replace (meta cfg))))
+                   (dissoc :min-clj-kondo-version))]
+         (deep-merge cfg* cfg))))
   ([cfg* cfg & cfgs]
    (reduce merge-config! cfg* (cons cfg cfgs))))
 
