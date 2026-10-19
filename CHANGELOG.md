@@ -13,15 +13,15 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- NEW linter `:unknown-map-key`: warn on a keyword lookup of a key a map doesn't have, e.g. `(:hots (opts))` when `opts` returns `{:host "localhost"}`
-- Catch up with new Clojure 1.13 destructuring
-- [#2942](https://github.com/clj-kondo/clj-kondo/issues/2942): analysis: a keyword after `&` in 1.13 `:keys` destructuring is a plain keyword, e.g. `:foo` in `{:a/keys [& :foo]}`
-- `:type-mismatch`: type predicates narrow locals in `if-not`, `cond` and `and`, e.g. `(when (and (string? x) (pos? n)) (inc x))` warns
-- `:type-mismatch`: check the first argument of `merge` and `merge-with`, and each map of a union argument against a `:keys` spec
-- `:type-mismatch`: a keyword lookup on a map return that may be nil includes nil, e.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` warns
+- NEW linter `:unknown-map-key`: warn on a keyword lookup of a key not present in a map. E.g. `(:hots (opts))` will warn when `opts` returns `{:host "localhost"}`.
+- Catch up with Clojure 1.13.0-alpha9 destructuring
+- [#2942](https://github.com/clj-kondo/clj-kondo/issues/2942): Analysis: a keyword after `&` in 1.13 `:keys` destructuring is a plain keyword. E.g. `:foo` in `{:a/keys [& :foo]}`.
+- Type checker: a type predicate narrows the type of a local in `if-not`, `cond` and `and`. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
+- Type checker: check the first argument of `merge` and `merge-with`, and each map of a union argument against a `:keys` spec
+- Type checker: a keyword lookup on a map return that may be nil includes nil. E.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` will warn.
 - [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): fix `Condition always true` false positive for a `:keys` return spec with `:nilable true`
-- Fix `:type-mismatch` and `:constant-condition` false positives on maps from hook-generated code, e.g. `defenterprise` in metabase
-- [#2774](https://github.com/clj-kondo/clj-kondo/issues/2774): `:warn-on-reflection` also warns on Java constructor calls like `(Date. x)`
+- Type checker: fix `:type-mismatch` and `:constant-condition` false positives on maps from hook-generated code. E.g. `defenterprise` in metabase.
+- [#2774](https://github.com/clj-kondo/clj-kondo/issues/2774): `:warn-on-reflection` also warns on Java constructor calls. E.g. `(Date. x)` will warn.
 - [#2994](https://github.com/clj-kondo/clj-kondo/issues/2994): check arity of calls in protocol implementations and `clojure.test/is` against cached namespaces
 - [#2956](https://github.com/clj-kondo/clj-kondo/issues/2956): fix `:invalid-arity` false positive for `(map {})`
 - [#3005](https://github.com/clj-kondo/clj-kondo/issues/3005): fix unresolved symbol in a self-referencing `def` when `clojure.test` is referred with `:all`
