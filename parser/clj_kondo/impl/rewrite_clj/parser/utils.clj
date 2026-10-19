@@ -1,5 +1,5 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.parser.utils
-  (:require [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]))
+  (:require [edamame.impl.reader.types :as r]))
 
 (defn whitespace?
   "Check if a given character is a whitespace."

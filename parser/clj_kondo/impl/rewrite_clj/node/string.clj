@@ -1,7 +1,7 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.string
   (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]
-            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.edn :as edn]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [edamame.impl.reader.edn :as edn]))
 
 ;; ## Node
 

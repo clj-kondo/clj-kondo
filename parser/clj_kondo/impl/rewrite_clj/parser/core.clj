@@ -7,8 +7,8 @@
    [clj-kondo.impl.rewrite-clj.parser.token :refer [parse-token]]
    [clj-kondo.impl.rewrite-clj.parser.utils :as u]
    [clj-kondo.impl.rewrite-clj.reader :as reader]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as r]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [edamame.impl.reader.types :as r]))
 
 ;; ## Base Parser
 

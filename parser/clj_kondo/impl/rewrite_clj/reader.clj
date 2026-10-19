@@ -1,14 +1,12 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.reader
   (:refer-clojure :exclude [peek next])
-  (:require [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader
-             [edn :as edn]
-             [reader-types :as r]]
-            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.errors
-             :as err]
-            [clj-kondo.impl.rewrite-clj.parser
+  (:require [clj-kondo.impl.rewrite-clj.parser
              [utils :as u]]
             [clojure.java.io :as io]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [edamame.impl.reader.edn :as edn]
+            [edamame.impl.reader.errors :as err]
+            [edamame.impl.reader.types :as r])
   (:import [java.io PushbackReader]))
 
 (def ^:dynamic *reader-exceptions* nil)
@@ -212,14 +210,14 @@
 
 (defn string-reader
   "Create reader for strings."
-  ^clj_kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader_types.IndexingPushbackReader
+  ^edamame.impl.reader.types.IndexingPushbackReader
   [s]
   (r/indexing-push-back-reader
     (r/string-push-back-reader s)))
 
 (defn file-reader
   "Create reader for files."
-  ^clj_kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader_types.IndexingPushbackReader
+  ^edamame.impl.reader.types.IndexingPushbackReader
   [f]
   (-> (io/file f)
       (io/reader)

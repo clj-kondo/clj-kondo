@@ -9,7 +9,7 @@
         :url "https://github.com/clj-kondo/clj-kondo"}
   :license {:name "Eclipse Public License 1.0"
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
-  :source-paths ["src" "parser" "inlined"]
+  :source-paths ["src" "parser"]
   :dependencies [[org.clojure/clojure "1.11.4"]
                  [com.cognitect/transit-clj "1.0.333"]
                  [io.replikativ/datalog-parser "0.2.30"]
@@ -30,7 +30,7 @@
                                    [org.clojure/tools.deps "0.24.1523"]
                                    [nubank/matcher-combinators "3.9.1"]
                                    [io.github.borkdude/deflet "0.1.0"]]
-                    :source-paths ["src" "parser" "inlined" "extract"]}
+                    :source-paths ["src" "parser" "extract"]}
              :uberjar {:dependencies [[com.github.clj-easy/graal-build-time "1.0.6"]]
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.spec.skip-macros=true"]

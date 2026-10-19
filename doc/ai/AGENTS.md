@@ -75,7 +75,6 @@ Library-specific analysis: core.async, re-frame, spec, potemkin, datalog, compoj
 ### Source Paths
 - `src/` - Main source code
 - `parser/` - Custom parser (based on rewrite-clj)
-- `inlined/` - Inlined tools.reader code
 - `resources/` - Built-in configuration and cache
 
 ## Key Design Principles

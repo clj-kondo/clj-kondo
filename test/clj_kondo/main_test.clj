@@ -4174,7 +4174,7 @@ foo/"))
   (assert-submaps2
    '({:row 3, :col 1, :level :error, :message "Invalid unicode literal: \\u12345."}
      {:row 4, :col 1, :level :error, :message "Invalid unicode literal: \\uxyz."}
-     {:row 5, :col 1, :level :error, :message "Invalid octal escape sequence in a character literal:o12345. Octal escape sequences must be 3 or fewer digits."}
+     {:row 5, :col 1, :level :error, :message "Invalid octal escape sequence in a character literal: o12345. Octal escape sequences must be 3 or fewer digits."}
      {:row 6, :col 1, :level :error, :message "Octal escape sequence must be in range [0, 377]."}
      {:row 7, :col 1, :level :error, :message "Unsupported character: spcae."})
    (lint! (io/file "corpus/invalid_characters.clj")))

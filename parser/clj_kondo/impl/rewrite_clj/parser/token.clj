@@ -3,7 +3,7 @@
              [node :as node]
              [reader :as r]]
             [clj-kondo.impl.rewrite-clj.parser.utils :as u]
-            [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as rt]))
+            [edamame.impl.reader.types :as rt]))
 
 (set! *warn-on-reflection* true)
 

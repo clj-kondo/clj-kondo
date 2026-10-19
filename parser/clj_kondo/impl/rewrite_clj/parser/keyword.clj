@@ -3,12 +3,11 @@
    [clj-kondo.impl.rewrite-clj.node :as node]
    [clj-kondo.impl.rewrite-clj.parser.utils :as u]
    [clj-kondo.impl.rewrite-clj.reader :refer [*reader-exceptions*]]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.edn :as edn]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.commons :as rc]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.errors :as err]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.impl.utils :as ru]
-   [clj-kondo.impl.toolsreader.v1v2v2.clojure.tools.reader.reader-types :as rt]))
+   [edamame.impl.reader.commons :as rc]
+   [edamame.impl.reader.edn :as edn]
+   [edamame.impl.reader.errors :as err]
+   [edamame.impl.reader.types :as rt]
+   [edamame.impl.reader.utils :as ru]))
 
 (set! *warn-on-reflection* true)
 
