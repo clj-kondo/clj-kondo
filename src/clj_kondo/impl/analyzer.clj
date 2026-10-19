@@ -2593,12 +2593,8 @@
                           (findings/reg-finding! ctx (assoc (meta c) :filename (:filename ctx) :type :syntax
                                                             :level :warning
                                                             :message "Prefer a symbol to refer to the array class")))
-                        (let [analyzed (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
-                                                   (assoc c :protocol-fn protocol-fn?))]
-                          ;; calls in a method body skip analyze-expression*, register their namespaces here
-                          (when-let [nss (seq (keep #(when-not (:interop? %) (:resolved-ns %)) analyzed))]
-                            (swap! (:used-namespaces ctx) update (:base-lang ctx) into nss))
-                          analyzed))
+                        (analyze-fn (update ctx :callstack #(cons [nil :protocol-method] %))
+                                    (assoc c :protocol-fn protocol-fn?)))
                       meta
                       :arity)
 
@@ -4624,9 +4620,6 @@
               config (if extra-configs
                        (apply config/merge-config! config extra-configs)
                        config)]
-          ;; TODO: was is java.lang.System here!
-          (when-not (:interop? first-parsed)
-            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed)))
           (recur
            (assoc ctx :config config)
            ns

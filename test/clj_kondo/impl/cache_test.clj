@@ -196,6 +196,26 @@
        '({:row 1, :col 35, :level :warning, :message "Unresolved var: user/y"})
        output))))
 
+(deftest call-in-is-from-cache-test
+  (let [tmp-dir (System/getProperty "java.io.tmpdir")
+        test-cache-dir (.getPath (io/file tmp-dir "test-cache-dir"))
+        test-source-dir (io/file tmp-dir "test-source-dir")
+        other (io/file test-source-dir "other.clj")
+        foo (io/file test-source-dir "foo.clj")]
+    (remove-dir test-cache-dir)
+    (make-dirs test-cache-dir)
+    (remove-dir test-source-dir)
+    (make-dirs test-source-dir)
+    (io/copy "(ns other) (defn one-arg [a] a)"
+             other)
+    (io/copy "(ns foo (:require [clojure.test :refer [is]] [other :as o])) (is (o/one-arg 1 2))"
+             foo)
+    ;; populate cache
+    (lint! other "--cache" test-cache-dir)
+    (assert-submaps
+     '({:row 1 :message "other/one-arg is called with 2 args but expects 1"})
+     (lint! foo "--cache" test-cache-dir))))
+
 (deftest skip-write-test
   (is (cache/skip-write? (io/file ".clj-kondo") "clj-kondo.exports/foo/bar/my_code.clj"))
   (is (cache/skip-write? (io/file ".clj-kondo") ".clj-kondo/hooks/my_hook.clj"))
