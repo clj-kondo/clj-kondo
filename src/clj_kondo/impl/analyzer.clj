@@ -2858,9 +2858,16 @@
 
 (defn analyze-is
   [ctx expr lint-as?]
-  (let [[condition & body] (rest (:children expr))]
+  (let [[condition & body] (rest (:children expr))
+        ;; is dispatches on the unqualified head symbol of its condition
+        thrown? (when (identical? :list (tag condition))
+                  (let [f (first (:children condition))]
+                    (and (identical? :token (tag f))
+                         (one-of (:value f) [thrown? thrown-with-msg?]))))]
     (when condition
-      (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr)))))
+      (analyze-condition (cond-> ctx
+                           thrown? (assoc :thrown-args true))
+                         condition (not (or lint-as? (:clj-kondo.impl/generated expr)))))
     (analyze-children ctx body false)))
 
 (defn analyze-constructor
@@ -3835,7 +3842,12 @@
             arg-types (when (and resolved-namespace resolved-name
                                  (not (linter-disabled? ctx :type-mismatch)))
                         (atom []))
-            ctx (assoc ctx :arg-types arg-types)]
+            ctx (assoc ctx :arg-types arg-types)
+            ;; the args of thrown? in is, see analyze-is
+            ctx (if (:thrown-args ctx)
+                  (-> (dissoc ctx :thrown-args)
+                      (utils/ctx-with-linter-disabled :type-mismatch))
+                  ctx)]
         (when (:in-or-default? ctx)
           (findings/reg-finding!
            ctx

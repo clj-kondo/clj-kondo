@@ -11170,15 +11170,6 @@
   :langs (),
   :message "Missing else branch.",
   :row 474}
- {:end-row 485,
-  :type :type-mismatch,
-  :level :error,
-  :filename "cljs/pprint.cljs",
-  :col 33,
-  :end-col 41,
-  :langs (),
-  :message "Expected: string or nil, received: character.",
-  :row 485}
  {:end-row 552,
   :type :unused-private-var,
   :level :warning,

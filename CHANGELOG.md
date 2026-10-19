@@ -15,6 +15,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 - `:type-mismatch`: arg and return types for `clojure.string/split`, `split-lines`, `trim`, `triml`, `trimr`, `lower-case`, `upper-case` and `blank?`. E.g. `(str/split s ",")` will warn.
 - `:type-mismatch`: a CLJS char is a string. E.g. `(str/replace s \a "b")` no longer warns in CLJS.
+- `:type-mismatch`: no warning in the body of `thrown?` and `thrown-with-msg?` in `is`. E.g. `(is (thrown? Exception (str/trim nil)))` no longer warns.
 - `:type-mismatch`: fix the `clojure.set/map-invert` spec, which was registered under arity 2.
 - `:type-mismatch`: a type predicate test in `if-not` narrows the local in the else branch. E.g. `(if-not (string? x) 0 (inc x))` will warn.
 - `:type-mismatch`: a type predicate test in `cond` narrows the local in the expr of its clause. E.g. `(cond (string? x) (inc x))` will warn.

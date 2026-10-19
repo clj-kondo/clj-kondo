@@ -1770,17 +1770,6 @@
   :langs (),
   :message "Unresolved symbol: partial=",
   :row 293}
- {:end-row 125,
-  :type :type-mismatch,
-  :level :error,
-  :filename
-  "test-regression/checkouts/metabase/test/metabase/permissions/models/permissions_test.clj",
-  :col 11,
-  :end-col 95,
-  :langs (),
-  :message
-  "Expected: string or array or nil or set or ILookup or map, received: integer or nil.",
-  :row 125}
  {:end-row 63,
   :type :unresolved-symbol,
   :level :error,

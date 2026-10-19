@@ -753,6 +753,17 @@
     (testing "split takes a string separator in CLJS"
       (is (empty? (lint! "(require '[clojure.string :as str]) (str/split \"a,b\" \",\")" config
                          "--lang" "cljs"))))
+    (testing "a type mismatch in the body of thrown? does not warn"
+      (is (empty? (lint! "(require '[clojure.test :refer [is]] '[clojure.string :as str])
+(defn tokenize [q] (str/split q #\"\\s+\"))
+(is (thrown? Exception (str/trim nil)))
+(is (thrown-with-msg? Exception #\"x\" (tokenize nil)))" config))))
+    (testing "a type mismatch in thrown? outside of clojure.test/is warns"
+      (assert-submaps2
+       '({:row 1 :col 92 :message "Expected: char sequence, received: nil."})
+       (filter (comp #{:error} :level)
+               (lint! "(require '[clojure.string :as str]) (defn my-is [x] x) (my-is (thrown? Exception (str/trim nil)))"
+                      (assoc-in config [:linters :unresolved-symbol :level] :off)))))
     (testing "a char is a string in CLJS"
       (is (empty? (lint! "(require '[clojure.string :as str]) (str/upper-case \\a) (int \\a) (char \"a\")" config
                          "--lang" "cljs"))))))
