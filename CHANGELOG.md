@@ -13,6 +13,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#2942](https://github.com/clj-kondo/clj-kondo/issues/2942): analysis reports a keyword after `&` in `:keys`, `:syms` or `:strs` destructuring as a plain keyword, without `:keys-destructuring` or the namespace of the `:ns/keys` modifier. E.g. `:foo` in `{:a/keys [& :foo]}`.
 - [#2774](https://github.com/clj-kondo/clj-kondo/issues/2774): `:warn-on-reflection` with `:warn-only-on-interop` also warns on a Java constructor call such as `(Date. x)` or `(new Date x)`.
 - [#2945](https://github.com/clj-kondo/clj-kondo/issues/2945): bump datalog-parser to `org.replikativ/datalog-parser` 0.2.43: Datalevin and Datahike queries with `:order-by`, `:having`, `:timeout`, or `:limit` in a map query no longer report `:datalog-syntax` errors.
 - [#2947](https://github.com/clj-kondo/clj-kondo/issues/2947): config merging preserves the highest `:min-clj-kondo-version` value, unless the later config is marked `^:replace` ([@arimu1](https://github.com/arimu1))
