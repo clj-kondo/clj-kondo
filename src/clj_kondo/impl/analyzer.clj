@@ -1239,7 +1239,8 @@
       (gen-macros/record! ctx {:orig-ns ns-name
                                :expr expr
                                :alias-usages @gen-macros-acc
-                               :source-aliases (:aliases (:ns ctx))})
+                               :source-aliases (:aliases (:ns ctx))
+                               :source-required (:required (:ns ctx))})
       (when gen-macro?
         (let [fq-sym (symbol (str ns-name) (str fn-name))
               gen-ns (gen-macros/gen-ns-sym ns-name)
@@ -2093,7 +2094,8 @@
             (gen-macros/record! ctx {:orig-ns ns-name
                                      :expr expr
                                      :alias-usages @gen-macros-acc
-                                     :source-aliases (:aliases (:ns ctx))}))
+                                     :source-aliases (:aliases (:ns ctx))
+                                     :source-required (:required (:ns ctx))}))
         init-meta (some-> def-init meta)
         ;; :args and :ret is are the type related keys
         ;; together this is called :arities in reg-var!
