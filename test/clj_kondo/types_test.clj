@@ -2053,7 +2053,18 @@
        (lint! "(defn f [x] (if (nil? x) (subs x 1) x))" config)))
     (testing "legitimate use of a proven nil is not flagged"
       (is (empty? (lint! "(defn f [x] (when (nil? x) (count x)))" config)))
-      (is (empty? (lint! "(defn f [x] (if (nil? x) 0 (inc x)))" config))))))
+      (is (empty? (lint! "(defn f [x] (if (nil? x) 0 (inc x)))" config))))
+    (testing "some? removes nil from the tag of a local"
+      (is (empty? (lint! "(let [x nil] (when (some? x) (subs x 1)))" config)))
+      (assert-submaps2
+       '({:row 1 :col 57 :message "Expected: number, received: string."})
+       (lint! "(let [x (if (rand-int 2) nil \"s\")] (when (some? x) (inc x)))" config)))
+    (testing "a shadowed some? does not narrow"
+      (assert-submaps2
+       '({:row 1 :col 51 :message "Expected: string, received: nil."})
+       (lint! "(let [some? identity x nil] (when (some? x) (subs x 1)))" config)))
+    (testing "some-> does not thread a nil start"
+      (is (empty? (lint! "(some-> nil (subs 1))" config))))))
 
 (deftest parse-fn-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

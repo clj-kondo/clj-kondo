@@ -2739,7 +2739,8 @@
   "Returns the [sym tag] pairs that hold if `condition` is truthy, or nil if
   none.
   A pair comes from `(pred local)` with `pred` a known core type predicate and
-  `local` a binding.
+  `local` a binding, or from `(some? local)`, which removes nil from the tag of
+  `local`.
   An `and` condition yields the pairs of each of its args."
   [ctx condition]
   (when (identical? :list (tag condition))
@@ -2753,12 +2754,18 @@
                 pairs))
             (when (and arg (nil? more)
                        (identical? :token (tag arg)))
-              ;; predicate->tag and bindings lookups already constrain fsym and asym
-              (when-let [t (get types/predicate->tag fsym)]
-                (let [asym (:value arg)]
-                  (when (and (get (:bindings ctx) asym)
-                             ;; resolution is the costly check, so gate it behind the rest
-                             (namespace/core-symbol-in-scope? ctx fsym))
+              (let [asym (:value arg)]
+                ;; predicate->tag and bindings lookups already constrain fsym and asym
+                (when-let [t (if (or (= 'some? fsym)
+                                     ;; the some-> expansion calls it qualified
+                                     (one-of fsym [clojure.core/some? cljs.core/some?]))
+                               (when-let [b (get (:bindings ctx) asym)]
+                                 (types/without-nil (or (:narrowed-tag (meta b)) (:tag b))))
+                               (when (get (:bindings ctx) asym)
+                                 (get types/predicate->tag fsym)))]
+                  ;; resolution is the costly check, so gate it behind the rest
+                  (when (or (qualified-symbol? fsym)
+                            (namespace/core-symbol-in-scope? ctx fsym))
                     [[asym t]]))))))))))
 
 (defn narrow-bindings

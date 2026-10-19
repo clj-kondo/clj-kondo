@@ -172,6 +172,18 @@
     (clojure.core/keyword (name k))
     k))
 
+(defn without-nil
+  "Returns tag `t` without nil, :any if `t` is only nil, or nil if `t` does
+  not include nil."
+  [t]
+  (cond (identical? :nil t) :any
+        (keyword? t) (when (nilable? t) (unnil t))
+        ;; a union holds tags or {:tag ..} maps
+        (set? t) (let [nil-tag? #(identical? :nil (if (map? %) (:tag %) %))]
+                   (when (some nil-tag? t)
+                     (let [s (into #{} (remove nil-tag?) t)]
+                       (if (empty? s) :any s))))))
+
 (def labels
   {:nil "nil"
    :string "string"
