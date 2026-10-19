@@ -2735,31 +2735,78 @@
         children (next (:children expr))]
     (run! #(analyze-import-libspec ctx ns-name %) children)))
 
+(defn core-symbol
+  "Returns `sym` without its namespace if it names a clojure.core or cljs.core
+  var in ctx and satisfies `pred`, or nil otherwise.
+  `pred` is a predicate on the unqualified symbol."
+  [ctx sym pred]
+  (when (symbol? sym)
+    (if-let [ns (namespace sym)]
+      (when (or (= "clojure.core" ns) (= "cljs.core" ns))
+        (let [s (symbol (name sym))]
+          (when (pred s) s)))
+      (when (and (pred sym)
+                 ;; resolution is the costly check, so gate it behind the rest
+                 (namespace/core-symbol-in-scope? ctx sym))
+        sym))))
+
+(defn binding-tag [b]
+  (or (:narrowed-tag (meta b)) (:tag b)))
+
+(defn local-arg
+  "Returns [sym binding] if `condition` is a call with a single local arg, or
+  nil otherwise."
+  [ctx condition]
+  (let [[_ arg & more] (:children condition)]
+    (when (and arg (nil? more) (identical? :token (tag arg)))
+      (let [asym (:value arg)]
+        (when-let [b (get (:bindings ctx) asym)]
+          [asym b])))))
+
+(defn narrowing-pred? [sym]
+  (or (= 'some? sym) (contains? types/predicate->tag sym)))
+
 (defn narrowings-from-condition
   "Returns the [sym tag] pairs that hold if `condition` is truthy, or nil if
   none.
-  A pair comes from `(pred local)` with `pred` a known core type predicate and
-  `local` a binding.
+  A local removes nil from its own tag.
+  `(pred local)` narrows local to the type of a core type predicate, and
+  `(some? local)` removes nil from its tag.
   An `and` condition yields the pairs of each of its args."
   [ctx condition]
+  (case (tag condition)
+    :token (let [sym (:value condition)]
+             (when-let [b (and (symbol? sym) (get (:bindings ctx) sym))]
+               (when-let [t (types/without-nil (binding-tag b))]
+                 [[sym t]])))
+    :list (when-let [f (first (:children condition))]
+            (when (identical? :token (tag f))
+              (let [fsym (:value f)]
+                (if (core-symbol ctx fsym #{'and})
+                  (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))
+                  (when-let [[asym b] (local-arg ctx condition)]
+                    (when-let [pred (core-symbol ctx fsym narrowing-pred?)]
+                      (when-let [t (if (= 'some? pred)
+                                     (types/without-nil (binding-tag b))
+                                     (get types/predicate->tag pred))]
+                        [[asym t]])))))))
+    nil))
+
+(defn falsy-narrowings-from-condition
+  "Returns the [sym tag] pairs that hold if `condition` is falsy, or nil if
+  none.
+  `(nil? local)` removes nil from the tag of local.
+  `(some? local)` narrows local to nil."
+  [ctx condition]
   (when (identical? :list (tag condition))
-    (let [[f arg & more] (:children condition)]
-      (when (and f (identical? :token (tag f)))
-        (let [fsym (:value f)]
-          (if (= 'and fsym)
-            (when-let [pairs (seq (mapcat #(narrowings-from-condition ctx %) (rest (:children condition))))]
-              ;; resolution is the costly check, so gate it behind the rest
-              (when (namespace/core-symbol-in-scope? ctx 'and)
-                pairs))
-            (when (and arg (nil? more)
-                       (identical? :token (tag arg)))
-              ;; predicate->tag and bindings lookups already constrain fsym and asym
-              (when-let [t (get types/predicate->tag fsym)]
-                (let [asym (:value arg)]
-                  (when (and (get (:bindings ctx) asym)
-                             ;; resolution is the costly check, so gate it behind the rest
-                             (namespace/core-symbol-in-scope? ctx fsym))
-                    [[asym t]]))))))))))
+    (when-let [f (first (:children condition))]
+      (when (identical? :token (tag f))
+        (when-let [[asym b] (local-arg ctx condition)]
+          (case (core-symbol ctx (:value f) #{'nil? 'some?})
+            nil? (when-let [t (types/without-nil (binding-tag b))]
+                   [[asym t]])
+            some? [[asym :nil]]
+            nil))))))
 
 (defn narrow-bindings
   "Returns ctx with each binding `sym` of `narrowings` narrowed to its `tag` for
@@ -2829,14 +2876,17 @@
                    msg)))
     (let [[condition & clauses] args
           [then else] clauses
-          narrowings (when-not (linter-disabled? ctx :type-mismatch)
-                       (narrowings-from-condition ctx condition))]
+          narrow? (not (linter-disabled? ctx :type-mismatch))
+          narrowings (when narrow?
+                       (narrowings-from-condition ctx condition))
+          falsy (when (and narrow? else)
+                  (falsy-narrowings-from-condition ctx condition))]
       (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
       (let [branch-ctx (in-branch-ctx ctx)]
-        (if narrowings
+        (if (or narrowings falsy)
           (let [branch-ctx (assoc branch-ctx :len (count clauses))]
             (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-bindings narrowings)) then)
-                    (when else (analyze-expression** (assoc branch-ctx :idx 1) else))))
+                    (when else (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings falsy)) else))))
           (analyze-children branch-ctx clauses false))))))
 
 (defn analyze-if-not
@@ -2844,16 +2894,19 @@
   [ctx expr lint-as?]
   (let [[condition & clauses] (rest (:children expr))
         [then else] clauses
+        narrow? (and (<= (count clauses) 2)
+                     (not (linter-disabled? ctx :type-mismatch)))
         ;; the else branch runs when the condition is truthy
-        narrowings (when (and (= 2 (count clauses))
-                              (not (linter-disabled? ctx :type-mismatch)))
-                     (narrowings-from-condition ctx condition))]
+        narrowings (when (and narrow? else)
+                     (narrowings-from-condition ctx condition))
+        falsy (when narrow?
+                (falsy-narrowings-from-condition ctx condition))]
     (analyze-condition ctx condition (not (or lint-as? (:clj-kondo.impl/generated expr))))
     (let [branch-ctx (in-branch-ctx ctx)]
-      (if narrowings
-        (let [branch-ctx (assoc branch-ctx :len 2)]
-          (concat (analyze-expression** (assoc branch-ctx :idx 0) then)
-                  (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings narrowings)) else)))
+      (if (or narrowings falsy)
+        (let [branch-ctx (assoc branch-ctx :len (count clauses))]
+          (concat (analyze-expression** (-> branch-ctx (assoc :idx 0) (narrow-bindings falsy)) then)
+                  (when else (analyze-expression** (-> branch-ctx (assoc :idx 1) (narrow-bindings narrowings)) else))))
         (analyze-children branch-ctx clauses false)))))
 
 (defn analyze-is
@@ -2918,10 +2971,11 @@
   (let [children (next (:children expr))
         condition (first children)
         body (next children)
-        ;; when-not negates the condition, so narrow only for when
-        narrowings (when (and (= 'when op)
-                              (not (linter-disabled? ctx :type-mismatch)))
-                     (narrowings-from-condition ctx condition))]
+        ;; when-not negates the condition
+        narrowings (when-not (linter-disabled? ctx :type-mismatch)
+                     (if (= 'when op)
+                       (narrowings-from-condition ctx condition)
+                       (falsy-narrowings-from-condition ctx condition)))]
     ;; analyze-condition marks the condition node with :condition true, which
     ;; analyze-do / unused-value consult to avoid treating the test as an
     ;; implicit-do body of when/when-not.

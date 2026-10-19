@@ -2017,7 +2017,32 @@
        (lint! "(defn f [x] (if (nil? x) (subs x 1) x))" config)))
     (testing "legitimate use of a proven nil is not flagged"
       (is (empty? (lint! "(defn f [x] (when (nil? x) (count x)))" config)))
-      (is (empty? (lint! "(defn f [x] (if (nil? x) 0 (inc x)))" config))))))
+      (is (empty? (lint! "(defn f [x] (if (nil? x) 0 (inc x)))" config))))
+    (testing "a nil check removes nil from the tag of a local"
+      (doseq [[s col] [["(let [x (if (rand-int 2) nil \"s\")] (when (some? x) (inc x)))" 57]
+                       ["(let [x (if (rand-int 2) nil \"s\")] (when x (inc x)))" 49]
+                       ["(let [x (if (rand-int 2) nil \"s\")] (if (nil? x) 0 (inc x)))" 56]
+                       ["(let [x (if (rand-int 2) nil \"s\")] (if-not (nil? x) (inc x) 0))" 58]
+                       ["(let [x (if (rand-int 2) nil \"s\")] (when-not (nil? x) (inc x)))" 60]]]
+        (assert-submaps2
+         [{:row 1 :col col :message "Expected: number, received: string."}]
+         (lint! s config))))
+    (testing "a nil check excludes a nil local from type checks"
+      (doseq [s ["(let [x nil] (when (some? x) (subs x 1)))"
+                 "(let [x nil] (when (clojure.core/some? x) (subs x 1)))"
+                 "(let [x nil] (when x (subs x 1)))"
+                 "(let [x nil] (and x (subs x 1)))"
+                 "(some-> nil (subs 1))"]]
+        (is (empty? (remove (comp #{:constant-condition} :type) (lint! s config))) s)))
+    (testing "some? in the else branch narrows to nil"
+      (assert-submaps2
+       '({:row 1 :col 57 :message "Expected: number, received: nil."})
+       (remove (comp #{:constant-condition} :type)
+               (lint! "(let [x (if (rand-int 2) nil \"s\")] (if (some? x) 0 (inc x)))" config))))
+    (testing "a shadowed some? does not narrow"
+      (assert-submaps2
+       '({:row 1 :col 51 :message "Expected: string, received: nil."})
+       (lint! "(let [some? identity x nil] (when (some? x) (subs x 1)))" config)))))
 
 (deftest parse-fn-test
   (let [config {:linters {:type-mismatch {:level :error}}}]

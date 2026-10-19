@@ -13,6 +13,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:type-mismatch`: a nil check removes nil from the type of a local, with `(some? x)` or `x` in the then branch and `(nil? x)` in the else branch. E.g. `(let [x nil] (when x (subs x 1)))` no longer warns.
+- `:type-mismatch`: a type predicate qualified with `clojure.core` narrows like an unqualified one. E.g. `(when (clojure.core/string? x) (inc x))` will warn.
 - `:type-mismatch`: a type predicate test in `if-not` narrows the local in the else branch. E.g. `(if-not (string? x) 0 (inc x))` will warn.
 - `:type-mismatch`: a type predicate test in `cond` narrows the local in the expr of its clause. E.g. `(cond (string? x) (inc x))` will warn.
 - `:type-mismatch`: an `and` condition of `if` or `when` narrows the locals of its type predicates in the then branch. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
