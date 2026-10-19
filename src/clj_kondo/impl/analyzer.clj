@@ -3173,7 +3173,7 @@
                        (node->line filename f
                                    :invalid-arity
                                    (linters/arity-error nil fn-name arg-count fixed-arities varargs-min-arity)))))))))
-          (one-of t [:map :set :vector])
+          (and arg-count (one-of t [:map :set :vector]))
           (let [expected (case t
                            :map #{1 2}
                            (:set :vector) #{1})]

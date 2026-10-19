@@ -1845,6 +1845,8 @@ foo/foo ;; this does use the private var
   (assert-submaps2
    '({:file "<stdin>", :row 1, :col 6, :level :error, :message "Map is called with 3 args but expects 1 or 2"})
    (lint! "(map {} [1 2 3] [1 2 3] [1 2 3])"))
+  (testing "(map {}), (map #{}), (map []) and (mapcat {}) report no :invalid-arity"
+    (is (empty? (lint! "(map {}) (map #{}) (map []) (mapcat {})"))))
   (assert-submaps2
    '({:file "<stdin>",
       :row 1,
