@@ -27,6 +27,40 @@
                                           '{:linters {:unresolved-namespace {:exclude #{baz}}}})
                            :linters :unresolved-namespace :exclude))))
 
+(deftest merge-min-clj-kondo-version-test
+  (testing "preserves highest min-clj-kondo-version when later config is lower"
+    (is (= "2025.02.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.02.01"}
+                           {:min-clj-kondo-version "2025.01.01"})))))
+  (testing "preserves highest min-clj-kondo-version when later config is higher"
+    (is (= "2025.02.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.01.01"}
+                           {:min-clj-kondo-version "2025.02.01"})))))
+  (testing "preserves min-clj-kondo-version when only one config defines it"
+    (is (= "2025.01.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.01.01"} {})))))
+  (testing "highest min-clj-kondo-version across multiple merged configs"
+    (is (= "2025.03.01"
+           (:min-clj-kondo-version
+            (merge-config! {:min-clj-kondo-version "2025.01.01"}
+                           {:min-clj-kondo-version "2025.03.01"}
+                           {:min-clj-kondo-version "2025.02.01"})))))
+  (testing "a lower :min-clj-kondo-version keeps the other keys of the config"
+    (is (= {:min-clj-kondo-version "2025.02.01" :linters {:a 1 :b 2}}
+           (merge-config! {:min-clj-kondo-version "2025.02.01" :linters {:a 1}}
+                          {:min-clj-kondo-version "2025.01.01" :linters {:b 2}}))))
+  (testing "^:replace config sets a lower :min-clj-kondo-version"
+    (is (= {:min-clj-kondo-version "2025.01.01"}
+           (merge-config! {:min-clj-kondo-version "2025.02.01"}
+                          ^:replace {:min-clj-kondo-version "2025.01.01"}))))
+  (testing "^:replace config without :min-clj-kondo-version drops it"
+    (is (= {:linters {:a 1}}
+           (merge-config! {:min-clj-kondo-version "2025.02.01"}
+                          ^:replace {:linters {:a 1}})))))
+
 (deftest merge-config!-test
   (testing "type-mismatch :arities are overwritten instead of merged"
     (is (= {:linters {:type-mismatch {:namespaces '{my-ns {shared   {:arities {1 {:args [:str] :ret :str}
