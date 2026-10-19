@@ -13,33 +13,26 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#2942](https://github.com/clj-kondo/clj-kondo/issues/2942): analysis reports a keyword after `&` in `:keys`, `:syms` or `:strs` destructuring as a plain keyword, without `:keys-destructuring` or the namespace of the `:ns/keys` modifier. E.g. `:foo` in `{:a/keys [& :foo]}`.
-- [#2774](https://github.com/clj-kondo/clj-kondo/issues/2774): `:warn-on-reflection` with `:warn-only-on-interop` also warns on a Java constructor call such as `(Date. x)` or `(new Date x)`.
-- [#2945](https://github.com/clj-kondo/clj-kondo/issues/2945): bump datalog-parser to `org.replikativ/datalog-parser` 0.2.43: Datalevin and Datahike queries with `:order-by`, `:having`, `:timeout`, or `:limit` in a map query no longer report `:datalog-syntax` errors.
-- [#2947](https://github.com/clj-kondo/clj-kondo/issues/2947): config merging preserves the highest `:min-clj-kondo-version` value, unless the later config is marked `^:replace` ([@arimu1](https://github.com/arimu1))
-- [#2956](https://github.com/clj-kondo/clj-kondo/issues/2956): fix `:invalid-arity` false positive for a map, set or vector literal passed to the transducer arity of `map` or `mapcat`, e.g. `(map {})`.
-- [#2994](https://github.com/clj-kondo/clj-kondo/issues/2994): a call in a protocol method implementation or in `clojure.test/is` is arity checked against a namespace from the cache.
-- [#3005](https://github.com/clj-kondo/clj-kondo/issues/3005): self-referencing vars in `def` initializers are no longer reported as unresolved when `clojure.test` is required with `:refer :all`.
-- [#3006](https://github.com/clj-kondo/clj-kondo/issues/3006): a hook extracted with `:clj-kondo/macroexpand-hook` resolves a referred var in syntax-quote to the var's own namespace, so the expansion reaches its `analyze-call` hook ([@imrekoszo](https://github.com/imrekoszo)).
-- [#3014](https://github.com/clj-kondo/clj-kondo/issues/3014): a hook extracted with `:clj-kondo/macroexpand-hook` requires the generated namespace of a marked helper after one run, also when the helper's namespace is linted after the macro's.
-- [#3015](https://github.com/clj-kondo/clj-kondo/issues/3015): a hook extracted with `:clj-kondo/macroexpand-hook` requires a namespace that its source requires without an alias, when it calls a var from it at expansion time.
-- [#3016](https://github.com/clj-kondo/clj-kondo/issues/3016): fix `Unresolved namespace` false positive when a macroexpand hook expands to a call of another macroexpand hook
-- `:type-mismatch`: a type predicate test in `if-not` narrows the local in the else branch. E.g. `(if-not (string? x) 0 (inc x))` will warn.
-- `:type-mismatch`: a type predicate test in `cond` narrows the local in the expr of its clause. E.g. `(cond (string? x) (inc x))` will warn.
-- `:type-mismatch`: an `and` condition of `if` or `when` narrows the locals of its type predicates in the then branch. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
-- `:type-mismatch`: a type predicate in `and` narrows the local in the args after it. E.g. `(and (string? x) (inc x))` will warn.
-- New linter `:unknown-map-key`: warn on a keyword lookup of a key outside the known keys of a map. E.g. `(defn opts [] {:host "localhost"}) (:hots (opts))` will warn.
-- `:type-mismatch`, `:constant-condition`: a missing key proves nothing in a map bound by a hook-generated `let`, or returned by a hook-generated `defn`. E.g. a `defenterprise` stub returning `{}` in metabase no longer warns.
-- [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): `:constant-condition`: a `:keys` return spec with `:nilable true` may be nil and a key outside `:req` may be present. E.g. `(if-let [x (find-thing id)] ...)` no longer warns with `Condition always true`.
-- `:type-mismatch`, `:constant-condition`: a keyword lookup on a map return that may be nil includes nil. E.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` will warn.
-- `:type-mismatch`: a `:keys` arg spec checks each map of a union argument. E.g. `(g (if x {:id 1} {:id 2}))` with `g` taking `{:op :keys :req {:id :string}}` will warn.
-- `:type-mismatch`: `merge` and `merge-with` require a map or nil as first map argument. E.g. `(merge [1 2] [3 4])` will warn.
-- Catch up with new 1.13 destructuring.
-- [#2998](https://github.com/clj-kondo/clj-kondo/issues/2998): bump ASM to 9.10.1 to analyze Java 25 class files. An unreadable class file in a JAR no longer prevents analysis of the other entries ([@skylightis666](https://github.com/skylightis666)).
-- [#2996](https://github.com/clj-kondo/clj-kondo/issues/2996): native binary: Java member analysis no longer fails on a `.java` source file with an enum ([@skovati](https://github.com/skovati)).
-- Hooks: a qualified symbol in hook output resolves without a require in the calling namespace. E.g. a hook that returns `(my.library/foo ...)` now triggers the hook for `my.library/foo` without requiring `my.library`.
-- Bump graal-build-time to 1.0.6 to fix startup crash in binaries built with GraalVM 25.1+.
-- Bump edamame to 1.6.43: a function literal inside a syntax-quoted macro extracted with `:clj-kondo/macroexpand-hook` no longer fails with `unsupported binding form ns/%1`.
+- NEW linter `:unknown-map-key`: warn on a keyword lookup of a key a map doesn't have, e.g. `(:hots (opts))` when `opts` returns `{:host "localhost"}`
+- Catch up with new Clojure 1.13 destructuring
+- [#2942](https://github.com/clj-kondo/clj-kondo/issues/2942): analysis: a keyword after `&` in 1.13 `:keys` destructuring is a plain keyword, e.g. `:foo` in `{:a/keys [& :foo]}`
+- `:type-mismatch`: type predicates narrow locals in `if-not`, `cond` and `and`, e.g. `(when (and (string? x) (pos? n)) (inc x))` warns
+- `:type-mismatch`: check the first argument of `merge` and `merge-with`, and each map of a union argument against a `:keys` spec
+- `:type-mismatch`: a keyword lookup on a map return that may be nil includes nil, e.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` warns
+- [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): fix `Condition always true` false positive for a `:keys` return spec with `:nilable true`
+- Fix `:type-mismatch` and `:constant-condition` false positives on maps from hook-generated code, e.g. `defenterprise` in metabase
+- [#2774](https://github.com/clj-kondo/clj-kondo/issues/2774): `:warn-on-reflection` also warns on Java constructor calls like `(Date. x)`
+- [#2994](https://github.com/clj-kondo/clj-kondo/issues/2994): check arity of calls in protocol implementations and `clojure.test/is` against cached namespaces
+- [#2956](https://github.com/clj-kondo/clj-kondo/issues/2956): fix `:invalid-arity` false positive for `(map {})`
+- [#3005](https://github.com/clj-kondo/clj-kondo/issues/3005): fix unresolved symbol in a self-referencing `def` when `clojure.test` is referred with `:all`
+- [#2945](https://github.com/clj-kondo/clj-kondo/issues/2945): support `:order-by`, `:having` and `:timeout` in Datalevin and Datahike queries
+- [#2947](https://github.com/clj-kondo/clj-kondo/issues/2947): config merging keeps the highest `:min-clj-kondo-version` ([@arimu1](https://github.com/arimu1))
+- Hooks: a qualified symbol in hook output no longer needs a require in the calling namespace
+- [#3006](https://github.com/clj-kondo/clj-kondo/issues/3006), [#3014](https://github.com/clj-kondo/clj-kondo/issues/3014), [#3015](https://github.com/clj-kondo/clj-kondo/issues/3015), [#3016](https://github.com/clj-kondo/clj-kondo/issues/3016): fixes for hooks generated with `:clj-kondo/macroexpand-hook`: referred macros, helper namespaces, requires without alias and nested hooks ([@imrekoszo](https://github.com/imrekoszo))
+- [#2998](https://github.com/clj-kondo/clj-kondo/issues/2998): analyze Java 25 class files ([@skylightis666](https://github.com/skylightis666))
+- [#2996](https://github.com/clj-kondo/clj-kondo/issues/2996): fix Java member analysis of a `.java` file with an enum in the native binary ([@skovati](https://github.com/skovati))
+- [#2948](https://github.com/clj-kondo/clj-kondo/issues/2948): fix startup crash of binaries built with GraalVM 25.1+
+- Bump edamame to 1.6.43
 
 ## 2026.08.04
 
