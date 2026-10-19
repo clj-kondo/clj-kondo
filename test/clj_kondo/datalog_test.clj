@@ -33,6 +33,13 @@
       (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
                           (q '[:find ?a :where [?a :foo _]] 42)"
                          {:linters {:datalog-syntax {:level :error}}})))
+      (testing ":order-by, :having, :timeout, :limit and :offset report no :datalog-syntax"
+        (is (empty? (lint! "(ns user (:require [datalevin.core :refer [q]]))
+                          (q '[:find ?e ?score :where [?e :item/score ?score] :order-by [?score :desc] :limit 5] db)
+                          (q '{:find [?e] :where [[?e :age 30]] :limit 5 :offset 2} db)
+                          (q '[:find ?e (count ?a) :where [?e :foo ?a] :having [(> (count ?a) 1)] :timeout 1000] db)"
+                           {:linters {:datalog-syntax {:level :error}
+                                      :unresolved-symbol {:level :off}}}))))
       (testing "absence of argument doesn't make linter throw"
         (is (empty? (lint! "(ns user (:require [datahike.api :refer [q]]))
                           (q) (q nil)"
