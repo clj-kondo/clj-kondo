@@ -4620,9 +4620,6 @@
               config (if extra-configs
                        (apply config/merge-config! config extra-configs)
                        config)]
-          ;; TODO: was is java.lang.System here!
-          (when-not (:interop? first-parsed)
-            (swap! (:used-namespaces ctx) update (:base-lang ctx) conj (:resolved-ns first-parsed)))
           (recur
            (assoc ctx :config config)
            ns

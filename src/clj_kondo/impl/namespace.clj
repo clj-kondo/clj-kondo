@@ -366,6 +366,8 @@
   [{:keys [base-lang lang namespaces] :as ctx} ns-sym required-ns-sym]
   (swap! namespaces update-in [base-lang lang ns-sym :used-namespaces]
          conj required-ns-sym)
+  ;; loads the namespace from the cache
+  (swap! (:used-namespaces ctx) update base-lang conj required-ns-sym)
   ;; Capture per-usage kind for the macros-from-source feature so the
   ;; generated hook file can decide between :as and :as-alias on the
   ;; same evidence the analyzer already collects.
