@@ -159,7 +159,7 @@
               :redundant-str-call {:level :info}
               :is-message-not-string {:level :info}
               :redundant-primitive-coercion {:level :info}
-              :redundant-boolean-cast {:level :info}
+              :redundant-boolean-call {:level :info}
               :redundant-format {:level :info}
               :warn-on-reflection {:level :off
                                    :warn-only-on-interop true}

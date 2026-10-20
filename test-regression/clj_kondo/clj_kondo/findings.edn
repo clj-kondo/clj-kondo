@@ -2084,7 +2084,7 @@
   :message "unused binding macro",
   :row 4027}
  {:end-row 4041,
-  :type :redundant-boolean-cast,
+  :type :redundant-boolean-call,
   :level :info,
   :lang :clj,
   :filename "cljs/analyzer.cljc",
@@ -16169,7 +16169,7 @@
   :message "Unused value",
   :row 393}
  {:end-row 399,
-  :type :redundant-boolean-cast,
+  :type :redundant-boolean-call,
   :level :info,
   :lang :clj,
   :filename "cljs/util.cljc",

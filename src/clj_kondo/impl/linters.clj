@@ -176,10 +176,10 @@
          (node->line (:filename ctx) keyvec :single-key-in
                      (format "%s with single key" called-name)))))))
 
-(defn redundant-boolean-cast? [call called-fn]
+(defn redundant-boolean-call? [call called-fn]
   (and (= 'boolean (:name called-fn))
        (utils/one-of (:ns called-fn) [clojure.core cljs.core])
-       (not (identical? :off (-> call :config :linters :redundant-boolean-cast :level)))
+       (not (identical? :off (-> call :config :linters :redundant-boolean-call :level)))
        (not (:clj-kondo.impl/generated (:expr call)))
        (or (:truthy-test (:expr call))
            (case (second (:callstack call))
@@ -229,10 +229,10 @@
                                (if (= "cljs.core" cns) "clojure.core" cns))
                              (str called-name)))
       (lint-missing-test-assertion ctx call))
-    (when (redundant-boolean-cast? call called-fn)
+    (when (redundant-boolean-call? call called-fn)
       (findings/reg-finding! ctx
                              (assoc (utils/location call)
-                                    :type :redundant-boolean-cast
+                                    :type :redundant-boolean-call
                                     :message "Redundant boolean call in condition")))))
 
 (defn- lint-is-message-not-string! [ctx call called-fn tags]
@@ -281,7 +281,7 @@
                (= 1 (count tags))
                (identical? expected-type (first tags))
                (not (:clj-kondo.impl/generated (:expr call)))
-               (not (redundant-boolean-cast? call called-fn)))
+               (not (redundant-boolean-call? call called-fn)))
           (findings/reg-finding! ctx
                                  (assoc (utils/location call)
                                         :type :redundant-primitive-coercion

@@ -1165,7 +1165,7 @@
   :message "Var *warn-on-reflection* is not set in this namespace.",
   :row 63}
  {:end-row 50,
-  :type :redundant-boolean-cast,
+  :type :redundant-boolean-call,
   :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/timeline/api/timeline_event.clj",
@@ -1175,7 +1175,7 @@
   :message "Redundant boolean call in condition",
   :row 50}
  {:end-row 51,
-  :type :redundant-boolean-cast,
+  :type :redundant-boolean-call,
   :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/timeline/api/timeline_event.clj",
@@ -1185,7 +1185,7 @@
   :message "Redundant boolean call in condition",
   :row 51}
  {:end-row 77,
-  :type :redundant-boolean-cast,
+  :type :redundant-boolean-call,
   :level :info,
   :filename
   "test-regression/checkouts/metabase/src/metabase/timeline/api/timeline_event.clj",

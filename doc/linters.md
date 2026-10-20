@@ -102,7 +102,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Redundant let binding](#redundant-let-binding)
     - [Redundant str call](#redundant-str-call)
     - [Redundant primitive coercion](#redundant-primitive-coercion)
-    - [Redundant boolean cast](#redundant-boolean-cast)
+    - [Redundant boolean call](#redundant-boolean-call)
     - [Refer](#refer)
     - [Refer clojure exclude unresolved var](#unresolved-excluded-var)
     - [Refer all](#refer-all)
@@ -1918,14 +1918,16 @@ will not detect redundant coercions.
 - `int` and `float` are not checked. An integer-typed expression can still be a `Long`,
   so `(int x)` is not redundant, and `float?` is also true for doubles.
 
-### Redundant boolean cast
+### Redundant boolean call
 
-*Keyword*: `:redundant-boolean-cast`
+*Keyword*: `:redundant-boolean-call`
 
 *Description:* warn on a `boolean` call in a condition. The condition only checks
 truthiness, so `(boolean x)` behaves the same as `x`. Conditions are the test of
 `if`, `if-not`, `when`, `when-not`, `cond`, `cond->`, `cond->>` and `is`, and the
-argument of `not`. The binding of `if-let` and `when-let` is not checked.
+argument of `not`. The binding of `if-let` and `when-let` is not checked. A
+`boolean` call on an expression of type boolean is reported by
+[`:redundant-primitive-coercion`](#redundant-primitive-coercion).
 
 *Default level:* `:info`.
 

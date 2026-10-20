@@ -149,7 +149,7 @@
         
         (is (empty? (lint! "#_:clj-kondo/ignore (double (double 1))" cfg)))))))
 
-(deftest redundant-boolean-cast-test
+(deftest redundant-boolean-call-test
   (let [msg "Redundant boolean call in condition"]
     (testing "boolean in a condition warns"
       (assert-submaps2
@@ -182,7 +182,7 @@
                                     (cond x (boolean x) :else (boolean x))])"))))
     (testing ":off disables the warning"
       (is (empty? (lint! "(if (boolean 1) 1 2)"
-                         {:linters {:redundant-boolean-cast {:level :off}}}))))))
+                         {:linters {:redundant-boolean-call {:level :off}}}))))))
 
 (deftest redundant-format-test
   (testing "Arguments provided to a format string with no placeholders:

@@ -14,7 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- NEW linter `:redundant-boolean-cast`: warn on a `boolean` call in a condition. E.g. `(if (boolean x) 1 2)` will warn.
+- NEW linter `:redundant-boolean-call`: warn on a `boolean` call in a condition. E.g. `(if (boolean x) 1 2)` will warn.
 
 ## 2026.10.20
 
