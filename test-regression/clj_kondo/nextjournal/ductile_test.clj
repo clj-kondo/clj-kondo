@@ -28,7 +28,7 @@
 
       (p/shell {:dir dir} "git fetch --depth 1 origin" sha)
       (p/shell {:dir dir} "git fetch  --depth 1 origin" sha)
-      (p/shell {:dir dir} "git checkout" sha "src" "resources" "dev" "test" "bb" ".clj-kondo" "deps.edn")
+      (p/shell {:dir dir} "git checkout --no-overlay" sha "src" "resources" "dev" "test" "bb" ".clj-kondo" "deps.edn")
       (fs/delete-tree (fs/file config-dir ".cache"))
       (let [cp (-> (p/shell {:dir dir :out :string} "clojure -Spath") :out str/trim)]
         (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
