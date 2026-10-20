@@ -15,7 +15,7 @@
           _ (fs/create-dirs test-regression-checkouts)
           dir (fs/file test-regression-checkouts "ductile")
           config-dir (fs/file dir ".clj-kondo")
-          sha "d38de13d75dde8c4182b2b234cc2c52caec4d296"
+          sha "94a1f664e71956112c2c164e570db80058b48fbe"
           url (str "https://x-access-token:"
                    (System/getenv "GITHUB_DUCTILE_PAT")
                    "@github.com/nextjournal/ductile")]
@@ -28,7 +28,7 @@
 
       (p/shell {:dir dir} "git fetch --depth 1 origin" sha)
       (p/shell {:dir dir} "git fetch  --depth 1 origin" sha)
-      (p/shell {:dir dir} "git checkout" sha "src" "resources" "dev" "test" "bb" ".clj-kondo" "deps.edn")
+      (p/shell {:dir dir} "git checkout --no-overlay" sha "src" "resources" "dev" "test" "bb" ".clj-kondo" "deps.edn")
       (fs/delete-tree (fs/file config-dir ".cache"))
       (let [cp (-> (p/shell {:dir dir :out :string} "clojure -Spath") :out str/trim)]
         (clj-kondo/run! {:config-dir config-dir ;; important to pass this to set the right dir for copy-configs!
