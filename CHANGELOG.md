@@ -11,7 +11,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
-## Unreleased
+## 2026.10.20
 
 - NEW linter `:unknown-map-key`: warn on a keyword lookup of a key not present in a map. E.g. `(:hots (opts))` will warn when `opts` returns `{:host "localhost"}`.
 - Catch up with Clojure 1.13.0-alpha9 destructuring
