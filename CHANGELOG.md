@@ -17,7 +17,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 - Catch up with Clojure 1.13.0-alpha9 destructuring
 - [#2942](https://github.com/clj-kondo/clj-kondo/issues/2942): Analysis: a keyword after `&` in 1.13 `:keys` destructuring is a plain keyword. E.g. `:foo` in `{:a/keys [& :foo]}`.
 - Type checker: a type predicate narrows the type of a local in `if-not`, `cond` and `and`. E.g. `(when (and (string? x) (pos? n)) (inc x))` will warn.
-- Type checker: check the first argument of `merge` and `merge-with`, and each map of a union argument against a `:keys` spec
+- Type checker: `merge` and `merge-with` require a map or `nil` as first map argument. E.g. `(merge [1 2] [3 4])` will warn.
+- Type checker: a `:keys` arg spec checks each map of a union argument. E.g. `(g (if x {:id 1} {:id 2}))` will warn when `g` requires key `:id` to be a string.
 - Type checker: a keyword lookup on a map return that may be nil includes nil. E.g. `(inc (:a (f x)))` with `(defn f [x] (when x {:a "s"}))` will warn.
 - [#3002](https://github.com/clj-kondo/clj-kondo/issues/3002): fix `Condition always true` false positive for a `:keys` return spec with `:nilable true`
 - Type checker: fix `:type-mismatch` and `:constant-condition` false positives on maps from hook-generated code. E.g. `defenterprise` in metabase.
@@ -32,7 +33,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 - [#2998](https://github.com/clj-kondo/clj-kondo/issues/2998): analyze Java 25 class files ([@skylightis666](https://github.com/skylightis666))
 - [#2996](https://github.com/clj-kondo/clj-kondo/issues/2996): fix Java member analysis of a `.java` file with an enum in the native binary ([@skovati](https://github.com/skovati))
 - [#2948](https://github.com/clj-kondo/clj-kondo/issues/2948): fix startup crash of binaries built with GraalVM 25.1+
-- Bump edamame to 1.6.43
+- Bump SCI to 0.15.59
 
 ## 2026.08.04
 

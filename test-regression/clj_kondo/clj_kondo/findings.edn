@@ -29846,7 +29846,7 @@
   :langs (:cljs),
   :message
   "Var rethrow-with-location-of-node is referred but used via alias: utils",
-  :row 1947}
+  :row 2017}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
@@ -29856,7 +29856,7 @@
   :langs (:clj :cljs),
   :message
   "Var rethrow-with-location-of-node is referred but used via alias: utils",
-  :row 2148}
+  :row 2226}
  {:end-row 12,
   :type :unused-import,
   :level :warning,
@@ -29930,7 +29930,7 @@
   :langs (:clj),
   :message "namespace sci.impl.records is required but never used",
   :row 8}
- {:end-row 318,
+ {:end-row 324,
   :type :def-fn,
   :level :warning,
   :lang :clj,
@@ -29940,7 +29940,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row 285}
+  :row 291}
  {:end-row 34,
   :type :unused-binding,
   :level :warning,
@@ -30015,7 +30015,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Var kw-identical? is referred but used via alias: utils",
-  :row 26}
+  :row 27}
  {:end-row 6,
   :ns sci.ctx-store,
   :type :unused-namespace,
@@ -30028,7 +30028,7 @@
   :langs (:clj :cljs),
   :message "namespace sci.ctx-store is required but never used",
   :row 6}
- {:end-row 381,
+ {:end-row 382,
   :type :def-fn,
   :level :warning,
   :lang :clj,
@@ -30038,8 +30038,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row 377}
- {:end-row 1987,
+  :row 378}
+ {:end-row 2037,
   :type :deprecated-var,
   :level :warning,
   :lang :clj,
@@ -30049,7 +30049,7 @@
   :cljc true,
   :langs (:clj),
   :message "#'clojure.core/replicate is deprecated since 1.3",
-  :row 1987}
+  :row 2037}
  {:end-row 200,
   :type :def-fn,
   :level :warning,
@@ -30094,19 +30094,6 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: reify",
   :row 6}
- {:end-row 12,
-  :ns sci.impl.core-protocols,
-  :type :unused-namespace,
-  :level :warning,
-  :lang :clj,
-  :filename "sci/impl/protocols.cljc",
-  :col 5,
-  :end-col 28,
-  :cljc true,
-  :langs (:clj),
-  :message
-  "namespace sci.impl.core-protocols is required but never used",
-  :row 12}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -30169,7 +30156,7 @@
   :langs (:cljs),
   :message "Missing protocol method(s): -mutate",
   :row 368}
- {:end-row 311,
+ {:end-row 317,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -30179,7 +30166,7 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: bindings",
-  :row 311}
+  :row 317}
  {:end-row 161,
   :protocol-ns sci.impl.types,
   :protocol-name IBox,
