@@ -7,6 +7,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- Dev checklist: -->
 
 <!-- - [ ] fill in empty doc links in changelogs -->
+<!-- - [ ] bump ductile and clerk regression test shas to main HEAD -->
 <!-- - [ ] script/bump_version release -->
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
