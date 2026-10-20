@@ -70,27 +70,6 @@
   :message "Var query! is referred but used via alias: clerk-elog",
   :level :info,
   :langs ()}
- {:end-row 234,
-  :type :unknown-map-key,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/billing/krefeld_invoice_lager.clj",
-  :col 83,
-  :end-col 111,
-  :langs (),
-  :message
-  "Unknown key :sum-handling, closest match: :sum-handling-ductile",
-  :row 234}
- {:end-row 235,
-  :type :unknown-map-key,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/billing/krefeld_invoice_lager.clj",
-  :col 65,
-  :end-col 90,
-  :langs (),
-  :message "Unknown key :sum-lager, closest match: :sum-lager-ductile",
-  :row 235}
  {:filename
   "test-regression/checkouts/ductile/dev/ductile/insights/eitting_import.clj",
   :row 141,
@@ -99,207 +78,284 @@
   :message "Var query! is referred but used via alias: tx-import",
   :level :info,
   :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/manual_interventions.clj",
-  :row 9787,
-  :col 37,
-  :type :aliased-referred-var,
-  :message "Var fail! is referred but used via alias: util",
+ {:end-row 4069,
+  :type :redundant-ignore,
   :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/manual_interventions.clj",
-  :row 12196,
-  :col 30,
-  :type :aliased-referred-var,
-  :message "Var fail! is referred but used via alias: util",
-  :level :info,
-  :langs ()}
- {:end-row 45,
-  :type :unknown-map-key,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/sixt_eitting_edi.clj",
-  :col 5,
-  :end-col 113,
-  :langs (),
-  :message "Unknown key :result, closest match: :results",
-  :row 44}
- {:end-row 5,
-  :type :deprecated-namespace,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/utils.clj",
-  :col 14,
-  :end-col 30,
-  :langs (),
-  :message "Namespace io.pedestal.test is deprecated since 0.8.0.",
-  :row 5}
- {:end-row 17,
-  :type :deprecated-var,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/dev/ductile/insights/utils.clj",
-  :col 5,
-  :end-col 35,
-  :langs (),
-  :message "#'io.pedestal.test/response-for is deprecated since 0.8.0",
-  :row 12}
- {:end-row 4895,
-  :type :constant-condition,
-  :level :warning,
+  :lang :clj,
   :filename
   "test-regression/checkouts/ductile/src/ductile/billing.clj",
-  :col 9,
-  :end-col 25,
-  :langs (),
-  :message "Condition always true",
-  :row 4895}
- {:end-row 5380,
-  :type :constant-condition,
-  :level :warning,
+  :linters nil,
+  :col 50,
+  :end-col 67,
+  :cljc nil,
+  :langs (:clj),
+  :message "Redundant ignore",
+  :row 4069}
+ {:end-row 4094,
+  :type :redundant-ignore,
+  :level :info,
+  :lang :clj,
   :filename
   "test-regression/checkouts/ductile/src/ductile/billing.clj",
-  :col 34,
-  :end-col 97,
-  :langs (),
-  :message "Condition always true",
-  :row 5380}
- {:end-row 6367,
-  :type :constant-condition,
-  :level :warning,
+  :linters nil,
+  :col 59,
+  :end-col 76,
+  :cljc nil,
+  :langs (:clj),
+  :message "Redundant ignore",
+  :row 4094}
+ {:end-row 4115,
+  :type :redundant-ignore,
+  :level :info,
+  :lang :clj,
   :filename
   "test-regression/checkouts/ductile/src/ductile/billing.clj",
-  :col 34,
-  :end-col 126,
-  :langs (),
-  :message "Condition always true",
-  :row 6367}
- {:end-row 782,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/carrier_billing.clj",
-  :col 15,
-  :end-col 31,
-  :langs (),
-  :message "Condition always true",
-  :row 782}
- {:end-row 1692,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
-  :col 21,
-  :end-col 32,
-  :langs (),
-  :message "Condition always true",
-  :row 1692}
- {:end-row 1696,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
-  :col 21,
-  :end-col 39,
-  :langs (),
-  :message "Condition always true",
-  :row 1696}
- {:end-row 1852,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
-  :col 21,
-  :end-col 32,
-  :langs (),
-  :message "Condition always true",
-  :row 1852}
- {:end-row 1907,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/edi/eurolog/bmw.clj",
-  :col 21,
-  :end-col 32,
-  :langs (),
-  :message "Condition always true",
-  :row 1907}
- {:end-row 657,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/edi/kia.clj",
-  :col 30,
-  :end-col 91,
-  :langs (),
-  :message "Condition always true",
-  :row 657}
- {:filename
-  "test-regression/checkouts/ductile/src/ductile/elog/tx_import.clj",
-  :row 1620,
-  :col 25,
-  :type :aliased-referred-var,
-  :message "Var fail! is referred but used via alias: util",
-  :level :info,
-  :langs ()}
- {:end-row 38,
-  :type :type-mismatch,
-  :level :error,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/insights/untouched_fahrzeuge_report.clj",
-  :col 52,
-  :end-col 77,
-  :langs (),
-  :message "Expected: map, received: function.",
-  :row 38}
- {:filename
-  "test-regression/checkouts/ductile/src/ductile/locations.clj",
-  :row 166,
-  :col 5,
-  :type :aliased-referred-var,
-  :message "Var fail! is referred but used via alias: util",
-  :level :info,
-  :langs ()}
- {:end-row 209,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/locations.clj",
-  :col 7,
-  :end-col 27,
-  :langs (),
-  :message "Condition always true",
-  :row 209}
- {:filename
-  "test-regression/checkouts/ductile/src/ductile/schema.cljc",
-  :row 28,
-  :col 21,
+  :linters nil,
+  :col 59,
+  :end-col 76,
+  :cljc nil,
+  :langs (:clj),
+  :message "Redundant ignore",
+  :row 4115}
+ {:end-row 5995,
   :type :redundant-str-call,
-  :message "Single argument to str already is a string",
   :level :info,
-  :langs (:clj :cljs)}
- {:end-row 261,
-  :type :constant-condition,
-  :level :warning,
   :filename
-  "test-regression/checkouts/ductile/src/ductile/ui/components/table.cljs",
+  "test-regression/checkouts/ductile/src/ductile/billing.clj",
+  :col 27,
+  :end-col 84,
+  :langs (),
+  :message "Single argument to str already is a string",
+  :row 5995}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/datomic/test_scenario.clj",
+  :row 403,
+  :col 7,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/edi/edifact/vw.clj",
+  :row 447,
+  :col 29,
+  :type :aliased-referred-var,
+  :message "Var fail! is referred but used via alias: util",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/entity_search/query.clj",
+  :row 317,
+  :col 4,
+  :type :aliased-referred-var,
+  :message "Var fahrzeug-spec is referred but used via alias: spec",
+  :level :info,
+  :langs ()}
+ {:end-row 344,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/locations.clj",
+  :col 3,
+  :end-col 70,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 343}
+ {:end-row 5,
+  :type :redundant-ignore,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/byd_wms_edi_contract_selection.clj",
+  :linters nil,
+  :col 25,
+  :end-col 42,
+  :cljc nil,
+  :langs (:clj),
+  :message "Redundant ignore",
+  :row 5}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/kia_active_custody.clj",
   :col 29,
   :end-col 33,
   :langs (),
-  :message "Condition always true",
-  :row 261}
- {:end-row 361,
-  :type :constant-condition,
-  :level :warning,
+  :message "Unused excluded var: comp",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
   :filename
-  "test-regression/checkouts/ductile/src/ductile/ui/fahrzeug.cljs",
-  :col 19,
-  :end-col 48,
+  "test-regression/checkouts/ductile/src/ductile/rulesets/kia_active_custody.clj",
+  :col 45,
+  :end-col 55,
   :langs (),
-  :message "Condition always true",
-  :row 361}
- {:end-row 21,
+  :message "Unused excluded var: every-pred",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/kia_active_custody.clj",
+  :col 56,
+  :end-col 63,
+  :langs (),
+  :message "Unused excluded var: some-fn",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_atlas_edi_compound_selection.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: comp",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_atlas_edi_compound_selection.clj",
+  :col 45,
+  :end-col 55,
+  :langs (),
+  :message "Unused excluded var: every-pred",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_atlas_edi_compound_selection.clj",
+  :col 56,
+  :end-col 63,
+  :langs (),
+  :message "Unused excluded var: some-fn",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_atlas_edi_transport_contract_selection.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: comp",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_atlas_edi_transport_contract_selection.clj",
+  :col 45,
+  :end-col 55,
+  :langs (),
+  :message "Unused excluded var: every-pred",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_atlas_edi_transport_contract_selection.clj",
+  :col 56,
+  :end-col 63,
+  :langs (),
+  :message "Unused excluded var: some-fn",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_zielbahnhof_compound_contract_selection.clj",
+  :col 29,
+  :end-col 33,
+  :langs (),
+  :message "Unused excluded var: comp",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_zielbahnhof_compound_contract_selection.clj",
+  :col 45,
+  :end-col 55,
+  :langs (),
+  :message "Unused excluded var: every-pred",
+  :row 2}
+ {:end-row 2,
+  :type :unused-excluded-var,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/rulesets/vw_zielbahnhof_compound_contract_selection.clj",
+  :col 56,
+  :end-col 63,
+  :langs (),
+  :message "Unused excluded var: some-fn",
+  :row 2}
+ {:end-row 74,
+  :type :redundant-str-call,
+  :level :info,
+  :lang :clj,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/schema.cljc",
+  :col 21,
+  :end-col 28,
+  :cljc true,
+  :langs (:clj :cljs),
+  :message "Single argument to str already is a string",
+  :row 74}
+ {:end-row 214,
+  :type :redundant-nested-call,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/components/columns.cljs",
+  :col 74,
+  :end-col 85,
+  :langs (),
+  :message "Redundant nested call: str",
+  :row 214}
+ {:end-row 940,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/hyper/schema_editor.clj",
+  :col 42,
+  :end-col 83,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 940}
+ {:end-row 1020,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/ui/hyper/schema_editor.clj",
+  :col 42,
+  :end-col 83,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 1020}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/ui/hyper/views.clj",
+  :row 123,
+  :col 55,
+  :type :aliased-referred-var,
+  :message "Var tr is referred but used via alias: locale",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/src/ductile/ui/hyper/views.clj",
+  :row 126,
+  :col 55,
+  :type :aliased-referred-var,
+  :message "Var tr is referred but used via alias: locale",
+  :level :info,
+  :langs ()}
+ {:end-row 24,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -311,51 +367,40 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 21}
- {:end-row 487,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/ui/service_list.cljs",
-  :col 19,
-  :end-col 54,
-  :langs (),
-  :message "Condition always true",
-  :row 487}
+  :row 24}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 1350,
-  :col 38,
+  :row 5589,
+  :col 5,
   :type :aliased-referred-var,
-  :message "Var has-hv-battery? is referred but used via alias: dsl",
+  :message "Var update-some is referred but used via alias: util",
   :level :info,
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 1914,
-  :col 24,
+  :row 5594,
+  :col 49,
   :type :aliased-referred-var,
-  :message
-  "Var accessory-pending-installation? is referred but used via alias: dsl",
+  :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 2846,
-  :col 17,
+  :row 5598,
+  :col 31,
   :type :aliased-referred-var,
-  :message "Var completed-other? is referred but used via alias: dsl",
+  :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 3457,
-  :col 65,
+  :row 5622,
+  :col 5,
   :type :aliased-referred-var,
-  :message "Var completed-other? is referred but used via alias: dsl",
+  :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
- {:end-row 124,
+ {:end-row 156,
   :type :redundant-primitive-coercion,
   :level :info,
   :filename
@@ -365,449 +410,81 @@
   :langs (),
   :message
   "Redundant boolean coercion: expression already has type boolean",
-  :row 123}
+  :row 155}
  {:filename
-  "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
-  :row 597,
-  :col 9,
-  :type :constant-condition,
-  :message "Condition always true",
-  :level :warning,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/src/ductile/workflow/dsl.clj",
-  :row 755,
-  :col 5,
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl/preds.clj",
+  :row 747,
+  :col 3,
   :type :aliased-referred-var,
-  :message "Var fail! is referred but used via alias: util",
+  :message "Var comp is referred but used via alias: rec",
   :level :info,
   :langs ()}
- {:end-row 43,
-  :type :constant-condition,
-  :level :warning,
+ {:end-row 867,
+  :type :redundant-primitive-coercion,
+  :level :info,
   :filename
-  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
-  :col 17,
-  :end-col 32,
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl/preds.clj",
+  :col 4,
+  :end-col 74,
   :langs (),
-  :message "Condition always true",
-  :row 43}
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 865}
+ {:end-row 878,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl/preds.clj",
+  :col 4,
+  :end-col 95,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 876}
+ {:end-row 889,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl/preds.clj",
+  :col 4,
+  :end-col 96,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 887}
+ {:end-row 904,
+  :type :redundant-primitive-coercion,
+  :level :info,
+  :filename
+  "test-regression/checkouts/ductile/src/ductile/workflow/dsl/preds.clj",
+  :col 4,
+  :end-col 112,
+  :langs (),
+  :message
+  "Redundant boolean coercion: expression already has type boolean",
+  :row 902}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
-  :row 87,
+  :row 80,
   :col 57,
   :type :aliased-referred-var,
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
- {:end-row 98,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
-  :col 9,
-  :end-col 24,
-  :langs (),
-  :message "Condition always true",
-  :row 98}
  {:filename
-  "test-regression/checkouts/ductile/src/ductile/workflow/engine.clj",
-  :row 1010,
-  :col 7,
+  "test-regression/checkouts/ductile/src/ductile/workflow/email.clj",
+  :row 127,
+  :col 57,
   :type :aliased-referred-var,
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
- {:end-row 309,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/integration/bmw_eurolog_test.clj",
-  :col 11,
-  :end-col 61,
-  :langs (),
-  :message "Condition always true",
-  :row 309}
- {:end-row 324,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/integration/bmw_eurolog_test.clj",
-  :col 11,
-  :end-col 55,
-  :langs (),
-  :message "Condition always true",
-  :row 324}
- {:end-row 19,
-  :type :is-message-not-string,
-  :level :info,
-  :filename
-  "test-regression/checkouts/ductile/test/integration/cron_test.clj",
-  :col 18,
-  :end-col 44,
-  :langs (),
-  :message "Test assertion message should be a string",
-  :row 19}
- {:end-row 23,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/integration/cron_test.clj",
-  :col 9,
-  :end-col 54,
-  :langs (),
-  :message "Condition always true",
-  :row 23}
  {:filename
-  "test-regression/checkouts/ductile/test/integration/edi_test.clj",
-  :row 94,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var with-system is referred but used via alias: f",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/integration/edi_test.clj",
-  :row 123,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var with-system is referred but used via alias: f",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
-  :row 697,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var with-system is referred but used via alias: f",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
-  :row 758,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var with-system is referred but used via alias: f",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
-  :row 883,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var with-system is referred but used via alias: f",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/integration/pegaso_test.clj",
-  :row 922,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var with-system is referred but used via alias: f",
-  :level :info,
-  :langs ()}
- {:end-row 19,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/integration/vehicle_search_test.clj",
-  :col 9,
-  :end-col 13,
-  :langs (),
-  :message "Condition always true",
-  :row 19}
- {:end-row 806,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/integration/workflow_test.clj",
-  :col 11,
-  :end-col 25,
-  :langs (),
-  :message "Condition always true",
-  :row 806}
- {:end-row 50,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
-  :col 13,
-  :end-col 64,
-  :langs (),
-  :message "Condition always true",
-  :row 50}
- {:end-row 52,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
-  :col 13,
-  :end-col 64,
-  :langs (),
-  :message "Condition always true",
-  :row 52}
- {:end-row 58,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
-  :col 13,
-  :end-col 71,
-  :langs (),
-  :message "Condition always true",
-  :row 57}
- {:end-row 59,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
-  :col 13,
-  :end-col 67,
-  :langs (),
-  :message "Condition always true",
-  :row 59}
- {:end-row 124,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
-  :col 7,
-  :end-col 14,
-  :langs (),
-  :message "Condition always true",
-  :row 124}
- {:end-row 125,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/api_test.clj",
-  :col 7,
-  :end-col 14,
-  :langs (),
-  :message "Condition always true",
-  :row 125}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
-  :row 398,
-  :col 3,
-  :type :aliased-referred-var,
-  :message "Var apply-tx is referred but used via alias: test-utils",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
-  :row 442,
-  :col 16,
-  :type :aliased-referred-var,
-  :message "Var apply-tx is referred but used via alias: test-utils",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
-  :row 450,
-  :col 16,
-  :type :aliased-referred-var,
-  :message "Var apply-tx is referred but used via alias: test-utils",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/datomic/db_fn_test.clj",
-  :row 457,
-  :col 16,
-  :type :aliased-referred-var,
-  :message "Var apply-tx is referred but used via alias: test-utils",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/edi/pipeline_test.clj",
-  :row 216,
+  "test-regression/checkouts/ductile/test/ductile/edi/pipeline_test.clj",
+  :row 302,
   :col 17,
   :type :aliased-referred-var,
   :message
   "Var *insert-chunk-size* is referred but used via alias: pipeline",
-  :level :info,
-  :langs ()}
- {:end-row 143,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/transport_test.clj",
-  :col 11,
-  :end-col 14,
-  :langs (),
-  :message "Condition always true",
-  :row 143}
- {:end-row 38,
-  :type :is-message-not-string,
-  :level :info,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/truck_booking/queue_test.clj",
-  :col 11,
-  :end-col 70,
-  :langs (),
-  :message "Test assertion message should be a string",
-  :row 38}
- {:end-row 710,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
-  :col 9,
-  :end-col 29,
-  :langs (),
-  :message "Condition always true",
-  :row 710}
- {:end-row 714,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
-  :col 9,
-  :end-col 24,
-  :langs (),
-  :message "Condition always true",
-  :row 714}
- {:end-row 718,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/vehicle_search_test.clj",
-  :col 9,
-  :end-col 43,
-  :langs (),
-  :message "Condition always true",
-  :row 718}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 142,
-  :col 17,
-  :type :aliased-referred-var,
-  :message
-  "Var eval-dynamic-attrs is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 1689,
-  :col 110,
-  :type :aliased-referred-var,
-  :message "Var brc-dealer-code is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:end-row 2221,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :col 9,
-  :end-col 20,
-  :langs (),
-  :message "Condition always true",
-  :row 2221}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4341,
-  :col 47,
-  :type :aliased-referred-var,
-  :message
-  "Var postprocess-ui-fields-with-fahrzeug is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4459,
-  :col 32,
-  :type :aliased-referred-var,
-  :message
-  "Var open-service-codes-blocking-dispo is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4473,
-  :col 27,
-  :type :aliased-referred-var,
-  :message
-  "Var open-service-codes-blocking-dispo is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:end-row 4729,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :col 9,
-  :end-col 43,
-  :langs (),
-  :message "Condition always true",
-  :row 4729}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4860,
-  :col 40,
-  :type :aliased-referred-var,
-  :message
-  "Var postprocess-ui-fields-with-fahrzeug is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4881,
-  :col 40,
-  :type :aliased-referred-var,
-  :message
-  "Var parking-spot-temp-id is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4894,
-  :col 60,
-  :type :aliased-referred-var,
-  :message
-  "Var parking-spot-temp-id is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4934,
-  :col 66,
-  :type :aliased-referred-var,
-  :message
-  "Var parking-spot-temp-id is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4954,
-  :col 34,
-  :type :aliased-referred-var,
-  :message
-  "Var postprocess-ui-fields-with-fahrzeug is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4971,
-  :col 66,
-  :type :aliased-referred-var,
-  :message
-  "Var parking-spot-temp-id is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 4996,
-  :col 10,
-  :type :aliased-referred-var,
-  :message "Var edit-event-tx is referred but used via alias: dsl",
-  :level :info,
-  :langs ()}
- {:filename
-  "test-regression/checkouts/ductile/test/unit/ductile/workflow/dsl_test.clj",
-  :row 5018,
-  :col 10,
-  :type :aliased-referred-var,
-  :message "Var edit-event-tx is referred but used via alias: dsl",
   :level :info,
   :langs ()}]
