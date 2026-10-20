@@ -149,6 +149,41 @@
         
         (is (empty? (lint! "#_:clj-kondo/ignore (double (double 1))" cfg)))))))
 
+(deftest redundant-boolean-cast-test
+  (let [msg "Redundant boolean call in condition"]
+    (testing "boolean in a condition warns"
+      (assert-submaps2
+       [{:row 1 :col 5 :level :info :message msg}
+        {:row 2 :col 7 :message msg}
+        {:row 3 :col 11 :message msg}
+        {:row 4 :col 6 :message msg}
+        {:row 5 :col 7 :message msg}
+        {:row 5 :col 21 :message msg}
+        {:row 6 :col 11 :message msg}]
+       (lint! "(if (boolean 1) 1 2)
+(when (boolean 1) 1)
+(when-not (boolean 1) 1)
+(not (boolean 1))
+(cond (boolean 1) 1 (boolean 2) 2)
+(cond-> 1 (boolean 1) inc)")))
+    (testing "boolean in cljs warns"
+      (assert-submaps2
+       [{:row 1 :col 5 :message msg}]
+       (lint! "(if (boolean 1) 1 2)" "--lang" "cljs")))
+    (testing "boolean of a boolean in a condition gives one warning"
+      (assert-submaps2
+       [{:row 1 :col 15 :message msg}]
+       (lint! "(fn [x] (when (boolean (pos? x)) 1))")))
+    (testing "boolean as a value does not warn"
+      (is (empty? (lint! "(fn [x] [(if-let [y (boolean x)] y 1)
+                                    (when-let [y (boolean x)] y)
+                                    (and (boolean x) 1)
+                                    (or (boolean x) 1)
+                                    (cond x (boolean x) :else (boolean x))])"))))
+    (testing ":off disables the warning"
+      (is (empty? (lint! "(if (boolean 1) 1 2)"
+                         {:linters {:redundant-boolean-cast {:level :off}}}))))))
+
 (deftest redundant-format-test
   (testing "Arguments provided to a format string with no placeholders:
             :format linter should warn, but :redundant-format linter 

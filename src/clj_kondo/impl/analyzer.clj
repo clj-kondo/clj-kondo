@@ -1643,7 +1643,9 @@
         pos (-> ctx :arg-types deref count)
         ;; :condition also tells analyze-do / unused-value not to treat the test
         ;; as an implicit-do body, so it stays truthy when linting is skipped
-        condition (assoc condition :condition (if lint? true :no-lint))
+        condition (cond-> (assoc condition :condition (if lint? true :no-lint))
+                    ;; an if-let or when-let init is also bound as a value
+                    (and lint? (not (:binding-init condition))) (assoc :truthy-test true))
         analyzed (doall (analyze-expression** ctx condition))]
     (when (and lint?
                (not (linter-disabled? ctx :constant-condition))
@@ -1688,7 +1690,7 @@
             tag-form? (and (not= 'when-first call)
                            (one-of (some-> bv :children first tag) [:token :map]))
             analyzed-condition (let [cctx (update ctx :callstack conj [:vector])
-                                     cnode (cond-> condition
+                                     cnode (cond-> (assoc condition :binding-init true)
                                              value-id (assoc :id value-id))]
                                  ;; when-first runs on (seq coll), not the
                                  ;; coll's truthiness, so no condition checks
@@ -2802,7 +2804,7 @@
   the expr of its clause."
   [ctx children]
   (let [narrow? (not (linter-disabled? ctx :type-mismatch))
-        first-analyzed (vec (analyze-children ctx (take 1 children) false))
+        first-analyzed (vec (analyze-children ctx (map #(assoc % :truthy-test true) (take 1 children)) false))
         ;; the first test always evaluates, the rest are conditional
         branch-ctx (-> (in-branch-ctx ctx)
                        (assoc :top-level? false :len (dec (count children))))]
@@ -2813,7 +2815,8 @@
                    (let [ctx (cond-> branch-ctx
                                (and narrow? (even? i))
                                (narrow-bindings (narrowings-from-condition branch-ctx test)))]
-                     (analyze-expression** (assoc ctx :idx i) e))))
+                     (analyze-expression** (assoc ctx :idx i)
+                                           (cond-> e (odd? i) (assoc :truthy-test true))))))
                 cat)
           (map vector children (rest children)))))
 

@@ -12,6 +12,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- NEW linter `:redundant-boolean-cast`: warn on a `boolean` call in a condition. E.g. `(if (boolean x) 1 2)` will warn.
+
 ## 2026.10.20
 
 - NEW linter `:unknown-map-key`: warn on a keyword lookup of a key not present in a map. E.g. `(:hots (opts))` will warn when `opts` returns `{:host "localhost"}`.
