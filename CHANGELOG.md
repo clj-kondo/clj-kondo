@@ -12,6 +12,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- [#3034](https://github.com/clj-kondo/clj-kondo/issues/3034): fix false positive for code after a single unquote in a nested syntax-quote. E.g. ``` ``~(let [~@x] 1) ``` no longer warns about an odd number of binding forms.
+
 ## 2026.10.20
 
 - NEW linter `:unknown-map-key`: warn on a keyword lookup of a key not present in a map. E.g. `(:hots (opts))` will warn when `opts` returns `{:host "localhost"}`.

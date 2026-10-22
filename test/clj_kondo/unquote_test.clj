@@ -84,3 +84,11 @@
   (is (empty? (lint! "(def version \"1.0.0\") (defproject dude \"1.0.0\" :foo (inc ~version))"
                      {:linters {:unquote-not-syntax-quoted {:level :warning}}}
                      "--filename" "project.clj"))))
+
+(deftest issue-3034-test
+  (testing "single unquote in nested syntax-quote stays quoted"
+    (is (empty? (lint! "(def x [1 2]) ``~(let [~@x] 1)")))
+    (is (empty? (lint! "``~(foo 1)" {:linters {:unresolved-symbol {:level :error}}})))
+    (assert-submaps2
+     '({:col 10 :message "Unresolved symbol: x"})
+     (lint! "``~(foo ~x)" {:linters {:unresolved-symbol {:level :error}}}))))

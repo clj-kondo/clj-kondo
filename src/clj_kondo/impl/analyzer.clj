@@ -4279,7 +4279,9 @@
     (let [new-level (if level (dec level) -1)
           ctx (-> ctx
                   (assoc :syntax-quote-level new-level))]
-      (analyze-children ctx children))))
+      (if (pos? new-level)
+        (run! #(analyze-usages2 ctx %) children)
+        (analyze-children ctx children)))))
 
 (defn analyze-reader-macro-expr
   [ctx expr]
