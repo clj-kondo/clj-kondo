@@ -345,18 +345,28 @@
         form-tag (:tag opts)
         opts (dissoc opts :allow-amp :namespaced-map :tag)
         ;; Clojure 1.13: :req! entries are top level entries with required keys
-        children (if (some (fn [[k v]] (and (plain-directive? k :req!)
-                                            (identical? :map (tag v))))
-                           (partition 2 (:children expr)))
+        req!-key? (fn [k] (plain-directive? k :req!))
+        children (if (some req!-key? (take-nth 2 (:children expr)))
                    (into []
                          (mapcat (fn [[k v :as kv]]
-                                   (if (and (plain-directive? k :req!)
-                                            (identical? :map (tag v)))
-                                     (do (usages/analyze-keyword ctx k)
-                                         (mapcat (fn [[bk bv]]
-                                                   [(assoc bk :required-entry true) bv])
-                                                 (partition-all 2 (:children v))))
-                                     kv)))
+                                   (cond (not (req!-key? k)) kv
+                                         (not (identical? :map (tag v)))
+                                         (do (usages/analyze-keyword ctx k)
+                                             (findings/reg-finding!
+                                              ctx (node->line (:filename ctx) (or v k) :syntax
+                                                              ":req! value must be a map"))
+                                             nil)
+                                         :else
+                                         (do (usages/analyze-keyword ctx k)
+                                             (key-linter/lint-map-keys ctx v)
+                                             (mapcat (fn [[bk bv]]
+                                                       (if (:k bk)
+                                                         (do (findings/reg-finding!
+                                                              ctx (node->line (:filename ctx) bk :syntax
+                                                                              (str "Directives are not allowed in :req!: " bk)))
+                                                             nil)
+                                                         [(assoc bk :required-entry true) bv]))
+                                                     (partition 2 (:children v)))))))
                          (partition-all 2 (:children expr)))
                    (:children expr))
         kvs (partition 2 children)
