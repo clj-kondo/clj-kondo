@@ -280,7 +280,7 @@
           (:strs :strs!) nm
           nil)))))
 
-(defn- simple-keyword-node?
+(defn simple-keyword-node?
   "Returns true if node is a keyword without a namespace."
   [node]
   (and (:k node)
@@ -288,16 +288,17 @@
        (not (namespace (:k node)))))
 
 ;; Clojure 1.13: an ns on :keys qualifies a simple keyword after &
-(defn- amp-ns
+(defn amp-ns
   "Returns the namespace string that a :keys or :keys! directive gives a simple
-  keyword after &, or nil if none."
+  keyword after &, or nil if none.
+  Returns :clj-kondo/unknown-namespace if the directive's alias is unresolved."
   [modifier-ns modifier-type]
   (when (one-of modifier-type [:keys :keys!])
     (if (identical? :clj-kondo/unknown-namespace modifier-ns)
       modifier-ns
       (some-> modifier-ns str))))
 
-(defn- amp-key
+(defn amp-key
   [amp-ns entry]
   (if (string? amp-ns)
     (keyword amp-ns (name (:k entry)))
@@ -311,8 +312,8 @@
       (first
        (reduce (fn [[m amp?] entry]
                  (cond (= '& (:value entry)) [m true]
-                       ;; after & the entry is the key as written, the
-                       ;; :keys/:strs/:syms reading does not apply
+                       ;; after & the entry is the key itself, a :keys
+                       ;; namespace qualifies a simple keyword
                        amp? (let [k (if (and amp-ns (simple-keyword-node? entry))
                                       (amp-key amp-ns entry)
                                       (types/map-key ctx entry))]
@@ -520,8 +521,8 @@
                                                  ctx (node->line (:filename ctx) child :syntax
                                                                  (str "Binding symbols can only appear before &, use keys after: " (:value child))))
                                                 :else
-                                                ;; after & the entry is the key itself, the
-                                                ;; :keys/:strs/:syms reading does not apply
+                                                ;; after & the entry is the key itself, a :keys
+                                                ;; namespace qualifies a simple keyword
                                                 (let [qualify? (and keys-directive?
                                                                     (simple-keyword-node? child))]
                                                   (when (:k child)
