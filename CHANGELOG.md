@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3037](https://github.com/clj-kondo/clj-kondo/issues/3037): Clojure 1.13: the namespace of `:foo/keys` and `:foo/keys!` qualifies a simple keyword after `&`. E.g. `{:foo/keys! [& :quux]}` requires `:foo/quux`.
 - [#3036](https://github.com/clj-kondo/clj-kondo/issues/3036): Clojure 1.13: support the `:req!` map destructuring directive. E.g. `{:req! {a :x}}` binds `a` and requires `:x`.
 - [#3034](https://github.com/clj-kondo/clj-kondo/issues/3034): fix false positive for code after a single unquote in a nested syntax-quote. E.g. ``` ``~(let [~@x] 1) ``` no longer warns about an odd number of binding forms.
 
