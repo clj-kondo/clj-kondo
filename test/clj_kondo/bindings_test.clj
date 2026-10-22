@@ -697,6 +697,46 @@
      (lint! "(let [{:keys [x & :y & :z]} {}] x)"
             '{:linters {:unresolved-symbol {:level :error}}}))))
 
+(deftest req!-destructuring-test
+  (testing ":req! binds its entries"
+    (is (empty? (lint! "(let [{:req! {a :x {:keys [b]} :y} :as m} {:x 1 :y {}}] [a b m])"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unused-binding {:level :warning}}}))))
+  (testing "unused :req! binding"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 15, :level :warning, :message "unused binding a"})
+     (lint! "(let [{:req! {a :x}} {:x 1}])"
+            '{:linters {:unused-binding {:level :warning}}})))
+  (testing ":req! rejects a default"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error,
+        :message "Can't supply default value for required binding: a"})
+     (lint! "(let [{:req! {a :x} :or {a 1}} {:x 1}] a)")))
+  (testing ":req! reports a duplicate key and a missing value"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 20, :level :error, :message "duplicate key a"})
+     (lint! "(let [{:req! {a :x a :y}} {:x 1 :y 2}] a)"
+            '{:linters {:unused-binding {:level :off}}}))
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 15, :level :error, :message "missing value for key a"})
+     (lint! "(let [{:req! {a}} {}])")))
+  (testing ":req! rejects a directive key"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 15, :level :error,
+        :message "Directives are not allowed in :req!: :keys"})
+     (lint! "(let [{:req! {:keys [a]}} {:a 1}])")))
+  (testing ":req! rejects a value other than a map"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 14, :level :error, :message ":req! value must be a map"})
+     (lint! "(let [{:req! [a :x]} {:x 1}])")))
+  (testing ":req! keys are required for callers"
+    (assert-submaps2 '({:row 1 :level :error :message "Missing required key: :x"})
+                     (lint! "(defn f [{:req! {a :x}}] a) (f {})" type-config))
+    (assert-submaps2 '({:row 1 :level :error :message "Missing required key: :y"})
+                     (lint! "(defn f [{:req! {{:keys [b]} :y}}] b) (f {})" type-config))
+    (is (empty? (lint! "(defn f [{:req! {{:keys [b]} :y}}] b) (f {:y {}})" type-config)))
+    (is (empty? (lint! "(defn f [{:req! {a :x} :missing m}] [a m]) (f {})" type-config)))))
+
 (deftest invalid-amp-binding-test
   (testing "CLJ-2954: & is not a valid local binding name"
     (doseq [snippet ["(let [& 42] nil)"

@@ -344,7 +344,29 @@
         ;; wholesale
         form-tag (:tag opts)
         opts (dissoc opts :allow-amp :namespaced-map :tag)
-        kvs (partition 2 (:children expr))
+        ;; Clojure 1.13: :req! entries are top level entries with required keys
+        children (into []
+                       (mapcat (fn [[k v :as kv]]
+                                 (cond (not (plain-directive? k :req!)) kv
+                                       (not (identical? :map (tag v)))
+                                       (do (usages/analyze-keyword ctx k)
+                                           (findings/reg-finding!
+                                            ctx (node->line (:filename ctx) (or v k) :syntax
+                                                            ":req! value must be a map"))
+                                           nil)
+                                       :else
+                                       (do (usages/analyze-keyword ctx k)
+                                           (key-linter/lint-map-keys ctx v)
+                                           (mapcat (fn [[bk bv]]
+                                                     (if (:k bk)
+                                                       (do (findings/reg-finding!
+                                                            ctx (node->line (:filename ctx) bk :syntax
+                                                                            (str "Directives are not allowed in :req!: " bk)))
+                                                           nil)
+                                                       [(assoc bk :required-entry true) bv]))
+                                                   (partition 2 (:children v)))))))
+                       (partition-all 2 (:children expr)))
+        kvs (partition 2 children)
         select? (some (fn [[k _]] (plain-directive? k :select)) kvs)
         or? (some (fn [[k _]] (plain-directive? k :or)) kvs)
         all? (some (fn [[k _]] (plain-directive? k :all)) kvs)
@@ -372,6 +394,11 @@
                               (cond (one-of key-name [:keys! :syms! :strs!])
                                     (let [ks (destructuring-keys ctx k key-name (:children v))]
                                       [(merge req ks) (merge sel ks)])
+                                    (:required-entry k)
+                                    (let [mk (types/map-key ctx v)]
+                                      (if (types/known-map-key? mk)
+                                        [(assoc req mk :any) (assoc sel mk :any)]
+                                        [req sel]))
                                     (not select?) [req sel]
                                     (one-of key-name [:keys :syms :strs])
                                     [req (merge sel (destructuring-keys ctx k key-name (:children v)))]
@@ -428,10 +455,11 @@
           defaulted? (fn [binding-name map-key]
                        (or (contains? or-names binding-name)
                            (contains? or-keys map-key)))]
-    (loop [[k v & rest-kvs] (:children expr)
+    (loop [[k v & rest-kvs] children
            res {}]
         (if k
-          (let [k (lift-meta-content* ctx k)]
+          (let [required-entry? (:required-entry k)
+                k (lift-meta-content* ctx k)]
             (cond (:k k)
                   (let [key-name (keyword (name (:k k)))
                         ns-modifier? (one-of key-name [:keys :syms :strs
@@ -560,6 +588,10 @@
                                                   form-tag mk (defaulted? (:value k) mk)))]
                                      (assoc child-opts :tag vt)
                                      child-opts)
+                        ;; only the key of a nested form is required
+                        child-opts (if (and required-entry? (utils/symbol-token? k))
+                                     (assoc child-opts :required-entry true)
+                                     child-opts)
                         bnds (extract-bindings ctx k scoped-expr child-opts)]
                     (when (and all? known-key?
                                (identical? :map (tag k))
@@ -572,7 +604,7 @@
                           (vswap! key-bindings conj
                                   [mk b (defaulted? (:name b) mk)]))
                         ;; a nested form reads the key without binding a name
-                        (note-key! mk b nil)))
+                        (note-key! mk b required-entry?)))
                     (recur rest-kvs (merge res bnds
                                            {:analyzed (analyze-expression** ctx v)})))))
           (let [res (if-let [all-expr @all-node]
@@ -660,7 +692,8 @@
                                                :tag t
                                                :auto-resolved (:namespaced? expr)})
                          v (cond-> v
-                             (one-of (:destructuring-type opts) [:keys! :syms! :strs!])
+                             (or (:required-entry opts)
+                                 (one-of (:destructuring-type opts) [:keys! :syms! :strs!]))
                              (assoc :required true)
                              ;; see analyzer/nil-literal-condition?
                              (:nil-literal opts)
