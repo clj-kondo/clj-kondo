@@ -98,13 +98,13 @@
          {:name "keys!" :ns person :keys-destructuring-ns-modifier true}
          {:name "e" :ns person :keys-destructuring true}]
        (:keywords a))))
-  (testing ":foo after & in :person/keys reports no :ns and no :keys-destructuring"
+  (testing ":foo after & in :person/keys reports :ns person and no :keys-destructuring"
     (let [a (analyze "(ns foo)\n(let [{:person/keys [x & :foo]} {}] x)"
                      {:config {:analysis {:keywords true}}})]
       (assert-submaps
        '[{:name "keys" :ns person :keys-destructuring-ns-modifier true}
          {:name "x" :ns person :keys-destructuring true}
-         {:name "foo" :ns :submap/missing :keys-destructuring :submap/missing}]
+         {:name "foo" :ns person :keys-destructuring :submap/missing}]
        (:keywords a))))
   (testing "clojure.spec.alpha/def can add :reg"
     (let [a (analyze "(require '[clojure.spec.alpha :as s]) (s/def ::kw (inc))"

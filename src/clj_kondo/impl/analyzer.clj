@@ -280,16 +280,43 @@
           (:strs :strs!) nm
           nil)))))
 
+(defn simple-keyword-node?
+  "Returns true if node is a keyword without a namespace."
+  [node]
+  (and (:k node)
+       (not (:namespaced? node))
+       (not (namespace (:k node)))))
+
+;; Clojure 1.13: an ns on :keys qualifies a simple keyword after &
+(defn amp-ns
+  "Returns the namespace string that a :keys or :keys! directive gives a simple
+  keyword after &, or nil if none.
+  Returns :clj-kondo/unknown-namespace if the directive's alias is unresolved."
+  [modifier-ns modifier-type]
+  (when (one-of modifier-type [:keys :keys!])
+    (if (identical? :clj-kondo/unknown-namespace modifier-ns)
+      modifier-ns
+      (some-> modifier-ns str))))
+
+(defn amp-key
+  [amp-ns entry]
+  (if (string? amp-ns)
+    (keyword amp-ns (name (:k entry)))
+    ::types/unknown))
+
 (defn- destructuring-keys
   [ctx modifier-node modifier-type entries]
-  (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))]
+  (let [modifier-ns (:ns (usages/resolve-keyword ctx modifier-node (-> ctx :ns :name)))
+        amp-ns (amp-ns modifier-ns modifier-type)]
     (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)
       (first
        (reduce (fn [[m amp?] entry]
                  (cond (= '& (:value entry)) [m true]
-                       ;; after & the entry is the key as written, the
-                       ;; :keys/:strs/:syms reading does not apply
-                       amp? (let [k (types/map-key ctx entry)]
+                       ;; after & the entry is the key itself, a :keys
+                       ;; namespace qualifies a simple keyword
+                       amp? (let [k (if (and amp-ns (simple-keyword-node? entry))
+                                      (amp-key amp-ns entry)
+                                      (types/map-key ctx entry))]
                               [(cond-> m (types/known-map-key? k) (assoc k :any)) amp?])
                        :else
                        (if-let [k (destructuring-key ctx modifier-ns modifier-type entry)]
@@ -474,6 +501,8 @@
                                             :destructuring-expr k)
                                 modifier-ns (when (or or? (not types-off?))
                                               (:ns (usages/resolve-keyword ctx k (-> ctx :ns :name))))
+                                keys-directive? (one-of key-name [:keys :keys!])
+                                amp-ns (amp-ns modifier-ns key-name)
                                 required-keys? (one-of key-name [:keys! :syms! :strs!])
                                 ;; before & are bindings, after & only literal keys
                                 res (loop [children (:children v) amp? false res res]
@@ -492,13 +521,18 @@
                                                  ctx (node->line (:filename ctx) child :syntax
                                                                  (str "Binding symbols can only appear before &, use keys after: " (:value child))))
                                                 :else
-                                                ;; after & the entry is the key itself, the
-                                                ;; :keys/:strs/:syms reading does not apply
-                                                (do (when (:k child)
-                                                      (usages/analyze-keyword ctx child))
-                                                    (let [mk (types/map-key ctx child)]
-                                                      (when (types/known-map-key? mk)
-                                                        (note-key! mk nil required-keys?)))))
+                                                ;; after & the entry is the key itself, a :keys
+                                                ;; namespace qualifies a simple keyword
+                                                (let [qualify? (and keys-directive?
+                                                                    (simple-keyword-node? child))]
+                                                  (when (:k child)
+                                                    (usages/analyze-keyword
+                                                     ctx child (when qualify? {:destructuring-expr k})))
+                                                  (let [mk (if (and qualify? amp-ns)
+                                                             (amp-key amp-ns child)
+                                                             (types/map-key ctx child))]
+                                                    (when (types/known-map-key? mk)
+                                                      (note-key! mk nil required-keys?)))))
                                               (recur (next children) true res))
                                           :else
                                           (let [dk (when-not (identical? :clj-kondo/unknown-namespace modifier-ns)

@@ -653,6 +653,34 @@
             '{:linters {:type-mismatch {:level :error}}}))
     (is (empty? (lint! "(defn h [{:keys! [& \"raw\"]}] :ran) (h {\"raw\" 1})"
                        '{:linters {:type-mismatch {:level :error}}}))))
+  (testing ":foo/keys! qualifies a simple keyword after &"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error, :message "Missing required key: :foo/quux"})
+     (lint! "(defn f [{:foo/keys! [bar & :quux]}] bar) (f {:foo/bar 1 :quux 2})"
+            '{:linters {:type-mismatch {:level :error}}}))
+    (is (empty? (lint! "(defn f [{:foo/keys! [bar & :quux]}] bar) (f {:foo/bar 1 :foo/quux 2})"
+                       '{:linters {:type-mismatch {:level :error}}})))
+    (assert-submaps2
+     '({:file "<stdin>", :level :error, :message "Missing required key: :x/quux"})
+     (lint! "(ns x) (defn f [{::keys! [& :quux]}] 1) (f {:quux 2})"
+            '{:linters {:type-mismatch {:level :error}}})))
+  (testing ":foo/keys! keeps a qualified keyword after &"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error, :message "Missing required key: :bar/quux"})
+     (lint! "(defn f [{:foo/keys! [& :bar/quux]}] 1) (f {:foo/quux 2})"
+            '{:linters {:type-mismatch {:level :error}}})))
+  (testing ":foo/syms! keeps a keyword after &"
+    (assert-submaps2
+     '({:file "<stdin>", :level :error, :message "Missing required key: :quux"})
+     (lint! "(defn f [{:foo/syms! [& :quux]}] 1) (f {})"
+            '{:linters {:type-mismatch {:level :error}}})))
+  (testing ":or addresses :foo/quux for :quux after & in :foo/keys"
+    (is (empty? (lint! "(defn f [{:foo/keys [a & :quux] :or {:foo/quux 1}}] a)"
+                       '{:linters {:unused-binding {:level :warning}}})))
+    (assert-submaps2
+     '({:file "<stdin>", :level :warning, :message ":quux is not bound in this destructuring form"})
+     (lint! "(defn f [{:foo/keys [a & :quux] :or {:quux 1}}] a)"
+            '{:linters {:unused-binding {:level :warning}}})))
   (testing "unused :keys! binding"
     (assert-submaps2
      '({:file "<stdin>", :row 1, :col 16, :level :warning, :message "unused binding x"})
