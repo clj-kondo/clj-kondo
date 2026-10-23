@@ -662,6 +662,19 @@ my-ns/special-map \"
       (finally
         (cleanup!)))))
 
+(deftest macro-from-source-refer-all-test
+  (let [cfg-dir (fs/create-temp-dir)]
+    (try
+      (doseq [libspec ["(:require [clojure.set :refer :all])" "(:use [clojure.set])"]]
+        (testing (str libspec " in a namespace with a macroexpand hook parses")
+          (is (empty? (filter #(str/includes? (:message %) "Can't parse")
+                              (lint! (str "(ns demo.refer-all " libspec ")
+(defmacro m {:clj-kondo/macroexpand-hook true} [x] `(inc ~x))")
+                                     "--cache" "false"
+                                     "--config-dir" (str cfg-dir)))))))
+      (finally
+        (fs/delete-tree cfg-dir)))))
+
 (deftest hook-failure-surfaces-as-finding-test
   (testing "When a macroexpand hook fails (e.g. SCI can't resolve a symbol in
   the gen ns), clj-kondo registers a :hook :error finding at the call site so
