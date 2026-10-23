@@ -3910,7 +3910,15 @@ foo/"))
   (is (empty? (lint! "(doseq [sym ['foo 'bar 'baz]] (ns-unmap *ns* sym))"
                      {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! (io/file "corpus" "issue_2259.clj")
-                     {:linters {:redefined-var {:level :warning}}}))))
+                     {:linters {:redefined-var {:level :warning}}})))
+  (testing "a reference to a var before ns-unmap resolves"
+    (is (empty? (lint! "(ns foo) (def a 1) (inc a) (ns-unmap *ns* 'a) (defn f [] (f)) (ns-unmap *ns* 'f)"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "a second def after ns-unmap is a redefined var"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 49, :level :warning, :message "redefined var #'foo/a"})
+     (lint! "(ns foo) (def a 1) (ns-unmap *ns* 'a) (def a 2) (def a 3)"
+            {:linters {:redefined-var {:level :warning}}}))))
 
 (deftest duplicate-files
   (is (empty? (lint! [(io/file "corpus" "simple_test")

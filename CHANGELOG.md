@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3043](https://github.com/clj-kondo/clj-kondo/issues/3043): fix false positive unresolved var for a reference before `ns-unmap` of the same var. E.g. `(def a 1) (inc a) (ns-unmap *ns* 'a)` no longer warns.
 - [#3044](https://github.com/clj-kondo/clj-kondo/issues/3044): core.match: analyze map pattern keys as expressions. E.g. `(match [m] [{Integer/MAX_VALUE 1}] :yes)` no longer warns about an unsupported binding form.
 - [#3046](https://github.com/clj-kondo/clj-kondo/issues/3046): core.match: `_` in a pattern is a wildcard and does not use a local `_`. E.g. `(let [_ (setup!)] (match x [_] 1))` no longer warns about a used underscored binding.
 - [#3045](https://github.com/clj-kondo/clj-kondo/issues/3045): fix parse error for `:refer :all` in a namespace with a macroexpand hook macro.
