@@ -422,15 +422,6 @@ namespace (which may not be SCI-loadable).
   `(let ~bindings ~@body))
 ```
 
-### Imported classes
-
-Use imported classes inside syntax-quote as in the source namespace. With
-`(:import (java.util UUID))`, the generated namespace emits `` `UUID `` as
-`` `java.util.UUID ``.
-
-Write a class used at expand time, outside syntax-quote, as a quoted fully
-qualified name: `'java.util.UUID`.
-
 ### Resolving vars at expand time
 
 The generated namespace aliases itself under the original source namespace
