@@ -21,8 +21,8 @@
 (defn analyze-token [ctx expr]
   (let [sym (utils/symbol-from-token expr)]
     (cond
-      ;; & is rest pattern syntax, not a binding
-      (= '& sym) nil
+      ;; & and _ are pattern syntax, not bindings
+      (contains? '#{& _} sym) nil
       (and sym
            (not (contains? (:bindings ctx) sym)))
       (common/extract-bindings ctx expr)

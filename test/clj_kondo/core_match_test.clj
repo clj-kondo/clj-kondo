@@ -1,6 +1,6 @@
 (ns clj-kondo.core-match-test
   (:require
-   [clj-kondo.test-utils :refer [assert-submaps lint!]]
+   [clj-kondo.test-utils :refer [assert-submaps assert-submaps2 lint!]]
    [clojure.test :as t :refer [deftest is testing]]
    [missing.test.assertions]))
 
@@ -149,11 +149,18 @@
   (is (empty? (lint!! "(declare x y) (match [:name x y]
   [:name _ _]
   \"Ok\")")))
-  (assert-submaps
-   '({:file "<stdin>", :row 3, :col 12, :level :warning, :message "Used binding is marked as unused: _"})
-   (lint!! "(declare x y) (match [:name x y]
+  (testing "_ in a pattern binds nothing"
+    (assert-submaps2
+     '({:file "<stdin>", :row 4, :col 3, :level :error, :message "Unresolved symbol: _"})
+     (lint!! "(declare x y) (match [:name x y]
   [:name _ _]
   _)")))
+  (testing "_ in a pattern does not use a local _"
+    (is (empty? (lint!! "(let [_ (prn 1)] (match [[1 2]] [[_ _]] :matched :else :no-match))"))))
+  (testing "_x in a pattern uses a local _x"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 7, :level :warning, :message "Used binding is marked as unused: _x"})
+     (lint!! "(let [_x (prn 1)] (match [[1 2]] [[_x _]] :matched :else :no-match))"))))
 
 (deftest recur-in-match-test
   (testing "recur in match inside if inside loop"
