@@ -1,5 +1,6 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.quote
-  (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]))
+  (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]
+            [clj-kondo.impl.rewrite-clj.node.token :as token]))
 
 ;; ## Node
 
@@ -12,7 +13,13 @@
   (length [_]
     (+ (count prefix) (node/sum-lengths children)))
   (string [_]
-    (str prefix (node/concat-strings children)))
+    (if-let [imports token/*syntax-quote-imports*]
+      (binding [token/*imports* (case tag
+                                  :syntax-quote imports
+                                  (:unquote :unquote-splicing) nil
+                                  token/*imports*)]
+        (str prefix (node/concat-strings children)))
+      (str prefix (node/concat-strings children))))
 
   node/InnerNode
   (inner? [_] true)
