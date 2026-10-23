@@ -1,5 +1,6 @@
 (ns ^{:no-doc true} clj-kondo.impl.rewrite-clj.node.token
-  (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]))
+  (:require [clj-kondo.impl.rewrite-clj.node.protocols :as node]
+            [clojure.string :as str]))
 
 (set! *warn-on-reflection* true)
 
@@ -20,7 +21,7 @@
       (cond
         ns (when-let [pkg (get imports (symbol ns))]
              (str pkg "." ns "/" n))
-        (.endsWith n ".")
+        (str/ends-with? n ".")
         (when-let [pkg (get imports (symbol (subs n 0 (dec (count n)))))]
           (str pkg "." n))
         :else (when-let [pkg (get imports sym)]

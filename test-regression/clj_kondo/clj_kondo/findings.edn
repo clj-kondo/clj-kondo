@@ -29462,7 +29462,7 @@
   :langs (),
   :message "Unresolved var: node/string",
   :row 41}
- {:end-row 38,
+ {:end-row 39,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29470,8 +29470,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/Node",
-  :row 38}
- {:end-row 44,
+  :row 39}
+ {:end-row 45,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29479,8 +29479,8 @@
   :end-col 69,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 44}
- {:end-row 55,
+  :row 45}
+ {:end-row 56,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29488,7 +29488,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 55}
+  :row 56}
  {:end-row 7,
   :type :unresolved-var,
   :level :warning,
