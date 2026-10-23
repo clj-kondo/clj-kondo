@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3044](https://github.com/clj-kondo/clj-kondo/issues/3044): core.match: analyze map pattern keys as expressions. E.g. `(match [m] [{Integer/MAX_VALUE 1}] :yes)` no longer warns about an unsupported binding form.
 - [#3046](https://github.com/clj-kondo/clj-kondo/issues/3046): core.match: `_` in a pattern is a wildcard and does not use a local `_`. E.g. `(let [_ (setup!)] (match x [_] 1))` no longer warns about a used underscored binding.
 - [#3045](https://github.com/clj-kondo/clj-kondo/issues/3045): fix parse error for `:refer :all` in a namespace with a macroexpand hook macro.
 - [#3037](https://github.com/clj-kondo/clj-kondo/issues/3037): Clojure 1.13: the namespace of `:foo/keys` and `:foo/keys!` qualifies a simple keyword after `&`. E.g. `{:foo/keys! [& :quux]}` requires `:foo/quux`.

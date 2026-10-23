@@ -45,6 +45,17 @@
             (recur (next children) bindings)))
         bindings))))
 
+(defn analyze-map [ctx expr]
+  (loop [children (seq (:children expr))
+         bindings {}]
+    (if children
+      (let [[k v & rchildren] children]
+        (common/analyze-expression** ctx k)
+        (if-let [bnds (some->> v (analyze-expr ctx))]
+          (recur rchildren (into* ctx bindings bnds))
+          (recur rchildren bindings)))
+      bindings)))
+
 (defn analyze-list [ctx expr]
   (let [children (:children expr)
         snd (second children)]
@@ -88,7 +99,7 @@
       (:vector)
       (analyze-vector ctx expr)
       (:map)
-      (analyze-children ctx expr)
+      (analyze-map ctx expr)
       ;; default
       (do (common/analyze-expression** ctx expr)
           nil))))

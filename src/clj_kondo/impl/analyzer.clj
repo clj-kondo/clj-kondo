@@ -711,7 +711,8 @@
                   (node->line (:filename ctx)
                               expr
                               :syntax
-                              "Invalid binding: &")))
+                              "Invalid binding: &"))
+                 nil)
                (let [ns (namespace sym)
                      valid? (or (not ns)
                                 keys-destructuring?)]
@@ -741,12 +742,13 @@
                                              v)
                      (namespace/check-shadowed-binding! ctx s expr)
                      (with-meta {s v} (when t {:tag t})))
-                   (findings/reg-finding!
-                    ctx
-                    (node->line (:filename ctx)
-                                expr
-                                :syntax
-                                (str "unsupported binding form " sym)))))))
+                   (do (findings/reg-finding!
+                        ctx
+                        (node->line (:filename ctx)
+                                    expr
+                                    :syntax
+                                    (str "unsupported binding form " sym)))
+                       nil)))))
            ;; keyword
            (:k expr)
            (let [k (:k expr)]
