@@ -3327,7 +3327,6 @@
                          (-> ns
                              (update :clojure-excluded (fnil conj #{})
                                      (with-meta sym excluded-meta))
-                             (update :vars dissoc sym)
                              (update :var-counts dissoc sym))))))))))
     (analyze-children ctx children)))
 
