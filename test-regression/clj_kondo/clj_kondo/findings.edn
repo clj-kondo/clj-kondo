@@ -29289,7 +29289,7 @@
   :langs (),
   :message "Unresolved symbol: coerce",
   :row 81}
- {:end-row 7,
+ {:end-row 8,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/quote.clj",
@@ -29297,8 +29297,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/Node",
-  :row 7}
- {:end-row 17,
+  :row 8}
+ {:end-row 24,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/quote.clj",
@@ -29306,8 +29306,8 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/InnerNode",
-  :row 17}
- {:end-row 28,
+  :row 24}
+ {:end-row 35,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/quote.clj",
@@ -29315,7 +29315,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 28}
+  :row 35}
  {:end-row 11,
   :type :unresolved-var,
   :level :warning,
@@ -29462,7 +29462,7 @@
   :langs (),
   :message "Unresolved var: node/string",
   :row 41}
- {:end-row 15,
+ {:end-row 39,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29470,8 +29470,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/Node",
-  :row 15}
- {:end-row 21,
+  :row 39}
+ {:end-row 45,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29479,8 +29479,8 @@
   :end-col 69,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 21}
- {:end-row 29,
+  :row 45}
+ {:end-row 56,
   :type :unresolved-var,
   :level :warning,
   :filename "parser/clj_kondo/impl/rewrite_clj/node/token.clj",
@@ -29488,7 +29488,7 @@
   :end-col 17,
   :langs (),
   :message "Unresolved var: node/string",
-  :row 29}
+  :row 56}
  {:end-row 7,
   :type :unresolved-var,
   :level :warning,
@@ -32853,7 +32853,7 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
- {:end-row 50,
+ {:end-row 51,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -32864,7 +32864,7 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 50}
+  :row 51}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,

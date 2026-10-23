@@ -4,6 +4,7 @@
    [babashka.fs :as fs]
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.rewrite-clj.node.keyword :as keyword-node]
+   [clj-kondo.impl.rewrite-clj.node.token :as token-node]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import [java.io File]))
@@ -210,7 +211,10 @@
           ;; in the macro/helper body serialize as `:<orig-ns>/foo` and
           ;; SCI reads them back to the same value regardless of the gen
           ;; ns's current-ns at load time.
-          (binding [keyword-node/*autoresolve-ns* orig-ns]
+          (binding [keyword-node/*autoresolve-ns* orig-ns
+                    token-node/*syntax-quote-imports*
+                    (not-empty (get-in @(:namespaces ctx)
+                                       [(:base-lang ctx) (:lang ctx) orig-ns :imports]))]
             (let [forms (mapv :form entries)
                   aliases (reduce merge-alias-maps {}
                                   (map #(aggregate-alias-usages
