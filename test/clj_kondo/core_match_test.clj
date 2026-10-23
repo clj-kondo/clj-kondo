@@ -94,6 +94,28 @@
          [{:c 3 :d _ :e 4}] :a2
          :else nil))
 "))))
+  (testing "map pattern keys are expressions"
+    (is (empty? (lint!! "
+(require '[clojure.string :as str])
+(def k :a)
+(defn f [m l]
+  (match [m]
+         [{Integer/MAX_VALUE 1 Integer/MIN_VALUE 2}] :a0
+         [{str/blank? 1}] :a1
+         [{k 1}] :a2
+         [{l 1}] :a3
+         [{:a {Integer/MAX_VALUE 1}}] :a4
+         [{:b x}] x
+         :else nil))
+")))
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 15, :level :error, :message "Unresolved symbol: nope"})
+     (lint!! "(match [{}] [{nope 1}] 1)")))
+  (testing "two unsupported binding forms in a pattern report two findings"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 15, :level :error, :message "unsupported binding form a/b"}
+       {:file "<stdin>", :row 2, :col 19, :level :error, :message "unsupported binding form c/d"})
+     (lint!! "(match [1 2] [a/b c/d] 1)")))
   (testing ":or pattern"
     (is (empty? (lint!! "
 (let [x 4 y 6 z 9]
