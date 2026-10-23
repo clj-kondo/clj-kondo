@@ -212,7 +212,9 @@
           ;; SCI reads them back to the same value regardless of the gen
           ;; ns's current-ns at load time.
           (binding [keyword-node/*autoresolve-ns* orig-ns
-                    token-node/*syntax-quote-imports* (not-empty (:imports (:ns ctx)))]
+                    token-node/*syntax-quote-imports*
+                    (not-empty (get-in @(:namespaces ctx)
+                                       [(:base-lang ctx) (:lang ctx) orig-ns :imports]))]
             (let [forms (mapv :form entries)
                   aliases (reduce merge-alias-maps {}
                                   (map #(aggregate-alias-usages

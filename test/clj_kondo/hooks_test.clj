@@ -679,6 +679,7 @@ my-ns/special-map \"
   (let [dir (fs/create-temp-dir)
         cfg-dir (fs/file dir ".clj-kondo")
         macros (fs/file dir "macros.clj")
+        top-level (fs/file dir "top_level.clj")
         app (fs/file dir "app.clj")]
     (try
       (fs/create-dirs cfg-dir)
@@ -686,18 +687,28 @@ my-ns/special-map \"
 (defmacro tag {:clj-kondo/macroexpand-hook true} [sym] `(def ~(vary-meta sym assoc :tag `UUID) nil))
 (defmacro check {:clj-kondo/macroexpand-hook true} [sym x] `(def ~sym (instance? UUID ~x)))
 (defmacro make {:clj-kondo/macroexpand-hook true} [sym] `(def ~sym [(UUID/randomUUID) (UUID. 1 2)]))
-(defmacro unquoted {:clj-kondo/macroexpand-hook true} [sym] `(def ~sym ~'UUID))")
-      (spit app "(ns app (:require [macros]))
-(macros/tag a) (macros/check b 1) (macros/make c)
-[a b c]")
-      (clj-kondo/run! {:lint [(str macros)] :dependencies true :config-dir (str cfg-dir)})
+(defmacro unquoted {:clj-kondo/macroexpand-hook true} [sym] `(def ~sym ~'UUID))
+(defmacro quoted {:clj-kondo/macroexpand-hook true} [sym] `(def ~sym 'UUID))
+(defmacro nested {:clj-kondo/macroexpand-hook true} [sym] `(def ~sym ~(list 'quote `UUID)))")
+      (spit top-level "(ns top-level)
+(import '(java.util UUID))
+(defmacro check {:clj-kondo/macroexpand-hook true} [sym x] `(def ~sym (instance? UUID ~x)))")
+      (spit app "(ns app (:require [macros] [top-level]))
+(macros/tag a) (macros/check b 1) (macros/make c) (top-level/check d 1)
+[a b c d]")
+      (clj-kondo/run! {:lint [(str macros) (str top-level)] :dependencies true :config-dir (str cfg-dir)})
       (let [gen (slurp (fs/file cfg-dir "clj_kondo" "gen_macros" "macros.clj"))]
         (testing "the gen ns fully qualifies syntax-quoted imported classes"
           (is (str/includes? gen ":tag `java.util.UUID"))
           (is (str/includes? gen "(instance? java.util.UUID ~x)"))
-          (is (str/includes? gen "[(java.util.UUID/randomUUID) (java.util.UUID. 1 2)]")))
+          (is (str/includes? gen "[(java.util.UUID/randomUUID) (java.util.UUID. 1 2)]"))
+          (is (str/includes? gen "(def ~sym 'java.util.UUID)"))
+          (is (str/includes? gen "~(list 'quote `java.util.UUID)")))
         (testing "the gen ns keeps an unquoted imported class unchanged"
           (is (str/includes? gen "~'UUID"))))
+      (testing "the gen ns fully qualifies a class from a top-level import"
+        (is (str/includes? (slurp (fs/file cfg-dir "clj_kondo" "gen_macros" "top_level.clj"))
+                           "(instance? java.util.UUID ~x)")))
       (testing "macro calls with syntax-quoted imported classes lint without findings"
         (is (empty? (:findings (clj-kondo/run! {:lint [(str app)] :config-dir (str cfg-dir)})))))
       (finally
