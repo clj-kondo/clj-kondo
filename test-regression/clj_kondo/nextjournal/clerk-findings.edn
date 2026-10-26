@@ -1,24 +1,4 @@
-[{:end-row 4,
-  :type :unused-excluded-var,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer/impl.clj",
-  :col 31,
-  :end-col 44,
-  :langs (),
-  :message "Unused excluded var: macroexpand-1",
-  :row 4}
- {:end-row 4,
-  :type :unused-excluded-var,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/analyzer/impl.clj",
-  :col 45,
-  :end-col 56,
-  :langs (),
-  :message "Unused excluded var: macroexpand",
-  :row 4}
- {:end-row 517,
+[{:end-row 522,
   :type :redundant-fn-wrapper,
   :level :warning,
   :filename
@@ -27,68 +7,7 @@
   :end-col 37,
   :langs (),
   :message "Redundant fn wrapper",
-  :row 517}
- {:end-row 2,
-  :type :unused-excluded-var,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/cherry_env.cljs",
-  :col 29,
-  :end-col 33,
-  :langs (),
-  :message "Unused excluded var: time",
-  :row 2}
- {:end-row 2,
-  :type :unused-excluded-var,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/cljs_libs.clj",
-  :col 29,
-  :end-col 38,
-  :langs (),
-  :message "Unused excluded var: remove-ns",
-  :row 2}
- {:end-row 277,
-  :type :redundant-primitive-coercion,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/eval.clj",
-  :col 3,
-  :end-col 55,
-  :langs (),
-  :message
-  "Redundant boolean coercion: expression already has type boolean",
-  :row 276}
- {:type :aliased-referred-var,
-  :level :info,
-  :lang :cljs,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/viewer.cljc",
-  :col 6,
-  :cljc true,
-  :langs (:cljs),
-  :message "Var ordered-map is referred but used via alias: omap",
-  :row 105}
- {:end-row 219,
-  :type :redundant-declare,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/clerk/src/nextjournal/clerk/webserver.clj",
-  :col 1,
-  :end-col 25,
-  :langs (),
-  :message "Redundant declare: present+reset!",
-  :row 219}
- {:end-row 10,
-  :type :constant-condition,
-  :level :warning,
-  :filename
-  "test-regression/checkouts/clerk/test/nextjournal/clerk/render/hashing_test.clj",
-  :col 11,
-  :end-col 35,
-  :langs (),
-  :message "Condition always true",
-  :row 10}
+  :row 522}
  {:end-row 67,
   :type :redundant-fn-wrapper,
   :level :warning,
@@ -98,24 +17,4 @@
   :end-col 52,
   :langs (),
   :message "Redundant fn wrapper",
-  :row 67}
- {:end-row 81,
-  :type :is-message-not-string,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
-  :col 9,
-  :end-col 157,
-  :langs (),
-  :message "Test assertion message should be a string",
-  :row 81}
- {:end-row 86,
-  :type :is-message-not-string,
-  :level :info,
-  :filename
-  "test-regression/checkouts/clerk/test/nextjournal/clerk/webserver_test.clj",
-  :col 9,
-  :end-col 132,
-  :langs (),
-  :message "Test assertion message should be a string",
-  :row 86}]
+  :row 67}]

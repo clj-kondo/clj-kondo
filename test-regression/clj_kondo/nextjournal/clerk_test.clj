@@ -14,7 +14,7 @@
         _ (fs/create-dirs test-regression-checkouts)
         dir (fs/file test-regression-checkouts "clerk")
         config-dir (fs/file dir ".clj-kondo")
-        sha "b0fd4458a1af7f3ecd95e0cde41761ac297e24f5"]
+        sha "6ad6516b65a2422b12f17905d1ecb7ad2ddc94d1"]
     (when-not (fs/exists? dir)
       (p/shell {:dir test-regression-checkouts} "git clone --no-checkout --depth 1 https://github.com/nextjournal/clerk"))
 
