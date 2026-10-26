@@ -12,7 +12,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
-## Unreleased
+## 2026.10.26
 
 - `:unknown-map-key`: fix false positive on a lookup on a var defined more than once. E.g. `(def x {:a 1}) (:a x) (def x {:b 1})` no longer warns.
 - [#3052](https://github.com/clj-kondo/clj-kondo/issues/3052): fix stack overflow in type checking of a recursive function that returns a keyword lookup on its own result.
