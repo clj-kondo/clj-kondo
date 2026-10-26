@@ -730,7 +730,9 @@
                          {:linters {:type-mismatch {:level :error}}})))
       (is (empty? (lint! "(declare bar) (defn foo [] (bar)) (defn bar [] (foo))"
                          {:linters {:type-mismatch {:level :error}}}
-                         "--cache" "true"))))))
+                         "--cache" "true")))
+      (is (empty? (lint! "(defn walk [x] (let [base {:state :blocked}] (if x (let [r (walk (dec x))] (assoc base :state (:state r))) base))) (inc (:state (walk 1)))"
+                         {:linters {:type-mismatch {:level :error}}}))))))
 
 (deftest clojure-string-replace-test
   (assert-submaps2
