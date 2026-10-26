@@ -112,3 +112,17 @@
   (testing ":type-mismatch :off disables the warning"
     (is (empty? (messages "(let [m {:a 1}] (:b m))"
                           (assoc-in config [:linters :type-mismatch :level] :off))))))
+
+(deftest redefined-var-test
+  (testing "a lookup on a redefined var does not warn"
+    (is (empty? (messages "(def x {:a 1}) (:a x) (def x {:b 1})")))
+    (is (empty? (messages "(comment (def x {:a 1}) (:a x)) (comment (def x {:b 1}))")))
+    (is (empty? (messages "(def x {:a 1}) (comment (def x {:b 1}) (:b x))"))))
+  (testing "a lookup on a redefined fn return does not warn"
+    (is (empty? (messages "(defn f [] {:a 1}) (:a (f)) (defn f [] {:b 1})"))))
+  (testing "a lookup on a single comment def warns"
+    (is (= [[1 "Unknown key :b in map with keys :a"]]
+           (messages "(comment (def x {:a 1}) (:b x))"))))
+  (testing "a lookup on a declared and defined var warns"
+    (is (= [[1 "Unknown key :b in map with keys :a"]]
+           (messages "(declare x) (def x {:a 1}) (:b x)")))))
