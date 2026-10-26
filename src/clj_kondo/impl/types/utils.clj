@@ -262,7 +262,7 @@
                                  ;; `kw-calls` is introduced.
                                  (if-let [kw-calls (:kw-calls call)]
                                    (reduce (fn [t kw]
-                                             (or (kw-lookup idacs t kw seen-calls)
+                                             (or (kw-lookup idacs t kw (conj seen-calls call))
                                                  (reduced nil)))
                                            resolved-arg-type kw-calls)
                                    (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
