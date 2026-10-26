@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- `:unknown-map-key`: fix false positive on a lookup on a var defined more than once. E.g. `(def x {:a 1}) (:a x) (def x {:b 1})` no longer warns.
 - [#3052](https://github.com/clj-kondo/clj-kondo/issues/3052): fix stack overflow in type checking of a recursive function that returns a keyword lookup on its own result.
 - [#3042](https://github.com/clj-kondo/clj-kondo/issues/3042): macros from source: fully qualify imported classes inside syntax-quote. E.g. `` `UUID `` with `(:import (java.util UUID))` no longer warns about an unresolved var or namespace at the call site.
 - [#3043](https://github.com/clj-kondo/clj-kondo/issues/3043): fix false positive unresolved var for a reference before `ns-unmap` of the same var. E.g. `(def a 1) (inc a) (ns-unmap *ns* 'a)` no longer warns.

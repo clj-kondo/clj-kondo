@@ -226,13 +226,19 @@
                                  classfile (var-classfile metadata)
                                  hard-def? (and (not temp?)
                                                 (not (:declared metadata))
-                                                (not (:in-comment metadata)))]
+                                                (not (:in-comment metadata)))
+                                 redefined (and prev-var
+                                                (not (:declared metadata))
+                                                (or (:redefined prev-var)
+                                                    (and (not (:temp prev-var))
+                                                         (not (:declared prev-var)))))]
                              (-> ns
                                  (update :vars assoc
                                          var-sym
                                          ;; a comment form def doesn't overwrite a real def
                                          ;; but is kept under :comment-def for usages in comment forms
-                                         (if (and (:in-comment metadata)
+                                         (cond->
+                                          (if (and (:in-comment metadata)
                                                   prev-var
                                                   (not (:in-comment prev-var))
                                                   (not (:temp prev-var)))
@@ -247,7 +253,8 @@
                                                    (assoc new-var :comment-def (dissoc prev-var :comment-def))
                                                    (:comment-def prev-var)
                                                    (assoc new-var :comment-def (:comment-def prev-var))
-                                                   :else new-var))))
+                                                   :else new-var)))
+                                           redefined (assoc :redefined true)))
                                  (assoc :classfiles
                                         (if classfile
                                           (update classfiles classfile (fnil conj []) var-sym)

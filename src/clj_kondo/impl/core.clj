@@ -621,7 +621,7 @@
    :fixed-arities :varargs-min-arity
    :name :ns :top-ns :imported-ns :imported-var
    :arities :type :class :methods
-   :method-arities])
+   :method-arities :redefined])
 
 (defn format-vars [vars]
   (map-vals (fn [md]

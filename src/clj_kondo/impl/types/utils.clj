@@ -248,7 +248,8 @@
                          (when-not (contains? seen-calls call)
                            (let [arity (:arity call)]
                              (when-let [called-fn (resolve-call* idacs call (:resolved-ns call) (:name call))]
-                               (let [called-fn (utils/prefer-comment-def call called-fn)
+                               (when-not (:redefined called-fn)
+                                (let [called-fn (utils/prefer-comment-def call called-fn)
                                      arities (:arities called-fn)
                                      tag (or (when-let [v (get arities arity)]
                                                (:ret v))
@@ -265,11 +266,11 @@
                                              (or (kw-lookup idacs t kw (conj seen-calls call))
                                                  (reduced nil)))
                                            resolved-arg-type kw-calls)
-                                   (resolve-arg-type idacs resolved-arg-type seen-calls)))))))
+                                   (resolve-arg-type idacs resolved-arg-type seen-calls))))))))
                        (when-let [usage (:usage arg-type)]
-                         (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))
-                               resolved (utils/prefer-comment-def usage resolved)]
-                           (resolve-arg-type idacs resolved)))
+                         (let [resolved (resolve-call* idacs usage (:resolved-ns usage) (:name usage))]
+                           (when-not (:redefined resolved)
+                             (resolve-arg-type idacs (utils/prefer-comment-def usage resolved)))))
                        (when-let [op (:op arg-type)]
                          (when (identical? op :keys)
                            (let [pos (select-keys arg-type [:row :col :end-row :end-col])
