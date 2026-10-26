@@ -15,7 +15,7 @@
           _ (fs/create-dirs test-regression-checkouts)
           dir (fs/file test-regression-checkouts "ductile")
           config-dir (fs/file dir ".clj-kondo")
-          sha "94a1f664e71956112c2c164e570db80058b48fbe"
+          sha "4d1ed33cad9859640b8ade9b7d24fa37ef1bd31f"
           url (str "https://x-access-token:"
                    (System/getenv "GITHUB_DUCTILE_PAT")
                    "@github.com/nextjournal/ductile")]

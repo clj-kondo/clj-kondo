@@ -78,7 +78,7 @@
   :message "Var query! is referred but used via alias: tx-import",
   :level :info,
   :langs ()}
- {:end-row 4069,
+ {:end-row 4078,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -90,8 +90,8 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 4069}
- {:end-row 4094,
+  :row 4078}
+ {:end-row 4103,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -103,8 +103,8 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 4094}
- {:end-row 4115,
+  :row 4103}
+ {:end-row 4124,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -116,8 +116,8 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 4115}
- {:end-row 5995,
+  :row 4124}
+ {:end-row 6004,
   :type :redundant-str-call,
   :level :info,
   :filename
@@ -126,7 +126,7 @@
   :end-col 84,
   :langs (),
   :message "Single argument to str already is a string",
-  :row 5995}
+  :row 6004}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/datomic/test_scenario.clj",
   :row 403,
@@ -137,7 +137,7 @@
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/edi/edifact/vw.clj",
-  :row 447,
+  :row 442,
   :col 29,
   :type :aliased-referred-var,
   :message "Var fail! is referred but used via alias: util",
@@ -317,7 +317,7 @@
   :langs (),
   :message "Redundant nested call: str",
   :row 214}
- {:end-row 940,
+ {:end-row 970,
   :type :redundant-primitive-coercion,
   :level :info,
   :filename
@@ -327,8 +327,8 @@
   :langs (),
   :message
   "Redundant boolean coercion: expression already has type boolean",
-  :row 940}
- {:end-row 1020,
+  :row 970}
+ {:end-row 1053,
   :type :redundant-primitive-coercion,
   :level :info,
   :filename
@@ -338,10 +338,10 @@
   :langs (),
   :message
   "Redundant boolean coercion: expression already has type boolean",
-  :row 1020}
+  :row 1053}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/ui/hyper/views.clj",
-  :row 123,
+  :row 144,
   :col 55,
   :type :aliased-referred-var,
   :message "Var tr is referred but used via alias: locale",
@@ -349,7 +349,7 @@
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/ui/hyper/views.clj",
-  :row 126,
+  :row 147,
   :col 55,
   :type :aliased-referred-var,
   :message "Var tr is referred but used via alias: locale",
@@ -370,7 +370,7 @@
   :row 24}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 5589,
+  :row 5502,
   :col 5,
   :type :aliased-referred-var,
   :message "Var update-some is referred but used via alias: util",
@@ -378,7 +378,7 @@
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 5594,
+  :row 5507,
   :col 49,
   :type :aliased-referred-var,
   :message "Var fail! is referred but used via alias: util",
@@ -386,7 +386,7 @@
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 5598,
+  :row 5511,
   :col 31,
   :type :aliased-referred-var,
   :message "Var fail! is referred but used via alias: util",
@@ -394,13 +394,13 @@
   :langs ()}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow.clj",
-  :row 5622,
+  :row 5535,
   :col 5,
   :type :aliased-referred-var,
   :message "Var fail! is referred but used via alias: util",
   :level :info,
   :langs ()}
- {:end-row 156,
+ {:end-row 157,
   :type :redundant-primitive-coercion,
   :level :info,
   :filename
@@ -410,7 +410,7 @@
   :langs (),
   :message
   "Redundant boolean coercion: expression already has type boolean",
-  :row 155}
+  :row 156}
  {:filename
   "test-regression/checkouts/ductile/src/ductile/workflow/dsl/preds.clj",
   :row 747,
@@ -486,5 +486,47 @@
   :type :aliased-referred-var,
   :message
   "Var *insert-chunk-size* is referred but used via alias: pipeline",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/ductile/workflow/dsl_test.clj",
+  :row 30,
+  :col 22,
+  :type :aliased-referred-var,
+  :message "Var process-ui-field is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/ductile/workflow/dsl_test.clj",
+  :row 42,
+  :col 19,
+  :type :aliased-referred-var,
+  :message
+  "Var perform-service-txd is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/ductile/workflow/dsl_test.clj",
+  :row 47,
+  :col 21,
+  :type :aliased-referred-var,
+  :message
+  "Var validate-ui-fields-txd is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/ductile/workflow/dsl_test.clj",
+  :row 55,
+  :col 18,
+  :type :aliased-referred-var,
+  :message "Var validate-fields is referred but used via alias: dsl",
+  :level :info,
+  :langs ()}
+ {:filename
+  "test-regression/checkouts/ductile/test/ductile/workflow/dsl_test.clj",
+  :row 59,
+  :col 20,
+  :type :aliased-referred-var,
+  :message "Var recordable-attrs is referred but used via alias: dsl",
   :level :info,
   :langs ()}]
