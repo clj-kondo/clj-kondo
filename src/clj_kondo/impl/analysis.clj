@@ -17,8 +17,7 @@
   [ctx k]
   (let [selector (:analysis-context ctx)]
     (boolean (or (true? selector)
-                 (and (sequential? selector)
-                      (some #(= k %) selector))))))
+                 (some #(= k %) selector)))))
 
 (defn- assoc-some! [tm k v]
   (cond-> tm
