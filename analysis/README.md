@@ -49,6 +49,17 @@ Built-in and custom hook can add arbitrary data to the analysis using a
 context map using `:context true` or select certain keys using `:context
 [:re-frame.core]`.
 
+To pass options to a context key, use the map form, where each value is either
+`true` (default options) or a vector of options:
+
+``` clojure
+{:analysis {:context {:re-frame.core true
+                      :schema.core [:as-str]}}}
+```
+
+`:context [:re-frame.core :schema.core]` is equivalent to `:context
+{:re-frame.core true :schema.core true}`.
+
 Built-in context keys:
 
 - `:re-frame.core`: links re-frame registrations to their subscriptions, events
@@ -66,6 +77,9 @@ Built-in context keys:
 
   `:output` and `:schema` are absent when not provided. A rest argument is
   marked with `:rest true`.
+
+  Options (default `[:as-str]`):
+  - `:as-str`: render schemas as strings, as written in the source.
 
 ## Limited analysis
 

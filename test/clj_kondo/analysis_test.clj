@@ -1186,7 +1186,12 @@
         f1-ctx {:output "User"
                 :arities [{:inputs [{:arg "id" :schema "s/Uuid"}
                                     {:arg "db" :schema m/absent}]}]}]
-    (doseq [selector [[:schema.core] true]]
+    (doseq [selector [[:schema.core]
+                      true
+                      {:schema.core true}
+                      {:schema.core [:as-str]}
+                      {:schema.core []}
+                      {:re-frame.core true :schema.core [:as-str]}]]
       (testing (str "schema info is exposed in var-definition context with :context " selector)
         (let [{:keys [var-definitions keywords]}
               (analyze code {:config {:analysis {:context selector
@@ -1210,8 +1215,17 @@
             (let [k-usages (filter #(= "k" (:name %)) keywords)]
               (is (= 1 (count k-usages)))
               (is (not-any? #(get-in % [:context :schema.core]) k-usages)))))))
+    (testing "schemas are not rendered when no supported option is given"
+      (let [{:keys [var-definitions]}
+            (analyze code {:config {:analysis {:context {:schema.core [:unknown]}}}})]
+        (assert-submaps2
+         [{:name 'User}
+          {:name 'f1 :context {:schema.core {:output m/absent
+                                             :arities [{:inputs [{:arg "id" :schema m/absent}
+                                                                 {:arg "db" :schema m/absent}]}]}}}]
+         (take 2 var-definitions))))
     (testing "schema context is absent when :schema.core is not selected"
-      (doseq [cfg [{} {:context [:re-frame.core]}]]
+      (doseq [cfg [{} {:context [:re-frame.core]} {:context {:re-frame.core true}}]]
         (let [{:keys [var-definitions]} (analyze code {:config {:analysis cfg}})]
           (is (every? #(not (contains? % :context)) var-definitions)))))))
 

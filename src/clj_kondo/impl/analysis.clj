@@ -6,19 +6,39 @@
    [clj-kondo.impl.overrides :as overrides]
    [clj-kondo.impl.utils :as utils :refer [assoc-some export-ns-sym select-some]]))
 
-(defn select-context [selector context]
+(defn select-context
+  "Selects keys from `context` based on the `:analysis {:context ...}` selector:
+  - `true`: the whole context
+  - `[:k1 :k2]`: only those keys
+  - `{:k1 true :k2 [:opt]}`: only those keys, values are per key options (see
+    `context-options`)"
+  [selector context]
   (when selector
-    (if (true? selector)
-      context
-      (select-keys context selector))))
+    (cond
+      (true? selector) context
+      (map? selector) (select-keys context (keys selector))
+      :else (select-keys context selector))))
 
 (defn context-selected?
   "Returns true when context key `k` is requested via `:analysis {:context ...}`."
   [ctx k]
   (let [selector (:analysis-context ctx)]
     (boolean (or (true? selector)
+                 (and (map? selector)
+                      (contains? selector k))
                  (and (sequential? selector)
                       (some #(= k %) selector))))))
+
+(defn context-options
+  "Returns the options vector configured for context key `k` with the map
+  selector form, e.g. `[:as-str]` for `{:schema.core [:as-str]}`. Returns nil
+  when no options are configured, callers should then use their defaults."
+  [ctx k]
+  (let [selector (:analysis-context ctx)]
+    (when (map? selector)
+      (let [opts (get selector k)]
+        (when (sequential? opts)
+          (not-empty (vec opts)))))))
 
 (defn- assoc-some! [tm k v]
   (cond-> tm
