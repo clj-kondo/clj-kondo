@@ -140,35 +140,23 @@
 
 ;;;; Schema information for analysis output
 
-(def default-schema-info-opts
-  "Options used when `:analysis {:context {:schema.core ...}}` has none."
-  [:as-str])
-
-(defn- render-schema
-  "Renders a schema node according to `opts`. Supported options:
-  - `:as-str`: the schema as written in the source (default)
-  Returns nil when no supported representation is requested."
-  [opts node]
-  (when (and node (some #{:as-str} opts))
-    (str node)))
-
 (defn- arg-vec->inputs
   "Given an arg vector node with schema annotations, returns a vector with one
   map per argument: `{:arg \"x\" :schema \"s/Int\"}`. `:schema` is absent when
   the argument has no schema. The `&` symbol is dropped and the rest argument
   is marked with `:rest true`."
-  [opts arg-vec]
+  [arg-vec]
   (loop [[node & more] (:children arg-vec)
          rest? false
          inputs []]
     (cond
       (nil? node) inputs
       (has-schema-node? node)
-      (let [schema (render-schema opts (first more))]
+      (let [schema-node (first more)]
         (recur (next more)
                rest?
-               (if (and schema (seq inputs))
-                 (assoc-in inputs [(dec (count inputs)) :schema] schema)
+               (if (and schema-node (seq inputs))
+                 (assoc-in inputs [(dec (count inputs)) :schema] (str schema-node))
                  inputs)))
       (= '& (:value node)) (recur more true inputs)
       :else
@@ -184,14 +172,11 @@
 (defn defn-schema-info
   "Extracts schema information from an `s/defn` form (before schemas are
   removed). Returns `{:output \"Ret\" :arities [{:inputs [...]}]}`, where
-  `:output` is absent when there is no return schema. How schemas are rendered
-  depends on `opts` (see `render-schema`), defaulting to
-  `default-schema-info-opts`. With `:as-str`, schemas are returned as written
-  in the source: a symbol name for named schemas (e.g. from `s/defschema`) or
-  the full inline form."
-  [expr opts]
-  (let [opts (or (not-empty opts) default-schema-info-opts)
-        [_defn _name & children] (:children expr)
+  `:output` is absent when there is no return schema. Schemas are returned as
+  written in the source: a symbol name for named schemas (e.g. from
+  `s/defschema`) or the full inline form."
+  [expr]
+  (let [[_defn _name & children] (:children expr)
         {:keys [output bodies]}
         (loop [[node & more] children
                output nil]
@@ -209,11 +194,10 @@
                                               body
                                               (first (:children body)))]
                                 (when (hooks/vector-node? arg-vec)
-                                  {:inputs (arg-vec->inputs opts arg-vec)}))))
-                      bodies)
-        output (render-schema opts output)]
+                                  {:inputs (arg-vec->inputs arg-vec)}))))
+                      bodies)]
     (cond-> {:arities arities}
-      output (assoc :output output))))
+      output (assoc :output (str output)))))
 
 ;;;; Scratch
 

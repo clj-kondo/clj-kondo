@@ -2229,9 +2229,7 @@
   (let [ctx (if (and (= 'defn fn-sym)
                      (analysis/context-selected? ctx :schema.core))
               ;; extracted before expand-schema strips the :- annotations
-              (assoc ctx :schema-info
-                     (schema/defn-schema-info
-                      expr (analysis/context-options ctx :schema.core)))
+              (assoc ctx :schema-info (schema/defn-schema-info expr))
               ctx)
         {:keys [expr schemas]}
         (schema/expand-schema ctx
