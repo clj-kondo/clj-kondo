@@ -199,6 +199,15 @@
     (cond-> {:arities arities}
       output (assoc :output (str output)))))
 
+(defn def-schema-info
+  "Extracts schema information from an `s/def` form (before schemas are
+  removed). Returns `{:schema \"s/Int\"}`, or nil when there is no schema. Like
+  `schema.core/def`, only a `:-` directly after the name is considered."
+  [expr]
+  (let [[_def _name arrow schema-node] (:children expr)]
+    (when (and (has-schema-node? arrow) schema-node)
+      {:schema (str schema-node)})))
+
 ;;;; Scratch
 
 #_

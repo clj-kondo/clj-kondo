@@ -67,6 +67,15 @@ Built-in context keys:
   `:output` and `:schema` are absent when not provided. A rest argument is
   marked with `:rest true`.
 
+  On `:var-definitions` created by `schema.core/def`, the schema of the var:
+
+  ``` clojure
+  (s/def x :- s/Int 1)
+  ;; => {:schema.core {:schema "s/Int"}}
+  ```
+
+  No `:schema.core` context is added when the `s/def` has no schema.
+
 ## Limited analysis
 
 Similarly, analysis can be limited. This is useful to quickly scan a file or

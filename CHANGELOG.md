@@ -14,7 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#1268](https://github.com/clj-kondo/clj-kondo/issues/1268): analysis: emit `:context` on `:var-definitions` and expose `schema.core` `s/defn` input and output schemas under `:context :schema.core`.
+- [#1268](https://github.com/clj-kondo/clj-kondo/issues/1268): analysis: emit `:context` on `:var-definitions` and expose `schema.core` `s/defn` input and output schemas and `s/def` schemas under `:context :schema.core`.
 
 ## 2026.10.26
 
