@@ -140,25 +140,31 @@
 
 ;;;; Schema information for analysis output
 
-(defn- arg-vec->inputs
+(defn- schema-node->info
+  "Returns the analysis representation of a schema node. A map, so more
+  representations can be added later without breaking the API."
+  [schema-node]
+  {:as-str (str schema-node)})
+
+(defn- arg-vec->args
   "Given an arg vector node with schema annotations, returns a vector with one
-  map per argument: `{:arg \"x\" :schema \"s/Int\"}`. `:schema` is absent when
-  the argument has no schema. The `&` symbol is dropped and the rest argument
-  is marked with `:rest true`."
+  map per argument: `{:arg \"x\" :schema {:as-str \"s/Int\"}}`. `:schema` is
+  absent when the argument has no schema. The `&` symbol is dropped and the
+  rest argument is marked with `:rest true`."
   [arg-vec]
   (loop [[node & more] (:children arg-vec)
          rest? false
-         inputs []]
+         args []]
     (cond
-      (nil? node) inputs
+      (nil? node) args
       (has-schema-node? node)
       (let [schema-node (first more)]
         (recur (next more)
                rest?
-               (if (and schema-node (seq inputs))
-                 (assoc-in inputs [(dec (count inputs)) :schema] (str schema-node))
-                 inputs)))
-      (= '& (:value node)) (recur more true inputs)
+               (if (and schema-node (seq args))
+                 (assoc-in args [(dec (count args)) :schema] (schema-node->info schema-node))
+                 args)))
+      (= '& (:value node)) (recur more true args)
       :else
       (let [arg (if (= :vector (utils/tag node))
                   ;; destructuring vector: drop inner schemas from the arg string
@@ -166,14 +172,15 @@
                   node)]
         (recur more
                rest?
-               (conj inputs (cond-> {:arg (str arg)}
-                              rest? (assoc :rest true))))))))
+               (conj args (cond-> {:arg (str arg)}
+                            rest? (assoc :rest true))))))))
 
 (defn defn-schema-info
   "Extracts schema information from an `s/defn` form (before schemas are
-  removed). Returns `{:output \"Ret\" :arities [{:inputs [...]}]}`, where
-  `:output` is absent when there is no return schema. Schemas are returned as
-  written in the source: a symbol name for named schemas (e.g. from
+  removed). Returns `{:output {:as-str \"Ret\"} :inputs [{:args [...]}]}`, with
+  one `:inputs` entry per arity, in source order. `:output` is absent when
+  there is no return schema. Each schema is a map whose `:as-str` is the
+  schema as written in the source: a symbol name for named schemas (e.g. from
   `s/defschema`) or the full inline form."
   [expr]
   (let [[_defn _name & children] (:children expr)
@@ -188,25 +195,26 @@
                                      :bodies (filter hooks/list-node? (cons node more))}
             ;; docstring, attr-map
             :else (recur more output)))
-        arities (into []
-                      (keep (fn [body]
-                              (let [arg-vec (if (hooks/vector-node? body)
-                                              body
-                                              (first (:children body)))]
-                                (when (hooks/vector-node? arg-vec)
-                                  {:inputs (arg-vec->inputs arg-vec)}))))
-                      bodies)]
-    (cond-> {:arities arities}
-      output (assoc :output (str output)))))
+        inputs (into []
+                     (keep (fn [body]
+                             (let [arg-vec (if (hooks/vector-node? body)
+                                             body
+                                             (first (:children body)))]
+                               (when (hooks/vector-node? arg-vec)
+                                 {:args (arg-vec->args arg-vec)}))))
+                     bodies)]
+    (cond-> {:inputs inputs}
+      output (assoc :output (schema-node->info output)))))
 
 (defn def-schema-info
   "Extracts schema information from an `s/def` form (before schemas are
-  removed). Returns `{:schema \"s/Int\"}`, or nil when there is no schema. Like
-  `schema.core/def`, only a `:-` directly after the name is considered."
+  removed). Returns `{:schema {:as-str \"s/Int\"}}`, or nil when there is no
+  schema. Like `schema.core/def`, only a `:-` directly after the name is
+  considered."
   [expr]
   (let [[_def _name arrow schema-node] (:children expr)]
     (when (and (has-schema-node? arrow) schema-node)
-      {:schema (str schema-node)})))
+      {:schema (schema-node->info schema-node)})))
 
 ;;;; Scratch
 

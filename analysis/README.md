@@ -59,19 +59,20 @@ Built-in context keys:
 
   ``` clojure
   (s/defn f1 :- User [id :- s/Uuid db] ...)
-  ;; => {:schema.core {:output "User"
-  ;;                   :arities [{:inputs [{:arg "id" :schema "s/Uuid"}
-  ;;                                       {:arg "db"}]}]}}
+  ;; => {:schema.core {:output {:as-str "User"}
+  ;;                   :inputs [{:args [{:arg "id" :schema {:as-str "s/Uuid"}}
+  ;;                                    {:arg "db"}]}]}}
   ```
 
-  `:output` and `:schema` are absent when not provided. A rest argument is
-  marked with `:rest true`.
+  `:inputs` has one entry per arity, in source order. Each schema is a map;
+  `:as-str` holds the schema as written in the source. `:output` and `:schema`
+  are absent when not provided. A rest argument is marked with `:rest true`.
 
   On `:var-definitions` created by `schema.core/def`, the schema of the var:
 
   ``` clojure
   (s/def x :- s/Int 1)
-  ;; => {:schema.core {:schema "s/Int"}}
+  ;; => {:schema.core {:schema {:as-str "s/Int"}}}
   ```
 
   No `:schema.core` context is added when the `s/def` has no schema.

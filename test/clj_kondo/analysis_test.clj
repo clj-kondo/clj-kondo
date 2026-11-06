@@ -1183,9 +1183,9 @@
                 ([x [a b] :- [s/Int] & more :- [User]] [x a b more]))
               (s/defn f3 [x] x)
               (defn f4 [x] x)"
-        f1-ctx {:output "User"
-                :arities [{:inputs [{:arg "id" :schema "s/Uuid"}
-                                    {:arg "db" :schema m/absent}]}]}]
+        f1-ctx {:output {:as-str "User"}
+                :inputs [{:args [{:arg "id" :schema {:as-str "s/Uuid"}}
+                                 {:arg "db" :schema m/absent}]}]}]
     (doseq [selector [[:schema.core] true]]
       (testing (str "schema info is exposed in var-definition context with :context " selector)
         (let [{:keys [var-definitions keywords]}
@@ -1196,14 +1196,14 @@
             {:name 'f1 :context {:schema.core f1-ctx}}
             {:name 'f2
              :context {:schema.core
-                       {:output "(s/maybe s/Int)"
-                        :arities [{:inputs [{:arg "x" :schema "s/Int"}]}
-                                  {:inputs [{:arg "x" :schema m/absent}
-                                            {:arg "[a b]" :schema "[s/Int]"}
-                                            {:arg "more" :rest true :schema "[User]"}]}]}}}
+                       {:output {:as-str "(s/maybe s/Int)"}
+                        :inputs [{:args [{:arg "x" :schema {:as-str "s/Int"}}]}
+                                 {:args [{:arg "x" :schema m/absent}
+                                         {:arg "[a b]" :schema {:as-str "[s/Int]"}}
+                                         {:arg "more" :rest true :schema {:as-str "[User]"}}]}]}}}
             {:name 'f3
              :context {:schema.core {:output m/absent
-                                     :arities [{:inputs [{:arg "x" :schema m/absent}]}]}}}
+                                     :inputs [{:args [{:arg "x" :schema m/absent}]}]}}}
             {:name 'f4 :context m/absent}]
            var-definitions)
           (testing "schema context does not leak into the body"
@@ -1220,8 +1220,8 @@
             (analyze code {:config {:analysis {:context [:schema.core]
                                                :keywords true}}})]
         (assert-submaps2
-         [{:name 'd1 :context {:schema.core {:schema "s/Int"}}}
-          {:name 'd2 :doc "doc" :context {:schema.core {:schema "(s/maybe s/Str)"}}}
+         [{:name 'd1 :context {:schema.core {:schema {:as-str "s/Int"}}}}
+          {:name 'd2 :doc "doc" :context {:schema.core {:schema {:as-str "(s/maybe s/Str)"}}}}
           {:name 'd3 :context m/absent}
           {:name 'd4 :context m/absent}]
          var-definitions)
@@ -1238,15 +1238,28 @@
             by-name (into {} (map (juxt :name identity)) var-definitions)]
         (is (= 3 (count var-definitions)))
         (assert-submap2
-         {:context {:schema.core {:output "s/Int"
-                                  :arities [{:inputs [{:arg "x" :schema "s/Int"}]}]}}}
+         {:context {:schema.core {:output {:as-str "s/Int"}
+                                  :inputs [{:args [{:arg "x" :schema {:as-str "s/Int"}}]}]}}}
          (by-name 'outer))
         (is (not (contains? (by-name 'inner) :context)))
         (assert-submap2
-         {:context {:schema.core {:output "s/Str"
-                                  :arities [{:inputs [{:arg "z" :schema "s/Keyword"}]}]}}}
+         {:context {:schema.core {:output {:as-str "s/Str"}
+                                  :inputs [{:args [{:arg "z" :schema {:as-str "s/Keyword"}}]}]}}}
          (by-name 'inner-s))
         (is (not-any? #(get-in % [:context :schema.core]) var-usages))))
+    (testing "regex schemas are rendered as written"
+      (let [{:keys [var-definitions]}
+            (analyze "(ns foo (:require [schema.core :as s]))
+                      (s/defn f :- #\"out\" [r :- #\"abc\" v :- [#\"nested\"]] r)
+                      (s/def d :- #\"def\" \"x\")"
+                     {:config {:analysis {:context [:schema.core]}}})]
+        (assert-submaps2
+         [{:name 'f :context {:schema.core
+                              {:output {:as-str "#\"out\""}
+                               :inputs [{:args [{:arg "r" :schema {:as-str "#\"abc\""}}
+                                                {:arg "v" :schema {:as-str "[#\"nested\"]"}}]}]}}}
+          {:name 'd :context {:schema.core {:schema {:as-str "#\"def\""}}}}]
+         var-definitions)))
     (testing "schema context is absent when :schema.core is not selected"
       (doseq [cfg [{} {:context [:re-frame.core]}]]
         (let [{:keys [var-definitions]} (analyze code {:config {:analysis cfg}})]
