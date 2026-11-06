@@ -10,7 +10,11 @@
   (printable-only? [_] false)
   (sexpr [_] (list 're-pattern pattern))
   (length [_] 1)
-  (string [_] (str "#\"" pattern "\"")))
+  (string [_] (str "#\"" pattern "\""))
+
+  Object
+  (toString [this]
+    (node/string this)))
 
 (node/make-printable! RegexNode)
 
