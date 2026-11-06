@@ -29362,6 +29362,15 @@
   :message
   "Unresolved var: clj-kondo.impl.rewrite-clj.node.protocols/Node",
   :row 8}
+ {:end-row 17,
+  :type :unresolved-var,
+  :level :warning,
+  :filename "parser/clj_kondo/impl/rewrite_clj/node/regex.clj",
+  :col 6,
+  :end-col 17,
+  :langs (),
+  :message "Unresolved var: node/string",
+  :row 17}
  {:end-row 14,
   :type :unresolved-var,
   :level :warning,
