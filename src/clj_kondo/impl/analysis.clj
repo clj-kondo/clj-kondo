@@ -12,6 +12,13 @@
       context
       (select-keys context selector))))
 
+(defn context-selected?
+  "Returns true when context key `k` is requested via `:analysis {:context ...}`."
+  [ctx k]
+  (let [selector (:analysis-context ctx)]
+    (boolean (or (true? selector)
+                 (some #(= k %) selector)))))
+
 (defn- assoc-some! [tm k v]
   (cond-> tm
     (some? v) (assoc! k v)))
@@ -121,7 +128,8 @@
                                            (not (true? analysis-var-meta)) (select-keys analysis-var-meta)))
                 analyze-callstack-in-defs? (assoc :callstack
                                                   (utils/format-callstack ctx)))
-              :lang (when (= :cljc base-lang) lang))))))
+              :lang (when (= :cljc base-lang) lang)
+              :context (not-empty (select-context (:analysis-context ctx) (:context ctx))))))))
 
 (defn reg-namespace! [{:keys [analysis-ns-meta analysis base-lang lang] :as _ctx}
                       filename row col ns-name in-ns? metadata]

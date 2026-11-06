@@ -12,6 +12,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- [#1268](https://github.com/clj-kondo/clj-kondo/issues/1268): analysis: emit `:context` on `:var-definitions` and expose `schema.core` `s/defn` input and output schemas and `s/def` schemas under `:context :schema.core`.
+
 ## 2026.10.26
 
 - `:unknown-map-key`: fix false positive on a lookup on a var defined more than once. E.g. `(def x {:a 1}) (:a x) (def x {:b 1})` no longer warns.

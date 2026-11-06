@@ -1187,7 +1187,10 @@
 
 (defn analyze-defn
   [ctx expr defined-by defined-by->lint-as]
-  (let [ns-name (-> ctx :ns :name)
+  (let [;; set on the node by analyze-schema for s/defn, only added to this
+        ;; var-definition's context
+        schema-info (:clj-kondo.impl/schema-info expr)
+        ns-name (-> ctx :ns :name)
         ;; "my-fn docstring" {:no-doc true} [x y z] x
         [name-node & children] (next (:children expr))
         name-node-meta-nodes (:meta name-node)
@@ -1318,7 +1321,9 @@
           (swap! (:inline-configs ctx) conj hook-cfg))))
     (when fn-name
       (namespace/reg-var!
-       ctx ns-name fn-name expr
+       (cond-> ctx
+         schema-info (update :context utils/deep-merge {:schema.core schema-info}))
+       ns-name fn-name expr
        (assoc-some var-leading-meta
                    :user-meta (when (:analysis-var-meta ctx)
                                 (conj (or (:user-meta var-leading-meta) []) meta-node-meta meta-node2-meta))
@@ -2103,7 +2108,10 @@
             (with-meta (meta var-name-node)))))
 
 (defn analyze-def [ctx expr defined-by defined-by->lint-as]
-  (let [children (next (:children expr))
+  (let [;; set on the node by analyze-schema for s/def, only added to this
+        ;; var-definition's context
+        schema-info (:clj-kondo.impl/schema-info expr)
+        children (next (:children expr))
         raw-var-name-node (first children)
         var-name-node-meta-nodes (:meta raw-var-name-node)
         _ (utils/handle-ignore ctx raw-var-name-node)
@@ -2191,7 +2199,9 @@
                      ;; value can change via alter-var-root, see mask-var-usages
                      (when-not (and (map? t) (or (:call t) (:usage t)))
                        t)))]
-        (namespace/reg-var! ctx (-> ctx :ns :name)
+        (namespace/reg-var! (cond-> ctx
+                              schema-info (update :context utils/deep-merge {:schema.core schema-info}))
+                            (-> ctx :ns :name)
                             var-name
                             expr
                             (assoc-some metadata
@@ -2220,10 +2230,19 @@
 (declare analyze-defprotocol)
 
 (defn analyze-schema [ctx fn-sym expr defined-by defined-by->lint-as]
-  (let [{:keys [expr schemas]}
+  (let [;; extracted before expand-schema strips the :- annotations
+        schema-info (when (analysis/context-selected? ctx :schema.core)
+                      (case fn-sym
+                        defn (schema/defn-schema-info expr)
+                        def (schema/def-schema-info expr)
+                        nil))
+        {:keys [expr schemas]}
         (schema/expand-schema ctx
                               fn-sym
-                              expr)]
+                              expr)
+        ;; stored on the node (not ctx) so it only reaches this definition
+        expr (cond-> expr
+               schema-info (assoc :clj-kondo.impl/schema-info schema-info))]
     (concat
      (case fn-sym
        fn (analyze-fn ctx expr)

@@ -138,6 +138,84 @@
     {:expr (assoc expr :children new-children)
      :schemas schemas}))
 
+;;;; Schema information for analysis output
+
+(defn- schema-node->info
+  "Returns the analysis representation of a schema node. A map, so more
+  representations can be added later without breaking the API."
+  [schema-node]
+  {:as-str (str schema-node)})
+
+(defn- arg-vec->args
+  "Given an arg vector node with schema annotations, returns a vector with one
+  map per argument: `{:arg \"x\" :schema {:as-str \"s/Int\"}}`. `:schema` is
+  absent when the argument has no schema. The `&` symbol is dropped and the
+  rest argument is marked with `:rest true`."
+  [arg-vec]
+  (loop [[node & more] (:children arg-vec)
+         rest? false
+         args []]
+    (cond
+      (nil? node) args
+      (has-schema-node? node)
+      (let [schema-node (first more)]
+        (recur (next more)
+               rest?
+               (if (and schema-node (seq args))
+                 (assoc-in args [(dec (count args)) :schema] (schema-node->info schema-node))
+                 args)))
+      (= '& (:value node)) (recur more true args)
+      :else
+      (let [arg (if (= :vector (utils/tag node))
+                  ;; destructuring vector: drop inner schemas from the arg string
+                  (:expr (remove-schemas-from-children node))
+                  node)]
+        (recur more
+               rest?
+               (conj args (cond-> {:arg (str arg)}
+                            rest? (assoc :rest true))))))))
+
+(defn defn-schema-info
+  "Extracts schema information from an `s/defn` form (before schemas are
+  removed). Returns `{:output {:as-str \"Ret\"} :inputs [{:args [...]}]}`, with
+  one `:inputs` entry per arity, in source order. `:output` is absent when
+  there is no return schema. Each schema is a map whose `:as-str` is the
+  schema as written in the source: a symbol name for named schemas (e.g. from
+  `s/defschema`) or the full inline form."
+  [expr]
+  (let [[_defn _name & children] (:children expr)
+        {:keys [output bodies]}
+        (loop [[node & more] children
+               output nil]
+          (cond
+            (nil? node) {:output output}
+            (has-schema-node? node) (recur (next more) (or output (first more)))
+            (hooks/vector-node? node) {:output output :bodies [node]}
+            (hooks/list-node? node) {:output output
+                                     :bodies (filter hooks/list-node? (cons node more))}
+            ;; docstring, attr-map
+            :else (recur more output)))
+        inputs (into []
+                     (keep (fn [body]
+                             (let [arg-vec (if (hooks/vector-node? body)
+                                             body
+                                             (first (:children body)))]
+                               (when (hooks/vector-node? arg-vec)
+                                 {:args (arg-vec->args arg-vec)}))))
+                     bodies)]
+    (cond-> {:inputs inputs}
+      output (assoc :output (schema-node->info output)))))
+
+(defn def-schema-info
+  "Extracts schema information from an `s/def` form (before schemas are
+  removed). Returns `{:schema {:as-str \"s/Int\"}}`, or nil when there is no
+  schema. Like `schema.core/def`, only a `:-` directly after the name is
+  considered."
+  [expr]
+  (let [[_def _name arrow schema-node] (:children expr)]
+    (when (and (has-schema-node? arrow) schema-node)
+      {:schema (schema-node->info schema-node)})))
+
 ;;;; Scratch
 
 #_

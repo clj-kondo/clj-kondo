@@ -44,9 +44,38 @@ You can request that it return all, or a specific set, of user-coded namespace o
 ### Context data
 
 Built-in and custom hook can add arbitrary data to the analysis using a
-`:context` map. This context map will currently appear in `:var-usages` and
-`:keywords`. You can opt-in to the entire context map using `:context true` or
-select certain keys using `:context [:re-frame.core]`.
+`:context` map. This context map will currently appear in `:var-usages`,
+`:keywords`, `:symbols` and `:var-definitions`. You can opt-in to the entire
+context map using `:context true` or select certain keys using `:context
+[:re-frame.core]`.
+
+Built-in context keys:
+
+- `:re-frame.core`: links re-frame registrations to their subscriptions, events
+  and co-effects.
+- `:clojure.test`: `:testing-str` for usages inside a `testing` form.
+- `:schema.core`: on `:var-definitions` created by `schema.core/defn`, the
+  output schema and the input schemas per arity, as written in the source:
+
+  ``` clojure
+  (s/defn f1 :- User [id :- s/Uuid db] ...)
+  ;; => {:schema.core {:output {:as-str "User"}
+  ;;                   :inputs [{:args [{:arg "id" :schema {:as-str "s/Uuid"}}
+  ;;                                    {:arg "db"}]}]}}
+  ```
+
+  `:inputs` has one entry per arity, in source order. Each schema is a map;
+  `:as-str` holds the schema as written in the source. `:output` and `:schema`
+  are absent when not provided. A rest argument is marked with `:rest true`.
+
+  On `:var-definitions` created by `schema.core/def`, the schema of the var:
+
+  ``` clojure
+  (s/def x :- s/Int 1)
+  ;; => {:schema.core {:schema {:as-str "s/Int"}}}
+  ```
+
+  No `:schema.core` context is added when the `s/def` has no schema.
 
 ## Limited analysis
 
@@ -115,6 +144,7 @@ The analysis output consists of a map with:
   - `:arglist-strs`: arg lists as written, or valid looking `:arglists` metadata override, ex. `["[x]" "[x y]"]`
   - `:protocol-ns`, `:protocol-name`: the protocol namespace and name for a protocol method
   - `:callstack`: experimental, only provided with `{:var-definitions {:callstack true}}`
+  - `:context`: see [Context data](#context-data)
 
 - `:var-usages`, a list of maps with:
   - `:filename`

@@ -2,7 +2,7 @@
   (:require
    [clj-kondo.core :as clj-kondo]
    [clj-kondo.impl.utils :refer [err]]
-   [clj-kondo.test-utils :refer [assert-submap assert-submaps assert-submaps2]]
+   [clj-kondo.test-utils :refer [assert-submap assert-submap2 assert-submaps assert-submaps2]]
    [clojure.edn :as edn]
    [clojure.string :as string]
    [clojure.test :as t :refer [deftest is testing]]
@@ -1173,6 +1173,97 @@
                        (not (:arglists analysis-opts))
                        (mapv #(assoc % :arglist-strs m/absent)))]
         (assert-submaps2 expected var-definitions)))))
+
+(deftest analysis-schema-context-test
+  (let [code "(ns foo (:require [schema.core :as s]))
+              (s/defschema User {:name s/Str})
+              (s/defn f1 :- User \"doc\" [id :- s/Uuid db] {:k id})
+              (s/defn f2 :- (s/maybe s/Int)
+                ([x :- s/Int] x)
+                ([x [a b] :- [s/Int] & more :- [User]] [x a b more]))
+              (s/defn f3 [x] x)
+              (defn f4 [x] x)"
+        f1-ctx {:output {:as-str "User"}
+                :inputs [{:args [{:arg "id" :schema {:as-str "s/Uuid"}}
+                                 {:arg "db" :schema m/absent}]}]}]
+    (doseq [selector [[:schema.core] true]]
+      (testing (str "schema info is exposed in var-definition context with :context " selector)
+        (let [{:keys [var-definitions keywords]}
+              (analyze code {:config {:analysis {:context selector
+                                                 :keywords true}}})]
+          (assert-submaps2
+           [{:name 'User :context m/absent}
+            {:name 'f1 :context {:schema.core f1-ctx}}
+            {:name 'f2
+             :context {:schema.core
+                       {:output {:as-str "(s/maybe s/Int)"}
+                        :inputs [{:args [{:arg "x" :schema {:as-str "s/Int"}}]}
+                                 {:args [{:arg "x" :schema m/absent}
+                                         {:arg "[a b]" :schema {:as-str "[s/Int]"}}
+                                         {:arg "more" :rest true :schema {:as-str "[User]"}}]}]}}}
+            {:name 'f3
+             :context {:schema.core {:output m/absent
+                                     :inputs [{:args [{:arg "x" :schema m/absent}]}]}}}
+            {:name 'f4 :context m/absent}]
+           var-definitions)
+          (testing "schema context does not leak into the body"
+            (let [k-usages (filter #(= "k" (:name %)) keywords)]
+              (is (= 1 (count k-usages)))
+              (is (not-any? #(get-in % [:context :schema.core]) k-usages)))))))
+    (testing "s/def schema is exposed in var-definition context"
+      (let [code "(ns foo (:require [schema.core :as s]))
+                  (s/def d1 :- s/Int 1)
+                  (s/def d2 :- (s/maybe s/Str) \"doc\" (str :k))
+                  (s/def d3 2)
+                  (def d4 3)"
+            {:keys [var-definitions keywords]}
+            (analyze code {:config {:analysis {:context [:schema.core]
+                                               :keywords true}}})]
+        (assert-submaps2
+         [{:name 'd1 :context {:schema.core {:schema {:as-str "s/Int"}}}}
+          {:name 'd2 :doc "doc" :context {:schema.core {:schema {:as-str "(s/maybe s/Str)"}}}}
+          {:name 'd3 :context m/absent}
+          {:name 'd4 :context m/absent}]
+         var-definitions)
+        (testing "does not leak into the value"
+          (is (not-any? #(get-in % [:context :schema.core]) keywords)))))
+    (testing "schema context does not leak into a defn nested inside s/defn"
+      (let [code "(ns foo (:require [schema.core :as s]))
+                  (s/defn outer :- s/Int [x :- s/Int]
+                    (defn inner [y] (inc y))
+                    (s/defn inner-s :- s/Str [z :- s/Keyword] (name z))
+                    (inner x))"
+            {:keys [var-definitions var-usages]}
+            (analyze code {:config {:analysis {:context [:schema.core]}}})
+            by-name (into {} (map (juxt :name identity)) var-definitions)]
+        (is (= 3 (count var-definitions)))
+        (assert-submap2
+         {:context {:schema.core {:output {:as-str "s/Int"}
+                                  :inputs [{:args [{:arg "x" :schema {:as-str "s/Int"}}]}]}}}
+         (by-name 'outer))
+        (is (not (contains? (by-name 'inner) :context)))
+        (assert-submap2
+         {:context {:schema.core {:output {:as-str "s/Str"}
+                                  :inputs [{:args [{:arg "z" :schema {:as-str "s/Keyword"}}]}]}}}
+         (by-name 'inner-s))
+        (is (not-any? #(get-in % [:context :schema.core]) var-usages))))
+    (testing "regex schemas are rendered as written"
+      (let [{:keys [var-definitions]}
+            (analyze "(ns foo (:require [schema.core :as s]))
+                      (s/defn f :- #\"out\" [r :- #\"abc\" v :- [#\"nested\"]] r)
+                      (s/def d :- #\"def\" \"x\")"
+                     {:config {:analysis {:context [:schema.core]}}})]
+        (assert-submaps2
+         [{:name 'f :context {:schema.core
+                              {:output {:as-str "#\"out\""}
+                               :inputs [{:args [{:arg "r" :schema {:as-str "#\"abc\""}}
+                                                {:arg "v" :schema {:as-str "[#\"nested\"]"}}]}]}}}
+          {:name 'd :context {:schema.core {:schema {:as-str "#\"def\""}}}}]
+         var-definitions)))
+    (testing "schema context is absent when :schema.core is not selected"
+      (doseq [cfg [{} {:context [:re-frame.core]}]]
+        (let [{:keys [var-definitions]} (analyze code {:config {:analysis cfg}})]
+          (is (every? #(not (contains? % :context)) var-definitions)))))))
 
 (deftest analysis-meta-arglists-test
   (doseq [analysis-opts [true
