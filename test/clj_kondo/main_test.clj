@@ -1562,6 +1562,14 @@ foo/foo ;; this does use the private var
    (lint! "(ns foo) (defmacro my-defn [name args & body] `(defn ~name ~args ~@body)) (my-defn foo [x]) (foo 1 2 3)"
           '{:lint-as {foo/my-defn clojure.core/defn}}))
   (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 87, :level :warning, :message "Unused private var foo/foo"})
+   (lint! "(ns foo) (defmacro my-defn- [name args & body] `(defn- ~name ~args ~@body)) (my-defn- foo [])"
+          '{:lint-as {foo/my-defn- clojure.core/defn-}}))
+  (assert-submaps2
+   '({:file "<stdin>", :row 1, :col 38, :level :warning, :message "Unused private var foo/foo"})
+   (lint! "(ns foo (:require [bar])) (bar/defn- foo [])"
+          '{:lint-as {bar/defn- schema.core/defn}}))
+  (assert-submaps2
    '[{:level :warning, :message #"fully qualified symbol"}]
    (do (require '[clj-kondo.impl.config] :reload)
        (lint! "(require '[foo.bar]) (foo.bar/when-let)" '{:lint-as {foo.bar/when-let when-let}})))
