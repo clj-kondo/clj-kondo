@@ -1271,6 +1271,9 @@
                                        &form {}})
               ctx)
         private? (or (= "defn-" call)
+                     (some? (one-of defined-by->lint-as
+                                    [clojure.core/defn-
+                                     cljs.core/defn-]))
                      (:private var-meta))
         [doc-node docstring] (if docstring
                                [doc-node docstring]

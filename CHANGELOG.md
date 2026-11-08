@@ -12,6 +12,10 @@ For a list of breaking changes, check [here](#breaking-changes).
 <!-- - [ ] github release (publish the draft manually) -->
 <!-- - [ ] bb script/release-everything.clj -> homebrew, clj-kondo pod, clj-kondo-bb, lein-clj-kondo, post-release bump -->
 
+## Unreleased
+
+- [#1759](https://github.com/clj-kondo/clj-kondo/issues/1759): a macro linted as `clojure.core/defn-` with `:lint-as` now defines a private var, so `:unused-private-var` and `:private-call` apply to it. E.g. `(my-defn- f [])` with `{:lint-as {foo/my-defn- clojure.core/defn-}}` warns when `f` is unused.
+
 ## 2026.10.26
 
 - `:unknown-map-key`: fix false positive on a lookup on a var defined more than once. E.g. `(def x {:a 1}) (:a x) (def x {:b 1})` no longer warns.
