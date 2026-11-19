@@ -510,7 +510,7 @@
     [:cljc :clj] (or (get-in idacs [:clj :defs ns])
                      (get-in idacs [:cljc :defs ns]))
     ;; calling function in a CLJS conditional from a CLJC file
-    [:cljc :cljs] (or (get-in idacs [:cljs :defs ns])
+    ([:cljc :cljs] [:clj :cljs]) (or (get-in idacs [:cljs :defs ns])
                       (get-in idacs [:cljc :defs ns])
                       ;; could be a macro
                       (get-in idacs [:clj :defs ns])
@@ -541,7 +541,7 @@
       [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
                        (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       ;; calling function in a CLJS conditional from a CLJC file
-      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
+      ([:cljc :cljs] [:clj :cljs]) (or (get-in idacs [:cljs :defs fn-ns fn-name])
                         (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
                         ;; could be a macro
                         (get-in idacs [:clj :defs fn-ns fn-name])

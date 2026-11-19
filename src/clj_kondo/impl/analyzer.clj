@@ -4401,16 +4401,44 @@
       (types/add-arg-type-from-expr ctx expr tag*)
       analyzed))
 
+(defn- enter-lang
+  "Returns ctx with lang as its language and the namespace of that language."
+  [ctx lang expr]
+  (let [ns-name (-> ctx :ns :name)
+        ctx (assoc ctx :lang lang)
+        ns (or (namespace/get-namespace ctx (:base-lang ctx) lang ns-name)
+               (let [{:keys [row col]} (meta expr)]
+                 (namespace/reg-namespace!
+                  ctx
+                  (-> (namespace-analyzer/new-namespace
+                       (:filename ctx) (:base-lang ctx) lang ns-name :in-ns row col)
+                      (assoc :qualify-ns (if (identical? :cljs lang)
+                                           {'cljs.core 'cljs.core
+                                            'clojure.core 'cljs.core}
+                                           {'clojure.core 'clojure.core}))))))]
+    (assoc ctx :lang lang :ns ns)))
+
+(declare analyze-lifted-expression**)
+
 (defn analyze-expression**
+  [ctx expr]
+  (when expr
+    (let [expr (if (or (not= :edn (:lang ctx))
+                       (:quoted ctx))
+                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
+                 expr)
+          lang (:clj-kondo/lang (meta expr))
+          ctx (if (and lang (not (identical? lang (:lang ctx))))
+                (enter-lang ctx lang expr)
+                ctx)]
+      (analyze-lifted-expression** ctx expr))))
+
+(defn- analyze-lifted-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
   ;; (prn :expr expr)
   (when expr
-    (let [expr (if (or (not= :edn lang)
-                       (:quoted ctx))
-                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
-                 expr)
-          t (tag expr)
+    (let [t (tag expr)
           {:keys [row col]} (meta expr)
           arg-count (count (rest children))]
       (utils/handle-ignore ctx expr)

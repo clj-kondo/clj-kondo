@@ -927,3 +927,26 @@ my-ns/special-map \"
             {:linters {:unused-binding {:level :warning}
                        :unresolved-symbol {:level :error}}}
             "--config-dir" (fs/file "corpus" "hook-generated-ns" ".clj-kondo")))))
+
+(deftest lang-metadata-test
+  (testing "^{:clj-kondo/lang :cljs} lints a form in a .clj file as CLJS"
+    (assert-submaps2
+     '({:file "<stdin>", :row 3, :col 40, :level :error, :message "cljs.core/inc is called with 2 args but expects 1"}
+       {:file "<stdin>", :row 3, :col 51, :level :error, :message "Unresolved symbol: unknown"}
+       {:file "<stdin>", :row 4, :col 13, :level :error, :message "Unresolved symbol: js-obj"})
+     (lint! "(ns foo)
+(def f ^{:clj-kondo/lang :cljs}
+  (fn [] (js-obj) (array 1) (this-as t (inc t 2)) unknown))
+(defn g [] (js-obj))"
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "a :macroexpand hook result with :clj-kondo/lang :cljs lints as CLJS"
+    (assert-submaps2
+     '({:file "<stdin>", :row 6, :col 33, :level :error, :message "Unresolved symbol: unknown"})
+     (lint! "(ns foo
+  {:clj-kondo/config '{:hooks {:macroexpand {foo/squint-fn \"
+(defmacro squint-fn [& body] (with-meta `(fn [] ~@body) {:clj-kondo/lang :cljs}))\"}}}})
+(defmacro squint-fn [& body] `(fn [] ~@body))
+(def f (squint-fn (js-obj) (array 1)))
+(def g (squint-fn (this-as t t) unknown))"
+            {:hooks {:__dangerously-allow-string-hooks__ true}
+             :linters {:unresolved-symbol {:level :error}}}))))
