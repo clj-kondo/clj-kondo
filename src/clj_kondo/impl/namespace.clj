@@ -412,27 +412,27 @@
     (let [binding (if (:mark-bindings-used? ctx)
                     (assoc binding :clj-kondo/mark-used true)
                     binding)
-          {:keys [base-lang lang namespaces]} ctx]
-      (swap! namespaces update-in [base-lang lang ns-sym :bindings]
+          {:keys [base-lang lang bindings-lang namespaces]} ctx]
+      (swap! namespaces update-in [base-lang (or bindings-lang lang) ns-sym :bindings]
              conj binding)))
   nil)
 
 (defn reg-destructuring-default!
   "Registers one default for every binding that reads its key: the default is
   unused only when none of them is used."
-  [{:keys [base-lang lang namespaces ns]} default bindings]
+  [{:keys [base-lang lang bindings-lang namespaces ns]} default bindings]
   (swap! namespaces
-         update-in [base-lang lang (:name ns) :destructuring-defaults]
+         update-in [base-lang (or bindings-lang lang) (:name ns) :destructuring-defaults]
          conj (assoc default :bindings (vec bindings)))
   nil)
 
 (defn reg-used-binding!
-  [{:keys [base-lang lang namespaces filename dependencies
+  [{:keys [base-lang lang bindings-lang namespaces filename dependencies
            local-use-tracker local-use-target] :as ctx} ns-sym binding usage]
   (when (and usage (:analyze-locals? ctx) (not (:clj-kondo/mark-used binding)))
     (analysis/reg-local-usage! ctx filename binding usage))
   (when-not dependencies
-    (swap! namespaces update-in [base-lang lang ns-sym :used-bindings]
+    (swap! namespaces update-in [base-lang (or bindings-lang lang) ns-sym :used-bindings]
            conj binding))
   (when (and local-use-tracker (identical? binding local-use-target))
     (swap! local-use-tracker inc))

@@ -939,6 +939,12 @@ my-ns/special-map \"
   (fn [] (js-obj) (array 1) (this-as t (inc t 2)) unknown))
 (defn g [] (js-obj))"
             {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "a local used only in a :clj-kondo/lang :cljs form counts as used"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 43, :level :warning, :message "unused binding y"})
+     (lint! "(ns foo)
+(defn f [x] ^{:clj-kondo/lang :cljs} (fn [y] (js/alert x)))"
+            {:linters {:unused-binding {:level :warning}}})))
   (testing "a :macroexpand hook result with :clj-kondo/lang :cljs lints as CLJS"
     (assert-submaps2
      '({:file "<stdin>", :row 6, :col 33, :level :error, :message "Unresolved symbol: unknown"})

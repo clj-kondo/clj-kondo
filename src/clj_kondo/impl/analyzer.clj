@@ -4405,7 +4405,9 @@
   "Returns ctx with lang as its language and the namespace of that language."
   [ctx lang expr]
   (let [ns-name (-> ctx :ns :name)
-        ctx (assoc ctx :lang lang)
+        ctx (assoc ctx
+                   :bindings-lang (or (:bindings-lang ctx) (:lang ctx))
+                   :lang lang)
         ns (or (namespace/get-namespace ctx (:base-lang ctx) lang ns-name)
                (let [{:keys [row col]} (meta expr)]
                  (namespace/reg-namespace!
