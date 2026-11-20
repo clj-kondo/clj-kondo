@@ -25,7 +25,7 @@
         alias-or-ns (some-> token namespace symbol)
         ns-sym (cond
                  (and aliased? alias-or-ns)
-                 (-> (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) current-ns)
+                 (-> (namespace/get-namespace ctx (:base-lang ctx) (utils/ns-lang ctx) current-ns)
                      (get-in [:aliases alias-or-ns] :clj-kondo/unknown-namespace))
 
                  aliased?
@@ -96,7 +96,7 @@
         ;; reset location of inner map to location of outer expression
         m (vary-meta m merge (meta expr))
         ns-name (-> ctx :ns :name)
-        the-ns (namespace/get-namespace ctx (:base-lang ctx) (:lang ctx) ns-name)
+        the-ns (namespace/get-namespace ctx (:base-lang ctx) (utils/ns-lang ctx) ns-name)
         ns-keyword (-> expr :ns :k)
         ns-sym (kw->sym ns-keyword)
         ns-sym (if (= '__current-ns__ ns-sym)

@@ -955,4 +955,32 @@ my-ns/special-map \"
 (def f (squint-fn (js-obj) (array 1)))
 (def g (squint-fn (this-as t t) unknown))"
             {:hooks {:__dangerously-allow-string-hooks__ true}
-             :linters {:unresolved-symbol {:level :error}}}))))
+             :linters {:unresolved-symbol {:level :error}}})))
+  (testing "a :clj-kondo/lang :cljs form uses the vars, aliases and refers of its namespace"
+    (is (empty? (lint! "(ns foo
+  (:require [clojure.set :refer [union]]
+            [clojure.string :as str]))
+(defn helper [x] x)
+(defn- secret [x] x)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (helper 1) (secret 2) (union #{} #{}) (str/join [1])))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "a :clj-kondo/lang :cljs form in a .cljc file uses the aliases of its namespace"
+    (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (str/join [1])))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "a call in a :clj-kondo/lang :cljs form is checked against the arity of a var in its namespace"
+    (assert-submaps2
+     '({:file "<stdin>", :row 3, :col 37, :level :error, :message "foo/helper is called with 2 args but expects 1"})
+     (lint! "(ns foo)
+(defn helper [x] x)
+(defn f [] ^{:clj-kondo/lang :cljs} (helper 1 2))")))
+  (testing "an alias unused inside and outside a :clj-kondo/lang :cljs form is reported"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "namespace clojure.string is required but never used"})
+     (lint! "(ns foo (:require [clojure.string :as str]))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (js-obj)))")))
+  (testing "cljs.core/ resolves in a :clj-kondo/lang :cljs form"
+    (is (empty? (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (cljs.core/js-obj)))"
+                       {:linters {:unresolved-symbol {:level :error}}})))))

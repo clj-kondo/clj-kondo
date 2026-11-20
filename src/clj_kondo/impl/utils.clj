@@ -225,6 +225,12 @@
 (defn linter-disabled? [ctx linter]
   (= :off (get-in ctx [:config :linters linter :level])))
 
+(defn ns-lang
+  "Returns the language of the namespace entry that ctx reads and writes.
+  This is :ns-lang of ctx, or :lang of ctx if absent."
+  [ctx]
+  (or (:ns-lang ctx) (:lang ctx)))
+
 (defn location [m]
   (select-keys m [:filename :row :col :end-row :end-col]))
 

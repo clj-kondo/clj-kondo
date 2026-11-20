@@ -4,8 +4,8 @@
             [clj-kondo.impl.utils :as utils]))
 
 (defn reg-used-binding!
-  [{:keys [base-lang lang namespaces ns]} binding]
-  (swap! namespaces update-in [base-lang lang (:name ns) :used-bindings]
+  [{:keys [base-lang namespaces ns] :as ctx} binding]
+  (swap! namespaces update-in [base-lang (utils/ns-lang ctx) (:name ns) :used-bindings]
          conj
          ;; don't report this binding as unused nor used
          (vary-meta binding assoc :clj-kondo.impl/generated true))

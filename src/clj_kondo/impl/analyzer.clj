@@ -2392,7 +2392,7 @@
                           (let [lifted (meta/lift-meta-content2 ctx var-name-node)]
                             (current-namespace-var-name ctx lifted (:value lifted))))
                         var-name-nodes)
-        vars-ns-path [(:base-lang ctx) (:lang ctx) ns-name :vars]
+        vars-ns-path [(:base-lang ctx) (utils/ns-lang ctx) ns-name :vars]
         vars (get-in @(:namespaces ctx) vars-ns-path)]
     (when (and ns-name
                (some #(:clj-kondo/macroexpand-hook (meta %)) var-names)
@@ -3715,7 +3715,7 @@
     (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
 
 (defn analyze-known-call
-  [ctx expr children config ns-name lang base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?]
+  [ctx expr children config ns-name base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?]
   (case resolved-as-clojure-var-name
     (assoc assoc! sorted-map-by struct-map) (analyze-assoc ctx expr)
     (dissoc dissoc! disj disj! sorted-set-by) (analyze-dissoc ctx expr)
@@ -3844,8 +3844,8 @@
          keep keep-indexed update update-in swap! swap-vals!
          send send-off send-via)
     (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
-    (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
-    (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
+    (ns-unmap) (analyze-ns-unmap ctx base-lang (utils/ns-lang ctx) ns-name expr)
+    (gen-class) (analyze-gen-class ctx expr base-lang (utils/ns-lang ctx) ns-name)
     (gen-interface) (analyze-gen-interface ctx expr)
     (exists?) (analyze-cljs-exists? ctx expr)
     (with-precision) (analyze-with-precision ctx expr children)
@@ -3867,7 +3867,7 @@
       (and not-is-dot
            (str/ends-with? full-fn-name ".")
            (simple-symbol? full-fn-name)
-           (let [ns (namespace/get-namespace ctx (:base-lang ctx) lang ns-name)]
+           (let [ns (namespace/get-namespace ctx (:base-lang ctx) (utils/ns-lang ctx) ns-name)]
              (and (not (contains? (:referred-vars ns) full-fn-name))
                   (not (contains? (:vars ns) full-fn-name)))))
       (recur ctx
@@ -4079,7 +4079,7 @@
                                                   (symbol (name resolved-as-namespace)
                                                           (name resolved-as-name))))
                         analyzed
-                        (analyze-known-call ctx expr children config ns-name lang base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?)]
+                        (analyze-known-call ctx expr children config ns-name base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?)]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed
                       (let [in-def (:in-def ctx)
@@ -4402,23 +4402,13 @@
       analyzed))
 
 (defn- enter-lang
-  "Returns ctx with lang as its language and the namespace of that language."
-  [ctx lang expr]
-  (let [ns-name (-> ctx :ns :name)
-        ctx (assoc ctx
-                   :bindings-lang (or (:bindings-lang ctx) (:lang ctx))
-                   :lang lang)
-        ns (or (namespace/get-namespace ctx (:base-lang ctx) lang ns-name)
-               (let [{:keys [row col]} (meta expr)]
-                 (namespace/reg-namespace!
-                  ctx
-                  (-> (namespace-analyzer/new-namespace
-                       (:filename ctx) (:base-lang ctx) lang ns-name :in-ns row col)
-                      (assoc :qualify-ns (if (identical? :cljs lang)
-                                           {'cljs.core 'cljs.core
-                                            'clojure.core 'cljs.core}
-                                           {'clojure.core 'clojure.core}))))))]
-    (assoc ctx :lang lang :ns ns)))
+  "Returns ctx with lang as its language.
+  :ns-lang keeps the language of the namespace entry outside the form."
+  [ctx lang]
+  (assoc ctx
+         :ns-lang (utils/ns-lang ctx)
+         :lang lang
+         :ns (update (:ns ctx) :qualify-ns merge (namespace/core-qualify-ns lang))))
 
 (declare analyze-lifted-expression**)
 
@@ -4431,7 +4421,7 @@
                  expr)
           lang (:clj-kondo/lang (meta expr))
           ctx (if (and lang (not (identical? lang (:lang ctx))))
-                (enter-lang ctx lang expr)
+                (enter-lang ctx lang)
                 ctx)]
       (analyze-lifted-expression** ctx expr))))
 
