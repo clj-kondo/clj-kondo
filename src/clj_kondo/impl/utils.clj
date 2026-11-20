@@ -513,14 +513,16 @@
                       (get-in idacs [:clj :defs ns])
                       (get-in idacs [:cljc :defs ns]))
     ;; calling a clojure function from cljc
-    [:cljc :clj] (or (get-in idacs [:clj :defs ns])
-                     (get-in idacs [:cljc :defs ns]))
+    ([:cljc :clj] [:cljs :clj])
+    (or (get-in idacs [:clj :defs ns])
+        (get-in idacs [:cljc :defs ns]))
     ;; calling function in a CLJS conditional from a CLJC file
-    ([:cljc :cljs] [:clj :cljs]) (or (get-in idacs [:cljs :defs ns])
-                      (get-in idacs [:cljc :defs ns])
-                      ;; could be a macro
-                      (get-in idacs [:clj :defs ns])
-                      (get-in idacs [:cljc :defs ns]))))
+    ([:cljc :cljs] [:clj :cljs])
+    (or (get-in idacs [:cljs :defs ns])
+        (get-in idacs [:cljc :defs ns])
+        ;; could be a macro
+        (get-in idacs [:clj :defs ns])
+        (get-in idacs [:cljc :defs ns]))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
@@ -544,14 +546,16 @@
                            (get-in idacs [:clj :defs fn-ns fn-name])
                            (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
-      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
-                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      ([:cljc :clj] [:cljs :clj])
+      (or (get-in idacs [:clj :defs fn-ns fn-name])
+          (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       ;; calling function in a CLJS conditional from a CLJC file
-      ([:cljc :cljs] [:clj :cljs]) (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                        ;; could be a macro
-                        (get-in idacs [:clj :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+      ([:cljc :cljs] [:clj :cljs])
+      (or (get-in idacs [:cljs :defs fn-ns fn-name])
+          (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+          ;; could be a macro
+          (get-in idacs [:clj :defs fn-ns fn-name])
+          (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn prefer-comment-def
   "Usages in comment forms resolve against a comment form redefinition."

@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed, on the `hook-lang` branch, for #3062.
+Accepted, for #3062.
 
 ## Context
 
@@ -22,14 +22,11 @@ unresolved or unused.
 
 ## Comparable constructs
 
-From memory, not checked against current docs. (?) marks the less certain
-ones.
-
 | Model | Examples | Host locals in the embedded code |
 |---|---|---|
 | Separate virtual file | ESLint markdown processor, doctests | not visible |
 | One pass per configuration | Rust `#[cfg]`, Haxe `#if`, Nim `when`, `.cljc` | unused on the other target |
-| Shared lexical scope | Vue SFC templates, Svelte, Kotlin/JS `js()` (?), Template Haskell antiquotes, inline `asm` operands, CLJS `js*` placeholders | a use counts |
+| Shared lexical scope | Vue SFC templates, Svelte, Template Haskell antiquotes, inline `asm` operands, CLJS `js*` placeholders | a use counts |
 | Binding tagged with its phase | Racket `for-syntax` | a cross-phase reference is an error |
 | Syntax injection only | IntelliJ `@Language`, tree-sitter injections | not analyzed |
 
@@ -64,3 +61,30 @@ the same entry at lint time.
 | a `cljs.core/` call | none |
 | a local bound outside, used only in the form | none |
 | a local bound in the form and never used | unused binding |
+| `:clj` in a `.cljs` file or in the cljs pass of a `.cljc` file | linted as Clojure |
+| a value other than `:clj` or `:cljs` | ignored |
+
+## Measurement
+
+metabase src, JVM, in-process, min of 7 runs, master (a38978c2) and branch
+interleaved (benchmarks/bench.clj):
+
+| | round 1 | round 2 | allocation |
+|---|---|---|---|
+| master | 2652ms | 2651ms | 4182-4185MB |
+| branch | 2744ms | 2656ms | 4182-4189MB |
+
+Within noise. The marker check is one meta lookup per node, and allocation
+does not change.
+
+## Consequences
+
+A reader conditional inside a marked form in a `.cljc` file is read per pass
+as usual, and each branch the reader picks is linted as the marked language.
+In the clj pass of `(fn [] #?(:clj (Thread/sleep 1)))` marked `:cljs`, the
+`:clj` branch is linted as CLJS and reports `Thread` as an unresolved
+namespace. A macro body in a `.cljc` file is read on the JVM, so that branch
+is what the macro emits.
+
+An `ns` or `in-ns` form inside a marked form registers its namespace under
+the marked language, as before. This case is not supported.

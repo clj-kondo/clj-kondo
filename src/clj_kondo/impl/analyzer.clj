@@ -4405,10 +4405,15 @@
   "Returns ctx with lang as its language.
   :ns-lang keeps the language of the namespace entry outside the form."
   [ctx lang]
-  (assoc ctx
-         :ns-lang (utils/ns-lang ctx)
-         :lang lang
-         :ns (update (:ns ctx) :qualify-ns merge (namespace/core-qualify-ns lang))))
+  (let [ns-lang (utils/ns-lang ctx)
+        ns (or (namespace/get-namespace ctx (:base-lang ctx) ns-lang (-> ctx :ns :name))
+               (:ns ctx))]
+    (assoc ctx
+           :ns-lang ns-lang
+           :lang lang
+           :ns (if (identical? lang ns-lang)
+                 ns
+                 (update ns :qualify-ns merge (namespace/core-qualify-ns lang))))))
 
 (declare analyze-lifted-expression**)
 
@@ -4420,7 +4425,10 @@
                  (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
                  expr)
           lang (:clj-kondo/lang (meta expr))
-          ctx (if (and lang (not (identical? lang (:lang ctx))))
+          ctx (if (and lang
+                       (one-of lang [:clj :cljs])
+                       (not (identical? lang (:lang ctx)))
+                       (not (identical? :edn (:lang ctx))))
                 (enter-lang ctx lang)
                 ctx)]
       (analyze-lifted-expression** ctx expr))))
@@ -4484,6 +4492,7 @@
               (let [expanded-node (macroexpand/expand-fn expr)
                     m (meta expanded-node)
                     has-first-arg? (:clj-kondo.impl/fn-has-first-arg m)]
+                ;; expanded-node copies the lifted meta of expr, so it needs no lifting or lang check
                 (recur (cond-> (assoc ctx :arg-types nil :in-fn-literal true)
                          has-first-arg? (update :bindings assoc '% {}))
                        expanded-node)))
@@ -4650,6 +4659,7 @@
                                 (update :callstack #(cons [nil t] %)))
                             children))
         :deref
+        ;; the expansion copies the lifted meta of expr, so it needs no lifting or lang check
         (recur ctx (with-meta
                      (seq/list-node [(token/token-node (case lang
                                                          :clj 'clojure.core/deref

@@ -5,6 +5,7 @@
    [clj-kondo.impl.cache :as cache]
    [clj-kondo.impl.rewrite-clj.node.keyword :as keyword-node]
    [clj-kondo.impl.rewrite-clj.node.token :as token-node]
+   [clj-kondo.impl.utils :as utils]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import [java.io File]))
@@ -214,7 +215,7 @@
           (binding [keyword-node/*autoresolve-ns* orig-ns
                     token-node/*syntax-quote-imports*
                     (not-empty (get-in @(:namespaces ctx)
-                                       [(:base-lang ctx) (:lang ctx) orig-ns :imports]))]
+                                       [(:base-lang ctx) (utils/ns-lang ctx) orig-ns :imports]))]
             (let [forms (mapv :form entries)
                   aliases (reduce merge-alias-maps {}
                                   (map #(aggregate-alias-usages

@@ -983,4 +983,23 @@ my-ns/special-map \"
   (testing "cljs.core/ resolves in a :clj-kondo/lang :cljs form"
     (is (empty? (lint! "(ns foo)
 (defn f [] ^{:clj-kondo/lang :cljs} (fn [] (cljs.core/js-obj)))"
-                       {:linters {:unresolved-symbol {:level :error}}})))))
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "^{:clj-kondo/lang :clj} lints a form in a .cljs file as Clojure"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 61, :level :error, :message "Unresolved symbol: js-obj"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (Thread/sleep 1) (js-obj)))"
+            {:linters {:unresolved-symbol {:level :error}}}
+            "--lang" "cljs")))
+  (testing "^{:clj-kondo/lang :clj} in the cljs pass of a .cljc file lints the form as Clojure"
+    (is (empty? (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (Thread/sleep 1)))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "an unknown :clj-kondo/lang value is ignored"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 36, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"}
+       {:file "<stdin>", :row 3, :col 37, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :foo} (inc 1 2))
+(defn g [] ^{:clj-kondo/lang :cljc} (inc 1 2))"))))

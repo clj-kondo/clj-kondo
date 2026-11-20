@@ -323,6 +323,22 @@ To ignore warnings for only one language in a reader conditional:
   #?(:cljs x)) ;; x is only used in cljs, but unused is ignored for clj, so no warning
 ```
 
+### Lint an expression as another language
+
+Use `:clj-kondo/lang` metadata to lint an expression as `:cljs` or `:clj`,
+also in a file of the other language:
+
+``` clojure
+(ns app.components)
+
+(def handler
+  ^{:clj-kondo/lang :cljs}
+  (fn [e] (js/alert (.-value (.-target e)))))
+```
+
+The expression keeps the vars, aliases, refers and locals of the code around
+it. Values other than `:clj` and `:cljs` are ignored.
+
 ### Lint a custom macro like a built-in macro
 
 In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:
