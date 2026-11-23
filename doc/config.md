@@ -331,13 +331,25 @@ also in a file of the other language:
 ``` clojure
 (ns app.components)
 
-(def handler
+(defn handler [e]
   ^{:clj-kondo/lang :cljs}
-  (fn [e] (js/alert (.-value (.-target e)))))
+  (js/alert (.-value (.-target e))))
 ```
 
 The expression keeps the vars, aliases, refers and locals of the code around
 it. Values other than `:clj` and `:cljs` are ignored.
+
+In a `.cljc` file, the expression is linted in the pass of its language only,
+with the reader conditionals and requires of that pass:
+
+``` clojure
+(ns app.main
+  #?(:cljs (:require [goog.string :as gstr])))
+
+(defn trim [s]
+  ^{:clj-kondo/lang :cljs}
+  (gstr/trim s))
+```
 
 ### Lint a custom macro like a built-in macro
 
