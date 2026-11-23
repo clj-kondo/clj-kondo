@@ -4424,22 +4424,23 @@
   (let [ns-lang (utils/ns-lang ctx)
         ns (or (namespace/get-namespace ctx (:base-lang ctx) ns-lang (-> ctx :ns :name))
                (:ns ctx))
-        outer (or (:lang-outer ctx)
-                  {:config (:config ctx)
-                   :mark-bindings-used? (:mark-bindings-used? ctx)})
+        outer (:lang-outer ctx)
         ctx (assoc ctx
                    :ns-lang ns-lang
                    :lang lang
-                   :lang-outer outer
                    :ns (if (identical? lang ns-lang)
                          ns
                          (update ns :qualify-ns merge (namespace/core-qualify-ns lang))))]
-    (if (and (identical? :cljc (:base-lang ctx))
-             (not (identical? lang ns-lang)))
+    (cond
+      (and (identical? :cljc (:base-lang ctx))
+           (not (identical? lang ns-lang)))
       (assoc ctx
-             :config (muted-config ctx (:config outer))
+             :lang-outer {:config (:config ctx)
+                          :mark-bindings-used? (:mark-bindings-used? ctx)}
+             :config (muted-config ctx (:config ctx))
              :mark-bindings-used? true)
-      (merge ctx outer))))
+      outer (dissoc (merge ctx outer) :lang-outer)
+      :else ctx)))
 
 (declare analyze-lifted-expression**)
 

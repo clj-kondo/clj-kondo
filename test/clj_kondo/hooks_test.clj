@@ -1002,7 +1002,13 @@ my-ns/special-map \"
        {:file "<stdin>", :row 3, :col 37, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"})
      (lint! "(ns foo)
 (defn f [] ^{:clj-kondo/lang :foo} (inc 1 2))
-(defn g [] ^{:clj-kondo/lang :cljc} (inc 1 2))"))))
+(defn g [] ^{:clj-kondo/lang :cljc} (inc 1 2))")))
+  (testing ":config-in-call between a :cljs and a nested :clj form applies to the :clj form"
+    (is (empty? (lint! "(ns foo (:require [foo.bar :as fb]))
+(defn f [] ^{:clj-kondo/lang :cljs} (fb/quiet (js-obj) ^{:clj-kondo/lang :clj} (inc unknown)))"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unresolved-namespace {:level :off}}
+                         :config-in-call {foo.bar/quiet {:linters {:unresolved-symbol {:level :off}}}}})))))
 
 (deftest lang-metadata-cljc-test
   (testing "a :clj-kondo/lang :cljs form uses an alias required under #?(:cljs)"

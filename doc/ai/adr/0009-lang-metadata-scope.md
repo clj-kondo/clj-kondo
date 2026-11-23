@@ -59,8 +59,9 @@ unresolved symbol lands in the same entry at lint time.
 In a `.cljc` file, only the pass of the marked language reports findings in
 the form. The other pass analyzes it with all linters disabled by
 `utils/ctx-with-linters-disabled` and marks its bindings used, so its usages
-still count. A nested form of the pass's own language gets the outer config
-back. A finding in a marked form is not merged across passes, so
+still count. A nested form of the pass's own language gets back the config
+from the start of the muted form. Outside a muted form, a nested marker keeps
+the config of the code around it. A finding in a marked form is not merged across passes, so
 `redundant-let` and the other linters that require both passes to agree still
 report it.
 
@@ -147,3 +148,11 @@ reports nothing.
 
 An `ns` or `in-ns` form inside a marked form registers its namespace under
 the marked language, as before. This case is not supported.
+
+A config change inside a muted form, from `:config-in-call`,
+`:config-in-comment` or a linter disabled for a subform, applies to the muted
+config. It can enable a linter again in the muted form, and a nested form of
+the pass's own language does not get it. In the clj pass of
+`^{:clj-kondo/lang :cljs} (fb/quiet ^{:clj-kondo/lang :clj} (do x))` with
+`:config-in-call` for `fb/quiet`, the `:clj` form uses the config from before
+the call.
