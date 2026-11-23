@@ -47,7 +47,16 @@ the same entry at lint time.
 `js/` symbols, and `:qualify-ns` for `cljs.core`, which `resolve-name` and
 `enter-lang` merge into the outer namespace's.
 
-`lang-metadata-test` checks each case.
+In a `.cljc` file, only the pass of the marked language reports findings in
+the form. The other pass analyzes it with all linters disabled by
+`utils/ctx-with-linters-disabled` and marks its bindings used, so its usages
+still count. A nested form of the pass's own language gets the outer config
+back. A finding in a marked form is not merged across passes, so
+`redundant-let` and the other linters that require both passes to agree still
+report it. Electric `e/client` and `e/server` bodies in `.cljc` files are the
+main case.
+
+`lang-metadata-test` and `lang-metadata-cljc-test` check each case.
 
 | Inside the marked form | Finding |
 |---|---|
@@ -79,12 +88,10 @@ does not change.
 
 ## Consequences
 
-A reader conditional inside a marked form in a `.cljc` file is read per pass
-as usual, and each branch the reader picks is linted as the marked language.
-In the clj pass of `(fn [] #?(:clj (Thread/sleep 1)))` marked `:cljs`, the
-`:clj` branch is linted as CLJS and reports `Thread` as an unresolved
-namespace. A macro body in a `.cljc` file is read on the JVM, so that branch
-is what the macro emits.
+A marked form in a `.cljc` file is linted with the reader conditionals and
+the `ns` requires of the pass of its language. A marked form that exists in
+one pass only, e.g. `#?(:clj ^{:clj-kondo/lang :cljs} (fn [] (inc 1 2)))`,
+reports nothing.
 
 An `ns` or `in-ns` form inside a marked form registers its namespace under
 the marked language, as before. This case is not supported.

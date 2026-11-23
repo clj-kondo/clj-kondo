@@ -4403,17 +4403,28 @@
 
 (defn- enter-lang
   "Returns ctx with lang as its language.
-  :ns-lang keeps the language of the namespace entry outside the form."
+  :ns-lang keeps the language of the namespace entry outside the form.
+  In a .cljc file, if lang differs from the pass, ctx disables all linters and
+  marks bindings used."
   [ctx lang]
   (let [ns-lang (utils/ns-lang ctx)
         ns (or (namespace/get-namespace ctx (:base-lang ctx) ns-lang (-> ctx :ns :name))
-               (:ns ctx))]
-    (assoc ctx
-           :ns-lang ns-lang
-           :lang lang
-           :ns (if (identical? lang ns-lang)
-                 ns
-                 (update ns :qualify-ns merge (namespace/core-qualify-ns lang))))))
+               (:ns ctx))
+        outer (or (:lang-outer ctx)
+                  {:config (:config ctx)
+                   :mark-bindings-used? (:mark-bindings-used? ctx)})
+        ctx (assoc ctx
+                   :ns-lang ns-lang
+                   :lang lang
+                   :lang-outer outer
+                   :ns (if (identical? lang ns-lang)
+                         ns
+                         (update ns :qualify-ns merge (namespace/core-qualify-ns lang))))]
+    (if (and (identical? :cljc (:base-lang ctx))
+             (not (identical? lang ns-lang)))
+      (-> (utils/ctx-with-linters-disabled ctx (keys (-> outer :config :linters)))
+          (assoc :mark-bindings-used? true))
+      (merge ctx outer))))
 
 (declare analyze-lifted-expression**)
 
@@ -4427,9 +4438,10 @@
           lang (:clj-kondo/lang (meta expr))
           ctx (if (and lang
                        (one-of lang [:clj :cljs])
-                       (not (identical? lang (:lang ctx)))
                        (not (identical? :edn (:lang ctx))))
-                (enter-lang ctx lang)
+                (cond-> ctx
+                  (not (identical? lang (:lang ctx))) (enter-lang lang)
+                  (identical? :cljc (:base-lang ctx)) (assoc :single-pass true))
                 ctx)]
       (analyze-lifted-expression** ctx expr))))
 

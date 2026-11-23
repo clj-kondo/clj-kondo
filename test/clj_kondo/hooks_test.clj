@@ -1003,3 +1003,103 @@ my-ns/special-map \"
      (lint! "(ns foo)
 (defn f [] ^{:clj-kondo/lang :foo} (inc 1 2))
 (defn g [] ^{:clj-kondo/lang :cljc} (inc 1 2))"))))
+
+(deftest lang-metadata-cljc-test
+  (testing "a :clj-kondo/lang :cljs form uses an alias required under #?(:cljs)"
+    (is (empty? (lint! "(ns foo #?(:cljs (:require [goog.string :as gstr])))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (gstr/trim \" a \")))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :clj form uses an alias required under #?(:clj)"
+    (is (empty? (lint! "(ns foo #?(:clj (:require [clojure.java.io :as io])))
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (io/file \"a\")))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :cljs form uses the :cljs branch of a reader conditional"
+    (is (empty? (lint! "(ns foo #?(:cljs (:require [goog.string :as gstr])))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] #?(:cljs (gstr/trim \" a \") :clj (io/file \"a\"))))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "an arity error in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 44, :level :error, :message "cljs.core/inc is called with 2 args but expects 1 [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (inc 1 2)))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "an arity error in a :clj-kondo/lang :clj form is reported for :clj only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 43, :level :error, :message "clojure.core/dec is called with 2 args but expects 1 [clj]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (dec 1 2)))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "a call in a :clj-kondo/lang :cljs form with the wrong arity of a var in its namespace is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 3, :col 37, :level :error, :message "foo/helper is called with 2 args but expects 1 [cljs]"})
+     (lint! "(ns foo)
+(defn helper [x] x)
+(defn f [] ^{:clj-kondo/lang :cljs} (helper 1 2))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "an unresolved symbol in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 44, :level :error, :message "Unresolved symbol: unknown [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] unknown))"
+            {:output {:langs true}
+             :linters {:unresolved-symbol {:level :error}}}
+            "--lang" "cljc")))
+  (testing "an unused binding in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 42, :level :warning, :message "unused binding y [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [y] 1))"
+            {:output {:langs true}
+             :linters {:unused-binding {:level :warning}}}
+            "--lang" "cljc")))
+  (testing "a redundant let in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 55, :level :warning, :message "Redundant let expression. [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (let [x 1] (let [y x] y))))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "a used ignore in a :clj-kondo/lang :cljs form is not reported as redundant"
+    (is (empty? (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] #_:clj-kondo/ignore (inc 1 2)))"
+                       {:linters {:redundant-ignore {:level :warning}}}
+                       "--lang" "cljc"))))
+  (testing "a local used only in a :clj-kondo/lang :cljs form counts as used"
+    (is (empty? (lint! "(ns foo)
+(defn f [x] ^{:clj-kondo/lang :cljs} (fn [] (js/alert x)))"
+                       {:linters {:unused-binding {:level :warning}}}
+                       "--lang" "cljc"))))
+  (testing "a private var used only in a :clj-kondo/lang :cljs form counts as used"
+    (is (empty? (lint! "(ns foo)
+(defn- secret [] 1)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (secret)))"
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :clj form nested in a :clj-kondo/lang :cljs form uses the locals and :clj aliases"
+    (is (empty? (lint! "(ns foo (:require #?(:cljs [goog.string :as gstr] :clj [clojure.java.io :as io])))
+(defn f [] ^{:clj-kondo/lang :cljs}
+  (fn [] (let [s (gstr/trim \" a \")] ^{:clj-kondo/lang :clj} (fn [] (io/file s)))))"
+                       {:linters {:unresolved-symbol {:level :error}
+                                  :unused-binding {:level :warning}}}
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :cljs form in the :clj branch of a reader conditional reports nothing"
+    (is (empty? (lint! "(ns foo)
+(defn f [] #?(:clj ^{:clj-kondo/lang :cljs} (fn [] (inc 1 2))))"
+                       "--lang" "cljc"))))
+  (testing "client and server :macroexpand hooks with :clj-kondo/lang use the aliases of their language"
+    (is (empty? (lint! "(ns foo
+  {:clj-kondo/config '{:hooks {:macroexpand {foo/client \"(defmacro client [& body] (with-meta `(do ~@body) {:clj-kondo/lang :cljs}))\"
+                                             foo/server \"(defmacro server [& body] (with-meta `(do ~@body) {:clj-kondo/lang :clj}))\"}}}}
+  (:require #?(:cljs [goog.string :as gstr] :clj [clojure.java.io :as io])))
+(defmacro client [& body] `(do ~@body))
+(defmacro server [& body] `(do ~@body))
+(defn f [y] (let [x (server (io/file y))] (client (gstr/trim (str x)))))"
+                       {:hooks {:__dangerously-allow-string-hooks__ true}
+                        :linters {:unresolved-symbol {:level :error}
+                                  :unused-binding {:level :warning}}}
+                       "--lang" "cljc")))))

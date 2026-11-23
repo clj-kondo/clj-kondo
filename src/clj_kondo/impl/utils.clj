@@ -615,7 +615,7 @@
                             (identical? :all linters))
                       :all (set linters))
             ignore (cond-> (assoc m :ignore linters)
-                     cljc? (assoc :cljc true)
+                     (and cljc? (not (:single-pass ctx))) (assoc :cljc true)
                      node (assoc-in [:clj-kondo/ignore :linters] nil))]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                (fn [ignores]

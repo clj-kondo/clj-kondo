@@ -90,7 +90,7 @@
         lang (:lang ctx)
         m (cond-> m
             (identical? :cljc base-lang)
-            (assoc :cljc true :lang lang))]
+            (assoc :cljc (not (:single-pass ctx)) :lang lang))]
     (when (and level (not (identical? :off level)) (not dependencies) (not skip-lint?))
       (when (or (identical? :redundant-ignore (:type m))
                 (not (ignored? ctx m tp legacy-tp)))
