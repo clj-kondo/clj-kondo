@@ -353,10 +353,11 @@
    ns-sym usage]
   (when-not dependencies
     (when-not (:interop? usage)
-      (let [path [base-lang (ns-lang ctx) ns-sym]
-            usage (if-let [outer-lang (:ns-lang ctx)]
-                    (assoc usage :ns-lang outer-lang)
-                    usage)
+      (let [outer-lang (ns-lang ctx)
+            path [base-lang outer-lang ns-sym]
+            usage (if (identical? outer-lang (:lang ctx))
+                    usage
+                    (assoc usage :ns-lang outer-lang))
             ;; Construction sites already set :config from the same ctx. Only
             ;; add it when missing, to avoid copying the VarUsage record.
             usage (if (:config usage)

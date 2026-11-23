@@ -4893,11 +4893,11 @@
           (case lang
             :cljc
             (doseq [lang features]
-              (let [ctx (assoc ctx :base-lang :cljc :lang lang :filename filename)]
+              (let [ctx (assoc ctx :base-lang :cljc :lang lang :ns-lang lang :filename filename)]
                 (analyze-expressions ctx
                                      (:children (select-lang ctx parsed lang)))))
             (:clj :cljs :edn)
-            (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
+            (let [ctx (assoc ctx :base-lang lang :lang lang :ns-lang lang :filename filename
                              :uri uri)]
               (analyze-expressions ctx (:children parsed))
               ;; analyze-expressions should go first in order to process ignores

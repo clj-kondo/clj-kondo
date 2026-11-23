@@ -45,11 +45,12 @@ The shared lexical scope model is the only one without false positives for
 
 A marked form keeps the namespace entry of the code around it. `enter-lang`
 sets `:ns-lang` to the language outside the form and `:lang` to the marked
-language. `utils/ns-lang` returns `:ns-lang`, or `:lang` outside a marked
-form, and every read and write of a namespace entry uses it: vars, var
+language. Analysis sets `:ns-lang` next to `:lang` for each file and pass.
+`utils/ns-lang` returns `:ns-lang`, or `:lang` if absent, and every read and
+write of a namespace entry uses it: vars, var
 usages, aliases, refers, imports, bindings and unresolved symbols. A var
-usage made in the form carries `:ns-lang`, so its unresolved symbol lands in
-the same entry at lint time.
+usage made in the form carries `:ns-lang` if it differs from `:lang`, so its
+unresolved symbol lands in the same entry at lint time.
 
 `:lang` drives what is language specific: core var resolution and arity,
 `js/` symbols, and `:qualify-ns` for `cljs.core`, which `resolve-name` and
