@@ -4401,6 +4401,20 @@
       (types/add-arg-type-from-expr ctx expr tag*)
       analyzed))
 
+(defn- muted-config
+  "Returns config with all linters disabled.
+  The result for the last config is kept in the :muted-config atom of ctx."
+  [ctx config]
+  (let [mute #(:config (utils/ctx-with-linters-disabled {:config config} (keys (:linters config))))]
+    (if-let [cache (:muted-config ctx)]
+      (let [[cached muted] @cache]
+        (if (identical? cached config)
+          muted
+          (let [muted (mute)]
+            (reset! cache [config muted])
+            muted)))
+      (mute))))
+
 (defn- enter-lang
   "Returns ctx with lang as its language.
   :ns-lang keeps the language of the namespace entry outside the form.
@@ -4422,8 +4436,9 @@
                          (update ns :qualify-ns merge (namespace/core-qualify-ns lang))))]
     (if (and (identical? :cljc (:base-lang ctx))
              (not (identical? lang ns-lang)))
-      (-> (utils/ctx-with-linters-disabled ctx (keys (-> outer :config :linters)))
-          (assoc :mark-bindings-used? true))
+      (assoc ctx
+             :config (muted-config ctx (:config outer))
+             :mark-bindings-used? true)
       (merge ctx outer))))
 
 (declare analyze-lifted-expression**)
