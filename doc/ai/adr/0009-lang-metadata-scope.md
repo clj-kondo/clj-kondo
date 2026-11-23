@@ -32,11 +32,20 @@ unresolved or unused.
 
 | Model | Examples | Host locals in the embedded code |
 |---|---|---|
-| Separate virtual file | ESLint markdown processor, doctests | not visible |
-| One pass per configuration | Rust `#[cfg]`, Haxe `#if`, Nim `when`, `.cljc` | unused on the other target |
-| Shared lexical scope | Vue SFC templates, Svelte, Template Haskell antiquotes, inline `asm` operands, CLJS `js*` placeholders | a use counts |
-| Binding tagged with its phase | Racket `for-syntax` | a cross-phase reference is an error |
-| Syntax injection only | IntelliJ `@Language`, tree-sitter injections | not analyzed |
+| Separate virtual file | `@eslint/markdown` code blocks, Python doctest, Rust doctests | not visible, a doctest sees module globals only |
+| One pass per configuration | Rust `#[cfg]`, Haxe `#if`, Nim `when`, `.cljc` | the other branch is removed or not checked, so a local used only there is unused |
+| Shared lexical scope | Vue `<script setup>` bindings in the template with vue-tsc, Svelte script variables in markup with svelte-check | a use counts |
+| Explicit operands | Rust `asm!` operands, CLJS `js*` `~{}` arguments | passed as host expressions, which count as uses |
+| Binding tagged with its phase | Racket phases, Template Haskell top-level splices | a cross-phase reference is an error |
+| Syntax injection only | tree-sitter injections | parsed, not analyzed against the host scope |
+
+Sources: the `@eslint/markdown` processor docs, the Python doctest and
+rustdoc docs, the Rust reference on conditional compilation and inline
+assembly, the Haxe and Nim manuals, the Racket guide on phases and the GHC
+user guide on Template Haskell. The Vue and Svelte rows come from
+vuejs/language-tools#47 and #1168 and sveltejs/language-tools#877, which treat
+a template use reported as unused as a bug. The `js*` row comes from a
+ClojureVerse thread.
 
 The shared lexical scope model is the only one without false positives for
 `host` and `defc`.
@@ -61,9 +70,9 @@ the form. The other pass analyzes it with all linters disabled by
 `utils/ctx-with-linters-disabled` and marks its bindings used, so its usages
 still count. A nested form of the pass's own language gets back the config
 from the start of the muted form. Outside a muted form, a nested marker keeps
-the config of the code around it. A finding in a marked form is not merged across passes, so
-`redundant-let` and the other linters that require both passes to agree still
-report it.
+the config of the code around it. A finding in a marked form is not merged
+across passes, so `redundant-let` and the other linters that require both
+passes to agree still report it.
 
 `lang-metadata-test` and `lang-metadata-cljc-test` check each case.
 
@@ -128,16 +137,18 @@ now inside a form that the pass does not report.
 
 ## Measurement
 
-metabase src, JVM, in-process, min of 7 runs, master (a38978c2) and branch
-interleaved (benchmarks/bench.clj):
+metabase src, JVM, in-process, benchmarks/bench.clj with 7 runs, four
+rounds with master (a38978c2) and branch interleaved. Each cell is the mean
+over the rounds:
 
-| | round 1 | round 2 | allocation |
+| | min | median | allocation |
 |---|---|---|---|
-| master | 2652ms | 2651ms | 4182-4185MB |
-| branch | 2744ms | 2656ms | 4182-4189MB |
+| master | 2727ms | 2821ms | 4179-4191MB |
+| branch | 2760ms | 2820ms | 4184-4193MB |
 
-Within noise. The marker check is one meta lookup per node, and allocation
-does not change.
+The min is 1.2% slower on the branch, in three of four rounds. The median
+does not change. Code without a marker pays for one meta lookup per node.
+Allocation does not change.
 
 ## Consequences
 
