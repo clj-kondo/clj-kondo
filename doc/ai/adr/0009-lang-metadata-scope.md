@@ -77,7 +77,8 @@ passes to agree still report it.
 The other pass also emits no analysis output for the form. It runs with
 `:analysis` removed from ctx and `[:config :analysis]` set to `false`, as
 `analyze-expressions` does for the synthetic ns init. A var usage carries
-that config to lint time, where `reg-usage!` is skipped. clojure-lsp gets one
+that config to lint time, where `reg-usage!` is skipped. The analysis
+export drops a Java class usage with that config. clojure-lsp gets one
 entry per usage in the form, for the marked language.
 
 `lang-metadata-test`, `lang-metadata-cljc-test` and
@@ -162,7 +163,7 @@ Allocation does not change.
 A marked form in a `.cljc` file is linted with the reader conditionals and
 the `ns` requires of the pass of its language. A marked form that exists in
 one pass only, e.g. `#?(:clj ^{:clj-kondo/lang :cljs} (fn [] (inc 1 2)))`,
-reports nothing.
+reports nothing and emits no analysis output.
 
 An `ns` or `in-ns` form inside a marked form registers its namespace under
 the marked language, as before. This case is not supported.
