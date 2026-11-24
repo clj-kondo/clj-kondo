@@ -336,8 +336,8 @@ also in a file of the other language:
   (js/alert (.-value (.-target e))))
 ```
 
-clj-kondo resolves vars, aliases, refers and locals in the expression against
-the code around it. Values other than `:clj` and `:cljs` are ignored.
+Vars, aliases, refers and locals in the expression are resolved against the
+code around it. Values other than `:clj` and `:cljs` are ignored.
 
 ### Lint a custom macro like a built-in macro
 

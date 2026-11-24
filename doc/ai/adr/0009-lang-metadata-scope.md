@@ -18,7 +18,7 @@ conditionals, and requires per-platform namespaces with `#?(:clj ...)` and
 `#?(:cljs ...)`. Without a marker, the clj pass reports the `js/` calls and the
 cljs pass reports the JVM calls.
 
-clj-kondo must not report false positives. The marked form shares the lexical
+The marker must not cause false positives. The marked form shares the lexical
 scope and the namespace of the code around it, so anything that crosses the
 boundary must count as it would without the marker.
 
@@ -139,8 +139,8 @@ in the clj pass, and `ts/->node` in `e/server` with
 `#?(:clj [dustingetz.triple-store :as ts])` in the cljs pass. It loses no
 other finding. Three findings appear at a later position: `js/Object.`
 outside `e/client` in `electric_forms5.cljc`, and the unresolved `with-cycle`
-locals `p` and `c` of the clj pass in `electric3_contrib.cljc`. clj-kondo
-reports these once per namespace and language, and their first occurrence is
+locals `p` and `c` of the clj pass in `electric3_contrib.cljc`. These are
+reported once per namespace and language, and their first occurrence is
 now inside a form that the pass does not report.
 
 ## Measurement
