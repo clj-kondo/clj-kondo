@@ -85,7 +85,8 @@
       (testing "def + defmethod triggered by def-fn"
         (assert-submaps2
          [{:row 1, :col 8, :level :warning, :message "Use defn instead of def + fn"}]
-         (lint! "(def x (defmethod greeting \"English\" [x] x))" "--lang" (name lang) "--config" (pr-str config)))))))
+         (lint! "(def x (defmethod greeting \"English\" [x] x))" "--lang" (name lang) "--config" (pr-str config)))))
+    (is (empty? (lint! "(def x (proxy [Object] [] (toString [] \"x\")))" config)))))
 
 (deftest redundant-let-test
   (let [linted (lint! (io/file "corpus" "redundant_let.clj"))
@@ -2310,10 +2311,20 @@ foo/foo ;; this does use the private var
     (let [^ArrayList this this] (proxy-super add x))))
 " {:linters {:unused-binding {:level :warning}}})))
   (is (empty? (lint! "
-(proxy [ArrayList] []
-  (let [xx x] (proxy-super add xx)))"
+(proxy [java.util.ArrayList] []
+  (add [x] (let [xx x] (proxy-super add xx))))"
                      {:linters {:unused-binding {:level :warning}
                                 :unresolved-symbol {:level :error}}}))))
+
+(deftest proxy-test
+  (testing "proxy method bodies are linted with params and this bound"
+    (assert-submaps2
+     '({:row 1 :col 38 :message "clojure.core/inc is called with 2 args but expects 1"}
+       {:row 1 :col 48 :message "Unresolved symbol: y"}
+       {:row 1 :col 66 :message "unused binding x"})
+     (lint! "(proxy [Object] [] (toString [] (str (inc 1 2) y this)) (equals [x] true))"
+            {:linters {:unused-binding {:level :warning}
+                       :unresolved-symbol {:level :error}}}))))
 
 (deftest with-redefs-test
   (assert-submaps '({:file "<stdin>", :row 1, :col 14,

@@ -3060,6 +3060,17 @@
                                      nil))))
   (analyze-children ctx (nnext (:children expr)) false))
 
+(defn analyze-proxy [ctx expr]
+  (let [[_ classes args & methods] (:children expr)]
+    (analyze-children ctx (keep identity [classes args]) false)
+    (let [ctx (-> (ctx-with-bindings ctx '{this {}})
+                  (update :callstack #(cons [nil :proxy-method] %)))]
+      (doseq [method methods]
+        (if (identical? :list (tag method))
+          (do (utils/handle-ignore ctx method)
+              (analyze-fn ctx method))
+          (analyze-expression** ctx method))))))
+
 (defn analyze-amap [ctx expr]
   (let [[_ array idx-binding ret-binding body] (:children expr)
         ctx (ctx-with-bindings ctx
@@ -3762,7 +3773,9 @@
 
     (.) (analyze-instance-invocation ctx expr children)
     (..) (analyze-expression** ctx (macroexpand/expand-double-dot ctx expr))
-    (proxy defcurried)
+    proxy
+    (analyze-proxy ctx expr)
+    defcurried
     ;; don't lint calls in these expressions, only register them as used vars
     (analyze-children (utils/ctx-with-linters-disabled ctx [:invalid-arity
                                                             :unresolved-symbol
