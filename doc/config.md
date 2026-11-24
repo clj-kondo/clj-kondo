@@ -336,8 +336,8 @@ also in a file of the other language:
   (js/alert (.-value (.-target e))))
 ```
 
-The expression keeps the vars, aliases, refers and locals of the code around
-it. Values other than `:clj` and `:cljs` are ignored.
+clj-kondo resolves vars, aliases, refers and locals in the expression against
+the code around it. Values other than `:clj` and `:cljs` are ignored.
 
 In a `.cljc` file, the expression is linted in the pass of its language only,
 with the reader conditionals and requires of that pass:
