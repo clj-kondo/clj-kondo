@@ -323,7 +323,7 @@ To ignore warnings for only one language in a reader conditional:
   #?(:cljs x)) ;; x is only used in cljs, but unused is ignored for clj, so no warning
 ```
 
-### Lint an expression as another language
+### Lint an expression as if written in another language
 
 Use `:clj-kondo/lang` metadata to lint an expression as `:cljs` or `:clj`,
 regardless of the file extension.
