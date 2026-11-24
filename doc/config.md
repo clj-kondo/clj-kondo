@@ -339,7 +339,7 @@ In `app/components.clj`:
 ```
 
 Vars, aliases, refers and locals in the expression are resolved against the
-code around it. Values other than `:clj` and `:cljs` are ignored.
+code around it. Values other than `:clj` and `:cljs` are currently ignored.
 
 ### Lint a custom macro like a built-in macro
 
