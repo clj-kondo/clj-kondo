@@ -645,6 +645,25 @@ You can prevent that using:
            assoc :clj-kondo/ignore [:discouraged-var])})
 ```
 
+### Lint a node as if written in another language
+
+Put `:clj-kondo/lang` metadata on a node to lint it as `:cljs` or `:clj`.
+
+In an `:analyze-call` hook:
+
+``` clojure
+(defn client-fn [{:keys [node]}]
+  {:node (vary-meta (api/list-node (list* (api/token-node 'fn) (rest (:children node))))
+           assoc :clj-kondo/lang :cljs)})
+```
+
+In a `:macroexpand` hook:
+
+``` clojure
+(defmacro client-fn [args & body]
+  (with-meta `(fn ~args ~@body) {:clj-kondo/lang :cljs}))
+```
+
 ### Performance
 
 Less code to process will result in faster linting. If only one hook is used in

@@ -32853,7 +32853,7 @@
   :langs (),
   :message "Unresolved var: node/coerce",
   :row 106}
- {:end-row 51,
+ {:end-row 52,
   :type :redundant-ignore,
   :level :info,
   :lang :clj,
@@ -32864,7 +32864,7 @@
   :cljc nil,
   :langs (:clj),
   :message "Redundant ignore",
-  :row 51}
+  :row 52}
  {:end-row 4,
   :ns clj-kondo.impl.utils,
   :type :unused-namespace,

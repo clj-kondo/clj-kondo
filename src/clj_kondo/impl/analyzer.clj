@@ -2392,7 +2392,7 @@
                           (let [lifted (meta/lift-meta-content2 ctx var-name-node)]
                             (current-namespace-var-name ctx lifted (:value lifted))))
                         var-name-nodes)
-        vars-ns-path [(:base-lang ctx) (:lang ctx) ns-name :vars]
+        vars-ns-path [(:base-lang ctx) (utils/ns-lang ctx) ns-name :vars]
         vars (get-in @(:namespaces ctx) vars-ns-path)]
     (when (and ns-name
                (some #(:clj-kondo/macroexpand-hook (meta %)) var-names)
@@ -3715,7 +3715,7 @@
     (analyze-unknown-ns-call ctx children resolved-namespace resolved-name unresolved?)))
 
 (defn analyze-known-call
-  [ctx expr children config ns-name lang base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?]
+  [ctx expr children config ns-name base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?]
   (case resolved-as-clojure-var-name
     (assoc assoc! sorted-map-by struct-map) (analyze-assoc ctx expr)
     (dissoc dissoc! disj disj! sorted-set-by) (analyze-dissoc ctx expr)
@@ -3844,8 +3844,8 @@
          keep keep-indexed update update-in swap! swap-vals!
          send send-off send-via)
     (analyze-hof ctx expr resolved-as-name resolved-namespace resolved-name)
-    (ns-unmap) (analyze-ns-unmap ctx base-lang lang ns-name expr)
-    (gen-class) (analyze-gen-class ctx expr base-lang lang ns-name)
+    (ns-unmap) (analyze-ns-unmap ctx base-lang (utils/ns-lang ctx) ns-name expr)
+    (gen-class) (analyze-gen-class ctx expr base-lang (utils/ns-lang ctx) ns-name)
     (gen-interface) (analyze-gen-interface ctx expr)
     (exists?) (analyze-cljs-exists? ctx expr)
     (with-precision) (analyze-with-precision ctx expr children)
@@ -3867,7 +3867,7 @@
       (and not-is-dot
            (str/ends-with? full-fn-name ".")
            (simple-symbol? full-fn-name)
-           (let [ns (namespace/get-namespace ctx (:base-lang ctx) lang ns-name)]
+           (let [ns (namespace/get-namespace ctx (:base-lang ctx) (utils/ns-lang ctx) ns-name)]
              (and (not (contains? (:referred-vars ns) full-fn-name))
                   (not (contains? (:vars ns) full-fn-name)))))
       (recur ctx
@@ -4079,7 +4079,7 @@
                                                   (symbol (name resolved-as-namespace)
                                                           (name resolved-as-name))))
                         analyzed
-                        (analyze-known-call ctx expr children config ns-name lang base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?)]
+                        (analyze-known-call ctx expr children config ns-name base-lang resolved-as-clojure-var-name resolved-as-namespace resolved-as-name lint-as? resolved-namespace resolved-name top-level? defined-by defined-by->lint-as unresolved?)]
                     (if (= 'ns resolved-as-clojure-var-name)
                       analyzed
                       (let [in-def (:in-def ctx)
@@ -4401,16 +4401,76 @@
       (types/add-arg-type-from-expr ctx expr tag*)
       analyzed))
 
+(defn- muted-config
+  "Returns config with all linters and analysis disabled.
+  The result for the last config is kept in the :muted-config atom of ctx."
+  [ctx config]
+  (let [mute #(-> (utils/ctx-with-linters-disabled {:config config} (keys (:linters config)))
+                  :config
+                  (assoc :analysis false))]
+    (if-let [cache (:muted-config ctx)]
+      (let [[cached muted] @cache]
+        (if (identical? cached config)
+          muted
+          (let [muted (mute)]
+            (reset! cache [config muted])
+            muted)))
+      (mute))))
+
+(defn- enter-lang
+  "Returns ctx with lang as its language.
+  :ns-lang keeps the language of the namespace entry outside the form.
+  In a .cljc file, if lang differs from the pass, ctx disables all linters and
+  analysis and marks bindings used."
+  [ctx lang]
+  (let [ns-lang (utils/ns-lang ctx)
+        ns (or (namespace/get-namespace ctx (:base-lang ctx) ns-lang (-> ctx :ns :name))
+               (:ns ctx))
+        outer (:lang-outer ctx)
+        ctx (assoc ctx
+                   :ns-lang ns-lang
+                   :lang lang
+                   :ns (if (identical? lang ns-lang)
+                         ns
+                         (update ns :qualify-ns merge (namespace/core-qualify-ns lang))))]
+    (cond
+      (and (identical? :cljc (:base-lang ctx))
+           (not (identical? lang ns-lang)))
+      (assoc ctx
+             :lang-outer {:config (:config ctx)
+                          :mark-bindings-used? (:mark-bindings-used? ctx)
+                          :analysis (:analysis ctx)}
+             :config (muted-config ctx (:config ctx))
+             :mark-bindings-used? true
+             :analysis nil)
+      outer (dissoc (merge ctx outer) :lang-outer)
+      :else ctx)))
+
+(declare analyze-lifted-expression**)
+
 (defn analyze-expression**
+  [ctx expr]
+  (when expr
+    (let [expr (if (or (not= :edn (:lang ctx))
+                       (:quoted ctx))
+                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
+                 expr)
+          lang (:clj-kondo/lang (meta expr))
+          ctx (if (and lang
+                       (one-of lang [:clj :cljs])
+                       (not (identical? :edn (:lang ctx))))
+                (cond-> ctx
+                  (not (identical? lang (:lang ctx))) (enter-lang lang)
+                  (identical? :cljc (:base-lang ctx)) (assoc :single-pass true))
+                ctx)]
+      (analyze-lifted-expression** ctx expr))))
+
+(defn- analyze-lifted-expression**
   [{:keys [bindings lang] :as ctx}
    {:keys [children] :as expr}]
   ;; (prn :expr expr)
   (when expr
-    (let [expr (if (or (not= :edn lang)
-                       (:quoted ctx))
-                 (meta/lift-meta-content2 (dissoc ctx :arg-types) expr)
-                 expr)
-          t (tag expr)
+    (let [t (tag expr)
           {:keys [row col]} (meta expr)
           arg-count (count (rest children))]
       (utils/handle-ignore ctx expr)
@@ -4464,6 +4524,7 @@
               (let [expanded-node (macroexpand/expand-fn expr)
                     m (meta expanded-node)
                     has-first-arg? (:clj-kondo.impl/fn-has-first-arg m)]
+                ;; expanded-node copies the lifted meta of expr, so it needs no lifting or lang check
                 (recur (cond-> (assoc ctx :arg-types nil :in-fn-literal true)
                          has-first-arg? (update :bindings assoc '% {}))
                        expanded-node)))
@@ -4630,6 +4691,7 @@
                                 (update :callstack #(cons [nil t] %)))
                             children))
         :deref
+        ;; the expansion copies the lifted meta of expr, so it needs no lifting or lang check
         (recur ctx (with-meta
                      (seq/list-node [(token/token-node (case lang
                                                          :clj 'clojure.core/deref
@@ -4836,11 +4898,11 @@
           (case lang
             :cljc
             (doseq [lang features]
-              (let [ctx (assoc ctx :base-lang :cljc :lang lang :filename filename)]
+              (let [ctx (assoc ctx :base-lang :cljc :lang lang :ns-lang lang :filename filename)]
                 (analyze-expressions ctx
                                      (:children (select-lang ctx parsed lang)))))
             (:clj :cljs :edn)
-            (let [ctx (assoc ctx :base-lang lang :lang lang :filename filename
+            (let [ctx (assoc ctx :base-lang lang :lang lang :ns-lang lang :filename filename
                              :uri uri)]
               (analyze-expressions ctx (:children parsed))
               ;; analyze-expressions should go first in order to process ignores

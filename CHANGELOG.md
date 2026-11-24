@@ -14,6 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#3062](https://github.com/clj-kondo/clj-kondo/issues/3062): a form with `:clj-kondo/lang :cljs` or `:clj` metadata is linted as if written in that language, regardless of the file extension, also in hook output. E.g. `^{:clj-kondo/lang :cljs} (fn [] (js-obj "a" 1))` no longer reports `js-obj` as unresolved.
 - [#1759](https://github.com/clj-kondo/clj-kondo/issues/1759): a macro linted as `clojure.core/defn-` with `:lint-as` now defines a private var, so `:unused-private-var` and `:private-call` apply to it. E.g. `(my-defn- f [])` with `{:lint-as {foo/my-defn- clojure.core/defn-}}` warns when `f` is unused.
 
 ## 2026.10.26

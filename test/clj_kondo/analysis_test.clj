@@ -2405,3 +2405,35 @@
 (comment
   (context-test)
   )
+
+(deftest lang-metadata-analysis-test
+  (testing "a :clj-kondo/lang :cljs form in a .cljc file has one analysis entry per usage, for :cljs"
+    (let [{:keys [var-usages locals local-usages]}
+          (analyze "(ns foo #?(:cljs (:require [goog.string :as gstr])))
+(defn f [y] ^{:clj-kondo/lang :cljs} (fn [] (let [s (gstr/trim y)] (js/alert s))))"
+                   {:lang :cljc :config {:analysis {:locals true}}})
+          named (fn [names ms] (->> ms
+                                    (filter #(contains? names (:name %)))
+                                    (map (juxt :name :lang))
+                                    sort))]
+      (is (= '([fn :cljs] [let :cljs] [trim :cljs] [js/alert :cljs])
+             (named '#{fn let trim js/alert} var-usages)))
+      (is (= '([s :cljs]) (named '#{s} locals)))
+      (is (= '([s :cljs] [y :cljs]) (named '#{s y} local-usages)))))
+  (testing "a :clj form nested in a :cljs form in a .cljc file has analysis for :clj"
+    (let [{:keys [var-usages]}
+          (analyze "(ns foo) ^{:clj-kondo/lang :cljs} (let [a 1] ^{:clj-kondo/lang :clj} (inc a))"
+                   {:lang :cljc})]
+      (is (= '([inc :clj] [let :cljs])
+             (->> var-usages
+                  (filter #(contains? '#{let inc} (:name %)))
+                  (map (juxt :name :lang))
+                  sort)))))
+  (testing "a :clj-kondo/lang :clj form in a .cljc file has one Java class usage"
+    (let [{:keys [java-class-usages]}
+          (analyze "(ns foo) ^{:clj-kondo/lang :clj} (String/valueOf 1) ^{:clj-kondo/lang :clj} (java.io.File. \"x\")"
+                   {:lang :cljc :config {:analysis {:java-class-usages true}}})]
+      (is (= '(["java.io.File" :clj] ["java.lang.String" :clj])
+             (->> java-class-usages
+                  (map (juxt :class :lang))
+                  sort))))))

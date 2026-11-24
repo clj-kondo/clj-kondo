@@ -199,6 +199,7 @@
                  :used-namespaces used-nss
                  :file-analyzed-fn file-analyzed-fn
                  :ignores (atom {})
+                 :muted-config (atom nil)
                  :id-gen (when analyze-locals? (atom 0))
                  :analyze-var-usages? analyze-var-usages?
                  :analyze-locals? analyze-locals?
@@ -239,7 +240,10 @@
             ;;_ (prn (some-> analysis deref :java-class-usages))
             ;; _ (prn :used-nss @used-nss)
             _ (when analyze-java-class-usages?
-                (swap! analysis assoc :java-class-usages (mapv #(dissoc % :config) @java-class-usages)))
+                (swap! analysis assoc :java-class-usages
+                       (into [] (comp (remove #(false? (-> % :config :analysis)))
+                                      (map #(dissoc % :config)))
+                             @java-class-usages)))
             idacs (when (or dependencies (not skip-lint) analysis)
                     (-> (core-impl/index-defs-and-calls ctx)
                         (overrides)

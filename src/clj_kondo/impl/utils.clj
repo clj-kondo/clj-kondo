@@ -225,6 +225,12 @@
 (defn linter-disabled? [ctx linter]
   (= :off (get-in ctx [:config :linters linter :level])))
 
+(defn ns-lang
+  "Returns the language of the namespace entry that ctx reads and writes.
+  This is :ns-lang of ctx, or :lang of ctx if absent."
+  [ctx]
+  (or (:ns-lang ctx) (:lang ctx)))
+
 (defn location [m]
   (select-keys m [:filename :row :col :end-row :end-col]))
 
@@ -507,14 +513,16 @@
                       (get-in idacs [:clj :defs ns])
                       (get-in idacs [:cljc :defs ns]))
     ;; calling a clojure function from cljc
-    [:cljc :clj] (or (get-in idacs [:clj :defs ns])
-                     (get-in idacs [:cljc :defs ns]))
+    ([:cljc :clj] [:cljs :clj])
+    (or (get-in idacs [:clj :defs ns])
+        (get-in idacs [:cljc :defs ns]))
     ;; calling function in a CLJS conditional from a CLJC file
-    [:cljc :cljs] (or (get-in idacs [:cljs :defs ns])
-                      (get-in idacs [:cljc :defs ns])
-                      ;; could be a macro
-                      (get-in idacs [:clj :defs ns])
-                      (get-in idacs [:cljc :defs ns]))))
+    ([:cljc :cljs] [:clj :cljs])
+    (or (get-in idacs [:cljs :defs ns])
+        (get-in idacs [:cljc :defs ns])
+        ;; could be a macro
+        (get-in idacs [:clj :defs ns])
+        (get-in idacs [:cljc :defs ns]))))
 
 (defn resolve-call* [idacs call fn-ns fn-name]
   ;; (prn "RES" fn-ns fn-name)
@@ -538,14 +546,16 @@
                            (get-in idacs [:clj :defs fn-ns fn-name])
                            (get-in idacs [:cljc :defs fn-ns :clj fn-name]))))
       ;; calling a clojure function from cljc
-      [:cljc :clj] (or (get-in idacs [:clj :defs fn-ns fn-name])
-                       (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
+      ([:cljc :clj] [:cljs :clj])
+      (or (get-in idacs [:clj :defs fn-ns fn-name])
+          (get-in idacs [:cljc :defs fn-ns :clj fn-name]))
       ;; calling function in a CLJS conditional from a CLJC file
-      [:cljc :cljs] (or (get-in idacs [:cljs :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
-                        ;; could be a macro
-                        (get-in idacs [:clj :defs fn-ns fn-name])
-                        (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
+      ([:cljc :cljs] [:clj :cljs])
+      (or (get-in idacs [:cljs :defs fn-ns fn-name])
+          (get-in idacs [:cljc :defs fn-ns :cljs fn-name])
+          ;; could be a macro
+          (get-in idacs [:clj :defs fn-ns fn-name])
+          (get-in idacs [:cljc :defs fn-ns :clj fn-name])))))
 
 (defn prefer-comment-def
   "Usages in comment forms resolve against a comment form redefinition."
@@ -605,7 +615,7 @@
                             (identical? :all linters))
                       :all (set linters))
             ignore (cond-> (assoc m :ignore linters)
-                     cljc? (assoc :cljc true)
+                     (and cljc? (not (:single-pass ctx))) (assoc :cljc true)
                      node (assoc-in [:clj-kondo/ignore :linters] nil))]
         (swap! (:ignores ctx) update-in [(:filename ctx) lang]
                (fn [ignores]

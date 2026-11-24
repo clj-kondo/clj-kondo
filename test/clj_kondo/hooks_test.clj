@@ -927,3 +927,185 @@ my-ns/special-map \"
             {:linters {:unused-binding {:level :warning}
                        :unresolved-symbol {:level :error}}}
             "--config-dir" (fs/file "corpus" "hook-generated-ns" ".clj-kondo")))))
+
+(deftest lang-metadata-test
+  (testing "^{:clj-kondo/lang :cljs} lints a form in a .clj file as CLJS"
+    (assert-submaps2
+     '({:file "<stdin>", :row 3, :col 40, :level :error, :message "cljs.core/inc is called with 2 args but expects 1"}
+       {:file "<stdin>", :row 3, :col 51, :level :error, :message "Unresolved symbol: unknown"}
+       {:file "<stdin>", :row 4, :col 13, :level :error, :message "Unresolved symbol: js-obj"})
+     (lint! "(ns foo)
+(def f ^{:clj-kondo/lang :cljs}
+  (fn [] (js-obj) (array 1) (this-as t (inc t 2)) unknown))
+(defn g [] (js-obj))"
+            {:linters {:unresolved-symbol {:level :error}}})))
+  (testing "a local used only in a :clj-kondo/lang :cljs form counts as used"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 43, :level :warning, :message "unused binding y"})
+     (lint! "(ns foo)
+(defn f [x] ^{:clj-kondo/lang :cljs} (fn [y] (js/alert x)))"
+            {:linters {:unused-binding {:level :warning}}})))
+  (testing "a :macroexpand hook result with :clj-kondo/lang :cljs lints as CLJS"
+    (assert-submaps2
+     '({:file "<stdin>", :row 6, :col 33, :level :error, :message "Unresolved symbol: unknown"})
+     (lint! "(ns foo
+  {:clj-kondo/config '{:hooks {:macroexpand {foo/squint-fn \"
+(defmacro squint-fn [& body] (with-meta `(fn [] ~@body) {:clj-kondo/lang :cljs}))\"}}}})
+(defmacro squint-fn [& body] `(fn [] ~@body))
+(def f (squint-fn (js-obj) (array 1)))
+(def g (squint-fn (this-as t t) unknown))"
+            {:hooks {:__dangerously-allow-string-hooks__ true}
+             :linters {:unresolved-symbol {:level :error}}})))
+  (testing "a :clj-kondo/lang :cljs form uses the vars, aliases and refers of its namespace"
+    (is (empty? (lint! "(ns foo
+  (:require [clojure.set :refer [union]]
+            [clojure.string :as str]))
+(defn helper [x] x)
+(defn- secret [x] x)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (helper 1) (secret 2) (union #{} #{}) (str/join [1])))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "a :clj-kondo/lang :cljs form in a .cljc file uses the aliases of its namespace"
+    (is (empty? (lint! "(ns foo (:require [clojure.string :as str]))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (str/join [1])))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "a call in a :clj-kondo/lang :cljs form is checked against the arity of a var in its namespace"
+    (assert-submaps2
+     '({:file "<stdin>", :row 3, :col 37, :level :error, :message "foo/helper is called with 2 args but expects 1"})
+     (lint! "(ns foo)
+(defn helper [x] x)
+(defn f [] ^{:clj-kondo/lang :cljs} (helper 1 2))")))
+  (testing "an alias unused inside and outside a :clj-kondo/lang :cljs form is reported"
+    (assert-submaps2
+     '({:file "<stdin>", :row 1, :col 20, :level :warning, :message "namespace clojure.string is required but never used"})
+     (lint! "(ns foo (:require [clojure.string :as str]))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (js-obj)))")))
+  (testing "cljs.core/ resolves in a :clj-kondo/lang :cljs form"
+    (is (empty? (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (cljs.core/js-obj)))"
+                       {:linters {:unresolved-symbol {:level :error}}}))))
+  (testing "^{:clj-kondo/lang :clj} lints a form in a .cljs file as Clojure"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 61, :level :error, :message "Unresolved symbol: js-obj"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (Thread/sleep 1) (js-obj)))"
+            {:linters {:unresolved-symbol {:level :error}}}
+            "--lang" "cljs")))
+  (testing "^{:clj-kondo/lang :clj} in the cljs pass of a .cljc file lints the form as Clojure"
+    (is (empty? (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (Thread/sleep 1)))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "an unknown :clj-kondo/lang value is ignored"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 36, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"}
+       {:file "<stdin>", :row 3, :col 37, :level :error, :message "clojure.core/inc is called with 2 args but expects 1"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :foo} (inc 1 2))
+(defn g [] ^{:clj-kondo/lang :cljc} (inc 1 2))")))
+  (testing ":config-in-call between a :cljs and a nested :clj form applies to the :clj form"
+    (is (empty? (lint! "(ns foo (:require [foo.bar :as fb]))
+(defn f [] ^{:clj-kondo/lang :cljs} (fb/quiet (js-obj) ^{:clj-kondo/lang :clj} (inc unknown)))"
+                       '{:linters {:unresolved-symbol {:level :error}
+                                   :unresolved-namespace {:level :off}}
+                         :config-in-call {foo.bar/quiet {:linters {:unresolved-symbol {:level :off}}}}})))))
+
+(deftest lang-metadata-cljc-test
+  (testing "a :clj-kondo/lang :cljs form uses an alias required under #?(:cljs)"
+    (is (empty? (lint! "(ns foo #?(:cljs (:require [goog.string :as gstr])))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (gstr/trim \" a \")))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :clj form uses an alias required under #?(:clj)"
+    (is (empty? (lint! "(ns foo #?(:clj (:require [clojure.java.io :as io])))
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (io/file \"a\")))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :cljs form uses the :cljs branch of a reader conditional"
+    (is (empty? (lint! "(ns foo #?(:cljs (:require [goog.string :as gstr])))
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] #?(:cljs (gstr/trim \" a \") :clj (io/file \"a\"))))"
+                       {:linters {:unresolved-symbol {:level :error}}}
+                       "--lang" "cljc"))))
+  (testing "an arity error in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 44, :level :error, :message "cljs.core/inc is called with 2 args but expects 1 [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (inc 1 2)))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "an arity error in a :clj-kondo/lang :clj form is reported for :clj only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 43, :level :error, :message "clojure.core/dec is called with 2 args but expects 1 [clj]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :clj} (fn [] (dec 1 2)))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "a call in a :clj-kondo/lang :cljs form with the wrong arity of a var in its namespace is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 3, :col 37, :level :error, :message "foo/helper is called with 2 args but expects 1 [cljs]"})
+     (lint! "(ns foo)
+(defn helper [x] x)
+(defn f [] ^{:clj-kondo/lang :cljs} (helper 1 2))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "an unresolved symbol in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 44, :level :error, :message "Unresolved symbol: unknown [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] unknown))"
+            {:output {:langs true}
+             :linters {:unresolved-symbol {:level :error}}}
+            "--lang" "cljc")))
+  (testing "an unused binding in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 42, :level :warning, :message "unused binding y [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [y] 1))"
+            {:output {:langs true}
+             :linters {:unused-binding {:level :warning}}}
+            "--lang" "cljc")))
+  (testing "a redundant let in a :clj-kondo/lang :cljs form is reported for :cljs only"
+    (assert-submaps2
+     '({:file "<stdin>", :row 2, :col 55, :level :warning, :message "Redundant let expression. [cljs]"})
+     (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (let [x 1] (let [y x] y))))"
+            {:output {:langs true}}
+            "--lang" "cljc")))
+  (testing "a used ignore in a :clj-kondo/lang :cljs form is not reported as redundant"
+    (is (empty? (lint! "(ns foo)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] #_:clj-kondo/ignore (inc 1 2)))"
+                       {:linters {:redundant-ignore {:level :warning}}}
+                       "--lang" "cljc"))))
+  (testing "a local used only in a :clj-kondo/lang :cljs form counts as used"
+    (is (empty? (lint! "(ns foo)
+(defn f [x] ^{:clj-kondo/lang :cljs} (fn [] (js/alert x)))"
+                       {:linters {:unused-binding {:level :warning}}}
+                       "--lang" "cljc"))))
+  (testing "a private var used only in a :clj-kondo/lang :cljs form counts as used"
+    (is (empty? (lint! "(ns foo)
+(defn- secret [] 1)
+(defn f [] ^{:clj-kondo/lang :cljs} (fn [] (secret)))"
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :clj form nested in a :clj-kondo/lang :cljs form uses the locals and :clj aliases"
+    (is (empty? (lint! "(ns foo (:require #?(:cljs [goog.string :as gstr] :clj [clojure.java.io :as io])))
+(defn f [] ^{:clj-kondo/lang :cljs}
+  (fn [] (let [s (gstr/trim \" a \")] ^{:clj-kondo/lang :clj} (fn [] (io/file s)))))"
+                       {:linters {:unresolved-symbol {:level :error}
+                                  :unused-binding {:level :warning}}}
+                       "--lang" "cljc"))))
+  (testing "a :clj-kondo/lang :cljs form in the :clj branch of a reader conditional reports nothing"
+    (is (empty? (lint! "(ns foo)
+(defn f [] #?(:clj ^{:clj-kondo/lang :cljs} (fn [] (inc 1 2))))"
+                       "--lang" "cljc"))))
+  (testing "client and server :macroexpand hooks with :clj-kondo/lang use the aliases of their language"
+    (is (empty? (lint! "(ns foo
+  {:clj-kondo/config '{:hooks {:macroexpand {foo/client \"(defmacro client [& body] (with-meta `(do ~@body) {:clj-kondo/lang :cljs}))\"
+                                             foo/server \"(defmacro server [& body] (with-meta `(do ~@body) {:clj-kondo/lang :clj}))\"}}}}
+  (:require #?(:cljs [goog.string :as gstr] :clj [clojure.java.io :as io])))
+(defmacro client [& body] `(do ~@body))
+(defmacro server [& body] `(do ~@body))
+(defn f [y] (let [x (server (io/file y))] (client (gstr/trim (str x)))))"
+                       {:hooks {:__dangerously-allow-string-hooks__ true}
+                        :linters {:unresolved-symbol {:level :error}
+                                  :unused-binding {:level :warning}}}
+                       "--lang" "cljc")))))
