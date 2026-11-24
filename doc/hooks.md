@@ -645,7 +645,7 @@ You can prevent that using:
            assoc :clj-kondo/ignore [:discouraged-var])})
 ```
 
-### Lint a node as another language
+### Lint a node as if written in another language
 
 Put `:clj-kondo/lang` metadata on a node to lint it as `:cljs` or `:clj`.
 
