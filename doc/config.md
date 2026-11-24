@@ -339,18 +339,6 @@ also in a file of the other language:
 clj-kondo resolves vars, aliases, refers and locals in the expression against
 the code around it. Values other than `:clj` and `:cljs` are ignored.
 
-In a `.cljc` file, the expression is linted in the pass of its language only,
-with the reader conditionals and requires of that pass:
-
-``` clojure
-(ns app.main
-  #?(:cljs (:require [goog.string :as gstr])))
-
-(defn trim [s]
-  ^{:clj-kondo/lang :cljs}
-  (gstr/trim s))
-```
-
 ### Lint a custom macro like a built-in macro
 
 In the following code the `my-defn` macro is defined, but clj-kondo doesn't know how to interpret it:

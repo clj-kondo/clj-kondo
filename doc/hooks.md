@@ -647,8 +647,7 @@ You can prevent that using:
 
 ### Lint a node as another language
 
-Put `:clj-kondo/lang` metadata on a node to lint it as `:cljs` or `:clj`, for
-a macro whose body runs in one language but lives in a `.clj` or `.cljc` file.
+Put `:clj-kondo/lang` metadata on a node to lint it as `:cljs` or `:clj`.
 
 In an `:analyze-call` hook:
 
