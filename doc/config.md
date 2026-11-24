@@ -326,7 +326,7 @@ To ignore warnings for only one language in a reader conditional:
 ### Lint an expression as another language
 
 Use `:clj-kondo/lang` metadata to lint an expression as `:cljs` or `:clj`,
-also in a file of the other language:
+regardless of the file extension:
 
 ``` clojure
 (ns app.components)
