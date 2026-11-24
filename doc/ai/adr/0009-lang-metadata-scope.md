@@ -74,7 +74,14 @@ the config of the code around it. A finding in a marked form is not merged
 across passes, so `redundant-let` and the other linters that require both
 passes to agree still report it.
 
-`lang-metadata-test` and `lang-metadata-cljc-test` check each case.
+The other pass also emits no analysis output for the form. It runs with
+`:analysis` removed from ctx and `[:config :analysis]` set to `false`, as
+`analyze-expressions` does for the synthetic ns init. A var usage carries
+that config to lint time, where `reg-usage!` is skipped. clojure-lsp gets one
+entry per usage in the form, for the marked language.
+
+`lang-metadata-test`, `lang-metadata-cljc-test` and
+`lang-metadata-analysis-test` check each case.
 
 | Inside the marked form | Finding |
 |---|---|

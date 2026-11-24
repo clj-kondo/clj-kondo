@@ -2405,3 +2405,17 @@
 (comment
   (context-test)
   )
+
+(deftest lang-metadata-analysis-test
+  (testing "a :clj-kondo/lang :cljs form in a .cljc file has one analysis entry per usage, for :cljs"
+    (let [{:keys [var-usages locals local-usages]}
+          (analyze "(ns foo #?(:cljs (:require [goog.string :as gstr])))
+(defn f [y] ^{:clj-kondo/lang :cljs} (fn [] (let [s (gstr/trim y)] (js/alert s))))"
+                   {:lang :cljc :config {:analysis {:locals true}}})
+          in-form (fn [ms] (->> ms
+                                (filter #(and (= 2 (:row %)) (<= 38 (:col %))))
+                                (map (juxt :name :lang))
+                                sort))]
+      (is (= '([fn :cljs] [let :cljs] [trim :cljs] [js/alert :cljs]) (in-form var-usages)))
+      (is (= '([s :cljs]) (in-form locals)))
+      (is (= '([s :cljs] [y :cljs]) (in-form local-usages))))))

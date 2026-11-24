@@ -4402,10 +4402,12 @@
       analyzed))
 
 (defn- muted-config
-  "Returns config with all linters disabled.
+  "Returns config with all linters and analysis disabled.
   The result for the last config is kept in the :muted-config atom of ctx."
   [ctx config]
-  (let [mute #(:config (utils/ctx-with-linters-disabled {:config config} (keys (:linters config))))]
+  (let [mute #(-> (utils/ctx-with-linters-disabled {:config config} (keys (:linters config)))
+                  :config
+                  (assoc :analysis false))]
     (if-let [cache (:muted-config ctx)]
       (let [[cached muted] @cache]
         (if (identical? cached config)
@@ -4419,7 +4421,7 @@
   "Returns ctx with lang as its language.
   :ns-lang keeps the language of the namespace entry outside the form.
   In a .cljc file, if lang differs from the pass, ctx disables all linters and
-  marks bindings used."
+  analysis and marks bindings used."
   [ctx lang]
   (let [ns-lang (utils/ns-lang ctx)
         ns (or (namespace/get-namespace ctx (:base-lang ctx) ns-lang (-> ctx :ns :name))
@@ -4436,9 +4438,11 @@
            (not (identical? lang ns-lang)))
       (assoc ctx
              :lang-outer {:config (:config ctx)
-                          :mark-bindings-used? (:mark-bindings-used? ctx)}
+                          :mark-bindings-used? (:mark-bindings-used? ctx)
+                          :analysis (:analysis ctx)}
              :config (muted-config ctx (:config ctx))
-             :mark-bindings-used? true)
+             :mark-bindings-used? true
+             :analysis nil)
       outer (dissoc (merge ctx outer) :lang-outer)
       :else ctx)))
 

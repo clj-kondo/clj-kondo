@@ -832,7 +832,8 @@
         fn-ns (:ns called-fn)
         resolved-ns (or fn-ns resolved-ns)
         _ (when (and (:analysis ctx) (not (:interop? call))
-                     (not (:skip-analysis (meta (:expr call)))))
+                     (not (:skip-analysis (meta (:expr call))))
+                     (not (false? (-> call :config :analysis))))
             (analysis/reg-usage! ctx call resolved-ns base-lang called-fn))]
     (when valid-call?
       (lint-valid-call! ctx idacs config call called-fn resolved-ns refer-alls))))
