@@ -165,10 +165,10 @@
     (.accept
      class-reader
      (proxy [ClassVisitor] [Opcodes/ASM9]
-       (visit [version access name signature superName interfaces]
+       (visit [_version access _name _signature _superName _interfaces]
          (swap! result* assoc-in [class-name :flags] (opcode->flags access))
          nil)
-       (visitField [access ^String name ^String desc signature value]
+       (visitField [access ^String name ^String desc _signature _value]
          (let [flags (opcode->flags access)]
            (when (:public flags)
              (swap! result* update-in [class-name :members] conj
@@ -176,7 +176,7 @@
                      :flags (conj flags :field)
                      :type (.getClassName (Type/getType desc))})))
          nil)
-       (visitMethod [access ^String name ^String desc signature exceptions]
+       (visitMethod [access ^String name ^String desc _signature _exceptions]
          (let [flags (opcode->flags access)]
            (when (:public flags)
              (swap! result* update-in [class-name :members] conj

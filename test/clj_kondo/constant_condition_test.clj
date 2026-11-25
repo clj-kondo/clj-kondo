@@ -232,6 +232,18 @@
    (lint! "(when-let [[a b] [(foo) (bar)]] a 2)"
           config)))
 
+(deftest proxy-test
+  (testing "proxy method param named last is not constant"
+    (is (empty? (lint! "(proxy [Object] [] (equals [last] (if last true false)))"
+                       config)))
+    (is (empty? (lint! "(proxy [Object] [] (equals ([first] (when first 1)) ([first x] (if first x 2))))"
+                       config))))
+  (testing "clojure.core/last in a proxy method is always true"
+    (assert-submaps2
+     [{:row 1 :col 37 :message "Condition always true"}]
+     (lint! "(proxy [Object] [] (toString [] (if last \"a\" \"b\")))"
+            config))))
+
 (deftest are-test
   (assert-submaps2 []
                    (lint! "(require '[clojure.test :refer [are]])
