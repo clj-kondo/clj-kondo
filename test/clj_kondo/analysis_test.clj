@@ -22,6 +22,9 @@
 (deftest locals-analysis-test
   (let [a (analyze "#(inc %1 %&)" {:config {:analysis {:locals true}}})]
     (is (= [] (:locals a) (:local-usages a))))
+  (testing "this in a proxy method is not a local usage"
+    (let [a (analyze "(proxy [Object] [] (toString [] (str this)))" {:config {:analysis {:locals true}}})]
+      (is (= [] (:locals a) (:local-usages a)))))
   (let [a (analyze "(areduce [] i j 0 (+ i j))" {:config {:analysis {:locals true}}})
         [first-a second-a] (:locals a)
         [first-use second-use] (:local-usages a)]

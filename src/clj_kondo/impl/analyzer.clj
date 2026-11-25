@@ -3063,7 +3063,8 @@
 (defn analyze-proxy [ctx expr]
   (let [[_ classes args & methods] (:children expr)]
     (analyze-children ctx (keep identity [classes args]) false)
-    (let [ctx (-> (ctx-with-bindings ctx '{this {}})
+    (let [ctx (-> (ctx-with-bindings ctx '{this {:clj-kondo.impl/generated true}})
+                  ;; prevents :def-fn from reporting (def x (proxy ...))
                   (update :callstack #(cons [nil :proxy-method] %)))]
       (doseq [method methods]
         (if (identical? :list (tag method))
