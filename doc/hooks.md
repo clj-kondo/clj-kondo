@@ -23,9 +23,9 @@ API functions for producing nodes:
   true}` as a second argument if the node contains every key the map has at
   runtime, e.g. when rebuilding the user's map literal. The node is then
   linted like a map literal in the source. Older clj-kondo versions throw an
-  arity error on the second argument. A hook that must support them can fall
-  back with `(try (api/map-node children {:closed true}) (catch Exception _
-  (api/map-node children)))`.
+  arity error on the second argument. A hook that must support them can retry
+  without it when the call throws: `(try (api/map-node children {:closed
+  true}) (catch Exception _ (api/map-node children)))`.
 - `keyword-node`: produce a new keyword. Use `(api/keyword-node :foo)` for a
   normal keyword and `(api/keyword-node :foo true)` to produce a node for
   `::foo`.
