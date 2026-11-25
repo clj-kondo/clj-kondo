@@ -2478,6 +2478,42 @@
       (is (empty? (lint! "(defn bar [s] (if (string? s) (subs s 1) s)) (defn foo [x] (bar x)) (foo 42)"
                          config))))))
 
+(deftest closed-map-node-test
+  (let [hook (fn [opts]
+               (str "(require '[clj-kondo.hooks-api :as api])
+(fn [{:keys [node]}]
+  (let [[_ sym-node map-node] (:children node)]
+    {:node (with-meta
+             (api/list-node
+              [sym-node
+               (with-meta (api/map-node (:children map-node) " opts ")
+                 (meta map-node))])
+             (meta node))}))"))
+        config {:linters {:type-mismatch {:level :error}}
+                :hooks {:__dangerously-allow-string-hooks__ true
+                        :analyze-call {'my/closed (hook "{:closed true}")
+                                       'my/open (hook "nil")
+                                       'my/no-meta "(require '[clj-kondo.hooks-api :as api])
+(fn [{:keys [node]}]
+  (let [[_ sym-node map-node] (:children node)]
+    {:node (with-meta
+             (api/list-node [sym-node (api/map-node (:children map-node) {:closed true})])
+             (meta node))}))"}}}
+        prelude "(ns my) (defn foo [{:keys! [r-key]}] r-key) (defmacro closed [& xs] xs) (defmacro open [& xs] xs) (defmacro no-meta [& xs] xs)\n"]
+    (testing "map-node with {:closed true} reports a missing required key"
+      (assert-submaps2
+       '({:row 2 :col 13 :message "Missing required key: :r-key"}
+         {:row 3 :col 13 :message "Missing required key: :r-key"})
+       (lint! (str prelude "(closed foo {})\n(closed foo {:a 1})") config)))
+    (testing "map-node with {:closed true} and no copied position reports at the call"
+      (assert-submaps2
+       '({:row 2 :col 1 :message "Missing required key: :r-key"})
+       (lint! (str prelude "(no-meta foo {})") config)))
+    (testing "map-node without :closed reports no missing key"
+      (is (empty? (lint! (str prelude "(open foo {})") config))))
+    (testing "map-node with {:closed true} and a dynamic key reports no missing key"
+      (is (empty? (lint! (str prelude "(let [k :r-key] (closed foo {k 1}))") config))))))
+
 ;;;; Scratch
 
 (comment)

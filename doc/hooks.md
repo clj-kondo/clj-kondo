@@ -19,7 +19,9 @@ API functions for producing nodes:
 
 - `list-node`: produce a new list node from a seqable of nodes.
 - `vector-node`: produce a new vector node from a seqable of nodes.
-- `map-node`: produce a new map node from a seqable of nodes
+- `map-node`: produce a new map node from a seqable of nodes. Takes an options
+  map as a second argument. `{:closed true}` marks the node as containing every
+  key of the map, so missing required keys will be reported.
 - `keyword-node`: produce a new keyword. Use `(api/keyword-node :foo)` for a
   normal keyword and `(api/keyword-node :foo true)` to produce a node for
   `::foo`.

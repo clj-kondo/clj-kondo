@@ -33195,7 +33195,7 @@
   :branch :cljs,
   :message "Missing protocol method(s): -notify-watches",
   :row 203}
- {:end-row 91,
+ {:end-row 94,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/hooks_api.clj",
@@ -33203,8 +33203,8 @@
   :end-col 14,
   :langs (),
   :message "Unresolved var: node/sexpr",
-  :row 91}
- {:end-row 94,
+  :row 94}
+ {:end-row 97,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/hooks_api.clj",
@@ -33212,8 +33212,8 @@
   :end-col 12,
   :langs (),
   :message "Unresolved var: node/tag",
-  :row 94}
- {:end-row 106,
+  :row 97}
+ {:end-row 109,
   :type :unresolved-var,
   :level :warning,
   :filename "src/clj_kondo/hooks_api.clj",
@@ -33221,7 +33221,7 @@
   :end-col 15,
   :langs (),
   :message "Unresolved var: node/coerce",
-  :row 106}
+  :row 109}
  {:end-row 52,
   :type :redundant-ignore,
   :level :info,
