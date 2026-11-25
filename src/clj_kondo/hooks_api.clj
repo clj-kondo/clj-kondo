@@ -83,9 +83,12 @@
   (and (instance? clj_kondo.impl.rewrite_clj.node.seq.SeqNode n)
        (identical? :map (utils/tag n))))
 
-(defn map-node [children]
-  (assert-children-nodes children)
-  (utils/mark-generate (utils/map-node children)))
+(defn map-node
+  ([children] (map-node children nil))
+  ([children opts]
+   (assert-children-nodes children)
+   (cond-> (utils/mark-generate (utils/map-node children))
+     (:closed opts) (assoc :clj-kondo.impl/closed true))))
 
 (defn sexpr [expr]
   (node/sexpr expr))

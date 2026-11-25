@@ -19,7 +19,11 @@ API functions for producing nodes:
 
 - `list-node`: produce a new list node from a seqable of nodes.
 - `vector-node`: produce a new vector node from a seqable of nodes.
-- `map-node`: produce a new map node from a seqable of nodes
+- `map-node`: produce a new map node from a seqable of nodes. Pass `{:closed
+  true}` as a second argument if the node contains every key the map has at
+  runtime, e.g. when rebuilding the user's map literal. Missing required keys
+  are then reported on it. Older clj-kondo versions do not accept the second
+  argument.
 - `keyword-node`: produce a new keyword. Use `(api/keyword-node :foo)` for a
   normal keyword and `(api/keyword-node :foo true)` to produce a node for
   `::foo`.

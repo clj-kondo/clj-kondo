@@ -373,9 +373,10 @@
       ;; only a map whose every key is statically known is closed
       (and @all-known?
            (let [m (meta expr)]
-             (not (or (:clj-kondo.impl/generated expr)
-                      (:clj-kondo.impl/generated m)
-                      (not (:row m))))))
+             (and (:row m)
+                  (or (:clj-kondo.impl/closed expr)
+                      (not (or (:clj-kondo.impl/generated expr)
+                               (:clj-kondo.impl/generated m)))))))
       (assoc :closed true))))
 
 (defn destructured-key-tag
