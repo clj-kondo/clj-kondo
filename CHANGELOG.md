@@ -14,7 +14,7 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
-- [#3041](https://github.com/clj-kondo/clj-kondo/issues/3041): hooks API `map-node` accepts `{:closed true}` as a second argument. Such a node is linted like a map literal in the source. E.g. `(api/map-node (:children m) {:closed true})` in an `:analyze-call` hook will warn when the user's map lacks a required key.
+- [#3041](https://github.com/clj-kondo/clj-kondo/issues/3041): hooks API `map-node` takes an options map. `{:closed true}` marks the node as containing every key of the map, so missing required keys are reported on it.
 - [#3059](https://github.com/clj-kondo/clj-kondo/issues/3059): `proxy` method params are bound as locals. Arity, unresolved symbol, type mismatch and unused binding checks now apply inside `proxy` methods.
 - [#3062](https://github.com/clj-kondo/clj-kondo/issues/3062): a form with `:clj-kondo/lang :cljs` or `:clj` metadata is linted as if written in that language, regardless of the file extension, also in hook output. E.g. `^{:clj-kondo/lang :cljs} (fn [] (js-obj "a" 1))` no longer reports `js-obj` as unresolved.
 - [#1759](https://github.com/clj-kondo/clj-kondo/issues/1759): a macro linted as `clojure.core/defn-` with `:lint-as` now defines a private var, so `:unused-private-var` and `:private-call` apply to it. E.g. `(my-defn- f [])` with `{:lint-as {foo/my-defn- clojure.core/defn-}}` warns when `f` is unused.
