@@ -369,8 +369,9 @@
     (cond-> {:type :map
              :val val}
       ;; a generated literal, e.g. a hook's placeholder map, is no evidence
-      ;; of absence, and a dynamic or inextractable key could be any key:
-      ;; only a map whose every key is statically known is closed
+      ;; of absence unless the hook built it with {:closed true}, and a
+      ;; dynamic or inextractable key could be any key: only a map whose
+      ;; every key is statically known is closed
       (and @all-known?
            (let [m (meta expr)]
              (and (:row m)
