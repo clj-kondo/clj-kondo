@@ -194,7 +194,7 @@
                  :deferred-conditions (atom [])
                  :kw-lookups (atom [])
                  :namespaces (atom {})
-                 :generic-calls (java.util.concurrent.ConcurrentHashMap/newKeySet)
+                 :generic-calls (atom #{})
                  :analysis analysis
                  :cache-dir cache-dir
                  :used-namespaces used-nss

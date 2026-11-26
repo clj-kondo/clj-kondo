@@ -3546,9 +3546,9 @@
                    ;; treat its args as conditionally
                    ;; evaluated, like a when body
                    unresolved? (in-branch-ctx))]
-    (when-let [^java.util.Set generic-calls (:generic-calls ctx)]
+    (when-let [generic-calls (:generic-calls ctx)]
       (when-let [frame (first (:callstack ctx))]
-        (.add generic-calls frame)))
+        (swap! generic-calls conj frame)))
     (analyze-children next-ctx children false)))
 
 (defn analyze-test-ns-call
