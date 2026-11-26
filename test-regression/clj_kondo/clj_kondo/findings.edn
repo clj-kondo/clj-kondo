@@ -30215,7 +30215,7 @@
   :langs (:cljs),
   :message
   "Var rethrow-with-location-of-node is referred but used via alias: utils",
-  :row 2017}
+  :row 2128}
  {:type :aliased-referred-var,
   :level :info,
   :lang :clj,
@@ -30225,7 +30225,7 @@
   :langs (:clj :cljs),
   :message
   "Var rethrow-with-location-of-node is referred but used via alias: utils",
-  :row 2226}
+  :row 2340}
  {:end-row 12,
   :type :unused-import,
   :level :warning,
@@ -30273,7 +30273,7 @@
   :langs (:clj :cljs),
   :message "namespace sci.ctx-store is required but never used",
   :row 5}
- {:end-row 178,
+ {:end-row 204,
   :protocol-ns sci.impl.types,
   :protocol-name IBox,
   :type :missing-protocol-method,
@@ -30286,7 +30286,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Missing protocol method(s): setVal",
-  :row 178}
+  :row 204}
  {:end-row 8,
   :ns sci.impl.records,
   :type :unused-namespace,
@@ -30299,7 +30299,7 @@
   :langs (:clj),
   :message "namespace sci.impl.records is required but never used",
   :row 8}
- {:end-row 324,
+ {:end-row 333,
   :type :def-fn,
   :level :warning,
   :lang :clj,
@@ -30309,7 +30309,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row 291}
+  :row 300}
  {:end-row 34,
   :type :unused-binding,
   :level :warning,
@@ -30389,15 +30389,15 @@
   :ns sci.ctx-store,
   :type :unused-namespace,
   :level :warning,
-  :lang :clj,
+  :lang :cljs,
   :filename "sci/impl/multimethods.cljc",
   :col 5,
   :end-col 18,
   :cljc true,
-  :langs (:clj :cljs),
+  :langs (:cljs),
   :message "namespace sci.ctx-store is required but never used",
   :row 6}
- {:end-row 382,
+ {:end-row 394,
   :type :def-fn,
   :level :warning,
   :lang :clj,
@@ -30407,8 +30407,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Use defn instead of def + fn",
-  :row 378}
- {:end-row 2037,
+  :row 390}
+ {:end-row 2150,
   :type :deprecated-var,
   :level :warning,
   :lang :clj,
@@ -30418,7 +30418,7 @@
   :cljc true,
   :langs (:clj),
   :message "#'clojure.core/replicate is deprecated since 1.3",
-  :row 2037}
+  :row 2150}
  {:end-row 200,
   :type :def-fn,
   :level :warning,
@@ -30525,7 +30525,7 @@
   :langs (:cljs),
   :message "Missing protocol method(s): -mutate",
   :row 368}
- {:end-row 317,
+ {:end-row 297,
   :type :unresolved-symbol,
   :level :error,
   :lang :cljs,
@@ -30535,8 +30535,8 @@
   :cljc true,
   :langs (:cljs),
   :message "Unresolved symbol: bindings",
-  :row 317}
- {:end-row 161,
+  :row 297}
+ {:end-row 179,
   :protocol-ns sci.impl.types,
   :protocol-name IBox,
   :type :missing-protocol-method,
@@ -30549,7 +30549,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Missing protocol method(s): setVal",
-  :row 161}
+  :row 179}
  {:end-row 3,
   :type :unused-excluded-var,
   :level :info,
@@ -30583,7 +30583,7 @@
   :langs (:clj :cljs),
   :message "Unused excluded var: binding",
   :row 3}
- {:end-row 231,
+ {:end-row 243,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30593,8 +30593,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 231}
- {:end-row 233,
+  :row 243}
+ {:end-row 245,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30604,8 +30604,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 233}
- {:end-row 233,
+  :row 245}
+ {:end-row 245,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30615,8 +30615,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 233}
- {:end-row 235,
+  :row 245}
+ {:end-row 247,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30626,8 +30626,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 235}
- {:end-row 235,
+  :row 247}
+ {:end-row 247,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30637,8 +30637,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 235}
- {:end-row 235,
+  :row 247}
+ {:end-row 247,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30648,8 +30648,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 235}
- {:end-row 237,
+  :row 247}
+ {:end-row 249,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30659,8 +30659,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 237}
- {:end-row 237,
+  :row 249}
+ {:end-row 249,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30670,8 +30670,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 237}
- {:end-row 237,
+  :row 249}
+ {:end-row 249,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30681,8 +30681,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 237}
- {:end-row 237,
+  :row 249}
+ {:end-row 249,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30692,8 +30692,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 237}
- {:end-row 239,
+  :row 249}
+ {:end-row 251,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30703,8 +30703,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 239}
- {:end-row 239,
+  :row 251}
+ {:end-row 251,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30714,8 +30714,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 239}
- {:end-row 239,
+  :row 251}
+ {:end-row 251,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30725,8 +30725,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 239}
- {:end-row 239,
+  :row 251}
+ {:end-row 251,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30736,8 +30736,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 239}
- {:end-row 239,
+  :row 251}
+ {:end-row 251,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30747,8 +30747,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 239}
- {:end-row 241,
+  :row 251}
+ {:end-row 253,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30758,8 +30758,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 241}
- {:end-row 241,
+  :row 253}
+ {:end-row 253,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30769,8 +30769,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 241}
- {:end-row 241,
+  :row 253}
+ {:end-row 253,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30780,8 +30780,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 241}
- {:end-row 241,
+  :row 253}
+ {:end-row 253,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30791,8 +30791,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 241}
- {:end-row 241,
+  :row 253}
+ {:end-row 253,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30802,8 +30802,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 241}
- {:end-row 241,
+  :row 253}
+ {:end-row 253,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30813,8 +30813,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 241}
- {:end-row 243,
+  :row 253}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30824,8 +30824,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 243}
- {:end-row 243,
+  :row 255}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30835,8 +30835,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 243}
- {:end-row 243,
+  :row 255}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30846,8 +30846,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 243}
- {:end-row 243,
+  :row 255}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30857,8 +30857,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 243}
- {:end-row 243,
+  :row 255}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30868,8 +30868,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 243}
- {:end-row 243,
+  :row 255}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30879,8 +30879,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 243}
- {:end-row 243,
+  :row 255}
+ {:end-row 255,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30890,8 +30890,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 243}
- {:end-row 245,
+  :row 255}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30901,8 +30901,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30912,8 +30912,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30923,8 +30923,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30934,8 +30934,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30945,8 +30945,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30956,8 +30956,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30967,8 +30967,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 245}
- {:end-row 245,
+  :row 257}
+ {:end-row 257,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30978,8 +30978,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 245}
- {:end-row 247,
+  :row 257}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -30989,8 +30989,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31000,8 +31000,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31011,8 +31011,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31022,8 +31022,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31033,8 +31033,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31044,8 +31044,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31055,8 +31055,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31066,8 +31066,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 247}
- {:end-row 247,
+  :row 259}
+ {:end-row 259,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31077,8 +31077,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 247}
- {:end-row 249,
+  :row 259}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31088,8 +31088,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31099,8 +31099,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31110,8 +31110,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31121,8 +31121,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31132,8 +31132,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31143,8 +31143,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31154,8 +31154,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31165,8 +31165,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31176,8 +31176,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 249}
- {:end-row 249,
+  :row 261}
+ {:end-row 261,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31187,8 +31187,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 249}
- {:end-row 251,
+  :row 261}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31198,8 +31198,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31209,8 +31209,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31220,8 +31220,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31231,8 +31231,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31242,8 +31242,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31253,8 +31253,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31264,8 +31264,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31275,8 +31275,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31286,8 +31286,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31297,8 +31297,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 251}
- {:end-row 251,
+  :row 263}
+ {:end-row 263,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31308,8 +31308,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 251}
- {:end-row 253,
+  :row 263}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31319,8 +31319,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31330,8 +31330,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31341,8 +31341,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31352,8 +31352,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31363,8 +31363,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31374,8 +31374,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31385,8 +31385,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31396,8 +31396,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31407,8 +31407,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31418,8 +31418,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31429,8 +31429,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 253}
- {:end-row 253,
+  :row 265}
+ {:end-row 265,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31440,8 +31440,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 253}
- {:end-row 255,
+  :row 265}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31451,8 +31451,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31462,8 +31462,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31473,8 +31473,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31484,8 +31484,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31495,8 +31495,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31506,8 +31506,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31517,8 +31517,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31528,8 +31528,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31539,8 +31539,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31550,8 +31550,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31561,8 +31561,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31572,8 +31572,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 255}
- {:end-row 255,
+  :row 267}
+ {:end-row 267,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31583,8 +31583,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 255}
- {:end-row 257,
+  :row 267}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31594,8 +31594,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31605,8 +31605,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31616,8 +31616,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31627,8 +31627,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31638,8 +31638,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31649,8 +31649,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31660,8 +31660,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31671,8 +31671,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31682,8 +31682,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31693,8 +31693,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31704,8 +31704,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31715,8 +31715,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31726,8 +31726,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 257}
- {:end-row 257,
+  :row 269}
+ {:end-row 269,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31737,8 +31737,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 257}
- {:end-row 259,
+  :row 269}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31748,8 +31748,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31759,8 +31759,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31770,8 +31770,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31781,8 +31781,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31792,8 +31792,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31803,8 +31803,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31814,8 +31814,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31825,8 +31825,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31836,8 +31836,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31847,8 +31847,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31858,8 +31858,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31869,8 +31869,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31880,8 +31880,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31891,8 +31891,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 259}
- {:end-row 259,
+  :row 271}
+ {:end-row 271,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31902,8 +31902,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 259}
- {:end-row 261,
+  :row 271}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31913,8 +31913,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31924,8 +31924,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31935,8 +31935,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31946,8 +31946,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31957,8 +31957,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31968,8 +31968,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31979,8 +31979,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -31990,8 +31990,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32001,8 +32001,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32012,8 +32012,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32023,8 +32023,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32034,8 +32034,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32045,8 +32045,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32056,8 +32056,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32067,8 +32067,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 261}
- {:end-row 261,
+  :row 273}
+ {:end-row 273,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32078,8 +32078,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding p",
-  :row 261}
- {:end-row 263,
+  :row 273}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32089,8 +32089,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32100,8 +32100,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32111,8 +32111,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32122,8 +32122,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32133,8 +32133,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32144,8 +32144,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32155,8 +32155,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32166,8 +32166,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32177,8 +32177,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32188,8 +32188,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32199,8 +32199,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32210,8 +32210,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32221,8 +32221,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32232,8 +32232,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32243,8 +32243,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32254,8 +32254,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding p",
-  :row 263}
- {:end-row 263,
+  :row 275}
+ {:end-row 275,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32265,8 +32265,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding q",
-  :row 263}
- {:end-row 265,
+  :row 275}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32276,8 +32276,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32287,8 +32287,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32298,8 +32298,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32309,8 +32309,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32320,8 +32320,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32331,8 +32331,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32342,8 +32342,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32353,8 +32353,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32364,8 +32364,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32375,8 +32375,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32386,8 +32386,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32397,8 +32397,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32408,8 +32408,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32419,8 +32419,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32430,8 +32430,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32441,8 +32441,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding p",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32452,8 +32452,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding q",
-  :row 265}
- {:end-row 265,
+  :row 277}
+ {:end-row 277,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32463,8 +32463,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding r",
-  :row 265}
- {:end-row 267,
+  :row 277}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32474,8 +32474,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32485,8 +32485,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32496,8 +32496,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32507,8 +32507,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32518,8 +32518,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32529,8 +32529,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32540,8 +32540,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32551,8 +32551,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32562,8 +32562,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32573,8 +32573,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32584,8 +32584,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32595,8 +32595,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32606,8 +32606,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32617,8 +32617,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32628,8 +32628,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32639,8 +32639,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding p",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32650,8 +32650,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding q",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32661,8 +32661,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding r",
-  :row 267}
- {:end-row 267,
+  :row 279}
+ {:end-row 279,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32672,8 +32672,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding s",
-  :row 267}
- {:end-row 269,
+  :row 279}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32683,8 +32683,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32694,8 +32694,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32705,8 +32705,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32716,8 +32716,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32727,8 +32727,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32738,8 +32738,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32749,8 +32749,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32760,8 +32760,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32771,8 +32771,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32782,8 +32782,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32793,8 +32793,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32804,8 +32804,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32815,8 +32815,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32826,8 +32826,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32837,8 +32837,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32848,8 +32848,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding p",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32859,8 +32859,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding q",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32870,8 +32870,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding r",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32881,8 +32881,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding s",
-  :row 269}
- {:end-row 269,
+  :row 281}
+ {:end-row 281,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32892,8 +32892,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding t",
-  :row 269}
- {:end-row 271,
+  :row 281}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32903,8 +32903,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding a",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32914,8 +32914,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding b",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32925,8 +32925,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding c",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32936,8 +32936,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding d",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32947,8 +32947,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding e",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32958,8 +32958,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding f",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32969,8 +32969,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding g",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32980,8 +32980,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding h",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -32991,8 +32991,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding i",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33002,8 +33002,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding j",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33013,8 +33013,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding k",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33024,8 +33024,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding l",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33035,8 +33035,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding m",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33046,8 +33046,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding n",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33057,8 +33057,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding o",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33068,8 +33068,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding p",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33079,8 +33079,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding q",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33090,8 +33090,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding r",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33101,8 +33101,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding s",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33112,8 +33112,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding t",
-  :row 271}
- {:end-row 271,
+  :row 283}
+ {:end-row 283,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33123,8 +33123,8 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "unused binding rest",
-  :row 271}
- {:end-row 274,
+  :row 283}
+ {:end-row 286,
   :type :unused-binding,
   :level :warning,
   :lang :clj,
@@ -33134,8 +33134,8 @@
   :cljc true,
   :langs (:clj),
   :message "unused binding args",
-  :row 274}
- {:end-row 333,
+  :row 286}
+ {:end-row 345,
   :type :unresolved-symbol,
   :level :error,
   :lang :clj,
@@ -33145,7 +33145,7 @@
   :cljc true,
   :langs (:clj :cljs),
   :message "Unresolved symbol: SciVar",
-  :row 333}
+  :row 345}
  {:end-row 20,
   :ns clojure.string,
   :type :unused-namespace,
