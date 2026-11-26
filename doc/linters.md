@@ -1253,7 +1253,7 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 
 *Keyword:* `:macro-as-value`.
 
-*Description:* report a macro used as an argument of a function, local, keyword or interop call. Usages inside a call to a macro without a hook or `:lint-as` config are not reported.
+*Description:* report a macro used in value position. Usages inside a call to a macro without a hook or `:lint-as` config are not reported.
 
 *Default level:* `:error`.
 
