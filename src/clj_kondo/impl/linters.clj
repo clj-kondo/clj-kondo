@@ -693,17 +693,30 @@
            (let [d (resolve-frame idacs call refer-alls frame)]
              (or (nil? d) (:macro d))))))
 
+(defn args-evaluated?
+  "Returns true if the nearest call on callstack evaluates its args."
+  [idacs call refer-alls callstack]
+  (loop [[[fns fname :as frame] & more] callstack]
+    (when frame
+      (cond
+        (nil? fns) (if (or (symbol? fname)
+                           (utils/one-of fname [:token :list :fn :quote]))
+                     true
+                     (recur more))
+        (utils/one-of frame [[clojure.core .] [clojure.core new] [cljs.core new]]) true
+        :else (when-let [d (resolve-frame idacs call refer-alls frame)]
+                (not (:macro d)))))))
+
 (defn lint-macro-as-value!
   [ctx idacs call called-fn refer-alls]
   (when (and (:macro called-fn)
+             (not (and (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+                       (special-symbol? (:name called-fn))))
              (identical? :use (:type call))
              (not (:private-access? call))
              (not (utils/linter-disabled? call :macro-as-value)))
-    (let [callstack (:callstack call)
-          parent-frame (some #(when (first %) %) callstack)
-          parent (when parent-frame (resolve-frame idacs call refer-alls parent-frame))]
-      (when (and parent
-                 (not (:macro parent))
+    (let [callstack (:callstack call)]
+      (when (and (args-evaluated? idacs call refer-alls callstack)
                  (not (some #(opaque-frame? idacs (:generic-calls ctx) call refer-alls %) callstack)))
         (findings/reg-finding!
          (assoc ctx :config (:config call))
@@ -712,7 +725,9 @@
              (assoc :filename (:filename call)
                     :type :macro-as-value
                     :message (str "Can't take value of a macro: "
-                                  (:ns called-fn) "/" (:name called-fn)))))))))
+                                  (cond (:simple? call) (:name call)
+                                        (:alias call) (str (:alias call) "/" (:name call))
+                                        :else (str (:ns called-fn) "/" (:name called-fn)))))))))))
 
 (defn lint-valid-call!
   [ctx idacs config call called-fn resolved-ns refer-alls]

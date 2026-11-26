@@ -1253,13 +1253,13 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 
 *Keyword:* `:macro-as-value`.
 
-*Description:* report a macro used as a value, which does not compile. Usages inside a call to a macro without a hook or `:lint-as` config are not reported.
+*Description:* report a macro used as an argument of a function, local, keyword or interop call. Usages inside a call to a macro without a hook or `:lint-as` config are not reported.
 
 *Default level:* `:error`.
 
 *Example trigger:* `(map and [true false])`.
 
-*Example message:* `Can't take value of a macro: clojure.core/and`.
+*Example message:* `Can't take value of a macro: and`.
 
 ### Main without gen-class
 
