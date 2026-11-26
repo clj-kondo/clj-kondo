@@ -727,6 +727,7 @@
                     :message (str "Can't take value of a macro: "
                                   (cond (:simple? call) (:name call)
                                         (:alias call) (str (:alias call) "/" (:name call))
+                                        (utils/one-of (:ns called-fn) [clojure.core cljs.core]) (:name called-fn)
                                         :else (str (:ns called-fn) "/" (:name called-fn)))))))))))
 
 (defn lint-valid-call!

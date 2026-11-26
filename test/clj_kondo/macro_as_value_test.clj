@@ -54,6 +54,10 @@
     (assert-submaps2
      [{:row 1 :col 6 :message msg}]
      (lint! "(map and [1 2])" {:linters {:single-logical-operand {:level :off}}} "--lang" "cljc")))
+  (testing "a fully qualified core macro in cljc warns once"
+    (assert-submaps2
+     [{:row 1 :col 11 :message msg}]
+     (lint! "(identity clojure.core/and)" "--lang" "cljc")))
   (testing "the message names an aliased macro by its alias"
     (assert-submaps2
      [{:row 1 :col 68 :message "Can't take value of a macro: b/m"}]
