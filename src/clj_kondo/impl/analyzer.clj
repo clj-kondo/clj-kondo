@@ -3546,6 +3546,9 @@
                    ;; treat its args as conditionally
                    ;; evaluated, like a when body
                    unresolved? (in-branch-ctx))]
+    (when-let [^java.util.Set generic-calls (:generic-calls ctx)]
+      (when-let [frame (first (:callstack ctx))]
+        (.add generic-calls frame)))
     (analyze-children next-ctx children false)))
 
 (defn analyze-test-ns-call
@@ -4640,6 +4643,7 @@
                                          full-fn-name)
                           full-fn-name (with-meta full-fn-name (meta function))
                           binding (and simple?
+                                       (not (special-symbol? full-fn-name))
                                        (get bindings full-fn-name))]
                       (if binding
                         (if-let [ret-tag (:ret (analyze-binding-call ctx full-fn-name binding expr))]

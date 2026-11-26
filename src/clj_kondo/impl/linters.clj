@@ -680,6 +680,40 @@
               :end-col (or name-end-col end-col))
        call))))
 
+(defn resolve-frame [idacs call refer-alls [fns fname]]
+  (utils/resolve-call idacs call (:lang call) fns fname false refer-alls))
+
+(defn opaque-frame?
+  "Returns true if frame is a call whose args were analyzed as plain
+  expressions and whose callee is a macro or unknown."
+  [idacs ^java.util.Set generic-calls call refer-alls frame]
+  (or (identical? :clj-kondo/unknown-namespace (first frame))
+      (and (first frame)
+           (or (nil? generic-calls) (.contains generic-calls frame))
+           (let [d (resolve-frame idacs call refer-alls frame)]
+             (or (nil? d) (:macro d))))))
+
+(defn lint-macro-as-value!
+  [ctx idacs call called-fn refer-alls]
+  (when (and (:macro called-fn)
+             (identical? :use (:type call))
+             (not (:private-access? call))
+             (not (utils/linter-disabled? call :macro-as-value)))
+    (let [callstack (:callstack call)
+          parent-frame (some #(when (first %) %) callstack)
+          parent (when parent-frame (resolve-frame idacs call refer-alls parent-frame))]
+      (when (and parent
+                 (not (:macro parent))
+                 (not (some #(opaque-frame? idacs (:generic-calls ctx) call refer-alls %) callstack)))
+        (findings/reg-finding!
+         (assoc ctx :config (:config call))
+         (-> call
+             utils/location
+             (assoc :filename (:filename call)
+                    :type :macro-as-value
+                    :message (str "Can't take value of a macro: "
+                                  (:ns called-fn) "/" (:name called-fn)))))))))
+
 (defn lint-valid-call!
   [ctx idacs config call called-fn resolved-ns refer-alls]
   (let [type (:type call)
@@ -744,6 +778,7 @@
                                      ;; value position for :discouraged-var :positions
                                      (identical? :call (:type call)))
     (reg-constant-condition! ctx call call? called-fn)
+    (lint-macro-as-value! ctx idacs call called-fn refer-alls)
     (when arity-error?
       (findings/reg-finding!
        ctx
