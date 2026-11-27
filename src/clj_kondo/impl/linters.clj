@@ -695,8 +695,8 @@
      [cljs.core vswap!] [cljs.core while]})
 
 (defn opaque-macro-call?
-  "Returns true if enclosing-call is a macro call whose args were analyzed as plain expressions.
-  An unresolved callee counts as a macro."
+  "Returns true if the args of enclosing-call may not be evaluated.
+  This is the case for a macro without an analyzer, hook or :lint-as config, and for an unresolved callee."
   [idacs generic-calls call refer-alls enclosing-call]
   (or (identical? :clj-kondo/unknown-namespace (first enclosing-call))
       (and (first enclosing-call)
