@@ -3546,9 +3546,9 @@
                    ;; treat its args as conditionally
                    ;; evaluated, like a when body
                    unresolved? (in-branch-ctx))]
-    (when-let [generic-calls (:generic-calls ctx)]
-      (when-let [frame (first (:callstack ctx))]
-        (swap! generic-calls conj frame)))
+    (when-let [calls-without-analyzer (:calls-without-analyzer ctx)]
+      (when-let [this-call (first (:callstack ctx))]
+        (swap! calls-without-analyzer conj this-call)))
     (analyze-children next-ctx children false)))
 
 (defn analyze-test-ns-call

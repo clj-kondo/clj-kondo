@@ -697,11 +697,11 @@
 (defn opaque-macro-call?
   "Returns true if the args of enclosing-call may not be evaluated.
   This is the case for a macro without an analyzer, hook or :lint-as config, and for an unresolved callee."
-  [idacs generic-calls call refer-alls enclosing-call]
+  [idacs calls-without-analyzer call refer-alls enclosing-call]
   (or (identical? :clj-kondo/unknown-namespace (first enclosing-call))
       (and (first enclosing-call)
            (not (contains? evaluating-core-macros enclosing-call))
-           (contains? generic-calls enclosing-call)
+           (contains? calls-without-analyzer enclosing-call)
            (let [d (resolve-callee idacs call refer-alls enclosing-call)]
              (or (nil? d) (:macro d))))))
 
@@ -729,8 +729,8 @@
              (not (utils/linter-disabled? call :macro-as-value)))
     (let [callstack (:callstack call)]
       (when (and (args-evaluated? idacs call refer-alls callstack)
-                 (not (let [generic-calls @(:generic-calls ctx)]
-                        (some #(opaque-macro-call? idacs generic-calls call refer-alls %) callstack))))
+                 (not (let [calls-without-analyzer @(:calls-without-analyzer ctx)]
+                        (some #(opaque-macro-call? idacs calls-without-analyzer call refer-alls %) callstack))))
         (findings/reg-finding!
          (assoc ctx :config (:config call))
          (-> call
