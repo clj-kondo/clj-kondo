@@ -185,6 +185,7 @@
               :underscore-in-namespace {:level :warning}
               :multiple-async-in-deftest {:level :warning}
               :java-static-field-call {:level :error}
+              :macro-as-value {:level :error}
               :equals-expected-position {:level :off
                                          :position :first}
               :destructured-or-binding-of-same-map {:level :warning}

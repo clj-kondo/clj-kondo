@@ -65,6 +65,7 @@ configuration. For general configurations options, go [here](config.md).
     - [Line length](#line-length)
     - [Keyword in binding vector](#keyword-in-binding-vector)
     - [Locking: suspicious lock](#locking-suspicious-lock)
+    - [Macro as value](#macro-as-value)
     - [Main without gen-class](#main-without-gen-class)
     - [Minus one](#minus-one)
     - [Misplaced async metadata](#misplaced-async-metadata)
@@ -1247,6 +1248,18 @@ To exclude lines that matches a pattern via `re-find`, use: `:exclude-pattern ";
 - `Suspicious lock object: no body provided`
 - `Suspicious lock object: use of interned object`
 - `Suspicious lock object: object is local to locking scope`
+
+### Macro as value
+
+*Keyword:* `:macro-as-value`.
+
+*Description:* report a macro used in value position. Usages inside a call to a macro without a hook or `:lint-as` config are not reported.
+
+*Default level:* `:error`.
+
+*Example trigger:* `(map and [true false])`.
+
+*Example message:* `Can't take value of a macro: and`.
 
 ### Main without gen-class
 

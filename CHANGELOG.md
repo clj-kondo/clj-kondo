@@ -14,6 +14,8 @@ For a list of breaking changes, check [here](#breaking-changes).
 
 ## Unreleased
 
+- [#1725](https://github.com/clj-kondo/clj-kondo/issues/1725): NEW linter: `:macro-as-value`: report a macro used as a value. E.g. `(map and [true false])` will error. See [docs](https://github.com/clj-kondo/clj-kondo/blob/master/doc/linters.md#macro-as-value).
+- A local named like a special form, such as `var` or `if`, no longer shadows the special form in call position.
 - [#3041](https://github.com/clj-kondo/clj-kondo/issues/3041): hooks API `map-node` takes an options map. `{:closed true}` marks the node as containing every key of the map, so missing required keys will be reported.
 - [#3059](https://github.com/clj-kondo/clj-kondo/issues/3059): `proxy` method params are bound as locals. Arity, unresolved symbol, type mismatch and unused binding checks now apply inside `proxy` methods.
 - [#3062](https://github.com/clj-kondo/clj-kondo/issues/3062): a form with `:clj-kondo/lang :cljs` or `:clj` metadata is linted as if written in that language, regardless of the file extension, also in hook output. E.g. `^{:clj-kondo/lang :cljs} (fn [] (js-obj "a" 1))` no longer reports `js-obj` as unresolved.

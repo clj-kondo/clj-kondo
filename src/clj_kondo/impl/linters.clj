@@ -607,7 +607,7 @@
   (when (and (:private called-fn)
              (not= caller-ns-sym
                    fn-ns)
-             (not (:private-access? call))
+             (not (:ref-kind call))
              (not (utils/linter-disabled? call :private-call)))
     (findings/reg-finding! ctx
                            {:filename filename
@@ -680,6 +680,69 @@
               :end-col (or name-end-col end-col))
        call))))
 
+(defn resolve-callee [idacs call refer-alls [fns fname]]
+  (utils/resolve-call idacs call (:lang call) fns fname false refer-alls))
+
+(def evaluating-core-macros
+  "Core macros without a dedicated analyzer that evaluate all their args."
+  '#{[clojure.core time] [clojure.core with-out-str] [clojure.core future]
+     [clojure.core delay] [clojure.core lazy-seq] [clojure.core lazy-cat]
+     [clojure.core assert] [clojure.core dosync] [clojure.core io!]
+     [clojure.core with-in-str] [clojure.core vswap!] [clojure.core while]
+     [clojure.core pvalues] [clojure.core with-bindings]
+     [cljs.core time] [cljs.core with-out-str] [cljs.core delay]
+     [cljs.core lazy-seq] [cljs.core lazy-cat] [cljs.core assert]
+     [cljs.core vswap!] [cljs.core while]})
+
+(defn opaque-macro-call?
+  "Returns true if the args of enclosing-call may not be evaluated.
+  This is the case for a macro without an analyzer, hook or :lint-as config, and for an unresolved callee."
+  [idacs calls-without-analyzer call refer-alls enclosing-call]
+  (or (identical? :clj-kondo/unknown-namespace (first enclosing-call))
+      (and (first enclosing-call)
+           (not (contains? evaluating-core-macros enclosing-call))
+           (contains? calls-without-analyzer enclosing-call)
+           (let [d (resolve-callee idacs call refer-alls enclosing-call)]
+             (or (nil? d) (:macro d))))))
+
+(defn args-evaluated?
+  "Returns true if the nearest call on callstack evaluates its args."
+  [idacs call refer-alls callstack]
+  (loop [[[fns fname :as enclosing-call] & more] callstack]
+    (when enclosing-call
+      (cond
+        (nil? fns) (if (or (symbol? fname)
+                           (utils/one-of fname [:token :list :fn :quote]))
+                     true
+                     (recur more))
+        (utils/one-of enclosing-call [[clojure.core .] [clojure.core new] [cljs.core new]]) true
+        :else (when-let [d (resolve-callee idacs call refer-alls enclosing-call)]
+                (not (:macro d)))))))
+
+(defn lint-macro-as-value!
+  [ctx idacs call called-fn refer-alls]
+  (when (and (:macro called-fn)
+             (not (and (utils/one-of (:ns called-fn) [clojure.core cljs.core])
+                       (special-symbol? (:name called-fn))))
+             (identical? :use (:type call))
+             (not (:ref-kind call))
+             (not (utils/linter-disabled? call :macro-as-value)))
+    (let [callstack (:callstack call)]
+      (when (and (args-evaluated? idacs call refer-alls callstack)
+                 (not (let [calls-without-analyzer @(:calls-without-analyzer ctx)]
+                        (some #(opaque-macro-call? idacs calls-without-analyzer call refer-alls %) callstack))))
+        (findings/reg-finding!
+         (assoc ctx :config (:config call))
+         (-> call
+             utils/location
+             (assoc :filename (:filename call)
+                    :type :macro-as-value
+                    :message (str "Can't take value of a macro: "
+                                  (cond (:simple? call) (:name call)
+                                        (:alias call) (str (:alias call) "/" (:name call))
+                                        (utils/one-of (:ns called-fn) [clojure.core cljs.core]) (:name called-fn)
+                                        :else (str (:ns called-fn) "/" (:name called-fn)))))))))))
+
 (defn lint-valid-call!
   [ctx idacs config call called-fn resolved-ns refer-alls]
   (let [type (:type call)
@@ -744,6 +807,7 @@
                                      ;; value position for :discouraged-var :positions
                                      (identical? :call (:type call)))
     (reg-constant-condition! ctx call call? called-fn)
+    (lint-macro-as-value! ctx idacs call called-fn refer-alls)
     (when arity-error?
       (findings/reg-finding!
        ctx

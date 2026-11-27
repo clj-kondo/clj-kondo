@@ -3479,7 +3479,7 @@
 (defn- analyze-var [ctx expr children]
   (when (utils/lint-condition? expr)
     (constant-condition-linter ctx expr))
-  (analyze-children (assoc ctx :private-access? true) children))
+  (analyze-children (assoc ctx :ref-kind :var) children))
 
 (defn- analyze-locking [ctx expr]
   (let [args (:arg-types ctx)
@@ -3546,6 +3546,9 @@
                    ;; treat its args as conditionally
                    ;; evaluated, like a when body
                    unresolved? (in-branch-ctx))]
+    (when-let [calls-without-analyzer (:calls-without-analyzer ctx)]
+      (when-let [this-call (first (:callstack ctx))]
+        (swap! calls-without-analyzer conj this-call)))
     (analyze-children next-ctx children false)))
 
 (defn analyze-test-ns-call
@@ -4640,6 +4643,7 @@
                                          full-fn-name)
                           full-fn-name (with-meta full-fn-name (meta function))
                           binding (and simple?
+                                       (not (special-symbol? full-fn-name))
                                        (get bindings full-fn-name))]
                       (if binding
                         (if-let [ret-tag (:ret (analyze-binding-call ctx full-fn-name binding expr))]

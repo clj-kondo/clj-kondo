@@ -262,8 +262,9 @@
                                           ;; clojure.string, etc in (:require [...])
                                           (= symbol-val (get (:qualify-ns ns)
                                                              symbol-val)))
-                                      :private-access? (or new-syntax-quote-level-pos?
-                                                           (:private-access? ctx))
+                                      :ref-kind (if new-syntax-quote-level-pos?
+                                                    :syntax-quote
+                                                    (:ref-kind ctx))
                                       :callstack (:callstack ctx)
                                       :config (:config ctx)
                                       :in-def (:in-def ctx)
