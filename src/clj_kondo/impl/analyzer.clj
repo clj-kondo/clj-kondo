@@ -3479,7 +3479,7 @@
 (defn- analyze-var [ctx expr children]
   (when (utils/lint-condition? expr)
     (constant-condition-linter ctx expr))
-  (analyze-children (assoc ctx :private-access? true) children))
+  (analyze-children (assoc ctx :ref-kind :var) children))
 
 (defn- analyze-locking [ctx expr]
   (let [args (:arg-types ctx)

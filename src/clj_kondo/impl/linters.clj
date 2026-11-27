@@ -607,7 +607,7 @@
   (when (and (:private called-fn)
              (not= caller-ns-sym
                    fn-ns)
-             (not (:private-access? call))
+             (not (:ref-kind call))
              (not (utils/linter-disabled? call :private-call)))
     (findings/reg-finding! ctx
                            {:filename filename
@@ -725,7 +725,7 @@
              (not (and (utils/one-of (:ns called-fn) [clojure.core cljs.core])
                        (special-symbol? (:name called-fn))))
              (identical? :use (:type call))
-             (not (:private-access? call))
+             (not (:ref-kind call))
              (not (utils/linter-disabled? call :macro-as-value)))
     (let [callstack (:callstack call)]
       (when (and (args-evaluated? idacs call refer-alls callstack)
