@@ -680,7 +680,7 @@
               :end-col (or name-end-col end-col))
        call))))
 
-(defn resolve-frame [idacs call refer-alls [fns fname]]
+(defn resolve-callee [idacs call refer-alls [fns fname]]
   (utils/resolve-call idacs call (:lang call) fns fname false refer-alls))
 
 (def evaluating-core-macros
@@ -694,29 +694,29 @@
      [cljs.core lazy-seq] [cljs.core lazy-cat] [cljs.core assert]
      [cljs.core vswap!] [cljs.core while]})
 
-(defn opaque-frame?
-  "Returns true if frame is a call whose args were analyzed as plain
-  expressions and whose callee is a macro or unknown."
-  [idacs generic-calls call refer-alls frame]
-  (or (identical? :clj-kondo/unknown-namespace (first frame))
-      (and (first frame)
-           (not (contains? evaluating-core-macros frame))
-           (or (nil? generic-calls) (contains? generic-calls frame))
-           (let [d (resolve-frame idacs call refer-alls frame)]
+(defn opaque-macro-call?
+  "Returns true if enclosing-call is a macro call whose args were analyzed as plain expressions.
+  An unresolved callee counts as a macro."
+  [idacs generic-calls call refer-alls enclosing-call]
+  (or (identical? :clj-kondo/unknown-namespace (first enclosing-call))
+      (and (first enclosing-call)
+           (not (contains? evaluating-core-macros enclosing-call))
+           (or (nil? generic-calls) (contains? generic-calls enclosing-call))
+           (let [d (resolve-callee idacs call refer-alls enclosing-call)]
              (or (nil? d) (:macro d))))))
 
 (defn args-evaluated?
   "Returns true if the nearest call on callstack evaluates its args."
   [idacs call refer-alls callstack]
-  (loop [[[fns fname :as frame] & more] callstack]
-    (when frame
+  (loop [[[fns fname :as enclosing-call] & more] callstack]
+    (when enclosing-call
       (cond
         (nil? fns) (if (or (symbol? fname)
                            (utils/one-of fname [:token :list :fn :quote]))
                      true
                      (recur more))
-        (utils/one-of frame [[clojure.core .] [clojure.core new] [cljs.core new]]) true
-        :else (when-let [d (resolve-frame idacs call refer-alls frame)]
+        (utils/one-of enclosing-call [[clojure.core .] [clojure.core new] [cljs.core new]]) true
+        :else (when-let [d (resolve-callee idacs call refer-alls enclosing-call)]
                 (not (:macro d)))))))
 
 (defn lint-macro-as-value!
@@ -730,7 +730,7 @@
     (let [callstack (:callstack call)]
       (when (and (args-evaluated? idacs call refer-alls callstack)
                  (not (let [generic-calls (some-> (:generic-calls ctx) deref)]
-                        (some #(opaque-frame? idacs generic-calls call refer-alls %) callstack))))
+                        (some #(opaque-macro-call? idacs generic-calls call refer-alls %) callstack))))
         (findings/reg-finding!
          (assoc ctx :config (:config call))
          (-> call
