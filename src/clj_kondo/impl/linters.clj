@@ -683,12 +683,24 @@
 (defn resolve-frame [idacs call refer-alls [fns fname]]
   (utils/resolve-call idacs call (:lang call) fns fname false refer-alls))
 
+(def evaluating-core-macros
+  "Core macros without a dedicated analyzer that evaluate all their args."
+  '#{[clojure.core time] [clojure.core with-out-str] [clojure.core future]
+     [clojure.core delay] [clojure.core lazy-seq] [clojure.core lazy-cat]
+     [clojure.core assert] [clojure.core dosync] [clojure.core io!]
+     [clojure.core with-in-str] [clojure.core vswap!] [clojure.core while]
+     [clojure.core pvalues] [clojure.core with-bindings]
+     [cljs.core time] [cljs.core with-out-str] [cljs.core delay]
+     [cljs.core lazy-seq] [cljs.core lazy-cat] [cljs.core assert]
+     [cljs.core vswap!] [cljs.core while]})
+
 (defn opaque-frame?
   "Returns true if frame is a call whose args were analyzed as plain
   expressions and whose callee is a macro or unknown."
   [idacs generic-calls call refer-alls frame]
   (or (identical? :clj-kondo/unknown-namespace (first frame))
       (and (first frame)
+           (not (contains? evaluating-core-macros frame))
            (or (nil? generic-calls) (contains? generic-calls frame))
            (let [d (resolve-frame idacs call refer-alls frame)]
              (or (nil? d) (:macro d))))))

@@ -64,6 +64,23 @@
      (lint! "(ns bar) (defmacro m []) (ns foo (:require [bar :as b])) (identity b/m)")))
   (testing "a cljs var that is both a function and a macro does not warn"
     (is (empty? (lint! "(map + [1 2]) (map str [1 2])" "--lang" "cljs"))))
+  (testing "a macro under time, future, delay or a similar core macro warns"
+    (doseq [[lang forms] {"clj" ["(time (inc and))" "(with-out-str (inc and))" "(future (inc and))"
+                                 "(delay (inc and))" "(lazy-seq (inc and))" "(lazy-cat (inc and))"
+                                 "(assert (inc and))" "(dosync (inc and))" "(io! (inc and))"
+                                 "(with-in-str \"\" (inc and))" "(vswap! (volatile! 1) + (inc and))"
+                                 "(while (inc and))" "(pvalues (inc and))" "(with-bindings {} (inc and))"]
+                          "cljs" ["(time (inc and))" "(with-out-str (inc and))" "(delay (inc and))"
+                                  "(lazy-seq (inc and))" "(lazy-cat (inc and))" "(assert (inc and))"
+                                  "(vswap! (volatile! 1) + (inc and))" "(while (inc and))"]}
+            form forms]
+      (testing (str lang " " form)
+        (assert-submaps2
+         [{:message msg}]
+         (filter #(= msg (:message %))
+                 (lint! form {:linters {:type-mismatch {:level :off}}} "--lang" lang))))))
+  (testing "a macro under memfn does not warn"
+    (is (empty? (lint! "(memfn and)"))))
   (testing "a special form or a cljs field access on a macro does not warn"
     (is (empty? (lint! "(fn [] (:a var))" {:linters {:unresolved-symbol {:level :off}}})))
     (is (empty? (lint! "(set! (. defn -cljs$lang$macro) true)" "--lang" "cljs"))))
