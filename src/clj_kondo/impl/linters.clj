@@ -701,7 +701,7 @@
   (or (identical? :clj-kondo/unknown-namespace (first enclosing-call))
       (and (first enclosing-call)
            (not (contains? evaluating-core-macros enclosing-call))
-           (or (nil? generic-calls) (contains? generic-calls enclosing-call))
+           (contains? generic-calls enclosing-call)
            (let [d (resolve-callee idacs call refer-alls enclosing-call)]
              (or (nil? d) (:macro d))))))
 
@@ -729,7 +729,7 @@
              (not (utils/linter-disabled? call :macro-as-value)))
     (let [callstack (:callstack call)]
       (when (and (args-evaluated? idacs call refer-alls callstack)
-                 (not (let [generic-calls (some-> (:generic-calls ctx) deref)]
+                 (not (let [generic-calls @(:generic-calls ctx)]
                         (some #(opaque-macro-call? idacs generic-calls call refer-alls %) callstack))))
         (findings/reg-finding!
          (assoc ctx :config (:config call))
